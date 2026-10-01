@@ -985,6 +985,11 @@ class FamilyDriveLinkService {
         FamilyDriveLinkException.missingGoogleAccount,
       );
     }
+    if (childAccount.subjectId.trim() == offer.parentSubjectId.trim()) {
+      throw const FamilyDriveLinkException(
+        FamilyDriveLinkException.accountMismatch,
+      );
+    }
     final createdPermissions = <FamilyDrivePermissionGrant>[];
     final createdFiles = <FamilyDriveFileRef>[];
     try {
@@ -1127,11 +1132,27 @@ class FamilyDriveLinkService {
         FamilyDriveLinkException.completionMissing,
       );
     }
-    return _completeParentPairingWithCompletion(
-      pending: pending,
-      completion: FamilyPairingCompletion.fromMap(candidates.first.payload),
-      completedAt: completedAt,
-      restoreChildBackup: restoreChildBackup,
+    FamilyDriveLinkException? lastRejectedCandidate;
+    for (final candidate in candidates) {
+      try {
+        final completion = FamilyPairingCompletion.fromMap(candidate.payload);
+        _validateCompletionAgainstPending(completion, pending);
+        return _completeParentPairingWithCompletion(
+          pending: pending,
+          completion: completion,
+          completionFile: candidate.file,
+          completedAt: completedAt,
+          restoreChildBackup: restoreChildBackup,
+        );
+      } on FamilyDriveLinkException catch (error) {
+        lastRejectedCandidate = error;
+      }
+    }
+    if (lastRejectedCandidate != null) {
+      throw lastRejectedCandidate;
+    }
+    throw const FamilyDriveLinkException(
+      FamilyDriveLinkException.completionMissing,
     );
   }
 
@@ -1194,6 +1215,7 @@ class FamilyDriveLinkService {
   Future<FamilyDriveLinkRecord> _completeParentPairingWithCompletion({
     required Map<String, dynamic> pending,
     required FamilyPairingCompletion completion,
+    FamilyDriveFileRef? completionFile,
     required DateTime completedAt,
     Future<void> Function(
       FamilyDriveLinkRecord record,
@@ -1202,19 +1224,26 @@ class FamilyDriveLinkService {
   }) async {
     final inviteId = pending['inviteId']?.toString().trim() ?? '';
     _validateCompletionAgainstPending(completion, pending);
+    final completionFileId = completionFile?.id.trim() ?? '';
+    final completionRecord = completionFileId.isEmpty
+        ? completion.record
+        : completion.record.copyWith(
+            pairingCompletionFileId: completionFileId,
+            updatedAt: completion.record.updatedAt,
+          );
     final childBackup = await _gateway.downloadJsonFile(
-      completion.record.coreBackupFile,
+      completionRecord.coreBackupFile,
     );
     if (restoreChildBackup != null) {
-      await restoreChildBackup(completion.record, childBackup);
+      await restoreChildBackup(completionRecord, childBackup);
     }
     final manifest = _manifestFor(
       role: FamilyDriveLinkOwnerRole.parent,
-      records: <FamilyDriveLinkRecord>[completion.record],
+      records: <FamilyDriveLinkRecord>[completionRecord],
       at: completedAt,
     );
     final manifestFile = await _gateway.saveParentManifest(manifest: manifest);
-    final record = completion.record.copyWith(
+    final record = completionRecord.copyWith(
       parentManifestFileId: manifestFile.id,
       updatedAt: completedAt,
     );

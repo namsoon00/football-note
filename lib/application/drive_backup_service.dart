@@ -1455,6 +1455,12 @@ class DriveBackupService implements BackupRepository {
 
   Future<FamilyDriveLinkRecord> approveFamilyPairingOffer(
     String qrPayload,
+  ) {
+    return _runDriveMutation(() => _approveFamilyPairingOffer(qrPayload));
+  }
+
+  Future<FamilyDriveLinkRecord> _approveFamilyPairingOffer(
+    String qrPayload,
   ) async {
     if (!await isSignedIn()) {
       await signIn();
@@ -1464,7 +1470,8 @@ class DriveBackupService implements BackupRepository {
     if (!state.isChildMode) {
       throw StateError(driveAccountBindingRequiredErrorCode);
     }
-    _throwIfDriveAccountNeedsResolutionBeforeBackup();
+    final shouldBindChildDriveAccount =
+        await _prepareChildDriveAccountForPairing(qrPayload);
     final familyId = await _ensureFamilyIdForPairing();
     final refreshedState = _familyService.loadState();
     final childBackup = _buildBackup(
@@ -1490,6 +1497,13 @@ class DriveBackupService implements BackupRepository {
         record.parentDisplayName.trim(),
       );
     }
+    if (shouldBindChildDriveAccount) {
+      await _rememberCurrentRoleDriveConnectionAfterRestore();
+    }
+    await _recordRemoteBackupReceipt(
+      childBackup,
+      modifiedAt: record.lastCoreModifiedAt ?? DateTime.now(),
+    );
     return record;
   }
 
@@ -2798,6 +2812,44 @@ class DriveBackupService implements BackupRepository {
               ? changedPlayerDriveConnectionErrorCode
               : driveAccountBindingRequiredErrorCode;
       throw StateError(errorCode);
+    }
+  }
+
+  Future<bool> _prepareChildDriveAccountForPairing(String qrPayload) async {
+    final offer = FamilyPairingOffer.parse(qrPayload);
+    final current =
+        _loadCachedDriveConnectionInfo() ?? _loadRecentDriveConnection();
+    final currentSubject = current?.subjectId.trim() ?? '';
+    if (current == null || currentSubject.isEmpty) {
+      throw const FamilyDriveLinkException(
+        FamilyDriveLinkException.missingGoogleAccount,
+      );
+    }
+    if (currentSubject.toLowerCase() ==
+        offer.parentSubjectId.trim().toLowerCase()) {
+      throw const FamilyDriveLinkException(
+        FamilyDriveLinkException.accountMismatch,
+      );
+    }
+    final bindingState = _playerDriveBindingState();
+    switch (bindingState) {
+      case PlayerDriveBindingState.verified:
+        return false;
+      case PlayerDriveBindingState.unbound:
+        final driveApi = await _driveApi(requireInteractive: false);
+        if (await _hasRemoteBackupFileWithApi(driveApi)) {
+          throw StateError(remoteBackupOverwriteBlockedErrorCode);
+        }
+        return true;
+      case PlayerDriveBindingState.notConnected:
+        throw const FamilyDriveLinkException(
+          FamilyDriveLinkException.missingGoogleAccount,
+        );
+      case PlayerDriveBindingState.notApplicable:
+        throw StateError(driveAccountBindingRequiredErrorCode);
+      case PlayerDriveBindingState.legacyEmailMatch:
+      case PlayerDriveBindingState.accountMismatch:
+        throw StateError(changedPlayerDriveConnectionErrorCode);
     }
   }
 

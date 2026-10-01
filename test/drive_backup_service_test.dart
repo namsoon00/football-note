@@ -3344,6 +3344,261 @@ void main() {
     expect(driveApiRequested, isFalse);
   });
 
+  test('child QR approval safely binds an empty unbound backup account',
+      () async {
+    await trainingBox.add(
+      _trainingEntry(
+        recordId: 'before-qr-pairing',
+        notes: 'Existing local training',
+      ),
+    );
+    await optionBox.put(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.child.name,
+    );
+    final driveClient = _FamilyPairingApprovalDriveClient();
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      googleSignIn: _NoopGoogleSignIn(),
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'child@example.com',
+        displayName: 'Child',
+        subjectId: 'child-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+    await service.getDriveConnectionInfo();
+    final offer = FamilyPairingOffer.create(
+      parentAccount: const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: 'Parent',
+        subjectId: 'parent-subject',
+      ),
+      now: DateTime.now().toUtc(),
+    );
+
+    final record = await service.approveFamilyPairingOffer(
+      offer.toQrPayload(),
+    );
+
+    expect(record.parentSubjectId, 'parent-subject');
+    expect(record.childSubjectId, 'child-subject');
+    expect(service.getActiveFamilyDriveLink()?.parentMemberId,
+        offer.parentMemberId);
+    expect(
+      optionBox.get(DriveBackupService.recordDriveSubjectLocalKey),
+      'child-subject',
+    );
+    expect(
+      optionBox.get(DriveBackupService.sharedChildDriveSubjectLocalKey),
+      'child-subject',
+    );
+    expect(service.needsPlayerDriveImportBeforeBackup(), isFalse);
+    expect(trainingBox.values.single.notes, 'Existing local training');
+    final sharedCore = driveClient.filePayload('core-file');
+    expect(sharedCore['format'], 'teo_note_backup');
+    expect((sharedCore['entries'] as List).single['recordId'],
+        'before-qr-pairing');
+    expect(
+      driveClient.createdKinds,
+      containsAll(<String>[
+        FamilyDriveFileKind.coreBackup.name,
+        FamilyDriveFileKind.parentContribution.name,
+        FamilyDriveFileKind.pairingCompletion.name,
+        FamilyDriveFileKind.childManifest.name,
+      ]),
+    );
+    expect(
+      driveClient.permissionRolesByFile['core-file'],
+      FamilyDrivePermissionRole.reader.name,
+    );
+    expect(
+      driveClient.permissionRolesByFile['contribution-file'],
+      FamilyDrivePermissionRole.writer.name,
+    );
+    expect(
+      driveClient.permissionRolesByFile['completion-file'],
+      FamilyDrivePermissionRole.reader.name,
+    );
+
+    await service.backup();
+
+    expect(driveClient.updatedFileIds, contains('core-file'));
+    expect(driveClient.trashedFileIds, isNot(contains('core-file')));
+    expect(driveClient.hasFile('core-file'), isTrue);
+  });
+
+  test(
+      'child QR approval blocks an unbound account with an existing Drive backup',
+      () async {
+    await optionBox.put(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.child.name,
+    );
+    final driveClient = _FamilyPairingApprovalDriveClient(
+      hasExistingBackup: true,
+    );
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      googleSignIn: _NoopGoogleSignIn(),
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'child@example.com',
+        displayName: 'Child',
+        subjectId: 'child-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+    await service.getDriveConnectionInfo();
+    final offer = FamilyPairingOffer.create(
+      parentAccount: const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: 'Parent',
+        subjectId: 'parent-subject',
+      ),
+      now: DateTime.now().toUtc(),
+    );
+
+    await expectLater(
+      service.approveFamilyPairingOffer(offer.toQrPayload()),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.remoteBackupOverwriteBlockedErrorCode,
+        ),
+      ),
+    );
+
+    expect(driveClient.writeRequestCount, 0);
+    expect(driveClient.permissionRolesByFile, isEmpty);
+    expect(service.getActiveFamilyDriveLink(), isNull);
+    expect(
+      optionBox.get(DriveBackupService.recordDriveSubjectLocalKey),
+      isNull,
+    );
+  });
+
+  test('child QR approval rejects invalid offers before Drive writes',
+      () async {
+    await optionBox.put(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.child.name,
+    );
+    var driveApiRequests = 0;
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      googleSignIn: _NoopGoogleSignIn(),
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'child@example.com',
+        displayName: 'Child',
+        subjectId: 'child-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        driveApiRequests += 1;
+        throw StateError('Drive API must not be requested.');
+      },
+    );
+    await service.getDriveConnectionInfo();
+    final expiredOffer = FamilyPairingOffer.create(
+      parentAccount: const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: 'Parent',
+        subjectId: 'parent-subject',
+      ),
+      now: DateTime.now()
+          .toUtc()
+          .subtract(FamilyPairingOffer.ttl + const Duration(minutes: 1)),
+    );
+
+    await expectLater(
+      service.approveFamilyPairingOffer('not-a-family-link'),
+      throwsA(
+        isA<FamilyDriveLinkException>().having(
+          (error) => error.code,
+          'code',
+          FamilyDriveLinkException.malformedOffer,
+        ),
+      ),
+    );
+    await expectLater(
+      service.approveFamilyPairingOffer(expiredOffer.toQrPayload()),
+      throwsA(
+        isA<FamilyDriveLinkException>().having(
+          (error) => error.code,
+          'code',
+          FamilyDriveLinkException.expiredOffer,
+        ),
+      ),
+    );
+
+    expect(driveApiRequests, 0);
+    expect(service.getActiveFamilyDriveLink(), isNull);
+    expect(
+      optionBox.get(DriveBackupService.recordDriveSubjectLocalKey),
+      isNull,
+    );
+  });
+
+  test('child QR approval still blocks a changed saved backup account',
+      () async {
+    await optionBox.put(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.child.name,
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveSubjectLocalKey,
+      'saved-child-subject',
+    );
+    final driveClient = _FamilyPairingApprovalDriveClient();
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      googleSignIn: _NoopGoogleSignIn(),
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'child@example.com',
+        displayName: 'Child',
+        subjectId: 'other-child-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+    await service.getDriveConnectionInfo();
+    final offer = FamilyPairingOffer.create(
+      parentAccount: const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: 'Parent',
+        subjectId: 'parent-subject',
+      ),
+      now: DateTime.now().toUtc(),
+    );
+
+    await expectLater(
+      service.approveFamilyPairingOffer(offer.toQrPayload()),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.changedPlayerDriveConnectionErrorCode,
+        ),
+      ),
+    );
+
+    expect(driveClient.writeRequestCount, 0);
+    expect(service.getActiveFamilyDriveLink(), isNull);
+  });
+
   test(
     'child family link recovery does not establish core backup binding',
     () async {
@@ -4238,6 +4493,396 @@ class _LinkedFamilyContributionDriveClient extends http.BaseClient {
   }
 }
 
+class _FamilyPairingApprovalDriveClient extends http.BaseClient {
+  _FamilyPairingApprovalDriveClient({bool hasExistingBackup = false}) {
+    if (hasExistingBackup) {
+      _filesById['existing-backup-file'] = _DriveJsonFile(
+        id: 'existing-backup-file',
+        name: DriveBackupService.backupFileName,
+        kind: '',
+        payload: const <String, dynamic>{},
+        modifiedTime: '2026-08-27T09:00:00.000Z',
+      );
+    }
+  }
+
+  final List<String> createdKinds = <String>[];
+  final List<String> updatedFileIds = <String>[];
+  final List<String> trashedFileIds = <String>[];
+  final Map<String, String> permissionRolesByFile = <String, String>{};
+  final Map<String, _DriveJsonFile> _filesById = <String, _DriveJsonFile>{};
+  int writeRequestCount = 0;
+  int _permissionCount = 0;
+
+  bool hasFile(String id) => _filesById[id]?.trashed == false;
+
+  Map<String, dynamic> filePayload(String id) => _filesById[id]!.payload;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (request.method == 'GET' &&
+        request.url.path.endsWith('/drive/v3/files')) {
+      final query = request.url.queryParameters['q'] ?? '';
+      if (query.contains("mimeType='application/vnd.google-apps.folder'") &&
+          query.contains("name='${DriveBackupService.backupFolderName}'")) {
+        return _jsonResponse(request, const <String, Object?>{
+          'files': <Map<String, String>>[
+            <String, String>{
+              'id': 'folder-id',
+              'name': DriveBackupService.backupFolderName,
+            },
+          ],
+        });
+      }
+      if (query.contains("'folder-id' in parents")) {
+        final byName = RegExp(r"name='([^']+)'").firstMatch(query)?.group(1);
+        final byKind = RegExp(r"key='teoFamilyLinkKind' and value='([^']+)'")
+            .firstMatch(query)
+            ?.group(1);
+        final matches = _filesById.values.where((file) {
+          if (file.trashed) return false;
+          if (byName != null && file.name != byName) return false;
+          if (byKind != null && file.kind != byKind) return false;
+          return true;
+        }).toList(growable: false);
+        return _jsonResponse(request, <String, Object?>{
+          'files': matches.map(_fileResponse).toList(growable: false),
+        });
+      }
+      return _jsonResponse(request, const <String, Object?>{'files': []});
+    }
+
+    if (request.method == 'POST' &&
+        request.url.path.endsWith('/upload/drive/v3/files')) {
+      writeRequestCount += 1;
+      final body = await utf8.decoder.bind(request.finalize()).join();
+      final metadata = _extractJsonMaps(body).firstOrNull;
+      final payload = _extractUploadPayload(body);
+      final appProperties = _stringMap(
+        metadata?['appProperties'],
+      );
+      final kind = _tryExtractFamilyLinkKind(body);
+      if (kind == null) {
+        final file = _DriveJsonFile(
+          id: 'upload-${_filesById.length + 1}',
+          name: metadata?['name']?.toString() ?? 'uploaded.json',
+          kind: '',
+          payload: payload,
+          modifiedTime: '2026-08-27T10:05:00.000Z',
+          appProperties: appProperties,
+        );
+        _filesById[file.id] = file;
+        return _jsonResponse(request, _fileResponse(file));
+      }
+      final file = _DriveJsonFile(
+        id: _fileIdForKind(kind),
+        name: _fileNameForKind(kind),
+        kind: kind,
+        payload: payload,
+        modifiedTime: '2026-08-27T10:05:00.000Z',
+        appProperties: <String, String>{
+          GoogleDriveFamilyLinkGateway.appPropertyKind: kind,
+          ...appProperties,
+        },
+      );
+      _filesById[file.id] = file;
+      createdKinds.add(kind);
+      return _jsonResponse(request, _fileResponse(file));
+    }
+
+    if ((request.method == 'PATCH' || request.method == 'PUT') &&
+        request.url.path.contains('/upload/drive/v3/files/')) {
+      writeRequestCount += 1;
+      final fileId = request.url.pathSegments.last;
+      final existing = _filesById[fileId];
+      if (existing == null) {
+        throw StateError('Unexpected Drive update file id: $fileId');
+      }
+      final body = await utf8.decoder.bind(request.finalize()).join();
+      final metadata = _extractJsonMaps(body).firstOrNull;
+      final appProperties = _stringMap(metadata?['appProperties']);
+      final updated = existing.copyWith(
+        name: metadata?['name']?.toString() ?? existing.name,
+        payload: _extractUploadPayload(body),
+        modifiedTime: '2026-08-27T10:06:00.000Z',
+        appProperties: appProperties.isEmpty
+            ? existing.appProperties
+            : <String, String>{
+                ...existing.appProperties,
+                ...appProperties,
+              },
+      );
+      _filesById[fileId] = updated;
+      updatedFileIds.add(fileId);
+      return _jsonResponse(request, _fileResponse(updated));
+    }
+
+    if (request.method == 'POST' &&
+        request.url.path.contains('/drive/v3/files/') &&
+        request.url.path.endsWith('/copy')) {
+      writeRequestCount += 1;
+      final sourceId =
+          request.url.pathSegments[request.url.pathSegments.length - 2];
+      final source = _filesById[sourceId];
+      if (source == null) {
+        throw StateError('Unexpected Drive copy source: $sourceId');
+      }
+      final body = await utf8.decoder.bind(request.finalize()).join();
+      final metadata = jsonDecode(body) as Map<String, dynamic>;
+      final copy = source.copyWith(
+        name: metadata['name']?.toString() ?? '${source.name}_copy',
+        modifiedTime: '2026-08-27T10:05:30.000Z',
+      );
+      final copied = _DriveJsonFile(
+        id: 'copy-${_filesById.length + 1}',
+        name: copy.name,
+        kind: copy.kind,
+        payload: copy.payload,
+        modifiedTime: copy.modifiedTime,
+        appProperties: copy.appProperties,
+      );
+      _filesById[copied.id] = copied;
+      return _jsonResponse(request, _fileResponse(copied));
+    }
+
+    if (request.method == 'POST' &&
+        request.url.path.contains('/drive/v3/files/') &&
+        request.url.path.endsWith('/permissions')) {
+      final fileId = request
+          .url.pathSegments[request.url.pathSegments.indexOf('files') + 1];
+      final body = await utf8.decoder.bind(request.finalize()).join();
+      final payload = jsonDecode(body) as Map<String, dynamic>;
+      final role = payload['role']?.toString() ?? '';
+      permissionRolesByFile[fileId] = role;
+      _permissionCount += 1;
+      return _jsonResponse(request, <String, Object?>{
+        'id': 'permission-$_permissionCount',
+        'role': role,
+        'type': payload['type']?.toString() ?? 'user',
+      });
+    }
+
+    if (request.method == 'GET' &&
+        request.url.path.contains('/drive/v3/files/')) {
+      final fileId = request.url.pathSegments.last;
+      final file = _filesById[fileId];
+      if (file == null || file.trashed) {
+        throw StateError('Unexpected Drive file download: $fileId');
+      }
+      if (request.url.queryParameters['alt'] == 'media') {
+        return _jsonResponse(request, file.payload);
+      }
+      return _jsonResponse(request, _fileResponse(file));
+    }
+
+    if (request.method == 'PATCH' &&
+        request.url.path.contains('/drive/v3/files/')) {
+      writeRequestCount += 1;
+      final fileId = request.url.pathSegments.last;
+      final file = _filesById[fileId];
+      if (file == null) {
+        throw StateError('Unexpected Drive metadata update: $fileId');
+      }
+      final body = await utf8.decoder.bind(request.finalize()).join();
+      final decoded = jsonDecode(body) as Map<String, dynamic>;
+      if (decoded['trashed'] == true) {
+        file.trashed = true;
+        trashedFileIds.add(fileId);
+      }
+      return _jsonResponse(request, _fileResponse(file));
+    }
+
+    if (request.method != 'GET') {
+      writeRequestCount += 1;
+    }
+    throw StateError(
+      'Unexpected family pairing Drive request: '
+      '${request.method} ${request.url}',
+    );
+  }
+
+  String? _tryExtractFamilyLinkKind(String body) {
+    final match = RegExp(
+      '"${GoogleDriveFamilyLinkGateway.appPropertyKind}"\\s*:\\s*"([^"]+)"',
+    ).firstMatch(body);
+    if (match != null) {
+      return match.group(1)!;
+    }
+    return null;
+  }
+
+  Map<String, dynamic> _extractUploadPayload(String body) {
+    const marker = 'Content-Transfer-Encoding: base64';
+    final markerIndex = body.indexOf(marker);
+    if (markerIndex >= 0) {
+      final headerEnd = body.indexOf('\r\n\r\n', markerIndex);
+      if (headerEnd < 0) {
+        throw StateError('Upload media headers are incomplete.');
+      }
+      final mediaStart = headerEnd + 4;
+      final mediaEnd = body.indexOf('\r\n--', mediaStart);
+      final encoded = (mediaEnd < 0
+              ? body.substring(mediaStart)
+              : body.substring(mediaStart, mediaEnd))
+          .replaceAll(RegExp(r'\s+'), '');
+      return jsonDecode(utf8.decode(base64Decode(encoded)))
+          as Map<String, dynamic>;
+    }
+    final maps = _extractJsonMaps(body);
+    if (maps.length < 2) {
+      throw StateError('Upload media JSON is missing.');
+    }
+    return maps.last;
+  }
+
+  List<Map<String, dynamic>> _extractJsonMaps(String body) {
+    final maps = <Map<String, dynamic>>[];
+    for (var start = 0; start < body.length; start += 1) {
+      if (body.codeUnitAt(start) != 0x7b) continue;
+      var depth = 0;
+      var inString = false;
+      var escaped = false;
+      for (var index = start; index < body.length; index += 1) {
+        final code = body.codeUnitAt(index);
+        if (inString) {
+          if (escaped) {
+            escaped = false;
+          } else if (code == 0x5c) {
+            escaped = true;
+          } else if (code == 0x22) {
+            inString = false;
+          }
+          continue;
+        }
+        if (code == 0x22) {
+          inString = true;
+          continue;
+        }
+        if (code == 0x7b) {
+          depth += 1;
+          continue;
+        }
+        if (code == 0x7d) {
+          depth -= 1;
+          if (depth == 0) {
+            final decoded = jsonDecode(body.substring(start, index + 1));
+            if (decoded is Map<String, dynamic>) {
+              maps.add(decoded);
+            } else if (decoded is Map) {
+              maps.add(
+                decoded.map((key, value) => MapEntry(key.toString(), value)),
+              );
+            }
+            start = index;
+            break;
+          }
+        }
+      }
+    }
+    return maps;
+  }
+
+  Map<String, String> _stringMap(dynamic raw) {
+    if (raw is! Map) return const <String, String>{};
+    return raw.map(
+      (key, value) => MapEntry(key.toString(), value?.toString() ?? ''),
+    );
+  }
+
+  Map<String, Object?> _fileResponse(_DriveJsonFile file) {
+    return <String, Object?>{
+      'id': file.id,
+      'name': file.name,
+      'resourceKey': 'resource-${file.kind}',
+      'modifiedTime': file.modifiedTime,
+      if (file.appProperties.isNotEmpty) 'appProperties': file.appProperties,
+      'capabilities': <String, Object?>{
+        'canEdit': file.kind != FamilyDriveFileKind.coreBackup.name,
+      },
+    };
+  }
+
+  String _fileIdForKind(String kind) {
+    if (kind == FamilyDriveFileKind.coreBackup.name) return 'core-file';
+    if (kind == FamilyDriveFileKind.parentContribution.name) {
+      return 'contribution-file';
+    }
+    if (kind == FamilyDriveFileKind.pairingCompletion.name) {
+      return 'completion-file';
+    }
+    if (kind == FamilyDriveFileKind.childManifest.name) {
+      return 'child-manifest-file';
+    }
+    return 'file-$kind';
+  }
+
+  String _fileNameForKind(String kind) {
+    if (kind == FamilyDriveFileKind.coreBackup.name) {
+      return DriveBackupService.backupFileName;
+    }
+    if (kind == FamilyDriveFileKind.parentContribution.name) {
+      return 'family_parent_contribution.json';
+    }
+    if (kind == FamilyDriveFileKind.pairingCompletion.name) {
+      return 'family_link_completion.json';
+    }
+    if (kind == FamilyDriveFileKind.childManifest.name) {
+      return 'family_links_manifest_v2.json';
+    }
+    return '$kind.json';
+  }
+
+  http.StreamedResponse _jsonResponse(
+    http.BaseRequest request,
+    Map<String, Object?> payload,
+  ) {
+    final bytes = utf8.encode(jsonEncode(payload));
+    return http.StreamedResponse(
+      Stream<List<int>>.value(bytes),
+      200,
+      request: request,
+      headers: const <String, String>{'content-type': 'application/json'},
+    );
+  }
+}
+
+class _DriveJsonFile {
+  _DriveJsonFile({
+    required this.id,
+    required this.name,
+    required this.kind,
+    required this.payload,
+    required this.modifiedTime,
+    this.appProperties = const <String, String>{},
+    this.trashed = false,
+  });
+
+  final String id;
+  final String kind;
+  final Map<String, dynamic> payload;
+  final Map<String, String> appProperties;
+  bool trashed;
+  String name;
+  String modifiedTime;
+
+  _DriveJsonFile copyWith({
+    String? name,
+    Map<String, dynamic>? payload,
+    String? modifiedTime,
+    Map<String, String>? appProperties,
+  }) {
+    return _DriveJsonFile(
+      id: id,
+      name: name ?? this.name,
+      kind: kind,
+      payload: payload ?? this.payload,
+      modifiedTime: modifiedTime ?? this.modifiedTime,
+      appProperties: appProperties ?? this.appProperties,
+      trashed: trashed,
+    );
+  }
+}
+
 class _FamilyManifestRecoveryDriveClient extends http.BaseClient {
   _FamilyManifestRecoveryDriveClient({
     this.childManifest,
@@ -4400,6 +5045,44 @@ class _CountingGoogleSignIn extends GoogleSignIn {
   Future<GoogleSignInAccount?> disconnect() async {
     disconnectCount += 1;
     return null;
+  }
+
+  Future<void> close() => _controller.close();
+}
+
+class _NoopGoogleSignIn extends GoogleSignIn {
+  _NoopGoogleSignIn() : super(scopes: const <String>[]);
+
+  final StreamController<GoogleSignInAccount?> _controller =
+      StreamController<GoogleSignInAccount?>.broadcast();
+
+  @override
+  GoogleSignInAccount? get currentUser => null;
+
+  @override
+  Stream<GoogleSignInAccount?> get onCurrentUserChanged => _controller.stream;
+
+  @override
+  Future<GoogleSignInAccount?> signInSilently({
+    bool suppressErrors = true,
+    bool reAuthenticate = false,
+  }) async {
+    return null;
+  }
+
+  @override
+  Future<GoogleSignInAccount?> signIn() async {
+    return null;
+  }
+
+  @override
+  Future<GoogleSignInAccount?> signOut() async {
+    return null;
+  }
+
+  @override
+  Future<bool> requestScopes(List<String> scopes) async {
+    return true;
   }
 
   Future<void> close() => _controller.close();
