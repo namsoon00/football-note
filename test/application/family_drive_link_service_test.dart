@@ -192,6 +192,33 @@ void main() {
     expect(store.isInviteUsed(offer.inviteId), isFalse);
   });
 
+  test('child approval rejects the parent Google account', () async {
+    final store = FamilyDriveLinkStore(_MemoryOptionRepository());
+    final gateway = _FakeFamilyDriveLinkGateway(account: parentAccount);
+    final service = FamilyDriveLinkService(store: store, gateway: gateway);
+    final offer = FamilyPairingOffer.create(
+      parentAccount: parentAccount,
+      now: issuedAt,
+    );
+
+    await expectLater(
+      service.approveOfferOnChild(
+        qrPayload: offer.toQrPayload(),
+        familyId: 'family-1',
+        datasetId: 'dataset-1',
+        playerId: 'player-1',
+        childBackupPayload: _childBackupPayload(),
+        parentContributionPayload: _contributionPayload(),
+        now: issuedAt.add(const Duration(minutes: 1)),
+      ),
+      throwsA(_familyLinkError(FamilyDriveLinkException.accountMismatch)),
+    );
+
+    expect(gateway.permissionCalls, isEmpty);
+    expect(store.loadRecords(), isEmpty);
+    expect(store.isInviteUsed(offer.inviteId), isFalse);
+  });
+
   test('child approval preserves existing parent records in manifest',
       () async {
     final store = FamilyDriveLinkStore(_MemoryOptionRepository());
@@ -270,6 +297,35 @@ void main() {
       parentContributionPayload: _contributionPayload(),
       now: issuedAt.add(const Duration(minutes: 1)),
     );
+    final badRecord = _recordFromOffer(offer).copyWith(
+      parentSubjectId: 'wrong-parent-subject',
+    );
+    final badCompletion = FamilyPairingCompletion(
+      inviteId: offer.inviteId,
+      nonceHash: offer.nonceHash,
+      record: badRecord,
+      corePermission: FamilyDrivePermissionGrant(
+        fileId: badRecord.coreBackupFileId,
+        permissionId: badRecord.corePermissionId,
+        role: FamilyDrivePermissionRole.reader,
+      ),
+      contributionPermission: FamilyDrivePermissionGrant(
+        fileId: badRecord.contributionFileId,
+        permissionId: badRecord.contributionPermissionId,
+        role: FamilyDrivePermissionRole.writer,
+      ),
+      createdAt: issuedAt.add(const Duration(minutes: 1)),
+    );
+    gateway.completionCandidates.insert(
+      0,
+      FamilyPairingCompletionCandidate(
+        file: const FamilyDriveFileRef(
+          id: 'stale-completion-file',
+          kind: FamilyDriveFileKind.pairingCompletion,
+        ),
+        payload: badCompletion.toMap(),
+      ),
+    );
 
     gateway.account = const DriveConnectionInfo(
       email: 'other@example.com',
@@ -297,6 +353,7 @@ void main() {
 
     expect(restored, isTrue);
     expect(record.parentManifestFileId, 'parent-manifest-file');
+    expect(record.pairingCompletionFileId, 'completion-file');
     expect(parentStore.loadActiveRecord()?.familyId, 'family-1');
     expect(gateway.savedParentManifest?.ownerRole,
         FamilyDriveLinkOwnerRole.parent);
