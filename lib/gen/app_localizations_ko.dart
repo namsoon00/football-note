@@ -1923,6 +1923,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeQuickActionPlan => '훈련 계획';
 
   @override
+  String get homeQuickActionScanPass => '스캔 패스';
+
+  @override
   String get homeContinueTitle => '이어하기';
 
   @override
@@ -5219,6 +5222,139 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String photoViewerCounter(Object current, Object total) {
     return '$current / $total';
+  }
+
+  @override
+  String get scanPassTitle => '스캔 패스';
+
+  @override
+  String scanPassRoundStatus(int round, int total) {
+    return '$total라운드 중 $round';
+  }
+
+  @override
+  String scanPassTimeStatus(Object seconds) {
+    return '$seconds초';
+  }
+
+  @override
+  String scanPassStreakStatus(int streak) {
+    return '연속 $streak';
+  }
+
+  @override
+  String get scanPassPreviewInstruction =>
+      '볼 소유자, 세 명의 동료, 두 명의 수비수를 빠르게 훑어보세요. 곧 수비 정보가 가려집니다.';
+
+  @override
+  String get scanPassPredictionPreviewInstruction =>
+      '수비수의 첫 움직임을 보세요. 화면이 가려진 뒤의 위치를 예측해야 합니다.';
+
+  @override
+  String get scanPassSilhouetteChoiceInstruction =>
+      '희미한 수비 실루엣을 기억하면서 동료를 고르세요.';
+
+  @override
+  String get scanPassHiddenChoiceInstruction =>
+      '이제 수비수가 보이지 않습니다. 그래도 믿을 수 있는 루트를 고르세요.';
+
+  @override
+  String get scanPassPredictionChoiceInstruction =>
+      '수비수가 이동한 위치를 예측하고 가장 좋은 루트를 고르세요.';
+
+  @override
+  String get scanPassPassInFlight => '패스가 출발했습니다. 패스 길과 도착 타이밍을 확인해요.';
+
+  @override
+  String scanPassFeedbackComparable(int score, Object reason) {
+    return '루트 점수 $score. 이 선택은 상위 그룹입니다: $reason';
+  }
+
+  @override
+  String scanPassFeedbackBehind(int score, int best, Object reason) {
+    return '루트 점수 $score. 이번 라운드 최고 루트는 $best점입니다; $reason';
+  }
+
+  @override
+  String scanPassTimeoutFeedback(int best) {
+    return '패스하기 전에 선택 시간이 끝났어요. 이번 라운드 최고 루트는 $best점입니다; 다음에는 더 일찍 스캔하고 결정해요.';
+  }
+
+  @override
+  String get scanPassNextRoundAction => '다음 라운드';
+
+  @override
+  String get scanPassSeeResultAction => '결과 보기';
+
+  @override
+  String get scanPassResultTitle => '스캔 패스 결과';
+
+  @override
+  String scanPassResultSubtitle(int score, int accuracy, Object response) {
+    return '평균 루트 $score점, 판단 정확도 $accuracy%, 평균 반응 $response.';
+  }
+
+  @override
+  String get scanPassAverageRouteScore => '평균 루트 점수';
+
+  @override
+  String get scanPassDecisionAccuracy => '판단 정확도';
+
+  @override
+  String get scanPassAverageResponse => '평균 반응';
+
+  @override
+  String get scanPassBestAverageRouteScore => '최고 평균 루트';
+
+  @override
+  String get scanPassBestAccuracy => '최고 정확도';
+
+  @override
+  String get scanPassBestResponse => '최고 반응';
+
+  @override
+  String get scanPassNoHistoryValue => '-';
+
+  @override
+  String get scanPassPlayAgainAction => '다시 하기';
+
+  @override
+  String get scanPassReasonClearLane => '패스 길이 압박에서 잘 벗어났어요.';
+
+  @override
+  String get scanPassReasonTimedRun => '수비가 좁히기 전에 공이 먼저 도착했어요.';
+
+  @override
+  String get scanPassReasonOpenSpace => '받는 선수가 첫 터치 후 쓸 공간을 확보했어요.';
+
+  @override
+  String get scanPassReasonForwardThreat => '공격이 더 위협적인 구역으로 전진했어요.';
+
+  @override
+  String get scanPassReasonPressuredLane => '패스 길에 압박이 있어 위험이 있었습니다.';
+
+  @override
+  String get scanPassReasonLateArrival => '수비가 공과 거의 같은 시간에 도착할 수 있었습니다.';
+
+  @override
+  String get scanPassReasonTightReceiver => '패스 후 받는 선수가 붐비는 공간에 놓였습니다.';
+
+  @override
+  String get scanPassReasonLowProgression => '안전하지만 공격 전진 효과는 크지 않았어요.';
+
+  @override
+  String scanPassTargetSemantics(int number) {
+    return '$number번 동료 선택';
+  }
+
+  @override
+  String scanPassSecondsValue(Object seconds) {
+    return '$seconds초';
+  }
+
+  @override
+  String scanPassPercentValue(int percent) {
+    return '$percent%';
   }
 
   @override

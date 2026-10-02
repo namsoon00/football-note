@@ -1978,6 +1978,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeQuickActionPlan => 'Add plan';
 
   @override
+  String get homeQuickActionScanPass => 'Scan Pass';
+
+  @override
   String get homeContinueTitle => 'Continue';
 
   @override
@@ -5358,6 +5361,147 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String photoViewerCounter(Object current, Object total) {
     return '$current / $total';
+  }
+
+  @override
+  String get scanPassTitle => 'Scan Pass';
+
+  @override
+  String scanPassRoundStatus(int round, int total) {
+    return 'Round $round / $total';
+  }
+
+  @override
+  String scanPassTimeStatus(Object seconds) {
+    return '${seconds}s';
+  }
+
+  @override
+  String scanPassStreakStatus(int streak) {
+    return 'Streak $streak';
+  }
+
+  @override
+  String get scanPassPreviewInstruction =>
+      'Scan the ball carrier, three teammates, and two defenders. The defenders will be occluded soon.';
+
+  @override
+  String get scanPassPredictionPreviewInstruction =>
+      'Watch the defenders\' first step. Their next position matters after the screen hides them.';
+
+  @override
+  String get scanPassSilhouetteChoiceInstruction =>
+      'Choose a teammate while the defender silhouettes are still in memory.';
+
+  @override
+  String get scanPassHiddenChoiceInstruction =>
+      'Defenders are hidden now. Choose the route you can still trust.';
+
+  @override
+  String get scanPassPredictionChoiceInstruction =>
+      'Predict where the defenders moved, then choose the best route you see.';
+
+  @override
+  String get scanPassPassInFlight =>
+      'Pass released. Read the lane and arrival timing.';
+
+  @override
+  String scanPassFeedbackComparable(int score, Object reason) {
+    return 'Route score $score. This choice is in the top group: $reason';
+  }
+
+  @override
+  String scanPassFeedbackBehind(int score, int best, Object reason) {
+    return 'Route score $score. Highest route this round was $best; $reason';
+  }
+
+  @override
+  String scanPassTimeoutFeedback(int best) {
+    return 'The window closed before a pass. Highest route this round was $best; reset your scan and decide earlier next time.';
+  }
+
+  @override
+  String get scanPassNextRoundAction => 'Next round';
+
+  @override
+  String get scanPassSeeResultAction => 'See result';
+
+  @override
+  String get scanPassResultTitle => 'Scan Pass result';
+
+  @override
+  String scanPassResultSubtitle(int score, int accuracy, Object response) {
+    return 'Average route $score, decision accuracy $accuracy%, average response $response.';
+  }
+
+  @override
+  String get scanPassAverageRouteScore => 'Avg route score';
+
+  @override
+  String get scanPassDecisionAccuracy => 'Decision accuracy';
+
+  @override
+  String get scanPassAverageResponse => 'Avg response';
+
+  @override
+  String get scanPassBestAverageRouteScore => 'Best avg route';
+
+  @override
+  String get scanPassBestAccuracy => 'Best accuracy';
+
+  @override
+  String get scanPassBestResponse => 'Best response';
+
+  @override
+  String get scanPassNoHistoryValue => '-';
+
+  @override
+  String get scanPassPlayAgainAction => 'Play again';
+
+  @override
+  String get scanPassReasonClearLane => 'the lane stayed clear of pressure.';
+
+  @override
+  String get scanPassReasonTimedRun =>
+      'the ball arrived before defenders could close.';
+
+  @override
+  String get scanPassReasonOpenSpace =>
+      'the receiver had useful space after the first touch.';
+
+  @override
+  String get scanPassReasonForwardThreat =>
+      'the pass moved the attack into a stronger area.';
+
+  @override
+  String get scanPassReasonPressuredLane =>
+      'the lane was under pressure, so the route carried risk.';
+
+  @override
+  String get scanPassReasonLateArrival =>
+      'defenders could arrive at nearly the same time as the ball.';
+
+  @override
+  String get scanPassReasonTightReceiver =>
+      'the receiver was crowded after the pass.';
+
+  @override
+  String get scanPassReasonLowProgression =>
+      'the route was safe but did not advance the attack much.';
+
+  @override
+  String scanPassTargetSemantics(int number) {
+    return 'Choose teammate $number';
+  }
+
+  @override
+  String scanPassSecondsValue(Object seconds) {
+    return '${seconds}s';
+  }
+
+  @override
+  String scanPassPercentValue(int percent) {
+    return '$percent%';
   }
 
   @override

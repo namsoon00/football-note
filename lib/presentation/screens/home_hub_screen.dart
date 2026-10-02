@@ -86,6 +86,7 @@ class HomeHubScreen extends StatefulWidget {
   final VoidCallback? onQuickPlan;
   final VoidCallback? onQuickMatch;
   final VoidCallback? onQuickQuiz;
+  final VoidCallback? onQuickScanPass;
   final VoidCallback? onQuickMeal;
   final VoidCallback? onQuickBoard;
   final VoidCallback? onOpenMatchHub;
@@ -110,6 +111,7 @@ class HomeHubScreen extends StatefulWidget {
     this.onQuickPlan,
     this.onQuickMatch,
     this.onQuickQuiz,
+    this.onQuickScanPass,
     this.onQuickMeal,
     this.onQuickBoard,
     this.onOpenMatchHub,
@@ -550,6 +552,11 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                         onQuickPlan: _trackedAction(
                           'quick_create_plan',
                           widget.onQuickPlan,
+                          section: HomeHubSectionId.quickActions,
+                        ),
+                        onQuickScanPass: _trackedAction(
+                          'quick_scan_pass',
+                          widget.onQuickScanPass,
                           section: HomeHubSectionId.quickActions,
                         ),
                         onQuickWeatherOutfit: _trackedAction(
@@ -2696,6 +2703,7 @@ class _QuickActionGrid extends StatelessWidget {
   final String runningCoachLabel;
   final VoidCallback? onQuickMatch;
   final VoidCallback? onQuickPlan;
+  final VoidCallback? onQuickScanPass;
   final VoidCallback? onQuickWeatherOutfit;
   final VoidCallback? onQuickRunningCoach;
 
@@ -2704,6 +2712,7 @@ class _QuickActionGrid extends StatelessWidget {
     required this.runningCoachLabel,
     required this.onQuickMatch,
     required this.onQuickPlan,
+    required this.onQuickScanPass,
     required this.onQuickWeatherOutfit,
     required this.onQuickRunningCoach,
   });
@@ -2723,6 +2732,12 @@ class _QuickActionGrid extends StatelessWidget {
         icon: Icons.event_note_outlined,
         title: l10n.homeQuickActionPlan,
         onTap: onQuickPlan,
+      ),
+      _QuickActionItem(
+        key: const ValueKey<String>('home-quick-action-scan-pass'),
+        icon: Icons.remove_red_eye_outlined,
+        title: l10n.homeQuickActionScanPass,
+        onTap: onQuickScanPass,
       ),
       _QuickActionItem(
         key: const ValueKey<String>('home-quick-action-weather-outfit'),

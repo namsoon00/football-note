@@ -1204,6 +1204,7 @@
   "homeQuickActionsTitle": "Quick actions",
   "homeQuickActionMatch": "Add match",
   "homeQuickActionPlan": "Add plan",
+  "homeQuickActionScanPass": "Scan Pass",
   "homeContinueTitle": "Continue",
   "homeContinueEmpty": "Nothing to continue today. Pick a fresh challenge below.",
   "homeContinueWrongAnswerReview": "Continue wrong-answer review",
@@ -3185,6 +3186,120 @@
     "placeholders": {
       "current": {},
       "total": {}
+    }
+  },
+  "scanPassTitle": "Scan Pass",
+  "scanPassRoundStatus": "Round {round} / {total}",
+  "@scanPassRoundStatus": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassTimeStatus": "{seconds}s",
+  "@scanPassTimeStatus": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
+  "scanPassStreakStatus": "Streak {streak}",
+  "@scanPassStreakStatus": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPreviewInstruction": "Scan the ball carrier, three teammates, and two defenders. The defenders will be occluded soon.",
+  "scanPassPredictionPreviewInstruction": "Watch the defenders' first step. Their next position matters after the screen hides them.",
+  "scanPassSilhouetteChoiceInstruction": "Choose a teammate while the defender silhouettes are still in memory.",
+  "scanPassHiddenChoiceInstruction": "Defenders are hidden now. Choose the route you can still trust.",
+  "scanPassPredictionChoiceInstruction": "Predict where the defenders moved, then choose the best route you see.",
+  "scanPassPassInFlight": "Pass released. Read the lane and arrival timing.",
+  "scanPassFeedbackComparable": "Route score {score}. This choice is in the top group: {reason}",
+  "@scanPassFeedbackComparable": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "reason": {}
+    }
+  },
+  "scanPassFeedbackBehind": "Route score {score}. Highest route this round was {best}; {reason}",
+  "@scanPassFeedbackBehind": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "best": {
+        "type": "int"
+      },
+      "reason": {}
+    }
+  },
+  "scanPassTimeoutFeedback": "The window closed before a pass. Highest route this round was {best}; reset your scan and decide earlier next time.",
+  "@scanPassTimeoutFeedback": {
+    "placeholders": {
+      "best": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassNextRoundAction": "Next round",
+  "scanPassSeeResultAction": "See result",
+  "scanPassResultTitle": "Scan Pass result",
+  "scanPassResultSubtitle": "Average route {score}, decision accuracy {accuracy}%, average response {response}.",
+  "@scanPassResultSubtitle": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "accuracy": {
+        "type": "int"
+      },
+      "response": {}
+    }
+  },
+  "scanPassAverageRouteScore": "Avg route score",
+  "scanPassDecisionAccuracy": "Decision accuracy",
+  "scanPassAverageResponse": "Avg response",
+  "scanPassBestAverageRouteScore": "Best avg route",
+  "scanPassBestAccuracy": "Best accuracy",
+  "scanPassBestResponse": "Best response",
+  "scanPassNoHistoryValue": "-",
+  "scanPassPlayAgainAction": "Play again",
+  "scanPassReasonClearLane": "the lane stayed clear of pressure.",
+  "scanPassReasonTimedRun": "the ball arrived before defenders could close.",
+  "scanPassReasonOpenSpace": "the receiver had useful space after the first touch.",
+  "scanPassReasonForwardThreat": "the pass moved the attack into a stronger area.",
+  "scanPassReasonPressuredLane": "the lane was under pressure, so the route carried risk.",
+  "scanPassReasonLateArrival": "defenders could arrive at nearly the same time as the ball.",
+  "scanPassReasonTightReceiver": "the receiver was crowded after the pass.",
+  "scanPassReasonLowProgression": "the route was safe but did not advance the attack much.",
+  "scanPassTargetSemantics": "Choose teammate {number}",
+  "@scanPassTargetSemantics": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassSecondsValue": "{seconds}s",
+  "@scanPassSecondsValue": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
+  "scanPassPercentValue": "{percent}%",
+  "@scanPassPercentValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "gameGuideTitle": "Game Guide",
