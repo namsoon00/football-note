@@ -8312,14 +8312,14 @@
       "actor": {}
     }
   },
-  "trainingSketchStageActionPlayerPressure": "{actor}が{target}へプレス",
+  "trainingSketchStageActionPlayerPressure": "プレス: {actor} → {target}",
   "@trainingSketchStageActionPlayerPressure": {
     "placeholders": {
       "actor": {},
       "target": {}
     }
   },
-  "trainingSketchStageActionPlayerMark": "{actor}が{target}をマーク",
+  "trainingSketchStageActionPlayerMark": "マーク: {actor} → {target}",
   "@trainingSketchStageActionPlayerMark": {
     "placeholders": {
       "actor": {},

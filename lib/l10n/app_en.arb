@@ -8312,14 +8312,14 @@
       "actor": {}
     }
   },
-  "trainingSketchStageActionPlayerPressure": "{actor} pressures {target}",
+  "trainingSketchStageActionPlayerPressure": "Pressure: {actor} → {target}",
   "@trainingSketchStageActionPlayerPressure": {
     "placeholders": {
       "actor": {},
       "target": {}
     }
   },
-  "trainingSketchStageActionPlayerMark": "{actor} marks {target}",
+  "trainingSketchStageActionPlayerMark": "Mark: {actor} → {target}",
   "@trainingSketchStageActionPlayerMark": {
     "placeholders": {
       "actor": {},

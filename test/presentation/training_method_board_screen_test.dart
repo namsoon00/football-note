@@ -1041,7 +1041,7 @@ void main() {
       const Offset(0.68, 0.50),
     );
 
-    expect(find.text('A1가 B1 압박'), findsOneWidget);
+    expect(find.text('압박: A1 → B1'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();

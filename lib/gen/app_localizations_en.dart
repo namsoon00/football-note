@@ -15713,12 +15713,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String trainingSketchStageActionPlayerPressure(Object actor, Object target) {
-    return '$actor pressures $target';
+    return 'Pressure: $actor → $target';
   }
 
   @override
   String trainingSketchStageActionPlayerMark(Object actor, Object target) {
-    return '$actor marks $target';
+    return 'Mark: $actor → $target';
   }
 
   @override

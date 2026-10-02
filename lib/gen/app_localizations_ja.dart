@@ -15182,12 +15182,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trainingSketchStageActionPlayerPressure(Object actor, Object target) {
-    return '$actorが$targetへプレス';
+    return 'プレス: $actor → $target';
   }
 
   @override
   String trainingSketchStageActionPlayerMark(Object actor, Object target) {
-    return '$actorが$targetをマーク';
+    return 'マーク: $actor → $target';
   }
 
   @override
