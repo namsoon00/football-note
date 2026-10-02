@@ -136,6 +136,67 @@ void main() {
     expect(decoded.pages.single.routes.single.targetItemId, 'player-2');
   });
 
+  test('training sketch player team identity is explicit and round-trips', () {
+    final legacyEncoded = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Legacy',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(
+              id: 'legacy-red',
+              type: 'player',
+              x: 0.2,
+              y: 0.4,
+              colorValue: 0xFFE53935,
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    final legacyPlayer =
+        TrainingMethodLayout.decode(legacyEncoded).pages.single.items.single;
+    expect(legacyPlayer.teamId, isNull);
+    expect(legacyPlayer.playerNumber, isNull);
+
+    final encoded = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Explicit',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(
+              id: 'player-b3',
+              type: 'player',
+              x: 0.2,
+              y: 0.4,
+              teamId: 'B',
+              playerNumber: 3,
+            ),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'mark-route',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-b3',
+              actorItemId: 'player-b3',
+              targetItemId: 'player-a1',
+              actionType: 'mark',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.2, y: 0.4),
+                TrainingMethodPoint(x: 0.3, y: 0.4),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    final decoded = TrainingMethodLayout.decode(encoded);
+    expect(decoded.pages.single.items.single.teamId, 'B');
+    expect(decoded.pages.single.items.single.playerNumber, 3);
+    expect(decoded.pages.single.routes.single.actionType, 'mark');
+  });
+
   testWidgets('routes appear in the action timeline without stage headers', (
     WidgetTester tester,
   ) async {
@@ -304,8 +365,12 @@ void main() {
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     expect(
+      find.descendant(of: boardFinder, matching: find.text('A1')),
+      findsOneWidget,
+    );
+    expect(
       find.descendant(of: boardFinder, matching: find.text('1')),
-      findsNWidgets(2),
+      findsOneWidget,
     );
     expect(
       find.descendant(of: boardFinder, matching: find.text('2')),
@@ -360,7 +425,8 @@ void main() {
 
     await pumpSport(SportCatalog.tennisId);
     expect(find.widgetWithText(OutlinedButton, '목표'), findsOneWidget);
-    expect(find.widgetWithText(OutlinedButton, '사람'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, 'A팀 선수'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, 'B팀 선수'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '공'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '사다리'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '낮은 뜀틀'), findsNothing);
@@ -527,14 +593,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '사람'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'A팀 선수'));
     await tester.pumpAndSettle();
 
     expect(
       find.byKey(const ValueKey('training-player-next-action-item-1')),
       findsOneWidget,
     );
-    expect(find.widgetWithText(OutlinedButton, '사람'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, 'A팀 선수'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, 'B팀 선수'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '콘'), findsOneWidget);
     expect(find.text('이동'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '공'), findsNothing);
@@ -614,7 +681,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '사람'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'A팀 선수'));
     await tester.pumpAndSettle();
 
     expect(
@@ -635,11 +702,439 @@ void main() {
       saved.pages.single.items.where((item) => item.type == 'player'),
       hasLength(3),
     );
-    final playerColors = saved.pages.single.items
+    final savedPlayers = saved.pages.single.items
         .where((item) => item.type == 'player')
-        .map((item) => item.colorValue)
-        .toSet();
-    expect(playerColors, hasLength(3));
+        .toList(growable: false);
+    expect(savedPlayers.map((item) => item.teamId), everyElement('A'));
+    expect(savedPlayers.map((item) => item.playerNumber), <int?>[1, 2, 3]);
+  });
+
+  testWidgets('team add controls and team switch persist sequential numbers', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '팀 번호',
+          initialLayoutJson: '',
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(OutlinedButton, 'A팀 선수'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(OutlinedButton, 'B팀 선수'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(OutlinedButton, 'A팀 선수'));
+    await tester.pumpAndSettle();
+
+    final switchToB =
+        find.byKey(const ValueKey('training-selected-player-team-B'));
+    await tester.ensureVisible(switchToB);
+    await tester.pumpAndSettle();
+    await tester.tap(switchToB);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final players = TrainingMethodLayout.decode(savedLayout ?? '')
+        .pages
+        .single
+        .items
+        .where((item) => item.type == 'player')
+        .toList(growable: false);
+
+    expect(players.map((item) => item.teamId), <String?>['A', 'B', 'B']);
+    expect(players.map((item) => item.playerNumber), <int?>[1, 1, 2]);
+    expect(players[0].colorValue, 0xFF1E88E5);
+    expect(players[1].colorValue, 0xFFE53935);
+    expect(players[2].colorValue, 0xFFE53935);
+  });
+
+  testWidgets('legacy player colors do not infer B team on save', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '레거시 팀',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'legacy-red',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                    colorValue: 0xFFE53935,
+                  ),
+                  TrainingMethodItem(
+                    id: 'legacy-blue',
+                    type: 'player',
+                    x: 0.44,
+                    y: 0.52,
+                    colorValue: 0xFF1E88E5,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final players = TrainingMethodLayout.decode(savedLayout ?? '')
+        .pages
+        .single
+        .items
+        .where((item) => item.type == 'player')
+        .toList(growable: false);
+    expect(players.map((item) => item.teamId), <String?>['A', 'A']);
+    expect(players.map((item) => item.playerNumber), <int?>[1, 2]);
+  });
+
+  testWidgets('pass actions require a same-team target', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+
+    Future<void> pumpBoard(TrainingMethodLayout layout) async {
+      await tester.pumpWidget(
+        _buildApp(
+          TrainingMethodBoardScreen(
+            boardTitle: '팀 패스',
+            initialLayoutJson: layout.encode(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await pumpBoard(
+      const TrainingMethodLayout(
+        pages: <TrainingMethodPage>[
+          TrainingMethodPage(
+            name: 'Board',
+            items: <TrainingMethodItem>[
+              TrainingMethodItem(
+                id: 'a1',
+                type: 'player',
+                x: 0.20,
+                y: 0.50,
+                teamId: 'A',
+                playerNumber: 1,
+              ),
+              TrainingMethodItem(
+                id: 'b1',
+                type: 'player',
+                x: 0.64,
+                y: 0.50,
+                teamId: 'B',
+                playerNumber: 1,
+              ),
+              TrainingMethodItem(id: 'ball-1', type: 'ball', x: 0.26, y: 0.50),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.20, 0.50),
+    );
+    expect(
+      find.byKey(const ValueKey('training-player-flow-action-a1-pass')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('training-player-flow-action-a1-passAndMove')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('training-player-flow-action-a1-moveThenPass')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('passes ignore opponents and transfer to same-team players', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '팀 패스 제한',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'a1',
+                    type: 'player',
+                    x: 0.20,
+                    y: 0.50,
+                    teamId: 'A',
+                    playerNumber: 1,
+                  ),
+                  TrainingMethodItem(
+                    id: 'a2',
+                    type: 'player',
+                    x: 0.44,
+                    y: 0.50,
+                    teamId: 'A',
+                    playerNumber: 2,
+                  ),
+                  TrainingMethodItem(
+                    id: 'b1',
+                    type: 'player',
+                    x: 0.68,
+                    y: 0.50,
+                    teamId: 'B',
+                    playerNumber: 1,
+                  ),
+                  TrainingMethodItem(
+                      id: 'ball-1', type: 'ball', x: 0.26, y: 0.50),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.20, 0.50),
+    );
+    expect(
+      find.byKey(const ValueKey('training-player-flow-action-a1-pass')),
+      findsOneWidget,
+    );
+
+    await _tapVisibleOutlinedButton(tester, '패스');
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.68, 0.50),
+    );
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.44, 0.50),
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final ballRoutes = TrainingMethodLayout.decode(savedLayout ?? '')
+        .pages
+        .single
+        .routes
+        .where((route) => route.kind == TrainingMethodRouteKind.ball)
+        .toList(growable: false);
+    expect(ballRoutes, hasLength(1));
+    expect(ballRoutes.single.actorItemId, 'a1');
+    expect(ballRoutes.single.targetItemId, 'a2');
+  });
+
+  testWidgets('opponent actions target opponents without moving the ball', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '상대 액션',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'a1',
+                    type: 'player',
+                    x: 0.20,
+                    y: 0.50,
+                    teamId: 'A',
+                    playerNumber: 1,
+                  ),
+                  TrainingMethodItem(
+                    id: 'a2',
+                    type: 'player',
+                    x: 0.42,
+                    y: 0.50,
+                    teamId: 'A',
+                    playerNumber: 2,
+                  ),
+                  TrainingMethodItem(
+                    id: 'b1',
+                    type: 'player',
+                    x: 0.68,
+                    y: 0.50,
+                    teamId: 'B',
+                    playerNumber: 1,
+                  ),
+                  TrainingMethodItem(
+                      id: 'ball-1', type: 'ball', x: 0.26, y: 0.50),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.20, 0.50),
+    );
+    expect(
+      find.byKey(const ValueKey('training-player-flow-action-a1-pressure')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('training-player-flow-action-a1-mark')),
+      findsOneWidget,
+    );
+
+    await _tapVisibleOutlinedButton(tester, '압박');
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.42, 0.50),
+    );
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.68, 0.50),
+    );
+
+    expect(find.text('A1가 B1 압박'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final page = TrainingMethodLayout.decode(savedLayout ?? '').pages.single;
+    final playerRoutes = page.routes
+        .where((route) => route.kind == TrainingMethodRouteKind.player)
+        .toList(growable: false);
+    expect(playerRoutes, hasLength(1));
+    expect(playerRoutes.single.actorItemId, 'a1');
+    expect(playerRoutes.single.targetItemId, 'b1');
+    expect(playerRoutes.single.actionType, 'pressure');
+    expect(
+      page.routes.where((route) => route.kind == TrainingMethodRouteKind.ball),
+      isEmpty,
+    );
+    final ball = page.items.singleWhere((item) => item.id == 'ball-1');
+    expect(ball.x, closeTo(0.26, 0.001));
+    expect(ball.y, closeTo(0.50, 0.001));
+  });
+
+  testWidgets('passes transfer ownership and shots leave the ball unowned', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '소유권 액션',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'a1',
+                    type: 'player',
+                    x: 0.20,
+                    y: 0.50,
+                    teamId: 'A',
+                    playerNumber: 1,
+                  ),
+                  TrainingMethodItem(
+                    id: 'a2',
+                    type: 'player',
+                    x: 0.46,
+                    y: 0.50,
+                    teamId: 'A',
+                    playerNumber: 2,
+                  ),
+                  TrainingMethodItem(
+                      id: 'ball-1', type: 'ball', x: 0.26, y: 0.50),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.20, 0.50),
+    );
+    await _tapVisibleOutlinedButton(tester, '패스');
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.46, 0.50),
+    );
+    await _tapVisibleOutlinedButton(tester, '슈팅');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.82, 0.34));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final ballRoutes = TrainingMethodLayout.decode(savedLayout ?? '')
+        .pages
+        .single
+        .routes
+        .where((route) => route.kind == TrainingMethodRouteKind.ball)
+        .toList(growable: false);
+    expect(ballRoutes, hasLength(2));
+    expect(ballRoutes.first.actorItemId, 'a1');
+    expect(ballRoutes.first.targetItemId, 'a2');
+    expect(ballRoutes.last.actorItemId, 'a2');
+    expect(ballRoutes.last.targetItemId, isNull);
   });
 
   testWidgets('moving a player keeps their controlled ball in front', (
@@ -4739,7 +5234,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('사람 1 공 확보'), findsOneWidget);
+    expect(find.text('A1 공 확보'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -6095,8 +6590,13 @@ void main() {
       of: boardFinder,
       matching: find.text('1'),
     );
+    final playerBadge = find.descendant(
+      of: boardFinder,
+      matching: find.text('A1'),
+    );
 
-    expect(boardNumbers, findsNWidgets(2));
+    expect(boardNumbers, findsOneWidget);
+    expect(playerBadge, findsOneWidget);
     expect(_tokenDecorationForIcon(tester, playerIcon).border, isNotNull);
 
     final detector = _itemGestureDetectorForIcon(tester, playerIcon);
@@ -6111,12 +6611,14 @@ void main() {
     await tester.pump();
 
     expect(boardNumbers, findsOneWidget);
+    expect(playerBadge, findsNothing);
     expect(_tokenDecorationForIcon(tester, playerIcon).border, isNull);
 
     detector.onPanEnd!(DragEndDetails());
     await tester.pumpAndSettle();
 
-    expect(boardNumbers, findsNWidgets(2));
+    expect(boardNumbers, findsOneWidget);
+    expect(playerBadge, findsOneWidget);
     expect(_tokenDecorationForIcon(tester, playerIcon).border, isNotNull);
   });
 
@@ -6946,7 +7448,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '사람'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'A팀 선수'));
     await tester.pumpAndSettle();
 
     expect(
@@ -7389,7 +7891,7 @@ void main() {
       find.byKey(const ValueKey('training-global-stage-add-next-button')),
       findsNothing,
     );
-    expect(find.text('사람 1에서 사람 2로 공 이동'), findsOneWidget);
+    expect(find.text('A1에서 A2로 공 이동'), findsOneWidget);
     final addNextAction = find.byWidgetPredicate((widget) {
       final key = widget.key;
       return key is ValueKey<String> &&
@@ -7406,7 +7908,7 @@ void main() {
     await _tapBoardRelative(tester, boardFinder, const Offset(0.82, 0.34));
 
     expect(timelineItems, findsNWidgets(2));
-    expect(find.text('사람 2 공 이동'), findsOneWidget);
+    expect(find.text('A2 공 이동'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -7676,7 +8178,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(OutlinedButton, '사람'));
+      await tester.tap(find.widgetWithText(OutlinedButton, 'A팀 선수'));
       await tester.pumpAndSettle();
 
       final boardFinder = find.byKey(const ValueKey('training-board-canvas'));

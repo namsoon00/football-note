@@ -125,12 +125,29 @@ String? _sketchTokenLabelFor(
   List<TrainingMethodItem> items,
   TrainingMethodItem item,
 ) {
-  if (item.type != 'player') return null;
+  if (item.type != 'player') {
+    if (item.type != 'ball') return null;
+    final index = items
+        .where((entry) => entry.type == 'ball')
+        .toList(growable: false)
+        .indexWhere((entry) => identical(entry, item));
+    return index < 0 ? null : '${index + 1}';
+  }
+  final teamId = _normalizedSketchTeamId(item.teamId);
+  final number = item.playerNumber;
+  if (number != null && number > 0) {
+    return '$teamId$number';
+  }
   final index = items
       .where((entry) => entry.type == 'player')
       .toList(growable: false)
       .indexWhere((entry) => identical(entry, item));
-  return index < 0 ? null : '${index + 1}';
+  return index < 0 ? null : '$teamId${index + 1}';
+}
+
+String _normalizedSketchTeamId(String? raw) {
+  final normalized = raw?.trim().toUpperCase();
+  return normalized == 'B' ? 'B' : 'A';
 }
 
 class _TrainingBoardSketchToken extends StatelessWidget {
@@ -207,9 +224,10 @@ class _SketchTokenNumberBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final badgeSize = (size * 0.46).clamp(13.0, 17.0);
     return Container(
-      width: badgeSize,
+      constraints: BoxConstraints(minWidth: badgeSize),
       height: badgeSize,
       alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.96),
         shape: BoxShape.circle,
@@ -219,7 +237,7 @@ class _SketchTokenNumberBadge extends StatelessWidget {
         label,
         style: TextStyle(
           color: Colors.black87,
-          fontSize: (badgeSize * 0.52).clamp(7.0, 9.0),
+          fontSize: (badgeSize * 0.48).clamp(6.5, 8.5),
           fontWeight: FontWeight.w800,
           height: 1,
         ),

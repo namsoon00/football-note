@@ -76,6 +76,8 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
   const playerGreen = 0xFF43A047;
   const coneOrange = 0xFFFFA000;
   const conePurple = 0xFF8E24AA;
+  const teamA = 'A';
+  const teamB = 'B';
 
   TrainingMethodItem player(
     double x,
@@ -83,6 +85,8 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
     String id = '',
     int color = playerBlue,
     double size = 32,
+    String? teamId,
+    int? playerNumber,
   }) =>
       TrainingMethodItem(
         id: id,
@@ -92,6 +96,8 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
         size: size,
         rotationDeg: 0,
         colorValue: color,
+        teamId: teamId ?? (color == playerRed ? teamB : teamA),
+        playerNumber: playerNumber,
       );
 
   TrainingMethodItem ball(

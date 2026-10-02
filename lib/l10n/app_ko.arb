@@ -8142,6 +8142,33 @@
   "trainingSketchConeButton": "콘",
   "trainingSketchLowHurdleButton": "낮은 뜀틀",
   "trainingSketchPlayerButton": "사람",
+  "trainingSketchAddTeamAPlayerButton": "A팀 선수",
+  "trainingSketchAddTeamBPlayerButton": "B팀 선수",
+  "trainingSketchTeamAShortLabel": "A",
+  "trainingSketchTeamBShortLabel": "B",
+  "trainingSketchTeamFilterAll": "전체",
+  "trainingSketchPlayerTokenLabel": "{team}{number}",
+  "@trainingSketchPlayerTokenLabel": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchTeamPlayerLabel": "{team}{number}",
+  "@trainingSketchTeamPlayerLabel": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchBallButton": "공",
   "trainingSketchLadderButton": "사다리",
   "trainingSketchTargetButton": "목표",
@@ -8160,6 +8187,14 @@
     "placeholders": {
       "index": {
         "type": "int"
+      }
+    }
+  },
+  "trainingSketchPlayerFlowTeamTitle": "{player} 다음 액션",
+  "@trainingSketchPlayerFlowTeamTitle": {
+    "placeholders": {
+      "player": {
+        "type": "String"
       }
     }
   },
@@ -8211,6 +8246,20 @@
   "@trainingSketchStageActionPlayerStay": {
     "placeholders": {
       "actor": {}
+    }
+  },
+  "trainingSketchStageActionPlayerPressure": "{actor}가 {target} 압박",
+  "@trainingSketchStageActionPlayerPressure": {
+    "placeholders": {
+      "actor": {},
+      "target": {}
+    }
+  },
+  "trainingSketchStageActionPlayerMark": "{actor}가 {target} 마크",
+  "@trainingSketchStageActionPlayerMark": {
+    "placeholders": {
+      "actor": {},
+      "target": {}
     }
   },
   "trainingSketchStageActionBallMove": "{actor} 공 이동",
@@ -8483,6 +8532,8 @@
   "trainingSketchQuickReceiveMoveButton": "공 받고 이동",
   "trainingSketchQuickReturnMoveButton": "돌아오기",
   "trainingSketchQuickOverlapButton": "오버랩",
+  "trainingSketchQuickPressureButton": "압박",
+  "trainingSketchQuickMarkButton": "마크",
   "trainingSketchQuickShotButton": "슈팅",
   "trainingSketchQuickCrossButton": "크로스",
   "trainingSketchQuickDriveButton": "드라이브",

@@ -26219,6 +26219,48 @@ abstract class AppLocalizations {
   /// **'Player'**
   String get trainingSketchPlayerButton;
 
+  /// No description provided for @trainingSketchAddTeamAPlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'A-team player'**
+  String get trainingSketchAddTeamAPlayerButton;
+
+  /// No description provided for @trainingSketchAddTeamBPlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'B-team player'**
+  String get trainingSketchAddTeamBPlayerButton;
+
+  /// No description provided for @trainingSketchTeamAShortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'A'**
+  String get trainingSketchTeamAShortLabel;
+
+  /// No description provided for @trainingSketchTeamBShortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'B'**
+  String get trainingSketchTeamBShortLabel;
+
+  /// No description provided for @trainingSketchTeamFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get trainingSketchTeamFilterAll;
+
+  /// No description provided for @trainingSketchPlayerTokenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{team}{number}'**
+  String trainingSketchPlayerTokenLabel(String team, int number);
+
+  /// No description provided for @trainingSketchTeamPlayerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{team}{number}'**
+  String trainingSketchTeamPlayerLabel(String team, int number);
+
   /// No description provided for @trainingSketchBallButton.
   ///
   /// In en, this message translates to:
@@ -26302,6 +26344,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Player {index} flow'**
   String trainingSketchPlayerFlowTitle(int index);
+
+  /// No description provided for @trainingSketchPlayerFlowTeamTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{player} next action'**
+  String trainingSketchPlayerFlowTeamTitle(String player);
 
   /// No description provided for @trainingSketchPlayerFlowWithBall.
   ///
@@ -26440,6 +26488,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{actor} stays in place'**
   String trainingSketchStageActionPlayerStay(Object actor);
+
+  /// No description provided for @trainingSketchStageActionPlayerPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} pressures {target}'**
+  String trainingSketchStageActionPlayerPressure(Object actor, Object target);
+
+  /// No description provided for @trainingSketchStageActionPlayerMark.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} marks {target}'**
+  String trainingSketchStageActionPlayerMark(Object actor, Object target);
 
   /// No description provided for @trainingSketchStageActionBallMove.
   ///
@@ -27162,6 +27222,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Overlap'**
   String get trainingSketchQuickOverlapButton;
+
+  /// No description provided for @trainingSketchQuickPressureButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure'**
+  String get trainingSketchQuickPressureButton;
+
+  /// No description provided for @trainingSketchQuickMarkButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark'**
+  String get trainingSketchQuickMarkButton;
 
   /// No description provided for @trainingSketchQuickShotButton.
   ///

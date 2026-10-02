@@ -107,6 +107,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _showPortraitInspector = true;
   bool _showTacticalOverlay = true;
   bool _showSelectedColorPicker = false;
+  _BoardTeamFilter _teamFilter = _BoardTeamFilter.all;
   int? _registeredNextActionStageIndex;
   int? _playbackActiveStageIndex;
   bool _isActionPreviewPlayback = false;
@@ -415,17 +416,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             : (page.name.trim().isEmpty ? defaultBoardName : page.name),
         methodText: page?.methodText ?? '',
         items: (page?.items ?? const <TrainingMethodItem>[])
-            .map(
-              (e) => _BoardItem(
-                id: e.id.trim().isEmpty ? _nextBoardItemId() : e.id,
-                type: _boardItemTypeFromString(e.type) ?? _BoardItemType.cone,
-                x: e.x,
-                y: e.y,
-                size: 32,
-                rotationDeg: e.rotationDeg,
-                color: Color(e.colorValue),
-              ),
-            )
+            .map(_boardItemFromLayoutItem)
             .toList(growable: true),
         strokes: (page?.strokes ?? const <TrainingMethodStroke>[])
             .map(
@@ -439,27 +430,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             )
             .toList(growable: true),
         routes: (page?.routes ?? const <TrainingMethodRoute>[])
-            .map(
-              (route) => _BoardRoute(
-                id: route.id.trim().isEmpty ? _nextBoardRouteId() : route.id,
-                kind: _pathDrawModeFromRouteKind(route.kind),
-                linkedItemId: route.linkedItemId,
-                actorItemId: route.actorItemId,
-                targetItemId: route.targetItemId,
-                points: route.points
-                    .map((point) => Offset(point.x, point.y))
-                    .toList(growable: true),
-                segmentDurationsMs: route.segmentDurationsMs.toList(
-                  growable: true,
-                ),
-                stageIndex: route.stageIndex,
-                color: Color(route.colorValue),
-                width: route.width,
-              ),
-            )
+            .map(_boardRouteFromLayoutRoute)
             .toList(growable: true),
       ),
     ];
+    _normalizeCurrentPagePlayerTeamIdentity();
     _normalizeCurrentPageRoutes();
     _syncCurrentPageRouteColors();
     if (page == null) {
@@ -500,6 +475,40 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
+  _BoardItem _boardItemFromLayoutItem(TrainingMethodItem item) {
+    final type = _boardItemTypeFromString(item.type) ?? _BoardItemType.cone;
+    return _BoardItem(
+      id: item.id.trim().isEmpty ? _nextBoardItemId() : item.id,
+      type: type,
+      x: item.x,
+      y: item.y,
+      size: 32,
+      rotationDeg: item.rotationDeg,
+      color: Color(item.colorValue),
+      teamId:
+          type == _BoardItemType.player ? _normalizedTeamId(item.teamId) : null,
+      playerNumber: type == _BoardItemType.player ? item.playerNumber : null,
+    );
+  }
+
+  _BoardRoute _boardRouteFromLayoutRoute(TrainingMethodRoute route) {
+    return _BoardRoute(
+      id: route.id.trim().isEmpty ? _nextBoardRouteId() : route.id,
+      kind: _pathDrawModeFromRouteKind(route.kind),
+      linkedItemId: route.linkedItemId,
+      actorItemId: route.actorItemId,
+      targetItemId: route.targetItemId,
+      actionType: route.actionType,
+      points: route.points
+          .map((point) => Offset(point.x, point.y))
+          .toList(growable: true),
+      segmentDurationsMs: route.segmentDurationsMs.toList(growable: true),
+      stageIndex: route.stageIndex,
+      color: Color(route.colorValue),
+      width: route.width,
+    );
+  }
+
   void _syncNextIdFromLayout(TrainingMethodLayout layout) {
     var maxNumericId = 0;
     final trailingNumberPattern = RegExp(r'-(\d+)$');
@@ -535,17 +544,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             : (page.name.trim().isEmpty ? board.title : page.name),
         methodText: page?.methodText ?? '',
         items: (page?.items ?? const <TrainingMethodItem>[])
-            .map(
-              (e) => _BoardItem(
-                id: e.id.trim().isEmpty ? _nextBoardItemId() : e.id,
-                type: _boardItemTypeFromString(e.type) ?? _BoardItemType.cone,
-                x: e.x,
-                y: e.y,
-                size: 32,
-                rotationDeg: e.rotationDeg,
-                color: Color(e.colorValue),
-              ),
-            )
+            .map(_boardItemFromLayoutItem)
             .toList(growable: true),
         strokes: (page?.strokes ?? const <TrainingMethodStroke>[])
             .map(
@@ -559,27 +558,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             )
             .toList(growable: true),
         routes: (page?.routes ?? const <TrainingMethodRoute>[])
-            .map(
-              (route) => _BoardRoute(
-                id: route.id.trim().isEmpty ? _nextBoardRouteId() : route.id,
-                kind: _pathDrawModeFromRouteKind(route.kind),
-                linkedItemId: route.linkedItemId,
-                actorItemId: route.actorItemId,
-                targetItemId: route.targetItemId,
-                points: route.points
-                    .map((point) => Offset(point.x, point.y))
-                    .toList(growable: true),
-                segmentDurationsMs: route.segmentDurationsMs.toList(
-                  growable: true,
-                ),
-                stageIndex: route.stageIndex,
-                color: Color(route.colorValue),
-                width: route.width,
-              ),
-            )
+            .map(_boardRouteFromLayoutRoute)
             .toList(growable: true),
       ),
     ];
+    _normalizeCurrentPagePlayerTeamIdentity();
     _normalizeCurrentPageRoutes();
     _syncCurrentPageRouteColors();
     _currentBoardId = board.id;
@@ -748,6 +731,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   size: e.size,
                   rotationDeg: e.rotationDeg,
                   colorValue: e.color.toARGB32(),
+                  teamId: e.type == _BoardItemType.player
+                      ? _normalizedTeamId(e.teamId)
+                      : null,
+                  playerNumber:
+                      e.type == _BoardItemType.player ? e.playerNumber : null,
                 ),
               )
               .toList(growable: false),
@@ -773,6 +761,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   linkedItemId: route.linkedItemId,
                   actorItemId: route.actorItemId,
                   targetItemId: route.targetItemId,
+                  actionType: route.actionType,
                   points: route.points
                       .map(
                         (point) =>
@@ -808,6 +797,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               size: item.size,
               rotationDeg: item.rotationDeg,
               color: item.color,
+              teamId: item.teamId,
+              playerNumber: item.playerNumber,
             ),
           )
           .toList(growable: true),
@@ -828,6 +819,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               linkedItemId: route.linkedItemId,
               actorItemId: route.actorItemId,
               targetItemId: route.targetItemId,
+              actionType: route.actionType,
               points: route.points.toList(growable: true),
               segmentDurationsMs: route.segmentDurationsMs.toList(
                 growable: true,
@@ -1051,6 +1043,106 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     };
   }
 
+  String _normalizedTeamId(String? raw) {
+    return raw?.trim().toUpperCase() == _teamBId ? _teamBId : _teamAId;
+  }
+
+  String? get _activeTeamFilterId {
+    return switch (_teamFilter) {
+      _BoardTeamFilter.all => null,
+      _BoardTeamFilter.teamA => _teamAId,
+      _BoardTeamFilter.teamB => _teamBId,
+    };
+  }
+
+  Color _defaultPlayerColorForTeam(String teamId) {
+    return _normalizedTeamId(teamId) == _teamBId ? _teamBColor : _teamAColor;
+  }
+
+  bool _isPlayerOnTeam(_BoardItem player, String teamId) {
+    return player.type == _BoardItemType.player &&
+        _normalizedTeamId(player.teamId) == _normalizedTeamId(teamId);
+  }
+
+  bool _playersShareTeam(_BoardItem first, _BoardItem second) {
+    return first.type == _BoardItemType.player &&
+        second.type == _BoardItemType.player &&
+        _normalizedTeamId(first.teamId) == _normalizedTeamId(second.teamId);
+  }
+
+  bool _isDimmedByTeamFilter(_BoardItem item) {
+    final filterTeamId = _activeTeamFilterId;
+    return filterTeamId != null &&
+        item.type == _BoardItemType.player &&
+        !_isPlayerOnTeam(item, filterTeamId);
+  }
+
+  void _normalizePlayerTeamIdentityForItems(List<_BoardItem> items) {
+    final teamCounts = <String, int>{_teamAId: 0, _teamBId: 0};
+    for (final item in items) {
+      if (item.type != _BoardItemType.player) {
+        item.teamId = null;
+        item.playerNumber = null;
+        continue;
+      }
+      final teamId = _normalizedTeamId(item.teamId);
+      item.teamId = teamId;
+      final nextNumber = (teamCounts[teamId] ?? 0) + 1;
+      teamCounts[teamId] = nextNumber;
+      item.playerNumber = nextNumber;
+    }
+  }
+
+  void _normalizeCurrentPagePlayerTeamIdentity() {
+    _normalizePlayerTeamIdentityForItems(_currentPage.items);
+  }
+
+  int _nextPlayerNumberForTeam(String teamId) {
+    final normalizedTeamId = _normalizedTeamId(teamId);
+    return _currentPage.items
+            .where(
+              (item) =>
+                  item.type == _BoardItemType.player &&
+                  _normalizedTeamId(item.teamId) == normalizedTeamId,
+            )
+            .length +
+        1;
+  }
+
+  String _teamShortLabel(String? teamId) {
+    return _normalizedTeamId(teamId) == _teamBId
+        ? _l10n.trainingSketchTeamBShortLabel
+        : _l10n.trainingSketchTeamAShortLabel;
+  }
+
+  String _playerTokenLabel(_BoardItem player) {
+    return _l10n.trainingSketchPlayerTokenLabel(
+      _teamShortLabel(player.teamId),
+      player.playerNumber ?? 1,
+    );
+  }
+
+  String _playerStageLabel(_BoardItem player) {
+    return _l10n.trainingSketchTeamPlayerLabel(
+      _teamShortLabel(player.teamId),
+      player.playerNumber ?? 1,
+    );
+  }
+
+  void _setSelectedPlayerTeam(_BoardItem player, String teamId) {
+    if (player.type != _BoardItemType.player) return;
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final normalizedTeamId = _normalizedTeamId(teamId);
+      player.teamId = normalizedTeamId;
+      player.color = _defaultPlayerColorForTeam(normalizedTeamId);
+      _normalizeCurrentPagePlayerTeamIdentity();
+      _syncLinkedRouteColors(player.id);
+      _clearPendingTargetActionState();
+    });
+    _scheduleAutoSave();
+  }
+
   List<_BoardToolSpec> _boardToolSpecsForCurrentSport() {
     final sportId = _currentSportIdOrDefault;
     final types = switch (sportId) {
@@ -1269,7 +1361,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   Offset _boardItemDisplayPoint(_BoardItem item) {
     final action = _pendingTargetAction;
     if (action != null &&
-        _requiresReceiverTargetAction(action) &&
+        (_requiresReceiverTargetAction(action) ||
+            _requiresOpponentPlayerTargetAction(action)) &&
         item.type == _BoardItemType.player &&
         _isValidBoardItemTargetForAction(action, item)) {
       return _itemActionPoint(item);
@@ -1440,8 +1533,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   _BoardItem? _nearestPlayerActionPointToPoint(
     Offset point, {
     required double radius,
+    List<_BoardItem>? candidates,
   }) {
-    final players = _itemsOfType(_BoardItemType.player);
+    final players = (candidates ?? _itemsOfType(_BoardItemType.player))
+        .toList(growable: false);
     if (players.isEmpty) return null;
     players.sort((a, b) {
       final aDistance = (_itemActionPoint(a) - point).distance;
@@ -1625,6 +1720,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _SketchTargetAction.receiveMove ||
       _SketchTargetAction.returnMove ||
       _SketchTargetAction.overlap ||
+      _SketchTargetAction.pressure ||
+      _SketchTargetAction.mark ||
       _SketchTargetAction.cut ||
       _SketchTargetAction.screen ||
       _SketchTargetAction.coneTurn ||
@@ -1657,6 +1754,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _SketchTargetAction.receiveMove ||
       _SketchTargetAction.returnMove ||
       _SketchTargetAction.overlap ||
+      _SketchTargetAction.pressure ||
+      _SketchTargetAction.mark ||
       _SketchTargetAction.cut ||
       _SketchTargetAction.screen ||
       _SketchTargetAction.coneTurn ||
@@ -1724,6 +1823,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _SketchTargetAction.moveToBall ||
       _SketchTargetAction.pass ||
       _SketchTargetAction.passAndMove ||
+      _SketchTargetAction.pressure ||
+      _SketchTargetAction.mark ||
       _SketchTargetAction.coneTurn ||
       _SketchTargetAction.coneJump ||
       _SketchTargetAction.hurdleJump =>
@@ -1732,7 +1833,20 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   List<_BoardItem> _passTargetPlayersFor(_BoardItem player) {
-    return _itemsOfType(_BoardItemType.player, excludingId: player.id);
+    return _itemsOfType(_BoardItemType.player, excludingId: player.id)
+        .where((target) => _playersShareTeam(player, target))
+        .toList(growable: false);
+  }
+
+  List<_BoardItem> _opponentTargetPlayersFor(_BoardItem player) {
+    return _itemsOfType(_BoardItemType.player, excludingId: player.id)
+        .where((target) => !_playersShareTeam(player, target))
+        .toList(growable: false);
+  }
+
+  bool _requiresOpponentPlayerTargetAction(_SketchTargetAction action) {
+    return action == _SketchTargetAction.pressure ||
+        action == _SketchTargetAction.mark;
   }
 
   bool _isValidBoardItemTargetForAction(
@@ -1747,7 +1861,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (_requiresReceiverTargetAction(action)) {
       return selected != null &&
           target.type == _BoardItemType.player &&
-          target.id != selected.id;
+          target.id != selected.id &&
+          _playersShareTeam(selected, target);
+    }
+    if (_requiresOpponentPlayerTargetAction(action)) {
+      return selected != null &&
+          target.type == _BoardItemType.player &&
+          target.id != selected.id &&
+          !_playersShareTeam(selected, target);
     }
     final requiredType = _requiredBoardItemTargetTypeForAction(action);
     if (requiredType != null) {
@@ -1950,6 +2071,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     int? stageIndex,
     String? actorItemId,
     String? targetItemId,
+    String? actionType,
     _BoardRoute? replacementRoute,
     bool createNewRoute = false,
   }) {
@@ -1972,6 +2094,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       route.linkedItemId = item.id;
       route.actorItemId = actorItemId ?? route.actorItemId;
       route.targetItemId = targetItemId;
+      route.actionType = actionType;
       route.stageIndex = nextStage;
       route.color = item.color;
       _refreshTargetedPassRouteEndpoints();
@@ -1986,6 +2109,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       stageIndex: nextStage,
       actorItemId: actorItemId,
       targetItemId: targetItemId,
+      actionType: actionType,
       color: item.color,
       width: _defaultRouteWidth(kind),
     );
@@ -2564,6 +2688,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   int _boardItemPaintPriority(_BoardItem item) {
     if (_isHighlightedTargetItem(item)) return 5;
     if (item.id == _movingItemId || item.id == _selectedItemId) return 4;
+    final filterTeamId = _activeTeamFilterId;
+    if (filterTeamId != null && _isPlayerOnTeam(item, filterTeamId)) return 4;
     if (item.type == _BoardItemType.player ||
         item.type == _BoardItemType.ball) {
       return 3;
@@ -2732,8 +2858,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     });
   }
 
-  void _addItem(_BoardItemType type) {
+  void _addItem(_BoardItemType type, {String? teamId}) {
     setState(() {
+      final playerTeamId =
+          type == _BoardItemType.player ? _normalizedTeamId(teamId) : null;
       final item = _BoardItem(
         id: _nextBoardItemId(),
         type: type,
@@ -2741,9 +2869,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         y: 0.5,
         size: 32,
         rotationDeg: 0,
-        color: _nextItemColor(type),
+        color: playerTeamId == null
+            ? _nextItemColor(type)
+            : _defaultPlayerColorForTeam(playerTeamId),
+        teamId: playerTeamId,
+        playerNumber: playerTeamId == null
+            ? null
+            : _nextPlayerNumberForTeam(playerTeamId),
       );
       _currentPage.items.add(item);
+      _normalizeCurrentPagePlayerTeamIdentity();
       _selectedItemId = type == _BoardItemType.player ? item.id : null;
       _selectedRouteId = null;
       _showSelectedColorPicker = false;
@@ -2791,6 +2926,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           )) {
         _selectedRouteId = null;
       }
+      _normalizeCurrentPagePlayerTeamIdentity();
       _selectedItemId = null;
       _showSelectedColorPicker = false;
       _clearPendingTargetActionState();
@@ -2875,8 +3011,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _stopRoutePlayback();
     }
     if (mounted) {
-      setState(_normalizeCurrentPageRoutes);
+      setState(() {
+        _normalizeCurrentPagePlayerTeamIdentity();
+        _normalizeCurrentPageRoutes();
+      });
     } else {
+      _normalizeCurrentPagePlayerTeamIdentity();
       _normalizeCurrentPageRoutes();
     }
     final serialized = _serialize();
@@ -3095,19 +3235,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final copiedPage = _BoardPageState(
       name: page.name.trim().isEmpty ? _currentPage.name : page.name,
       methodText: page.methodText,
-      items: page.items
-          .map(
-            (e) => _BoardItem(
-              id: e.id.trim().isEmpty ? _nextBoardItemId() : e.id,
-              type: _boardItemTypeFromString(e.type) ?? _BoardItemType.cone,
-              x: e.x,
-              y: e.y,
-              size: 32,
-              rotationDeg: e.rotationDeg,
-              color: Color(e.colorValue),
-            ),
-          )
-          .toList(growable: true),
+      items: page.items.map(_boardItemFromLayoutItem).toList(growable: true),
       strokes: page.strokes
           .map(
             (stroke) => _BoardStroke(
@@ -3119,27 +3247,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             ),
           )
           .toList(growable: true),
-      routes: page.routes
-          .map(
-            (route) => _BoardRoute(
-              id: route.id.trim().isEmpty ? _nextBoardRouteId() : route.id,
-              kind: _pathDrawModeFromRouteKind(route.kind),
-              linkedItemId: route.linkedItemId,
-              actorItemId: route.actorItemId,
-              targetItemId: route.targetItemId,
-              points: route.points
-                  .map((point) => Offset(point.x, point.y))
-                  .toList(growable: true),
-              segmentDurationsMs: route.segmentDurationsMs.toList(
-                growable: true,
-              ),
-              stageIndex: route.stageIndex,
-              color: Color(route.colorValue),
-              width: route.width,
-            ),
-          )
-          .toList(growable: true),
+      routes:
+          page.routes.map(_boardRouteFromLayoutRoute).toList(growable: true),
     );
+    _normalizePlayerTeamIdentityForItems(copiedPage.items);
     for (final route in copiedPage.routes) {
       final linkedItemId = route.linkedItemId;
       if (linkedItemId == null) continue;
@@ -4476,6 +4587,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   String _routeableItemLabel(_BoardItem item) {
+    if (item.type == _BoardItemType.player) {
+      return _playerStageLabel(item);
+    }
     final kind = item.type == _BoardItemType.ball
         ? _PathDrawMode.ball
         : _PathDrawMode.player;
@@ -4620,6 +4734,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _SketchTargetAction.overlap => _applyOverlapTargetAction(
           selected,
           target,
+        ),
+      _SketchTargetAction.pressure => _applyOpponentPlayerTargetAction(
+          selected,
+          target,
+          action: action,
+          targetItem: targetItem,
+        ),
+      _SketchTargetAction.mark => _applyOpponentPlayerTargetAction(
+          selected,
+          target,
+          action: action,
+          targetItem: targetItem,
         ),
       _SketchTargetAction.shot => _applyShotTargetAction(
           selected,
@@ -4984,10 +5110,34 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _BoardItem? targetItem,
   ) {
     if (targetItem?.type == _BoardItemType.player &&
-        targetItem?.id != selected.id) {
+        targetItem?.id != selected.id &&
+        _playersShareTeam(selected, targetItem!)) {
       return targetItem;
     }
-    final nearest = _nearestPlayerActionPointToPoint(target, radius: 0.075);
+    final nearest = _nearestPlayerActionPointToPoint(
+      target,
+      radius: 0.075,
+      candidates: _passTargetPlayersFor(selected),
+    );
+    if (nearest == null || nearest.id == selected.id) return null;
+    return nearest;
+  }
+
+  _BoardItem? _resolveOpponentPlayerTarget(
+    _BoardItem selected,
+    Offset target,
+    _BoardItem? targetItem,
+  ) {
+    if (targetItem?.type == _BoardItemType.player &&
+        targetItem?.id != selected.id &&
+        !_playersShareTeam(selected, targetItem!)) {
+      return targetItem;
+    }
+    final nearest = _nearestPlayerActionPointToPoint(
+      target,
+      radius: 0.075,
+      candidates: _opponentTargetPlayersFor(selected),
+    );
     if (nearest == null || nearest.id == selected.id) return null;
     return nearest;
   }
@@ -5352,6 +5502,70 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       points: <Offset>[_itemPosition(player), target, target],
       segmentDurationsMs: const <int>[520, 420],
     );
+  }
+
+  Offset _opponentActionEndPoint({
+    required Offset playerStart,
+    required Offset opponentPoint,
+    required double cushion,
+  }) {
+    final delta = opponentPoint - playerStart;
+    if (delta.distance < 0.01) return opponentPoint;
+    final direction = delta / delta.distance;
+    return _clampedBoardPoint(
+      opponentPoint.dx - (direction.dx * cushion),
+      opponentPoint.dy - (direction.dy * cushion),
+    );
+  }
+
+  bool _applyOpponentPlayerTargetAction(
+    _BoardItem selected,
+    Offset target, {
+    required _SketchTargetAction action,
+    _BoardItem? targetItem,
+  }) {
+    final player = _playerForTargetAction(selected);
+    if (player == null) return false;
+    final opponent = _resolveOpponentPlayerTarget(player, target, targetItem);
+    if (opponent == null) return false;
+
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final existingRoute = _playerRouteForChainedAction(player);
+      final basePoints = _playerActionBasePoints(player, existingRoute);
+      final start = basePoints.last;
+      final opponentPoint = _itemActionPoint(opponent);
+      final end = _opponentActionEndPoint(
+        playerStart: start,
+        opponentPoint: opponentPoint,
+        cushion: action == _SketchTargetAction.mark ? 0.045 : 0.025,
+      );
+      final actionPoints = <Offset>[start, end];
+      final stageIndex = _stageForPlayerMoveAction(player, existingRoute);
+      final createNewStageRoute = _shouldCreateNewPlayerStageRoute(
+        existingRoute,
+        stageIndex,
+      );
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.player,
+        item: player,
+        points: createNewStageRoute
+            ? actionPoints
+            : <Offset>[...basePoints, ...actionPoints.skip(1)],
+        segmentDurationsMs: createNewStageRoute
+            ? const <int>[620]
+            : <int>[..._playerActionBaseDurations(existingRoute), 620],
+        stageIndex: stageIndex,
+        actorItemId: player.id,
+        targetItemId: opponent.id,
+        actionType: action.name,
+        replacementRoute: createNewStageRoute ? null : existingRoute,
+        createNewRoute: createNewStageRoute,
+      );
+      _selectQuickActionRoute(route, player);
+    });
+    _scheduleAutoSave();
+    return true;
   }
 
   _BoardItem _ensureTrainingPropForAction({
@@ -5743,6 +5957,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       linkedItemId: route.linkedItemId,
       actorItemId: route.actorItemId,
       targetItemId: route.targetItemId,
+      actionType: route.actionType,
       points: List<Offset>.from(points ?? route.points),
       segmentDurationsMs: List<int>.from(
         segmentDurationsMs ?? route.segmentDurationsMs,
@@ -5768,6 +5983,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         before.linkedItemId != after.linkedItemId ||
         before.actorItemId != after.actorItemId ||
         before.targetItemId != after.targetItemId ||
+        before.actionType != after.actionType ||
         _normalizedRouteStageIndex(before.stageIndex) !=
             _normalizedRouteStageIndex(after.stageIndex) ||
         !_routePointListsEqual(before.points, after.points) ||
@@ -6844,6 +7060,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
         final surface = _boardSurfaceForSport(_currentSportId);
+        final activeTeamFilterId = _activeTeamFilterId;
+        final itemTeamIds = <String, String>{
+          for (final item in _currentPage.items)
+            if (item.type == _BoardItemType.player)
+              item.id: _normalizedTeamId(item.teamId),
+        };
         return RepaintBoundary(
           key: _boardPdfBoundaryKey,
           child: Container(
@@ -6943,6 +7165,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                         activeRoutePoints: _activeRoutePoints,
                         activeRouteColor: _activeRoutePreviewColor(),
                         activeRouteKind: _pathDrawMode,
+                        teamFilterId: activeTeamFilterId,
+                        itemTeamIds: itemTeamIds,
                       ),
                     ),
                     if (_pendingTargetGuideStartPoint() != null &&
@@ -7045,6 +7269,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                           highlighted:
                                               _isHighlightedTargetItem(item),
                                           moving: item.id == _movingItemId,
+                                          dimmed: _isDimmedByTeamFilter(item),
                                           label: _boardTokenLabelFor(item),
                                           sportId: _currentSportIdOrDefault,
                                         ),
@@ -7097,8 +7322,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   String? _boardTokenLabelFor(_BoardItem item) {
-    if (item.type != _BoardItemType.player &&
-        item.type != _BoardItemType.ball) {
+    if (item.type == _BoardItemType.player) {
+      return _playerTokenLabel(item);
+    }
+    if (item.type != _BoardItemType.ball) {
       return null;
     }
     final typeIndex = _currentPage.items
@@ -7439,13 +7666,70 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   List<Widget> _buildToolButtonsList(bool isKo) {
     return <Widget>[
       for (final tool in _boardToolSpecsForCurrentSport())
-        _toolButton(
-          label: tool.label,
-          icon: tool.icon,
-          onTap: () => _addItem(tool.type),
-        ),
+        if (tool.type == _BoardItemType.player)
+          ..._buildPlayerAddButtons()
+        else
+          _toolButton(
+            label: tool.label,
+            icon: tool.icon,
+            onTap: () => _addItem(tool.type),
+          ),
+      _buildTeamFilterControl(),
       ..._buildUtilityToolButtons(isKo),
     ];
+  }
+
+  List<Widget> _buildPlayerAddButtons() {
+    return <Widget>[
+      _toolButton(
+        label: _l10n.trainingSketchAddTeamAPlayerButton,
+        icon: Icons.person_add_alt_1,
+        accentColor: _teamAColor,
+        onTap: () => _addItem(_BoardItemType.player, teamId: _teamAId),
+      ),
+      _toolButton(
+        label: _l10n.trainingSketchAddTeamBPlayerButton,
+        icon: Icons.person_add_alt_1,
+        accentColor: _teamBColor,
+        onTap: () => _addItem(_BoardItemType.player, teamId: _teamBId),
+      ),
+    ];
+  }
+
+  Widget _buildTeamFilterControl() {
+    return SizedBox(
+      height: 40,
+      child: SegmentedButton<_BoardTeamFilter>(
+        key: const ValueKey('training-team-filter-control'),
+        segments: <ButtonSegment<_BoardTeamFilter>>[
+          ButtonSegment<_BoardTeamFilter>(
+            value: _BoardTeamFilter.all,
+            label: Text(_l10n.trainingSketchTeamFilterAll),
+          ),
+          ButtonSegment<_BoardTeamFilter>(
+            value: _BoardTeamFilter.teamA,
+            label: Text(_teamShortLabel(_teamAId)),
+          ),
+          ButtonSegment<_BoardTeamFilter>(
+            value: _BoardTeamFilter.teamB,
+            label: Text(_teamShortLabel(_teamBId)),
+          ),
+        ],
+        selected: <_BoardTeamFilter>{_teamFilter},
+        showSelectedIcon: false,
+        style: const ButtonStyle(
+          visualDensity: VisualDensity.compact,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
+            EdgeInsets.symmetric(horizontal: 8),
+          ),
+        ),
+        onSelectionChanged: (selection) {
+          if (selection.isEmpty) return;
+          setState(() => _teamFilter = selection.first);
+        },
+      ),
+    );
   }
 
   List<Widget> _buildUtilityToolButtons(bool isKo) {
@@ -7539,12 +7823,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     required String label,
     required IconData icon,
     required VoidCallback onTap,
+    Color? accentColor,
   }) {
     return OutlinedButton.icon(
       onPressed: onTap,
       icon: Icon(icon),
       label: Text(label),
-      style: _toolButtonStyle(),
+      style: _toolButtonStyle(
+        foregroundColor: accentColor,
+        side: accentColor == null
+            ? null
+            : BorderSide(color: accentColor.withValues(alpha: 0.62)),
+      ),
     );
   }
 
@@ -7564,6 +7854,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _SketchTargetAction.returnMove =>
         l10n.trainingSketchQuickReturnMoveButton,
       _SketchTargetAction.overlap => l10n.trainingSketchQuickOverlapButton,
+      _SketchTargetAction.pressure => l10n.trainingSketchQuickPressureButton,
+      _SketchTargetAction.mark => l10n.trainingSketchQuickMarkButton,
       _SketchTargetAction.shot => l10n.trainingSketchQuickShotButton,
       _SketchTargetAction.cross => l10n.trainingSketchQuickCrossButton,
       _SketchTargetAction.drive => l10n.trainingSketchQuickDriveButton,
@@ -7606,8 +7898,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  _l10n.trainingSketchPlayerFlowTitle(
-                    _itemIndexOfType(player),
+                  _l10n.trainingSketchPlayerFlowTeamTitle(
+                    _playerStageLabel(player),
                   ),
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: colors.onPrimaryContainer,
@@ -7615,6 +7907,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   ),
                 ),
               ),
+              _buildSelectedTeamControl(player),
+              const SizedBox(width: 6),
               _buildSelectedColorButton(player),
               if (!widget.readOnly)
                 Tooltip(
@@ -7708,7 +8002,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         .where(
           (action) =>
               _canUsePlayerFlowMovementAction(player, action) &&
-              _hasPlayerFlowActionTarget(action),
+              _hasPlayerFlowActionTarget(player, action),
         )
         .toList(growable: false);
     final propActions = _playerFlowPropActions(movementActions);
@@ -7721,7 +8015,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     ];
   }
 
-  bool _hasPlayerFlowActionTarget(_SketchTargetAction action) {
+  bool _hasPlayerFlowActionTarget(
+    _BoardItem player,
+    _SketchTargetAction action,
+  ) {
+    if (_requiresOpponentPlayerTargetAction(action)) {
+      return _opponentTargetPlayersFor(player).isNotEmpty;
+    }
     final targetType = _requiredBoardItemTargetTypeForAction(action);
     return targetType == null || _itemsOfType(targetType).isNotEmpty;
   }
@@ -7849,6 +8149,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _SketchTargetAction.receiveMove => Icons.call_received,
       _SketchTargetAction.returnMove => Icons.keyboard_return,
       _SketchTargetAction.overlap => Icons.moving,
+      _SketchTargetAction.pressure => Icons.ads_click,
+      _SketchTargetAction.mark => Icons.person_search,
       _SketchTargetAction.shot => Icons.ads_click,
       _SketchTargetAction.cross => Icons.north_east,
       _SketchTargetAction.drive => Icons.sports_basketball_outlined,
@@ -7935,6 +8237,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           _SketchTargetAction.receiveMove,
           _SketchTargetAction.returnMove,
           _SketchTargetAction.overlap,
+          _SketchTargetAction.pressure,
+          _SketchTargetAction.mark,
           _SketchTargetAction.coneTurn,
           _SketchTargetAction.coneJump,
           _SketchTargetAction.hurdleJump,
@@ -7999,6 +8303,47 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           label: Text(l10n.trainingSketchUndoLastRoutePointButton),
         ),
       ],
+    );
+  }
+
+  Widget _buildSelectedTeamControl(_BoardItem player) {
+    final selectedTeamId = _normalizedTeamId(player.teamId);
+    return SizedBox(
+      height: 34,
+      child: SegmentedButton<String>(
+        key: ValueKey('training-selected-team-control-${player.id}'),
+        segments: <ButtonSegment<String>>[
+          ButtonSegment<String>(
+            value: _teamAId,
+            label: Text(
+              _teamShortLabel(_teamAId),
+              key: const ValueKey('training-selected-player-team-A'),
+            ),
+          ),
+          ButtonSegment<String>(
+            value: _teamBId,
+            label: Text(
+              _teamShortLabel(_teamBId),
+              key: const ValueKey('training-selected-player-team-B'),
+            ),
+          ),
+        ],
+        selected: <String>{selectedTeamId},
+        showSelectedIcon: false,
+        style: const ButtonStyle(
+          visualDensity: VisualDensity.compact,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
+            EdgeInsets.symmetric(horizontal: 8),
+          ),
+        ),
+        onSelectionChanged: widget.readOnly
+            ? null
+            : (selection) {
+                if (selection.isEmpty) return;
+                _setSelectedPlayerTeam(player, selection.first);
+              },
+      ),
     );
   }
 
@@ -8136,6 +8481,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   String _stageItemLabel(_BoardItem? item) {
     if (item == null) return _l10n.trainingSketchStageActionUnknownItem;
+    if (item.type == _BoardItemType.player) {
+      return _playerStageLabel(item);
+    }
     return '${_boardToolLabel(item.type)} ${_itemIndexOfType(item)}';
   }
 
@@ -8146,6 +8494,26 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final targetItem =
         route.targetItemId == null ? null : _itemById(route.targetItemId!);
     if (route.kind == _PathDrawMode.player) {
+      if (actorItem != null &&
+          targetItem != null &&
+          targetItem.type == _BoardItemType.player &&
+          actorItem.id != targetItem.id &&
+          route.actionType == _SketchTargetAction.pressure.name) {
+        return _l10n.trainingSketchStageActionPlayerPressure(
+          _stageItemLabel(actorItem),
+          _stageItemLabel(targetItem),
+        );
+      }
+      if (actorItem != null &&
+          targetItem != null &&
+          targetItem.type == _BoardItemType.player &&
+          actorItem.id != targetItem.id &&
+          route.actionType == _SketchTargetAction.mark.name) {
+        return _l10n.trainingSketchStageActionPlayerMark(
+          _stageItemLabel(actorItem),
+          _stageItemLabel(targetItem),
+        );
+      }
       if (_isPlayerStayRoute(route)) {
         return _l10n.trainingSketchStageActionPlayerStay(
           _stageItemLabel(linkedItem ?? actorItem),
@@ -8797,6 +9165,8 @@ class _BoardItem {
   double size;
   double rotationDeg;
   Color color;
+  String? teamId;
+  int? playerNumber;
 
   _BoardItem({
     required this.id,
@@ -8806,6 +9176,8 @@ class _BoardItem {
     required this.size,
     required this.rotationDeg,
     required this.color,
+    this.teamId,
+    this.playerNumber,
   });
 }
 
@@ -8815,6 +9187,7 @@ class _BoardRoute {
   String? linkedItemId;
   String? actorItemId;
   String? targetItemId;
+  String? actionType;
   final List<Offset> points;
   final List<int> segmentDurationsMs;
   int stageIndex;
@@ -8832,6 +9205,7 @@ class _BoardRoute {
     this.linkedItemId,
     this.actorItemId,
     this.targetItemId,
+    this.actionType,
   });
 }
 
@@ -8965,6 +9339,8 @@ enum _TopBarMenuAction {
 
 enum _PathDrawMode { player, ball }
 
+enum _BoardTeamFilter { all, teamA, teamB }
+
 enum _SketchTargetAction {
   move,
   moveToBall,
@@ -8975,6 +9351,8 @@ enum _SketchTargetAction {
   receiveMove,
   returnMove,
   overlap,
+  pressure,
+  mark,
   shot,
   cross,
   drive,
@@ -9153,11 +9531,17 @@ const int _maxRouteStageIndex = 99;
 const Duration _minPlaybackDuration = Duration(milliseconds: 900);
 const Duration _actionPreviewMinDuration = Duration(milliseconds: 420);
 const Duration _actionPreviewMaxDuration = Duration(milliseconds: 760);
+const String _teamAId = 'A';
+const String _teamBId = 'B';
+const Color _teamAColor = Color(0xFF1E88E5);
+const Color _teamBColor = Color(0xFFE53935);
 const List<double> _laneFractions = <double>[0.18, 0.38, 0.62, 0.82];
 
 const List<Color> _playerItemColors = <Color>[
+  _teamAColor,
+  _teamBColor,
+  Color(0xFF43A047),
   Color(0xFF42A5F5),
-  Color(0xFF1E88E5),
   Color(0xFF26C6DA),
   Color(0xFF5C6BC0),
   Color(0xFF00897B),
@@ -9196,6 +9580,7 @@ class _BoardToken extends StatelessWidget {
   final bool selected;
   final bool highlighted;
   final bool moving;
+  final bool dimmed;
   final String? label;
   final String sportId;
 
@@ -9205,6 +9590,7 @@ class _BoardToken extends StatelessWidget {
     required this.selected,
     required this.highlighted,
     required this.moving,
+    required this.dimmed,
     required this.label,
     required this.sportId,
   });
@@ -9288,6 +9674,10 @@ class _BoardToken extends StatelessWidget {
         ),
       ),
     );
+    final filteredToken = Opacity(
+      opacity: dimmed && !selected && !highlighted ? 0.42 : 1,
+      child: token,
+    );
     if (highlighted && !moving) {
       return TweenAnimationBuilder<double>(
         tween: Tween<double>(begin: 0, end: 1),
@@ -9297,7 +9687,7 @@ class _BoardToken extends StatelessWidget {
           final pulse = math.sin(value * math.pi) * 0.08;
           return Transform.scale(scale: 1.08 + pulse, child: child);
         },
-        child: token,
+        child: filteredToken,
       );
     }
     return AnimatedScale(
@@ -9308,7 +9698,7 @@ class _BoardToken extends StatelessWidget {
               : 1.0,
       duration: const Duration(milliseconds: 110),
       curve: Curves.easeOut,
-      child: token,
+      child: filteredToken,
     );
   }
 }
@@ -9321,9 +9711,10 @@ class _TokenNumberBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 17,
+      constraints: const BoxConstraints(minWidth: 17),
       height: 17,
       alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 3),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.96),
         shape: BoxShape.circle,
@@ -9379,6 +9770,8 @@ class _PlayerPathPainter extends CustomPainter {
   final List<Offset>? activeRoutePoints;
   final Color activeRouteColor;
   final _PathDrawMode activeRouteKind;
+  final String? teamFilterId;
+  final Map<String, String> itemTeamIds;
 
   const _PlayerPathPainter({
     required this.routes,
@@ -9386,7 +9779,25 @@ class _PlayerPathPainter extends CustomPainter {
     required this.activeRoutePoints,
     required this.activeRouteColor,
     required this.activeRouteKind,
+    required this.teamFilterId,
+    required this.itemTeamIds,
   });
+
+  bool _routeMatchesTeamFilter(_BoardRoute route) {
+    final filterId = teamFilterId;
+    if (filterId == null) return true;
+    final teamIds = <String>{
+      if (route.linkedItemId != null &&
+          itemTeamIds[route.linkedItemId!] != null)
+        itemTeamIds[route.linkedItemId!]!,
+      if (route.actorItemId != null && itemTeamIds[route.actorItemId!] != null)
+        itemTeamIds[route.actorItemId!]!,
+      if (route.targetItemId != null &&
+          itemTeamIds[route.targetItemId!] != null)
+        itemTeamIds[route.targetItemId!]!,
+    };
+    return teamIds.isEmpty || teamIds.contains(filterId);
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -9404,7 +9815,7 @@ class _PlayerPathPainter extends CustomPainter {
         points: route.points,
         color: route.color,
         width: route.width,
-        alpha: 0.38,
+        alpha: _routeMatchesTeamFilter(route) ? 0.38 : 0.12,
         selected: false,
       );
     }
