@@ -9393,19 +9393,19 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassHelpAction.
   ///
   /// In en, this message translates to:
-  /// **'Instructions'**
+  /// **'Analysis guide'**
   String get scanPassHelpAction;
 
   /// No description provided for @scanPassIntroTitle.
   ///
   /// In en, this message translates to:
-  /// **'Read the defenders, then choose a pass'**
+  /// **'Scan Pass Analysis'**
   String get scanPassIntroTitle;
 
   /// No description provided for @scanPassIntroSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'You are the yellow ball carrier. Watch the red defenders, remember the space, then tap a blue teammate for a safer, useful pass.'**
+  /// **'Observe lane clearance, defender arrival, receiver pressure, and forward progress. Then choose the pass route that best balances safety and advantage.'**
   String get scanPassIntroSubtitle;
 
   /// No description provided for @scanPassSampleFieldSemantics.
@@ -9417,13 +9417,13 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPracticeAction.
   ///
   /// In en, this message translates to:
-  /// **'Try practice'**
+  /// **'Untimed practice'**
   String get scanPassPracticeAction;
 
   /// No description provided for @scanPassStartChallengeAction.
   ///
   /// In en, this message translates to:
-  /// **'Start 10 rounds'**
+  /// **'Start 10-round challenge'**
   String get scanPassStartChallengeAction;
 
   /// No description provided for @scanPassRoundStatus.
@@ -9441,7 +9441,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassStreakStatus.
   ///
   /// In en, this message translates to:
-  /// **'Streak {streak}'**
+  /// **'Top group streak {streak}'**
   String scanPassStreakStatus(int streak);
 
   /// No description provided for @scanPassPracticeStatus.
@@ -9453,37 +9453,37 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPhaseObserveHeading.
   ///
   /// In en, this message translates to:
-  /// **'1. View defender positions'**
+  /// **'1. Observe defensive pressure'**
   String get scanPassPhaseObserveHeading;
 
   /// No description provided for @scanPassPhaseChoiceHeading.
   ///
   /// In en, this message translates to:
-  /// **'2. Tap a blue teammate to pass'**
+  /// **'2. Select a passing route'**
   String get scanPassPhaseChoiceHeading;
 
   /// No description provided for @scanPassPhaseCompareHeading.
   ///
   /// In en, this message translates to:
-  /// **'3. Compare choices'**
+  /// **'3. Review route analysis'**
   String get scanPassPhaseCompareHeading;
 
   /// No description provided for @scanPassPracticeObserveHeading.
   ///
   /// In en, this message translates to:
-  /// **'Practice 1. View defenders'**
+  /// **'Practice 1. Observe the shape'**
   String get scanPassPracticeObserveHeading;
 
   /// No description provided for @scanPassPracticeChoiceHeading.
   ///
   /// In en, this message translates to:
-  /// **'Practice 2. Choose a teammate'**
+  /// **'Practice 2. Select a route'**
   String get scanPassPracticeChoiceHeading;
 
   /// No description provided for @scanPassPracticeCompareHeading.
   ///
   /// In en, this message translates to:
-  /// **'Practice 3. Compare choices'**
+  /// **'Practice 3. Review the evidence'**
   String get scanPassPracticeCompareHeading;
 
   /// No description provided for @scanPassLegendBallCarrier.
@@ -9495,134 +9495,182 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassLegendTeammate.
   ///
   /// In en, this message translates to:
-  /// **'Blue teammate'**
+  /// **'Teammate'**
   String get scanPassLegendTeammate;
 
   /// No description provided for @scanPassLegendDefender.
   ///
   /// In en, this message translates to:
-  /// **'Red defender'**
+  /// **'Defender'**
   String get scanPassLegendDefender;
 
   /// No description provided for @scanPassAttackDirection.
   ///
   /// In en, this message translates to:
-  /// **'Attack direction'**
+  /// **'Attack direction: right'**
   String get scanPassAttackDirection;
 
   /// No description provided for @scanPassIntroStepObserveTitle.
   ///
   /// In en, this message translates to:
-  /// **'Look first'**
+  /// **'Observation'**
   String get scanPassIntroStepObserveTitle;
 
   /// No description provided for @scanPassIntroStepObserveBody.
   ///
   /// In en, this message translates to:
-  /// **'Read where red defenders can block or arrive.'**
+  /// **'Read the lane, defender arrival path, receiver pressure, and open space.'**
   String get scanPassIntroStepObserveBody;
 
   /// No description provided for @scanPassIntroStepChooseTitle.
   ///
   /// In en, this message translates to:
-  /// **'Tap a teammate'**
+  /// **'Pass selection'**
   String get scanPassIntroStepChooseTitle;
 
   /// No description provided for @scanPassIntroStepChooseBody.
   ///
   /// In en, this message translates to:
-  /// **'Pick a blue teammate after the defenders fade.'**
+  /// **'After defenders fade, select the teammate whose route best fits the tradeoff.'**
   String get scanPassIntroStepChooseBody;
 
   /// No description provided for @scanPassIntroStepCompareTitle.
   ///
   /// In en, this message translates to:
-  /// **'Compare routes'**
+  /// **'Route analysis'**
   String get scanPassIntroStepCompareTitle;
 
   /// No description provided for @scanPassIntroStepCompareBody.
   ///
   /// In en, this message translates to:
-  /// **'Every teammate gets a score, so close choices can both be useful.'**
+  /// **'All three routes are scored. A high-scoring route can still have risk.'**
   String get scanPassIntroStepCompareBody;
+
+  /// No description provided for @scanPassIntroScoringGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scoring guide'**
+  String get scanPassIntroScoringGuideTitle;
+
+  /// No description provided for @scanPassIntroScoringGuideSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Decision points max at 90 before any challenge reaction bonus.'**
+  String get scanPassIntroScoringGuideSummary;
+
+  /// No description provided for @scanPassScoringGuideDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Decision subtotal: lane clearance 26, defender-arrival margin 22, receiver space 16, forward progress 12, and connection stability 14. These add to 90.'**
+  String get scanPassScoringGuideDecision;
+
+  /// No description provided for @scanPassScoringGuideReaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge reaction bonus applies only when the decision subtotal is at least 50. It can add up to 10 at 450 ms or faster and decreases to 0 at the choice deadline.'**
+  String get scanPassScoringGuideReaction;
+
+  /// No description provided for @scanPassScoringGuidePractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice is untimed and shows route judgment only: max 90, no history save, no reaction bonus.'**
+  String get scanPassScoringGuidePractice;
+
+  /// No description provided for @scanPassScoringGuideMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Methodology: indices use normalized game geometry and speeds. They are not measured match probabilities, real seconds, meters, xG, or success percentages.'**
+  String get scanPassScoringGuideMethod;
 
   /// No description provided for @scanPassPreviewInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Look at the red defenders and blue teammates. Attack moves to the right; defenders will soon be hidden.'**
+  /// **'Observe defenders and teammates. Attack moves right; the defensive pressure will soon be hidden.'**
   String get scanPassPreviewInstruction;
 
   /// No description provided for @scanPassPredictionPreviewInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Watch the defenders\' first step. After they fade, choose based on where they are moving.'**
+  /// **'Observe the defenders\' first step. Then judge where pressure will arrive after they fade.'**
   String get scanPassPredictionPreviewInstruction;
 
   /// No description provided for @scanPassSilhouetteChoiceInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Tap a blue teammate while the faint red defenders stay in memory.'**
+  /// **'Select a route while the faint defender positions stay in memory.'**
   String get scanPassSilhouetteChoiceInstruction;
 
   /// No description provided for @scanPassHiddenChoiceInstruction.
   ///
   /// In en, this message translates to:
-  /// **'The red defenders are hidden. Tap the blue teammate with the safer, useful lane.'**
+  /// **'Defenders are hidden. Choose the route with the best balance of lane clearance, timing, space, and progress.'**
   String get scanPassHiddenChoiceInstruction;
 
   /// No description provided for @scanPassPredictionChoiceInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Predict where the red defenders moved, then tap the blue teammate you trust.'**
+  /// **'Predict the defender movement, then select the route you can justify.'**
   String get scanPassPredictionChoiceInstruction;
 
   /// No description provided for @scanPassPracticeObserveInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Take your time. When the red defenders and open spaces make sense, continue.'**
+  /// **'Take your time. Continue when you can explain the lane, arrival, receiver pressure, and forward value.'**
   String get scanPassPracticeObserveInstruction;
 
   /// No description provided for @scanPassPracticeChoiceInstruction.
   ///
   /// In en, this message translates to:
-  /// **'The red defenders are hidden. Tap one blue teammate; there is no deadline in practice.'**
+  /// **'Defenders are hidden. Select one route; practice has no deadline.'**
   String get scanPassPracticeChoiceInstruction;
 
   /// No description provided for @scanPassPracticeReadyAction.
   ///
   /// In en, this message translates to:
-  /// **'I\'m ready'**
+  /// **'Ready'**
   String get scanPassPracticeReadyAction;
 
   /// No description provided for @scanPassPassInFlight.
   ///
   /// In en, this message translates to:
-  /// **'Pass released. Read the lane and arrival timing.'**
+  /// **'Pass released. Review the lane, receiver pressure, and arrival margin.'**
   String get scanPassPassInFlight;
 
   /// No description provided for @scanPassFeedbackComparable.
   ///
   /// In en, this message translates to:
-  /// **'Route score {score}. This option is close to the best choices: {reason}'**
+  /// **'Score {score}. This route is in the top score group for this response time: {reason}'**
   String scanPassFeedbackComparable(int score, Object reason);
 
   /// No description provided for @scanPassFeedbackBehind.
   ///
   /// In en, this message translates to:
-  /// **'Route score {score}. Best option this round was {best}; {reason}'**
+  /// **'Score {score}. The top route for this response time was {best}; {reason}'**
   String scanPassFeedbackBehind(int score, int best, Object reason);
 
   /// No description provided for @scanPassTimeoutFeedback.
   ///
   /// In en, this message translates to:
-  /// **'The window closed before a pass. Best option this round was {best}; scan, then decide earlier next time.'**
+  /// **'No pass selected before the window closed. The best route was {best}, but the round records 0 and the response is counted at the limit.'**
   String scanPassTimeoutFeedback(int best);
 
   /// No description provided for @scanPassRouteComparisonTitle.
   ///
   /// In en, this message translates to:
-  /// **'Route scores'**
+  /// **'Route comparison'**
   String get scanPassRouteComparisonTitle;
+
+  /// No description provided for @scanPassRouteComparisonSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All three routes use the same response time. Top score group means within 7 points of best, not automatically safe.'**
+  String get scanPassRouteComparisonSubtitle;
+
+  /// No description provided for @scanPassRouteDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed route panels'**
+  String get scanPassRouteDetailsTitle;
 
   /// No description provided for @scanPassRouteTeammate.
   ///
@@ -9645,13 +9693,325 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassComparableRouteLabel.
   ///
   /// In en, this message translates to:
-  /// **'Strong option'**
+  /// **'Top score group'**
   String get scanPassComparableRouteLabel;
+
+  /// No description provided for @scanPassRouteFinalValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{score}/{max}'**
+  String scanPassRouteFinalValue(Object max, Object score);
+
+  /// No description provided for @scanPassScoreOutOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}/{max}'**
+  String scanPassScoreOutOf(Object max, Object value);
+
+  /// No description provided for @scanPassDecisionSubtotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Judgment subtotal'**
+  String get scanPassDecisionSubtotalLabel;
+
+  /// No description provided for @scanPassReactionBonusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reaction bonus'**
+  String get scanPassReactionBonusLabel;
+
+  /// No description provided for @scanPassFinalScoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Final score'**
+  String get scanPassFinalScoreLabel;
+
+  /// No description provided for @scanPassPracticeTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice total'**
+  String get scanPassPracticeTotalLabel;
+
+  /// No description provided for @scanPassScoreRoundedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Final integer score is rounded after subtotal plus reaction bonus.'**
+  String get scanPassScoreRoundedNote;
+
+  /// No description provided for @scanPassReactionBelowThresholdNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Reaction bonus is 0 because the judgment subtotal is below 50.'**
+  String get scanPassReactionBelowThresholdNote;
+
+  /// No description provided for @scanPassPracticeNoBonusDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice does not apply reaction bonus, so the attainable maximum is 90.'**
+  String get scanPassPracticeNoBonusDetail;
+
+  /// No description provided for @scanPassMetricLaneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lane clearance'**
+  String get scanPassMetricLaneLabel;
+
+  /// No description provided for @scanPassMetricArrivalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival margin'**
+  String get scanPassMetricArrivalLabel;
+
+  /// No description provided for @scanPassMetricSpaceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiver space'**
+  String get scanPassMetricSpaceLabel;
+
+  /// No description provided for @scanPassMetricProgressionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward progress'**
+  String get scanPassMetricProgressionLabel;
+
+  /// No description provided for @scanPassMetricConnectionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection stability'**
+  String get scanPassMetricConnectionLabel;
+
+  /// No description provided for @scanPassMetricRawValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} · {value}/100'**
+  String scanPassMetricRawValue(Object label, Object value);
+
+  /// No description provided for @scanPassMetricContribution.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}/{max} pts'**
+  String scanPassMetricContribution(Object max, Object value);
+
+  /// No description provided for @scanPassMetricLaneHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest defender stays well clear of the full pass segment.'**
+  String get scanPassMetricLaneHigh;
+
+  /// No description provided for @scanPassMetricLaneMid.
+  ///
+  /// In en, this message translates to:
+  /// **'The segment has usable clearance, but a nearby defender can still pressure it.'**
+  String get scanPassMetricLaneMid;
+
+  /// No description provided for @scanPassMetricLaneLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest defender is close to the full segment, so the lane is under pressure.'**
+  String get scanPassMetricLaneLow;
+
+  /// No description provided for @scanPassMetricArrivalHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'The normalized model gives the ball a clear arrival margin over the nearest defender.'**
+  String get scanPassMetricArrivalHigh;
+
+  /// No description provided for @scanPassMetricArrivalMid.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball and defender arrival are close in the normalized model.'**
+  String get scanPassMetricArrivalMid;
+
+  /// No description provided for @scanPassMetricArrivalLow.
+  ///
+  /// In en, this message translates to:
+  /// **'The nearest defender can arrive at the receiver nearly with or before the ball.'**
+  String get scanPassMetricArrivalLow;
+
+  /// No description provided for @scanPassMetricSpaceHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'The receiver has defender separation and limited touchline penalty.'**
+  String get scanPassMetricSpaceHigh;
+
+  /// No description provided for @scanPassMetricSpaceMid.
+  ///
+  /// In en, this message translates to:
+  /// **'The receiver has some room, but pressure or touchline position narrows the next touch.'**
+  String get scanPassMetricSpaceMid;
+
+  /// No description provided for @scanPassMetricSpaceLow.
+  ///
+  /// In en, this message translates to:
+  /// **'The receiver is close to pressure or the touchline, reducing usable space.'**
+  String get scanPassMetricSpaceLow;
+
+  /// No description provided for @scanPassMetricProgressionHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'The route gains rightward territory and stays useful centrally.'**
+  String get scanPassMetricProgressionHigh;
+
+  /// No description provided for @scanPassMetricProgressionMid.
+  ///
+  /// In en, this message translates to:
+  /// **'The route moves play forward modestly or trades gain for position.'**
+  String get scanPassMetricProgressionMid;
+
+  /// No description provided for @scanPassMetricProgressionLow.
+  ///
+  /// In en, this message translates to:
+  /// **'The route gives little rightward gain or moves into a less central area.'**
+  String get scanPassMetricProgressionLow;
+
+  /// No description provided for @scanPassMetricConnectionHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Derived stability is high from lane, arrival, and space with little pressure penalty.'**
+  String get scanPassMetricConnectionHigh;
+
+  /// No description provided for @scanPassMetricConnectionMid.
+  ///
+  /// In en, this message translates to:
+  /// **'Derived stability is mixed because one pressure factor lowers the composite.'**
+  String get scanPassMetricConnectionMid;
+
+  /// No description provided for @scanPassMetricConnectionLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Derived stability is low after pressure penalty; it is not an actual success probability.'**
+  String get scanPassMetricConnectionLow;
+
+  /// No description provided for @scanPassInsightStrengthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength'**
+  String get scanPassInsightStrengthLabel;
+
+  /// No description provided for @scanPassInsightRiskLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Risk'**
+  String get scanPassInsightRiskLabel;
+
+  /// No description provided for @scanPassInsightCueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Read cue'**
+  String get scanPassInsightCueLabel;
+
+  /// No description provided for @scanPassStrengthLane.
+  ///
+  /// In en, this message translates to:
+  /// **'The route\'s clearest advantage is separation along the pass lane.'**
+  String get scanPassStrengthLane;
+
+  /// No description provided for @scanPassStrengthArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'The route\'s clearest advantage is ball arrival before defensive pressure.'**
+  String get scanPassStrengthArrival;
+
+  /// No description provided for @scanPassStrengthSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'The receiver has the best first-touch environment on this option.'**
+  String get scanPassStrengthSpace;
+
+  /// No description provided for @scanPassStrengthProgression.
+  ///
+  /// In en, this message translates to:
+  /// **'This option moves the attack most effectively to the right.'**
+  String get scanPassStrengthProgression;
+
+  /// No description provided for @scanPassStrengthConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'The combined lane, timing, and space profile is the strongest point.'**
+  String get scanPassStrengthConnection;
+
+  /// No description provided for @scanPassRouteRiskManaged.
+  ///
+  /// In en, this message translates to:
+  /// **'No single index is heavily exposed, but compare the route value with the gain it offers.'**
+  String get scanPassRouteRiskManaged;
+
+  /// No description provided for @scanPassRiskLane.
+  ///
+  /// In en, this message translates to:
+  /// **'A defender is close enough to contest the passing segment.'**
+  String get scanPassRiskLane;
+
+  /// No description provided for @scanPassRiskArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Defender arrival is close to the ball arrival in the model.'**
+  String get scanPassRiskArrival;
+
+  /// No description provided for @scanPassRiskSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'The receiver may be closed down immediately after the pass.'**
+  String get scanPassRiskSpace;
+
+  /// No description provided for @scanPassRiskProgression.
+  ///
+  /// In en, this message translates to:
+  /// **'The route protects possession more than it advances the attack.'**
+  String get scanPassRiskProgression;
+
+  /// No description provided for @scanPassRiskConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Combined pressure lowers the derived connection stability.'**
+  String get scanPassRiskConnection;
+
+  /// No description provided for @scanPassCueLane.
+  ///
+  /// In en, this message translates to:
+  /// **'Check whether the nearest defender can step across the pass lane.'**
+  String get scanPassCueLane;
+
+  /// No description provided for @scanPassCueArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare the defender\'s path to the receiver against the ball path.'**
+  String get scanPassCueArrival;
+
+  /// No description provided for @scanPassCueSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Look at the receiver\'s first touch zone and touchline distance.'**
+  String get scanPassCueSpace;
+
+  /// No description provided for @scanPassCueProgression.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask whether the route moves the ball rightward into a useful central lane.'**
+  String get scanPassCueProgression;
+
+  /// No description provided for @scanPassCueConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Treat the route as stable only when lane, arrival, and space agree.'**
+  String get scanPassCueConnection;
+
+  /// No description provided for @scanPassMethodologyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Methodology: game-geometry indices from normalized positions and speeds, not measured match probabilities.'**
+  String get scanPassMethodologyNote;
+
+  /// No description provided for @scanPassReactionSameTimeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Reaction bonus, when available, is calculated with the same response time for every route in this round.'**
+  String get scanPassReactionSameTimeNote;
 
   /// No description provided for @scanPassPracticeScoreNote.
   ///
   /// In en, this message translates to:
-  /// **'Practice compares the pass routes only; it does not save history or add a speed bonus.'**
+  /// **'Practice compares route judgment only: max 90 before any bonus, no history save, no reaction bonus.'**
   String get scanPassPracticeScoreNote;
 
   /// No description provided for @scanPassRetryPracticeAction.
@@ -9681,7 +10041,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassResultSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Average route {score}, choice score match {accuracy}%, average response {response}.'**
+  /// **'Average route {score}, choice score rate {accuracy}%, average response {response}.'**
   String scanPassResultSubtitle(int score, int accuracy, Object response);
 
   /// No description provided for @scanPassAverageRouteScore.
@@ -9693,7 +10053,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassDecisionAccuracy.
   ///
   /// In en, this message translates to:
-  /// **'Choice score match'**
+  /// **'Choice score rate'**
   String get scanPassDecisionAccuracy;
 
   /// No description provided for @scanPassAverageResponse.
@@ -9711,7 +10071,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassBestAccuracy.
   ///
   /// In en, this message translates to:
-  /// **'Best choice match'**
+  /// **'Best choice rate'**
   String get scanPassBestAccuracy;
 
   /// No description provided for @scanPassBestResponse.
@@ -9732,52 +10092,76 @@ abstract class AppLocalizations {
   /// **'Start 10 rounds again'**
   String get scanPassPlayAgainAction;
 
+  /// No description provided for @scanPassResultMethodTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to read these numbers'**
+  String get scanPassResultMethodTitle;
+
+  /// No description provided for @scanPassResultAverageScoreNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Average route score is the mean of each round\'s recorded final score. A timeout records 0.'**
+  String get scanPassResultAverageScoreNote;
+
+  /// No description provided for @scanPassResultAccuracyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Choice score rate is chosen score divided by that round\'s best route score, averaged across rounds.'**
+  String get scanPassResultAccuracyNote;
+
+  /// No description provided for @scanPassResultTimeoutNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Average response includes timeouts at the choice limit, so missed rounds slow the response average.'**
+  String get scanPassResultTimeoutNote;
+
   /// No description provided for @scanPassReasonClearLane.
   ///
   /// In en, this message translates to:
-  /// **'the lane stayed clear of pressure.'**
+  /// **'lane clearance was the main strength.'**
   String get scanPassReasonClearLane;
 
   /// No description provided for @scanPassReasonTimedRun.
   ///
   /// In en, this message translates to:
-  /// **'the ball arrived before defenders could close.'**
+  /// **'arrival margin was the main strength.'**
   String get scanPassReasonTimedRun;
 
   /// No description provided for @scanPassReasonOpenSpace.
   ///
   /// In en, this message translates to:
-  /// **'the receiver had useful space after the first touch.'**
+  /// **'receiver space was the main strength.'**
   String get scanPassReasonOpenSpace;
 
   /// No description provided for @scanPassReasonForwardThreat.
   ///
   /// In en, this message translates to:
-  /// **'the pass moved the attack into a stronger area.'**
+  /// **'forward progress was the main strength.'**
   String get scanPassReasonForwardThreat;
 
   /// No description provided for @scanPassReasonPressuredLane.
   ///
   /// In en, this message translates to:
-  /// **'the lane had pressure, so the route carried risk.'**
+  /// **'lane pressure was the main risk.'**
   String get scanPassReasonPressuredLane;
 
   /// No description provided for @scanPassReasonLateArrival.
   ///
   /// In en, this message translates to:
-  /// **'defenders could arrive at nearly the same time as the ball.'**
+  /// **'defender arrival timing was the main risk.'**
   String get scanPassReasonLateArrival;
 
   /// No description provided for @scanPassReasonTightReceiver.
   ///
   /// In en, this message translates to:
-  /// **'the receiver was crowded after the pass.'**
+  /// **'receiver pressure was the main risk.'**
   String get scanPassReasonTightReceiver;
 
   /// No description provided for @scanPassReasonLowProgression.
   ///
   /// In en, this message translates to:
-  /// **'the route was safe but did not advance the attack much.'**
+  /// **'forward progress was limited.'**
   String get scanPassReasonLowProgression;
 
   /// No description provided for @scanPassTargetSemantics.
@@ -9789,7 +10173,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassFieldSemantics.
   ///
   /// In en, this message translates to:
-  /// **'Football pitch. Yellow is you, blue players are teammates, red players are defenders, and attack moves right.'**
+  /// **'Football pitch. Amber is the ball carrier, blue players are teammates, coral players are defenders, and attack moves right.'**
   String get scanPassFieldSemantics;
 
   /// No description provided for @scanPassSecondsValue.

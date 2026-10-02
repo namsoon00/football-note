@@ -5367,23 +5367,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassTitle => 'Scan Pass';
 
   @override
-  String get scanPassHelpAction => 'Instructions';
+  String get scanPassHelpAction => 'Analysis guide';
 
   @override
-  String get scanPassIntroTitle => 'Read the defenders, then choose a pass';
+  String get scanPassIntroTitle => 'Scan Pass Analysis';
 
   @override
   String get scanPassIntroSubtitle =>
-      'You are the yellow ball carrier. Watch the red defenders, remember the space, then tap a blue teammate for a safer, useful pass.';
+      'Observe lane clearance, defender arrival, receiver pressure, and forward progress. Then choose the pass route that best balances safety and advantage.';
 
   @override
   String get scanPassSampleFieldSemantics => 'Sample Scan Pass pitch';
 
   @override
-  String get scanPassPracticeAction => 'Try practice';
+  String get scanPassPracticeAction => 'Untimed practice';
 
   @override
-  String get scanPassStartChallengeAction => 'Start 10 rounds';
+  String get scanPassStartChallengeAction => 'Start 10-round challenge';
 
   @override
   String scanPassRoundStatus(int round, int total) {
@@ -5397,115 +5397,146 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String scanPassStreakStatus(int streak) {
-    return 'Streak $streak';
+    return 'Top group streak $streak';
   }
 
   @override
   String get scanPassPracticeStatus => 'Practice';
 
   @override
-  String get scanPassPhaseObserveHeading => '1. View defender positions';
+  String get scanPassPhaseObserveHeading => '1. Observe defensive pressure';
 
   @override
-  String get scanPassPhaseChoiceHeading => '2. Tap a blue teammate to pass';
+  String get scanPassPhaseChoiceHeading => '2. Select a passing route';
 
   @override
-  String get scanPassPhaseCompareHeading => '3. Compare choices';
+  String get scanPassPhaseCompareHeading => '3. Review route analysis';
 
   @override
-  String get scanPassPracticeObserveHeading => 'Practice 1. View defenders';
+  String get scanPassPracticeObserveHeading => 'Practice 1. Observe the shape';
 
   @override
-  String get scanPassPracticeChoiceHeading => 'Practice 2. Choose a teammate';
+  String get scanPassPracticeChoiceHeading => 'Practice 2. Select a route';
 
   @override
-  String get scanPassPracticeCompareHeading => 'Practice 3. Compare choices';
+  String get scanPassPracticeCompareHeading =>
+      'Practice 3. Review the evidence';
 
   @override
   String get scanPassLegendBallCarrier => 'You: ball carrier';
 
   @override
-  String get scanPassLegendTeammate => 'Blue teammate';
+  String get scanPassLegendTeammate => 'Teammate';
 
   @override
-  String get scanPassLegendDefender => 'Red defender';
+  String get scanPassLegendDefender => 'Defender';
 
   @override
-  String get scanPassAttackDirection => 'Attack direction';
+  String get scanPassAttackDirection => 'Attack direction: right';
 
   @override
-  String get scanPassIntroStepObserveTitle => 'Look first';
+  String get scanPassIntroStepObserveTitle => 'Observation';
 
   @override
   String get scanPassIntroStepObserveBody =>
-      'Read where red defenders can block or arrive.';
+      'Read the lane, defender arrival path, receiver pressure, and open space.';
 
   @override
-  String get scanPassIntroStepChooseTitle => 'Tap a teammate';
+  String get scanPassIntroStepChooseTitle => 'Pass selection';
 
   @override
   String get scanPassIntroStepChooseBody =>
-      'Pick a blue teammate after the defenders fade.';
+      'After defenders fade, select the teammate whose route best fits the tradeoff.';
 
   @override
-  String get scanPassIntroStepCompareTitle => 'Compare routes';
+  String get scanPassIntroStepCompareTitle => 'Route analysis';
 
   @override
   String get scanPassIntroStepCompareBody =>
-      'Every teammate gets a score, so close choices can both be useful.';
+      'All three routes are scored. A high-scoring route can still have risk.';
+
+  @override
+  String get scanPassIntroScoringGuideTitle => 'Scoring guide';
+
+  @override
+  String get scanPassIntroScoringGuideSummary =>
+      'Decision points max at 90 before any challenge reaction bonus.';
+
+  @override
+  String get scanPassScoringGuideDecision =>
+      'Decision subtotal: lane clearance 26, defender-arrival margin 22, receiver space 16, forward progress 12, and connection stability 14. These add to 90.';
+
+  @override
+  String get scanPassScoringGuideReaction =>
+      'Challenge reaction bonus applies only when the decision subtotal is at least 50. It can add up to 10 at 450 ms or faster and decreases to 0 at the choice deadline.';
+
+  @override
+  String get scanPassScoringGuidePractice =>
+      'Practice is untimed and shows route judgment only: max 90, no history save, no reaction bonus.';
+
+  @override
+  String get scanPassScoringGuideMethod =>
+      'Methodology: indices use normalized game geometry and speeds. They are not measured match probabilities, real seconds, meters, xG, or success percentages.';
 
   @override
   String get scanPassPreviewInstruction =>
-      'Look at the red defenders and blue teammates. Attack moves to the right; defenders will soon be hidden.';
+      'Observe defenders and teammates. Attack moves right; the defensive pressure will soon be hidden.';
 
   @override
   String get scanPassPredictionPreviewInstruction =>
-      'Watch the defenders\' first step. After they fade, choose based on where they are moving.';
+      'Observe the defenders\' first step. Then judge where pressure will arrive after they fade.';
 
   @override
   String get scanPassSilhouetteChoiceInstruction =>
-      'Tap a blue teammate while the faint red defenders stay in memory.';
+      'Select a route while the faint defender positions stay in memory.';
 
   @override
   String get scanPassHiddenChoiceInstruction =>
-      'The red defenders are hidden. Tap the blue teammate with the safer, useful lane.';
+      'Defenders are hidden. Choose the route with the best balance of lane clearance, timing, space, and progress.';
 
   @override
   String get scanPassPredictionChoiceInstruction =>
-      'Predict where the red defenders moved, then tap the blue teammate you trust.';
+      'Predict the defender movement, then select the route you can justify.';
 
   @override
   String get scanPassPracticeObserveInstruction =>
-      'Take your time. When the red defenders and open spaces make sense, continue.';
+      'Take your time. Continue when you can explain the lane, arrival, receiver pressure, and forward value.';
 
   @override
   String get scanPassPracticeChoiceInstruction =>
-      'The red defenders are hidden. Tap one blue teammate; there is no deadline in practice.';
+      'Defenders are hidden. Select one route; practice has no deadline.';
 
   @override
-  String get scanPassPracticeReadyAction => 'I\'m ready';
+  String get scanPassPracticeReadyAction => 'Ready';
 
   @override
   String get scanPassPassInFlight =>
-      'Pass released. Read the lane and arrival timing.';
+      'Pass released. Review the lane, receiver pressure, and arrival margin.';
 
   @override
   String scanPassFeedbackComparable(int score, Object reason) {
-    return 'Route score $score. This option is close to the best choices: $reason';
+    return 'Score $score. This route is in the top score group for this response time: $reason';
   }
 
   @override
   String scanPassFeedbackBehind(int score, int best, Object reason) {
-    return 'Route score $score. Best option this round was $best; $reason';
+    return 'Score $score. The top route for this response time was $best; $reason';
   }
 
   @override
   String scanPassTimeoutFeedback(int best) {
-    return 'The window closed before a pass. Best option this round was $best; scan, then decide earlier next time.';
+    return 'No pass selected before the window closed. The best route was $best, but the round records 0 and the response is counted at the limit.';
   }
 
   @override
-  String get scanPassRouteComparisonTitle => 'Route scores';
+  String get scanPassRouteComparisonTitle => 'Route comparison';
+
+  @override
+  String get scanPassRouteComparisonSubtitle =>
+      'All three routes use the same response time. Top score group means within 7 points of best, not automatically safe.';
+
+  @override
+  String get scanPassRouteDetailsTitle => 'Detailed route panels';
 
   @override
   String scanPassRouteTeammate(int number) {
@@ -5521,11 +5552,211 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassSelectedRouteLabel => 'Selected';
 
   @override
-  String get scanPassComparableRouteLabel => 'Strong option';
+  String get scanPassComparableRouteLabel => 'Top score group';
+
+  @override
+  String scanPassRouteFinalValue(Object max, Object score) {
+    return '$score/$max';
+  }
+
+  @override
+  String scanPassScoreOutOf(Object max, Object value) {
+    return '$value/$max';
+  }
+
+  @override
+  String get scanPassDecisionSubtotalLabel => 'Judgment subtotal';
+
+  @override
+  String get scanPassReactionBonusLabel => 'Reaction bonus';
+
+  @override
+  String get scanPassFinalScoreLabel => 'Final score';
+
+  @override
+  String get scanPassPracticeTotalLabel => 'Practice total';
+
+  @override
+  String get scanPassScoreRoundedNote =>
+      'Final integer score is rounded after subtotal plus reaction bonus.';
+
+  @override
+  String get scanPassReactionBelowThresholdNote =>
+      'Reaction bonus is 0 because the judgment subtotal is below 50.';
+
+  @override
+  String get scanPassPracticeNoBonusDetail =>
+      'Practice does not apply reaction bonus, so the attainable maximum is 90.';
+
+  @override
+  String get scanPassMetricLaneLabel => 'Lane clearance';
+
+  @override
+  String get scanPassMetricArrivalLabel => 'Arrival margin';
+
+  @override
+  String get scanPassMetricSpaceLabel => 'Receiver space';
+
+  @override
+  String get scanPassMetricProgressionLabel => 'Forward progress';
+
+  @override
+  String get scanPassMetricConnectionLabel => 'Connection stability';
+
+  @override
+  String scanPassMetricRawValue(Object label, Object value) {
+    return '$label · $value/100';
+  }
+
+  @override
+  String scanPassMetricContribution(Object max, Object value) {
+    return '$value/$max pts';
+  }
+
+  @override
+  String get scanPassMetricLaneHigh =>
+      'Nearest defender stays well clear of the full pass segment.';
+
+  @override
+  String get scanPassMetricLaneMid =>
+      'The segment has usable clearance, but a nearby defender can still pressure it.';
+
+  @override
+  String get scanPassMetricLaneLow =>
+      'Nearest defender is close to the full segment, so the lane is under pressure.';
+
+  @override
+  String get scanPassMetricArrivalHigh =>
+      'The normalized model gives the ball a clear arrival margin over the nearest defender.';
+
+  @override
+  String get scanPassMetricArrivalMid =>
+      'Ball and defender arrival are close in the normalized model.';
+
+  @override
+  String get scanPassMetricArrivalLow =>
+      'The nearest defender can arrive at the receiver nearly with or before the ball.';
+
+  @override
+  String get scanPassMetricSpaceHigh =>
+      'The receiver has defender separation and limited touchline penalty.';
+
+  @override
+  String get scanPassMetricSpaceMid =>
+      'The receiver has some room, but pressure or touchline position narrows the next touch.';
+
+  @override
+  String get scanPassMetricSpaceLow =>
+      'The receiver is close to pressure or the touchline, reducing usable space.';
+
+  @override
+  String get scanPassMetricProgressionHigh =>
+      'The route gains rightward territory and stays useful centrally.';
+
+  @override
+  String get scanPassMetricProgressionMid =>
+      'The route moves play forward modestly or trades gain for position.';
+
+  @override
+  String get scanPassMetricProgressionLow =>
+      'The route gives little rightward gain or moves into a less central area.';
+
+  @override
+  String get scanPassMetricConnectionHigh =>
+      'Derived stability is high from lane, arrival, and space with little pressure penalty.';
+
+  @override
+  String get scanPassMetricConnectionMid =>
+      'Derived stability is mixed because one pressure factor lowers the composite.';
+
+  @override
+  String get scanPassMetricConnectionLow =>
+      'Derived stability is low after pressure penalty; it is not an actual success probability.';
+
+  @override
+  String get scanPassInsightStrengthLabel => 'Strength';
+
+  @override
+  String get scanPassInsightRiskLabel => 'Risk';
+
+  @override
+  String get scanPassInsightCueLabel => 'Read cue';
+
+  @override
+  String get scanPassStrengthLane =>
+      'The route\'s clearest advantage is separation along the pass lane.';
+
+  @override
+  String get scanPassStrengthArrival =>
+      'The route\'s clearest advantage is ball arrival before defensive pressure.';
+
+  @override
+  String get scanPassStrengthSpace =>
+      'The receiver has the best first-touch environment on this option.';
+
+  @override
+  String get scanPassStrengthProgression =>
+      'This option moves the attack most effectively to the right.';
+
+  @override
+  String get scanPassStrengthConnection =>
+      'The combined lane, timing, and space profile is the strongest point.';
+
+  @override
+  String get scanPassRouteRiskManaged =>
+      'No single index is heavily exposed, but compare the route value with the gain it offers.';
+
+  @override
+  String get scanPassRiskLane =>
+      'A defender is close enough to contest the passing segment.';
+
+  @override
+  String get scanPassRiskArrival =>
+      'Defender arrival is close to the ball arrival in the model.';
+
+  @override
+  String get scanPassRiskSpace =>
+      'The receiver may be closed down immediately after the pass.';
+
+  @override
+  String get scanPassRiskProgression =>
+      'The route protects possession more than it advances the attack.';
+
+  @override
+  String get scanPassRiskConnection =>
+      'Combined pressure lowers the derived connection stability.';
+
+  @override
+  String get scanPassCueLane =>
+      'Check whether the nearest defender can step across the pass lane.';
+
+  @override
+  String get scanPassCueArrival =>
+      'Compare the defender\'s path to the receiver against the ball path.';
+
+  @override
+  String get scanPassCueSpace =>
+      'Look at the receiver\'s first touch zone and touchline distance.';
+
+  @override
+  String get scanPassCueProgression =>
+      'Ask whether the route moves the ball rightward into a useful central lane.';
+
+  @override
+  String get scanPassCueConnection =>
+      'Treat the route as stable only when lane, arrival, and space agree.';
+
+  @override
+  String get scanPassMethodologyNote =>
+      'Methodology: game-geometry indices from normalized positions and speeds, not measured match probabilities.';
+
+  @override
+  String get scanPassReactionSameTimeNote =>
+      'Reaction bonus, when available, is calculated with the same response time for every route in this round.';
 
   @override
   String get scanPassPracticeScoreNote =>
-      'Practice compares the pass routes only; it does not save history or add a speed bonus.';
+      'Practice compares route judgment only: max 90 before any bonus, no history save, no reaction bonus.';
 
   @override
   String get scanPassRetryPracticeAction => 'Retry practice';
@@ -5541,14 +5772,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String scanPassResultSubtitle(int score, int accuracy, Object response) {
-    return 'Average route $score, choice score match $accuracy%, average response $response.';
+    return 'Average route $score, choice score rate $accuracy%, average response $response.';
   }
 
   @override
   String get scanPassAverageRouteScore => 'Avg route score';
 
   @override
-  String get scanPassDecisionAccuracy => 'Choice score match';
+  String get scanPassDecisionAccuracy => 'Choice score rate';
 
   @override
   String get scanPassAverageResponse => 'Avg response';
@@ -5557,7 +5788,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassBestAverageRouteScore => 'Best avg route';
 
   @override
-  String get scanPassBestAccuracy => 'Best choice match';
+  String get scanPassBestAccuracy => 'Best choice rate';
 
   @override
   String get scanPassBestResponse => 'Best response';
@@ -5569,35 +5800,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassPlayAgainAction => 'Start 10 rounds again';
 
   @override
-  String get scanPassReasonClearLane => 'the lane stayed clear of pressure.';
+  String get scanPassResultMethodTitle => 'How to read these numbers';
 
   @override
-  String get scanPassReasonTimedRun =>
-      'the ball arrived before defenders could close.';
+  String get scanPassResultAverageScoreNote =>
+      'Average route score is the mean of each round\'s recorded final score. A timeout records 0.';
 
   @override
-  String get scanPassReasonOpenSpace =>
-      'the receiver had useful space after the first touch.';
+  String get scanPassResultAccuracyNote =>
+      'Choice score rate is chosen score divided by that round\'s best route score, averaged across rounds.';
+
+  @override
+  String get scanPassResultTimeoutNote =>
+      'Average response includes timeouts at the choice limit, so missed rounds slow the response average.';
+
+  @override
+  String get scanPassReasonClearLane => 'lane clearance was the main strength.';
+
+  @override
+  String get scanPassReasonTimedRun => 'arrival margin was the main strength.';
+
+  @override
+  String get scanPassReasonOpenSpace => 'receiver space was the main strength.';
 
   @override
   String get scanPassReasonForwardThreat =>
-      'the pass moved the attack into a stronger area.';
+      'forward progress was the main strength.';
 
   @override
-  String get scanPassReasonPressuredLane =>
-      'the lane had pressure, so the route carried risk.';
+  String get scanPassReasonPressuredLane => 'lane pressure was the main risk.';
 
   @override
   String get scanPassReasonLateArrival =>
-      'defenders could arrive at nearly the same time as the ball.';
+      'defender arrival timing was the main risk.';
 
   @override
   String get scanPassReasonTightReceiver =>
-      'the receiver was crowded after the pass.';
+      'receiver pressure was the main risk.';
 
   @override
-  String get scanPassReasonLowProgression =>
-      'the route was safe but did not advance the attack much.';
+  String get scanPassReasonLowProgression => 'forward progress was limited.';
 
   @override
   String scanPassTargetSemantics(int number) {
@@ -5606,7 +5848,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassFieldSemantics =>
-      'Football pitch. Yellow is you, blue players are teammates, red players are defenders, and attack moves right.';
+      'Football pitch. Amber is the ball carrier, blue players are teammates, coral players are defenders, and attack moves right.';
 
   @override
   String scanPassSecondsValue(Object seconds) {

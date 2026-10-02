@@ -3189,12 +3189,12 @@
     }
   },
   "scanPassTitle": "Scan Pass",
-  "scanPassHelpAction": "Instructions",
-  "scanPassIntroTitle": "Read the defenders, then choose a pass",
-  "scanPassIntroSubtitle": "You are the yellow ball carrier. Watch the red defenders, remember the space, then tap a blue teammate for a safer, useful pass.",
+  "scanPassHelpAction": "Analysis guide",
+  "scanPassIntroTitle": "Scan Pass Analysis",
+  "scanPassIntroSubtitle": "Observe lane clearance, defender arrival, receiver pressure, and forward progress. Then choose the pass route that best balances safety and advantage.",
   "scanPassSampleFieldSemantics": "Sample Scan Pass pitch",
-  "scanPassPracticeAction": "Try practice",
-  "scanPassStartChallengeAction": "Start 10 rounds",
+  "scanPassPracticeAction": "Untimed practice",
+  "scanPassStartChallengeAction": "Start 10-round challenge",
   "scanPassRoundStatus": "Round {round} / {total}",
   "@scanPassRoundStatus": {
     "placeholders": {
@@ -3212,7 +3212,7 @@
       "seconds": {}
     }
   },
-  "scanPassStreakStatus": "Streak {streak}",
+  "scanPassStreakStatus": "Top group streak {streak}",
   "@scanPassStreakStatus": {
     "placeholders": {
       "streak": {
@@ -3221,32 +3221,38 @@
     }
   },
   "scanPassPracticeStatus": "Practice",
-  "scanPassPhaseObserveHeading": "1. View defender positions",
-  "scanPassPhaseChoiceHeading": "2. Tap a blue teammate to pass",
-  "scanPassPhaseCompareHeading": "3. Compare choices",
-  "scanPassPracticeObserveHeading": "Practice 1. View defenders",
-  "scanPassPracticeChoiceHeading": "Practice 2. Choose a teammate",
-  "scanPassPracticeCompareHeading": "Practice 3. Compare choices",
+  "scanPassPhaseObserveHeading": "1. Observe defensive pressure",
+  "scanPassPhaseChoiceHeading": "2. Select a passing route",
+  "scanPassPhaseCompareHeading": "3. Review route analysis",
+  "scanPassPracticeObserveHeading": "Practice 1. Observe the shape",
+  "scanPassPracticeChoiceHeading": "Practice 2. Select a route",
+  "scanPassPracticeCompareHeading": "Practice 3. Review the evidence",
   "scanPassLegendBallCarrier": "You: ball carrier",
-  "scanPassLegendTeammate": "Blue teammate",
-  "scanPassLegendDefender": "Red defender",
-  "scanPassAttackDirection": "Attack direction",
-  "scanPassIntroStepObserveTitle": "Look first",
-  "scanPassIntroStepObserveBody": "Read where red defenders can block or arrive.",
-  "scanPassIntroStepChooseTitle": "Tap a teammate",
-  "scanPassIntroStepChooseBody": "Pick a blue teammate after the defenders fade.",
-  "scanPassIntroStepCompareTitle": "Compare routes",
-  "scanPassIntroStepCompareBody": "Every teammate gets a score, so close choices can both be useful.",
-  "scanPassPreviewInstruction": "Look at the red defenders and blue teammates. Attack moves to the right; defenders will soon be hidden.",
-  "scanPassPredictionPreviewInstruction": "Watch the defenders' first step. After they fade, choose based on where they are moving.",
-  "scanPassSilhouetteChoiceInstruction": "Tap a blue teammate while the faint red defenders stay in memory.",
-  "scanPassHiddenChoiceInstruction": "The red defenders are hidden. Tap the blue teammate with the safer, useful lane.",
-  "scanPassPredictionChoiceInstruction": "Predict where the red defenders moved, then tap the blue teammate you trust.",
-  "scanPassPracticeObserveInstruction": "Take your time. When the red defenders and open spaces make sense, continue.",
-  "scanPassPracticeChoiceInstruction": "The red defenders are hidden. Tap one blue teammate; there is no deadline in practice.",
-  "scanPassPracticeReadyAction": "I'm ready",
-  "scanPassPassInFlight": "Pass released. Read the lane and arrival timing.",
-  "scanPassFeedbackComparable": "Route score {score}. This option is close to the best choices: {reason}",
+  "scanPassLegendTeammate": "Teammate",
+  "scanPassLegendDefender": "Defender",
+  "scanPassAttackDirection": "Attack direction: right",
+  "scanPassIntroStepObserveTitle": "Observation",
+  "scanPassIntroStepObserveBody": "Read the lane, defender arrival path, receiver pressure, and open space.",
+  "scanPassIntroStepChooseTitle": "Pass selection",
+  "scanPassIntroStepChooseBody": "After defenders fade, select the teammate whose route best fits the tradeoff.",
+  "scanPassIntroStepCompareTitle": "Route analysis",
+  "scanPassIntroStepCompareBody": "All three routes are scored. A high-scoring route can still have risk.",
+  "scanPassIntroScoringGuideTitle": "Scoring guide",
+  "scanPassIntroScoringGuideSummary": "Decision points max at 90 before any challenge reaction bonus.",
+  "scanPassScoringGuideDecision": "Decision subtotal: lane clearance 26, defender-arrival margin 22, receiver space 16, forward progress 12, and connection stability 14. These add to 90.",
+  "scanPassScoringGuideReaction": "Challenge reaction bonus applies only when the decision subtotal is at least 50. It can add up to 10 at 450 ms or faster and decreases to 0 at the choice deadline.",
+  "scanPassScoringGuidePractice": "Practice is untimed and shows route judgment only: max 90, no history save, no reaction bonus.",
+  "scanPassScoringGuideMethod": "Methodology: indices use normalized game geometry and speeds. They are not measured match probabilities, real seconds, meters, xG, or success percentages.",
+  "scanPassPreviewInstruction": "Observe defenders and teammates. Attack moves right; the defensive pressure will soon be hidden.",
+  "scanPassPredictionPreviewInstruction": "Observe the defenders' first step. Then judge where pressure will arrive after they fade.",
+  "scanPassSilhouetteChoiceInstruction": "Select a route while the faint defender positions stay in memory.",
+  "scanPassHiddenChoiceInstruction": "Defenders are hidden. Choose the route with the best balance of lane clearance, timing, space, and progress.",
+  "scanPassPredictionChoiceInstruction": "Predict the defender movement, then select the route you can justify.",
+  "scanPassPracticeObserveInstruction": "Take your time. Continue when you can explain the lane, arrival, receiver pressure, and forward value.",
+  "scanPassPracticeChoiceInstruction": "Defenders are hidden. Select one route; practice has no deadline.",
+  "scanPassPracticeReadyAction": "Ready",
+  "scanPassPassInFlight": "Pass released. Review the lane, receiver pressure, and arrival margin.",
+  "scanPassFeedbackComparable": "Score {score}. This route is in the top score group for this response time: {reason}",
   "@scanPassFeedbackComparable": {
     "placeholders": {
       "score": {
@@ -3255,7 +3261,7 @@
       "reason": {}
     }
   },
-  "scanPassFeedbackBehind": "Route score {score}. Best option this round was {best}; {reason}",
+  "scanPassFeedbackBehind": "Score {score}. The top route for this response time was {best}; {reason}",
   "@scanPassFeedbackBehind": {
     "placeholders": {
       "score": {
@@ -3267,7 +3273,7 @@
       "reason": {}
     }
   },
-  "scanPassTimeoutFeedback": "The window closed before a pass. Best option this round was {best}; scan, then decide earlier next time.",
+  "scanPassTimeoutFeedback": "No pass selected before the window closed. The best route was {best}, but the round records 0 and the response is counted at the limit.",
   "@scanPassTimeoutFeedback": {
     "placeholders": {
       "best": {
@@ -3275,7 +3281,9 @@
       }
     }
   },
-  "scanPassRouteComparisonTitle": "Route scores",
+  "scanPassRouteComparisonTitle": "Route comparison",
+  "scanPassRouteComparisonSubtitle": "All three routes use the same response time. Top score group means within 7 points of best, not automatically safe.",
+  "scanPassRouteDetailsTitle": "Detailed route panels",
   "scanPassRouteTeammate": "Teammate {number}",
   "@scanPassRouteTeammate": {
     "placeholders": {
@@ -3293,13 +3301,65 @@
     }
   },
   "scanPassSelectedRouteLabel": "Selected",
-  "scanPassComparableRouteLabel": "Strong option",
-  "scanPassPracticeScoreNote": "Practice compares the pass routes only; it does not save history or add a speed bonus.",
+  "scanPassComparableRouteLabel": "Top score group",
+  "scanPassRouteFinalValue": "{score}/{max}",
+  "scanPassScoreOutOf": "{value}/{max}",
+  "scanPassDecisionSubtotalLabel": "Judgment subtotal",
+  "scanPassReactionBonusLabel": "Reaction bonus",
+  "scanPassFinalScoreLabel": "Final score",
+  "scanPassPracticeTotalLabel": "Practice total",
+  "scanPassScoreRoundedNote": "Final integer score is rounded after subtotal plus reaction bonus.",
+  "scanPassReactionBelowThresholdNote": "Reaction bonus is 0 because the judgment subtotal is below 50.",
+  "scanPassPracticeNoBonusDetail": "Practice does not apply reaction bonus, so the attainable maximum is 90.",
+  "scanPassMetricLaneLabel": "Lane clearance",
+  "scanPassMetricArrivalLabel": "Arrival margin",
+  "scanPassMetricSpaceLabel": "Receiver space",
+  "scanPassMetricProgressionLabel": "Forward progress",
+  "scanPassMetricConnectionLabel": "Connection stability",
+  "scanPassMetricRawValue": "{label} · {value}/100",
+  "scanPassMetricContribution": "{value}/{max} pts",
+  "scanPassMetricLaneHigh": "Nearest defender stays well clear of the full pass segment.",
+  "scanPassMetricLaneMid": "The segment has usable clearance, but a nearby defender can still pressure it.",
+  "scanPassMetricLaneLow": "Nearest defender is close to the full segment, so the lane is under pressure.",
+  "scanPassMetricArrivalHigh": "The normalized model gives the ball a clear arrival margin over the nearest defender.",
+  "scanPassMetricArrivalMid": "Ball and defender arrival are close in the normalized model.",
+  "scanPassMetricArrivalLow": "The nearest defender can arrive at the receiver nearly with or before the ball.",
+  "scanPassMetricSpaceHigh": "The receiver has defender separation and limited touchline penalty.",
+  "scanPassMetricSpaceMid": "The receiver has some room, but pressure or touchline position narrows the next touch.",
+  "scanPassMetricSpaceLow": "The receiver is close to pressure or the touchline, reducing usable space.",
+  "scanPassMetricProgressionHigh": "The route gains rightward territory and stays useful centrally.",
+  "scanPassMetricProgressionMid": "The route moves play forward modestly or trades gain for position.",
+  "scanPassMetricProgressionLow": "The route gives little rightward gain or moves into a less central area.",
+  "scanPassMetricConnectionHigh": "Derived stability is high from lane, arrival, and space with little pressure penalty.",
+  "scanPassMetricConnectionMid": "Derived stability is mixed because one pressure factor lowers the composite.",
+  "scanPassMetricConnectionLow": "Derived stability is low after pressure penalty; it is not an actual success probability.",
+  "scanPassInsightStrengthLabel": "Strength",
+  "scanPassInsightRiskLabel": "Risk",
+  "scanPassInsightCueLabel": "Read cue",
+  "scanPassStrengthLane": "The route's clearest advantage is separation along the pass lane.",
+  "scanPassStrengthArrival": "The route's clearest advantage is ball arrival before defensive pressure.",
+  "scanPassStrengthSpace": "The receiver has the best first-touch environment on this option.",
+  "scanPassStrengthProgression": "This option moves the attack most effectively to the right.",
+  "scanPassStrengthConnection": "The combined lane, timing, and space profile is the strongest point.",
+  "scanPassRouteRiskManaged": "No single index is heavily exposed, but compare the route value with the gain it offers.",
+  "scanPassRiskLane": "A defender is close enough to contest the passing segment.",
+  "scanPassRiskArrival": "Defender arrival is close to the ball arrival in the model.",
+  "scanPassRiskSpace": "The receiver may be closed down immediately after the pass.",
+  "scanPassRiskProgression": "The route protects possession more than it advances the attack.",
+  "scanPassRiskConnection": "Combined pressure lowers the derived connection stability.",
+  "scanPassCueLane": "Check whether the nearest defender can step across the pass lane.",
+  "scanPassCueArrival": "Compare the defender's path to the receiver against the ball path.",
+  "scanPassCueSpace": "Look at the receiver's first touch zone and touchline distance.",
+  "scanPassCueProgression": "Ask whether the route moves the ball rightward into a useful central lane.",
+  "scanPassCueConnection": "Treat the route as stable only when lane, arrival, and space agree.",
+  "scanPassMethodologyNote": "Methodology: game-geometry indices from normalized positions and speeds, not measured match probabilities.",
+  "scanPassReactionSameTimeNote": "Reaction bonus, when available, is calculated with the same response time for every route in this round.",
+  "scanPassPracticeScoreNote": "Practice compares route judgment only: max 90 before any bonus, no history save, no reaction bonus.",
   "scanPassRetryPracticeAction": "Retry practice",
   "scanPassNextRoundAction": "Next round",
   "scanPassSeeResultAction": "See result",
   "scanPassResultTitle": "Scan Pass result",
-  "scanPassResultSubtitle": "Average route {score}, choice score match {accuracy}%, average response {response}.",
+  "scanPassResultSubtitle": "Average route {score}, choice score rate {accuracy}%, average response {response}.",
   "@scanPassResultSubtitle": {
     "placeholders": {
       "score": {
@@ -3312,21 +3372,25 @@
     }
   },
   "scanPassAverageRouteScore": "Avg route score",
-  "scanPassDecisionAccuracy": "Choice score match",
+  "scanPassDecisionAccuracy": "Choice score rate",
   "scanPassAverageResponse": "Avg response",
   "scanPassBestAverageRouteScore": "Best avg route",
-  "scanPassBestAccuracy": "Best choice match",
+  "scanPassBestAccuracy": "Best choice rate",
   "scanPassBestResponse": "Best response",
   "scanPassNoHistoryValue": "-",
   "scanPassPlayAgainAction": "Start 10 rounds again",
-  "scanPassReasonClearLane": "the lane stayed clear of pressure.",
-  "scanPassReasonTimedRun": "the ball arrived before defenders could close.",
-  "scanPassReasonOpenSpace": "the receiver had useful space after the first touch.",
-  "scanPassReasonForwardThreat": "the pass moved the attack into a stronger area.",
-  "scanPassReasonPressuredLane": "the lane had pressure, so the route carried risk.",
-  "scanPassReasonLateArrival": "defenders could arrive at nearly the same time as the ball.",
-  "scanPassReasonTightReceiver": "the receiver was crowded after the pass.",
-  "scanPassReasonLowProgression": "the route was safe but did not advance the attack much.",
+  "scanPassResultMethodTitle": "How to read these numbers",
+  "scanPassResultAverageScoreNote": "Average route score is the mean of each round's recorded final score. A timeout records 0.",
+  "scanPassResultAccuracyNote": "Choice score rate is chosen score divided by that round's best route score, averaged across rounds.",
+  "scanPassResultTimeoutNote": "Average response includes timeouts at the choice limit, so missed rounds slow the response average.",
+  "scanPassReasonClearLane": "lane clearance was the main strength.",
+  "scanPassReasonTimedRun": "arrival margin was the main strength.",
+  "scanPassReasonOpenSpace": "receiver space was the main strength.",
+  "scanPassReasonForwardThreat": "forward progress was the main strength.",
+  "scanPassReasonPressuredLane": "lane pressure was the main risk.",
+  "scanPassReasonLateArrival": "defender arrival timing was the main risk.",
+  "scanPassReasonTightReceiver": "receiver pressure was the main risk.",
+  "scanPassReasonLowProgression": "forward progress was limited.",
   "scanPassTargetSemantics": "Choose teammate {number}",
   "@scanPassTargetSemantics": {
     "placeholders": {
@@ -3335,7 +3399,7 @@
       }
     }
   },
-  "scanPassFieldSemantics": "Football pitch. Yellow is you, blue players are teammates, red players are defenders, and attack moves right.",
+  "scanPassFieldSemantics": "Football pitch. Amber is the ball carrier, blue players are teammates, coral players are defenders, and attack moves right.",
   "scanPassSecondsValue": "{seconds}s",
   "@scanPassSecondsValue": {
     "placeholders": {
