@@ -26876,13 +26876,13 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchStageActionPlayerPressure.
   ///
   /// In en, this message translates to:
-  /// **'{actor} pressures {target}'**
+  /// **'Pressure: {actor} → {target}'**
   String trainingSketchStageActionPlayerPressure(Object actor, Object target);
 
   /// No description provided for @trainingSketchStageActionPlayerMark.
   ///
   /// In en, this message translates to:
-  /// **'{actor} marks {target}'**
+  /// **'Mark: {actor} → {target}'**
   String trainingSketchStageActionPlayerMark(Object actor, Object target);
 
   /// No description provided for @trainingSketchStageActionBallMove.

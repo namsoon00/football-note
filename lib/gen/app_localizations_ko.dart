@@ -15214,12 +15214,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String trainingSketchStageActionPlayerPressure(Object actor, Object target) {
-    return '$actor가 $target 압박';
+    return '압박: $actor → $target';
   }
 
   @override
   String trainingSketchStageActionPlayerMark(Object actor, Object target) {
-    return '$actor가 $target 마크';
+    return '마크: $actor → $target';
   }
 
   @override

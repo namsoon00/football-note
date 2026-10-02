@@ -8312,14 +8312,14 @@
       "actor": {}
     }
   },
-  "trainingSketchStageActionPlayerPressure": "{actor}가 {target} 압박",
+  "trainingSketchStageActionPlayerPressure": "압박: {actor} → {target}",
   "@trainingSketchStageActionPlayerPressure": {
     "placeholders": {
       "actor": {},
       "target": {}
     }
   },
-  "trainingSketchStageActionPlayerMark": "{actor}가 {target} 마크",
+  "trainingSketchStageActionPlayerMark": "마크: {actor} → {target}",
   "@trainingSketchStageActionPlayerMark": {
     "placeholders": {
       "actor": {},
