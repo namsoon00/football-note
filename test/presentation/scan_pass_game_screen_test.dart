@@ -33,33 +33,133 @@ void main() {
     );
   }
 
-  testWidgets('ignores target taps until the choice phase', (tester) async {
-    await tester.pumpWidget(buildScreen());
-
-    await tester.tap(find.byKey(const ValueKey<String>('scan-pass-target-1')));
+  Future<void> tapByKey(WidgetTester tester, String key) async {
+    final finder = find.byKey(ValueKey<String>(key));
+    await tester.ensureVisible(finder);
+    await tester.tap(finder);
     await tester.pump();
-    expect(find.textContaining('Route score'), findsNothing);
+  }
 
+  Future<void> startChallenge(WidgetTester tester) async {
+    await tapByKey(tester, 'scan-pass-start-challenge-button');
+  }
+
+  Future<void> chooseFirstTarget(WidgetTester tester) async {
     await tester.pump(const Duration(milliseconds: 40));
     await tester.tap(find.byKey(const ValueKey<String>('scan-pass-target-1')));
     await tester.pump();
+  }
 
-    expect(find.textContaining('Route score'), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('scan-pass-next-button')),
+  testWidgets('opens on intro without autostarting timers', (tester) async {
+    await tester.pumpWidget(buildScreen());
+
+    expect(find.byKey(const ValueKey<String>('scan-pass-intro-title')),
         findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('scan-pass-practice-button')),
+        findsOneWidget);
+    expect(
+        find.byKey(const ValueKey<String>('scan-pass-start-challenge-button')),
+        findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 5));
+
+    expect(find.byKey(const ValueKey<String>('scan-pass-intro-title')),
+        findsOneWidget);
+    expect(find.textContaining('Route score'), findsNothing);
+    expect(
+      optionRepository.getValue<String>(ScanPassHistoryService.summaryKey),
+      isNull,
+    );
   });
 
-  testWidgets('completes ten rounds and persists summary', (tester) async {
+  testWidgets('practice is user paced and never persists', (tester) async {
+    await tester.pumpWidget(buildScreen());
+
+    await tapByKey(tester, 'scan-pass-practice-button');
+    expect(
+      find.text('Practice 1. View defenders'),
+      findsOneWidget,
+    );
+
+    await tester.pump(const Duration(seconds: 5));
+    expect(find.byKey(const ValueKey<String>('scan-pass-ready-button')),
+        findsOneWidget);
+    expect(find.textContaining('Route score'), findsNothing);
+
+    await tapByKey(tester, 'scan-pass-ready-button');
+    expect(
+      find.text('Practice 2. Choose a teammate'),
+      findsOneWidget,
+    );
+
+    await tester.pump(const Duration(seconds: 4));
+    expect(
+      find.text('Practice 2. Choose a teammate'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('The window closed'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey<String>('scan-pass-target-1')));
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey<String>('scan-pass-route-comparison')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('scan-pass-route-1')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('scan-pass-route-2')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('scan-pass-route-3')),
+        findsOneWidget);
+    expect(find.text('Selected'), findsOneWidget);
+    expect(find.text('Strong option'), findsWidgets);
+    expect(
+      find.byKey(
+        const ValueKey<String>('scan-pass-practice-start-challenge-button'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+        find.byKey(const ValueKey<String>('scan-pass-retry-practice-button')),
+        findsOneWidget);
+    expect(
+      optionRepository.getValue<String>(ScanPassHistoryService.summaryKey),
+      isNull,
+    );
+    expect(optionRepository.summaryWriteCount, 0);
+  });
+
+  testWidgets('help cancels an incomplete challenge without saving', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildScreen(seed: 9));
+
+    await startChallenge(tester);
+    await tester.pump(const Duration(milliseconds: 40));
+    expect(find.text('2. Tap a blue teammate to pass'), findsOneWidget);
+
+    await tapByKey(tester, 'scan-pass-help-button');
+    await tester.pump(const Duration(seconds: 4));
+
+    expect(find.byKey(const ValueKey<String>('scan-pass-intro-title')),
+        findsOneWidget);
+    expect(
+      optionRepository.getValue<String>(ScanPassHistoryService.summaryKey),
+      isNull,
+    );
+    expect(optionRepository.summaryWriteCount, 0);
+  });
+
+  testWidgets('completes ten challenge rounds and persists summary once', (
+    tester,
+  ) async {
     await tester.pumpWidget(buildScreen(seed: 11));
+    await startChallenge(tester);
 
     for (var round = 0; round < ScanPassRoundGenerator.roundCount; round += 1) {
-      await tester.pump(const Duration(milliseconds: 40));
-      await tester
-          .tap(find.byKey(const ValueKey<String>('scan-pass-target-1')));
-      await tester.pump();
-      await tester
-          .tap(find.byKey(const ValueKey<String>('scan-pass-next-button')));
-      await tester.pump();
+      await chooseFirstTarget(tester);
+      expect(find.byKey(const ValueKey<String>('scan-pass-route-comparison')),
+          findsOneWidget);
+      await tapByKey(tester, 'scan-pass-next-button');
     }
     await tester.pumpAndSettle();
 
@@ -73,6 +173,7 @@ void main() {
       ScanPassPersonalSummary.fromJson(raw).sessionsPlayed,
       1,
     );
+    expect(optionRepository.summaryWriteCount, 1);
   });
 
   testWidgets('compact portrait layout renders without overflow',
@@ -83,9 +184,12 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(buildScreen(seed: 21));
-    await tester.pump(const Duration(milliseconds: 40));
 
+    expect(find.byKey(const ValueKey<String>('scan-pass-intro-title')),
+        findsOneWidget);
     expect(find.byType(CustomPaint), findsWidgets);
+    await tapByKey(tester, 'scan-pass-practice-button');
+    await tapByKey(tester, 'scan-pass-ready-button');
     expect(find.byKey(const ValueKey<String>('scan-pass-bottom-text')),
         findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -94,6 +198,7 @@ void main() {
 
 class _MemoryOptionRepository implements OptionRepository {
   final Map<String, dynamic> _values = <String, dynamic>{};
+  int summaryWriteCount = 0;
 
   @override
   List<int> getIntOptions(String key, List<int> defaults) {
@@ -129,6 +234,9 @@ class _MemoryOptionRepository implements OptionRepository {
 
   @override
   Future<void> setValue(String key, dynamic value) async {
+    if (key == ScanPassHistoryService.summaryKey) {
+      summaryWriteCount += 1;
+    }
     _values[key] = value;
   }
 }

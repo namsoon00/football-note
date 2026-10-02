@@ -3189,6 +3189,12 @@
     }
   },
   "scanPassTitle": "Scan Pass",
+  "scanPassHelpAction": "Instructions",
+  "scanPassIntroTitle": "Read the defenders, then choose a pass",
+  "scanPassIntroSubtitle": "You are the yellow ball carrier. Watch the red defenders, remember the space, then tap a blue teammate for a safer, useful pass.",
+  "scanPassSampleFieldSemantics": "Sample Scan Pass pitch",
+  "scanPassPracticeAction": "Try practice",
+  "scanPassStartChallengeAction": "Start 10 rounds",
   "scanPassRoundStatus": "Round {round} / {total}",
   "@scanPassRoundStatus": {
     "placeholders": {
@@ -3200,7 +3206,7 @@
       }
     }
   },
-  "scanPassTimeStatus": "{seconds}s",
+  "scanPassTimeStatus": "Choose {seconds}s",
   "@scanPassTimeStatus": {
     "placeholders": {
       "seconds": {}
@@ -3214,13 +3220,33 @@
       }
     }
   },
-  "scanPassPreviewInstruction": "Scan the ball carrier, three teammates, and two defenders. The defenders will be occluded soon.",
-  "scanPassPredictionPreviewInstruction": "Watch the defenders' first step. Their next position matters after the screen hides them.",
-  "scanPassSilhouetteChoiceInstruction": "Choose a teammate while the defender silhouettes are still in memory.",
-  "scanPassHiddenChoiceInstruction": "Defenders are hidden now. Choose the route you can still trust.",
-  "scanPassPredictionChoiceInstruction": "Predict where the defenders moved, then choose the best route you see.",
+  "scanPassPracticeStatus": "Practice",
+  "scanPassPhaseObserveHeading": "1. View defender positions",
+  "scanPassPhaseChoiceHeading": "2. Tap a blue teammate to pass",
+  "scanPassPhaseCompareHeading": "3. Compare choices",
+  "scanPassPracticeObserveHeading": "Practice 1. View defenders",
+  "scanPassPracticeChoiceHeading": "Practice 2. Choose a teammate",
+  "scanPassPracticeCompareHeading": "Practice 3. Compare choices",
+  "scanPassLegendBallCarrier": "You: ball carrier",
+  "scanPassLegendTeammate": "Blue teammate",
+  "scanPassLegendDefender": "Red defender",
+  "scanPassAttackDirection": "Attack direction",
+  "scanPassIntroStepObserveTitle": "Look first",
+  "scanPassIntroStepObserveBody": "Read where red defenders can block or arrive.",
+  "scanPassIntroStepChooseTitle": "Tap a teammate",
+  "scanPassIntroStepChooseBody": "Pick a blue teammate after the defenders fade.",
+  "scanPassIntroStepCompareTitle": "Compare routes",
+  "scanPassIntroStepCompareBody": "Every teammate gets a score, so close choices can both be useful.",
+  "scanPassPreviewInstruction": "Look at the red defenders and blue teammates. Attack moves to the right; defenders will soon be hidden.",
+  "scanPassPredictionPreviewInstruction": "Watch the defenders' first step. After they fade, choose based on where they are moving.",
+  "scanPassSilhouetteChoiceInstruction": "Tap a blue teammate while the faint red defenders stay in memory.",
+  "scanPassHiddenChoiceInstruction": "The red defenders are hidden. Tap the blue teammate with the safer, useful lane.",
+  "scanPassPredictionChoiceInstruction": "Predict where the red defenders moved, then tap the blue teammate you trust.",
+  "scanPassPracticeObserveInstruction": "Take your time. When the red defenders and open spaces make sense, continue.",
+  "scanPassPracticeChoiceInstruction": "The red defenders are hidden. Tap one blue teammate; there is no deadline in practice.",
+  "scanPassPracticeReadyAction": "I'm ready",
   "scanPassPassInFlight": "Pass released. Read the lane and arrival timing.",
-  "scanPassFeedbackComparable": "Route score {score}. This choice is in the top group: {reason}",
+  "scanPassFeedbackComparable": "Route score {score}. This option is close to the best choices: {reason}",
   "@scanPassFeedbackComparable": {
     "placeholders": {
       "score": {
@@ -3229,7 +3255,7 @@
       "reason": {}
     }
   },
-  "scanPassFeedbackBehind": "Route score {score}. Highest route this round was {best}; {reason}",
+  "scanPassFeedbackBehind": "Route score {score}. Best option this round was {best}; {reason}",
   "@scanPassFeedbackBehind": {
     "placeholders": {
       "score": {
@@ -3241,7 +3267,7 @@
       "reason": {}
     }
   },
-  "scanPassTimeoutFeedback": "The window closed before a pass. Highest route this round was {best}; reset your scan and decide earlier next time.",
+  "scanPassTimeoutFeedback": "The window closed before a pass. Best option this round was {best}; scan, then decide earlier next time.",
   "@scanPassTimeoutFeedback": {
     "placeholders": {
       "best": {
@@ -3249,10 +3275,31 @@
       }
     }
   },
+  "scanPassRouteComparisonTitle": "Route scores",
+  "scanPassRouteTeammate": "Teammate {number}",
+  "@scanPassRouteTeammate": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassRouteScoreValue": "{score} pts",
+  "@scanPassRouteScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassSelectedRouteLabel": "Selected",
+  "scanPassComparableRouteLabel": "Strong option",
+  "scanPassPracticeScoreNote": "Practice compares the pass routes only; it does not save history or add a speed bonus.",
+  "scanPassRetryPracticeAction": "Retry practice",
   "scanPassNextRoundAction": "Next round",
   "scanPassSeeResultAction": "See result",
   "scanPassResultTitle": "Scan Pass result",
-  "scanPassResultSubtitle": "Average route {score}, decision accuracy {accuracy}%, average response {response}.",
+  "scanPassResultSubtitle": "Average route {score}, choice score match {accuracy}%, average response {response}.",
   "@scanPassResultSubtitle": {
     "placeholders": {
       "score": {
@@ -3265,18 +3312,18 @@
     }
   },
   "scanPassAverageRouteScore": "Avg route score",
-  "scanPassDecisionAccuracy": "Decision accuracy",
+  "scanPassDecisionAccuracy": "Choice score match",
   "scanPassAverageResponse": "Avg response",
   "scanPassBestAverageRouteScore": "Best avg route",
-  "scanPassBestAccuracy": "Best accuracy",
+  "scanPassBestAccuracy": "Best choice match",
   "scanPassBestResponse": "Best response",
   "scanPassNoHistoryValue": "-",
-  "scanPassPlayAgainAction": "Play again",
+  "scanPassPlayAgainAction": "Start 10 rounds again",
   "scanPassReasonClearLane": "the lane stayed clear of pressure.",
   "scanPassReasonTimedRun": "the ball arrived before defenders could close.",
   "scanPassReasonOpenSpace": "the receiver had useful space after the first touch.",
   "scanPassReasonForwardThreat": "the pass moved the attack into a stronger area.",
-  "scanPassReasonPressuredLane": "the lane was under pressure, so the route carried risk.",
+  "scanPassReasonPressuredLane": "the lane had pressure, so the route carried risk.",
   "scanPassReasonLateArrival": "defenders could arrive at nearly the same time as the ball.",
   "scanPassReasonTightReceiver": "the receiver was crowded after the pass.",
   "scanPassReasonLowProgression": "the route was safe but did not advance the attack much.",
@@ -3288,6 +3335,7 @@
       }
     }
   },
+  "scanPassFieldSemantics": "Football pitch. Yellow is you, blue players are teammates, red players are defenders, and attack moves right.",
   "scanPassSecondsValue": "{seconds}s",
   "@scanPassSecondsValue": {
     "placeholders": {
