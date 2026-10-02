@@ -139,7 +139,11 @@ String? _sketchTokenLabelFor(
     return '$teamId$number';
   }
   final index = items
-      .where((entry) => entry.type == 'player')
+      .where(
+        (entry) =>
+            entry.type == 'player' &&
+            _normalizedSketchTeamId(entry.teamId) == teamId,
+      )
       .toList(growable: false)
       .indexWhere((entry) => identical(entry, item));
   return index < 0 ? null : '$teamId${index + 1}';
