@@ -15553,6 +15553,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchPlayerButton => 'Player';
 
   @override
+  String get trainingSketchAddTeamAPlayerButton => 'A-team player';
+
+  @override
+  String get trainingSketchAddTeamBPlayerButton => 'B-team player';
+
+  @override
+  String get trainingSketchTeamAShortLabel => 'A';
+
+  @override
+  String get trainingSketchTeamBShortLabel => 'B';
+
+  @override
+  String get trainingSketchTeamFilterAll => 'All';
+
+  @override
+  String trainingSketchPlayerTokenLabel(String team, int number) {
+    return '$team$number';
+  }
+
+  @override
+  String trainingSketchTeamPlayerLabel(String team, int number) {
+    return '$team$number';
+  }
+
+  @override
   String get trainingSketchBallButton => 'Ball';
 
   @override
@@ -15596,6 +15621,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String trainingSketchPlayerFlowTitle(int index) {
     return 'Player $index flow';
+  }
+
+  @override
+  String trainingSketchPlayerFlowTeamTitle(String player) {
+    return '$player next action';
   }
 
   @override
@@ -15679,6 +15709,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String trainingSketchStageActionPlayerStay(Object actor) {
     return '$actor stays in place';
+  }
+
+  @override
+  String trainingSketchStageActionPlayerPressure(Object actor, Object target) {
+    return '$actor pressures $target';
+  }
+
+  @override
+  String trainingSketchStageActionPlayerMark(Object actor, Object target) {
+    return '$actor marks $target';
   }
 
   @override
@@ -16115,6 +16155,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchQuickOverlapButton => 'Overlap';
+
+  @override
+  String get trainingSketchQuickPressureButton => 'Pressure';
+
+  @override
+  String get trainingSketchQuickMarkButton => 'Mark';
 
   @override
   String get trainingSketchQuickShotButton => 'Shoot';

@@ -8206,6 +8206,33 @@
   "trainingSketchConeButton": "円錐",
   "trainingSketchLowHurdleButton": "ハードルが低い",
   "trainingSketchPlayerButton": "プレーヤー",
+  "trainingSketchAddTeamAPlayerButton": "Aチーム選手",
+  "trainingSketchAddTeamBPlayerButton": "Bチーム選手",
+  "trainingSketchTeamAShortLabel": "A",
+  "trainingSketchTeamBShortLabel": "B",
+  "trainingSketchTeamFilterAll": "すべて",
+  "trainingSketchPlayerTokenLabel": "{team}{number}",
+  "@trainingSketchPlayerTokenLabel": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchTeamPlayerLabel": "{team}{number}",
+  "@trainingSketchTeamPlayerLabel": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchBallButton": "ボール",
   "trainingSketchLadderButton": "ラダー",
   "trainingSketchTargetButton": "ターゲット",
@@ -8224,6 +8251,14 @@
     "placeholders": {
       "index": {
         "type": "int"
+      }
+    }
+  },
+  "trainingSketchPlayerFlowTeamTitle": "{player}の次のアクション",
+  "@trainingSketchPlayerFlowTeamTitle": {
+    "placeholders": {
+      "player": {
+        "type": "String"
       }
     }
   },
@@ -8275,6 +8310,20 @@
   "@trainingSketchStageActionPlayerStay": {
     "placeholders": {
       "actor": {}
+    }
+  },
+  "trainingSketchStageActionPlayerPressure": "{actor}が{target}へプレス",
+  "@trainingSketchStageActionPlayerPressure": {
+    "placeholders": {
+      "actor": {},
+      "target": {}
+    }
+  },
+  "trainingSketchStageActionPlayerMark": "{actor}が{target}をマーク",
+  "@trainingSketchStageActionPlayerMark": {
+    "placeholders": {
+      "actor": {},
+      "target": {}
     }
   },
   "trainingSketchStageActionBallMove": "{actor}がボールを動かす",
@@ -8547,6 +8596,8 @@
   "trainingSketchQuickReceiveMoveButton": "受けて移動",
   "trainingSketchQuickReturnMoveButton": "戻る動き",
   "trainingSketchQuickOverlapButton": "オーバーラップ",
+  "trainingSketchQuickPressureButton": "プレス",
+  "trainingSketchQuickMarkButton": "マーク",
   "trainingSketchQuickShotButton": "シュート",
   "trainingSketchQuickCrossButton": "クロス",
   "trainingSketchQuickDriveButton": "ドライブ",

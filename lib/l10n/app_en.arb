@@ -8206,6 +8206,33 @@
   "trainingSketchConeButton": "Cone",
   "trainingSketchLowHurdleButton": "Low hurdle",
   "trainingSketchPlayerButton": "Player",
+  "trainingSketchAddTeamAPlayerButton": "A-team player",
+  "trainingSketchAddTeamBPlayerButton": "B-team player",
+  "trainingSketchTeamAShortLabel": "A",
+  "trainingSketchTeamBShortLabel": "B",
+  "trainingSketchTeamFilterAll": "All",
+  "trainingSketchPlayerTokenLabel": "{team}{number}",
+  "@trainingSketchPlayerTokenLabel": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchTeamPlayerLabel": "{team}{number}",
+  "@trainingSketchTeamPlayerLabel": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchBallButton": "Ball",
   "trainingSketchLadderButton": "Ladder",
   "trainingSketchTargetButton": "Target",
@@ -8224,6 +8251,14 @@
     "placeholders": {
       "index": {
         "type": "int"
+      }
+    }
+  },
+  "trainingSketchPlayerFlowTeamTitle": "{player} next action",
+  "@trainingSketchPlayerFlowTeamTitle": {
+    "placeholders": {
+      "player": {
+        "type": "String"
       }
     }
   },
@@ -8275,6 +8310,20 @@
   "@trainingSketchStageActionPlayerStay": {
     "placeholders": {
       "actor": {}
+    }
+  },
+  "trainingSketchStageActionPlayerPressure": "{actor} pressures {target}",
+  "@trainingSketchStageActionPlayerPressure": {
+    "placeholders": {
+      "actor": {},
+      "target": {}
+    }
+  },
+  "trainingSketchStageActionPlayerMark": "{actor} marks {target}",
+  "@trainingSketchStageActionPlayerMark": {
+    "placeholders": {
+      "actor": {},
+      "target": {}
     }
   },
   "trainingSketchStageActionBallMove": "{actor} moves the ball",
@@ -8547,6 +8596,8 @@
   "trainingSketchQuickReceiveMoveButton": "Receive and move",
   "trainingSketchQuickReturnMoveButton": "Return",
   "trainingSketchQuickOverlapButton": "Overlap",
+  "trainingSketchQuickPressureButton": "Pressure",
+  "trainingSketchQuickMarkButton": "Mark",
   "trainingSketchQuickShotButton": "Shoot",
   "trainingSketchQuickCrossButton": "Cross",
   "trainingSketchQuickDriveButton": "Drive",

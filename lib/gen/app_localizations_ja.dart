@@ -15026,6 +15026,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchPlayerButton => 'プレーヤー';
 
   @override
+  String get trainingSketchAddTeamAPlayerButton => 'Aチーム選手';
+
+  @override
+  String get trainingSketchAddTeamBPlayerButton => 'Bチーム選手';
+
+  @override
+  String get trainingSketchTeamAShortLabel => 'A';
+
+  @override
+  String get trainingSketchTeamBShortLabel => 'B';
+
+  @override
+  String get trainingSketchTeamFilterAll => 'すべて';
+
+  @override
+  String trainingSketchPlayerTokenLabel(String team, int number) {
+    return '$team$number';
+  }
+
+  @override
+  String trainingSketchTeamPlayerLabel(String team, int number) {
+    return '$team$number';
+  }
+
+  @override
   String get trainingSketchBallButton => 'ボール';
 
   @override
@@ -15068,6 +15093,11 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String trainingSketchPlayerFlowTitle(int index) {
     return 'プレイヤー $index の流れ';
+  }
+
+  @override
+  String trainingSketchPlayerFlowTeamTitle(String player) {
+    return '$playerの次のアクション';
   }
 
   @override
@@ -15148,6 +15178,16 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String trainingSketchStageActionPlayerStay(Object actor) {
     return '$actorがその場で待つ';
+  }
+
+  @override
+  String trainingSketchStageActionPlayerPressure(Object actor, Object target) {
+    return '$actorが$targetへプレス';
+  }
+
+  @override
+  String trainingSketchStageActionPlayerMark(Object actor, Object target) {
+    return '$actorが$targetをマーク';
   }
 
   @override
@@ -15575,6 +15615,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchQuickOverlapButton => 'オーバーラップ';
+
+  @override
+  String get trainingSketchQuickPressureButton => 'プレス';
+
+  @override
+  String get trainingSketchQuickMarkButton => 'マーク';
 
   @override
   String get trainingSketchQuickShotButton => 'シュート';

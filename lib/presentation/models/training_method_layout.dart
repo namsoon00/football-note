@@ -151,6 +151,8 @@ class TrainingMethodItem {
   final double size;
   final double rotationDeg;
   final int colorValue;
+  final String? teamId;
+  final int? playerNumber;
 
   const TrainingMethodItem({
     this.id = '',
@@ -160,6 +162,8 @@ class TrainingMethodItem {
     this.size = 32,
     this.rotationDeg = 0,
     this.colorValue = 0xFFFFFFFF,
+    this.teamId,
+    this.playerNumber,
   });
 
   factory TrainingMethodItem.fromMap(
@@ -168,6 +172,8 @@ class TrainingMethodItem {
   }) {
     final x = (map['x'] as num?)?.toDouble() ?? 0.5;
     final y = (map['y'] as num?)?.toDouble() ?? 0.5;
+    final rawTeamId = (map['teamId'] as String?)?.trim();
+    final rawPlayerNumber = (map['playerNumber'] as num?)?.toInt();
     return TrainingMethodItem(
       id: ((map['id'] as String?) ?? fallbackId).trim().isEmpty
           ? fallbackId
@@ -181,6 +187,10 @@ class TrainingMethodItem {
         180,
       ),
       colorValue: (map['colorValue'] as num?)?.toInt() ?? 0xFFFFFFFF,
+      teamId: rawTeamId == null || rawTeamId.isEmpty ? null : rawTeamId,
+      playerNumber: rawPlayerNumber == null || rawPlayerNumber <= 0
+          ? null
+          : rawPlayerNumber,
     );
   }
 
@@ -192,6 +202,9 @@ class TrainingMethodItem {
         'size': size,
         'rotationDeg': rotationDeg,
         'colorValue': colorValue,
+        if (teamId != null && teamId!.trim().isNotEmpty) 'teamId': teamId,
+        if (playerNumber != null && playerNumber! > 0)
+          'playerNumber': playerNumber,
       };
 }
 
@@ -238,6 +251,7 @@ class TrainingMethodRoute {
   final String? linkedItemId;
   final String? actorItemId;
   final String? targetItemId;
+  final String? actionType;
   final List<TrainingMethodPoint> points;
   final List<int> segmentDurationsMs;
   final int stageIndex;
@@ -253,6 +267,7 @@ class TrainingMethodRoute {
     this.linkedItemId,
     this.actorItemId,
     this.targetItemId,
+    this.actionType,
     this.colorValue = 0xFF80D8FF,
     this.width = 4.0,
   });
@@ -273,6 +288,9 @@ class TrainingMethodRoute {
       targetItemId: (map['targetItemId'] as String?)?.trim().isEmpty == true
           ? null
           : (map['targetItemId'] as String?),
+      actionType: (map['actionType'] as String?)?.trim().isEmpty == true
+          ? null
+          : (map['actionType'] as String?)?.trim(),
       points: (map['points'] is List)
           ? (map['points'] as List)
               .whereType<Map>()
@@ -303,6 +321,8 @@ class TrainingMethodRoute {
         if (linkedItemId != null) 'linkedItemId': linkedItemId,
         if (actorItemId != null) 'actorItemId': actorItemId,
         if (targetItemId != null) 'targetItemId': targetItemId,
+        if (actionType != null && actionType!.trim().isNotEmpty)
+          'actionType': actionType,
         'points': points.map((e) => e.toMap()).toList(growable: false),
         if (segmentDurationsMs.isNotEmpty)
           'segmentDurationsMs': segmentDurationsMs,

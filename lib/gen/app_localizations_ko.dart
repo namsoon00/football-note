@@ -15057,6 +15057,31 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchPlayerButton => '사람';
 
   @override
+  String get trainingSketchAddTeamAPlayerButton => 'A팀 선수';
+
+  @override
+  String get trainingSketchAddTeamBPlayerButton => 'B팀 선수';
+
+  @override
+  String get trainingSketchTeamAShortLabel => 'A';
+
+  @override
+  String get trainingSketchTeamBShortLabel => 'B';
+
+  @override
+  String get trainingSketchTeamFilterAll => '전체';
+
+  @override
+  String trainingSketchPlayerTokenLabel(String team, int number) {
+    return '$team$number';
+  }
+
+  @override
+  String trainingSketchTeamPlayerLabel(String team, int number) {
+    return '$team$number';
+  }
+
+  @override
   String get trainingSketchBallButton => '공';
 
   @override
@@ -15099,6 +15124,11 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String trainingSketchPlayerFlowTitle(int index) {
     return '사람 $index 흐름';
+  }
+
+  @override
+  String trainingSketchPlayerFlowTeamTitle(String player) {
+    return '$player 다음 액션';
   }
 
   @override
@@ -15180,6 +15210,16 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String trainingSketchStageActionPlayerStay(Object actor) {
     return '$actor 제자리';
+  }
+
+  @override
+  String trainingSketchStageActionPlayerPressure(Object actor, Object target) {
+    return '$actor가 $target 압박';
+  }
+
+  @override
+  String trainingSketchStageActionPlayerMark(Object actor, Object target) {
+    return '$actor가 $target 마크';
   }
 
   @override
@@ -15608,6 +15648,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchQuickOverlapButton => '오버랩';
+
+  @override
+  String get trainingSketchQuickPressureButton => '압박';
+
+  @override
+  String get trainingSketchQuickMarkButton => '마크';
 
   @override
   String get trainingSketchQuickShotButton => '슈팅';
