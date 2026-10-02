@@ -145,6 +145,20 @@ class ScanPassRouteScore {
   });
 }
 
+class ScanPassScoreWeights {
+  static const double laneSafety = 0.26;
+  static const double arrivalMargin = 0.22;
+  static const double receiverSpace = 0.16;
+  static const double progression = 0.12;
+  static const double connectionStability = 0.14;
+  static const double maxDecisionPoints = 90;
+  static const double maxReactionBonus = 10;
+  static const double reactionThreshold = 50;
+  static const int fastestReactionBonusMs = 450;
+
+  const ScanPassScoreWeights._();
+}
+
 class ScanPassRoundEvaluation {
   static const int comparableScoreWindow = 7;
 
@@ -220,14 +234,16 @@ class ScanPassScorer {
       receiverSpace: receiverSpace,
     );
     final decisionScore = _clampScore(
-      (laneSafety * 0.26) +
-          (arrivalMargin * 0.22) +
-          (receiverSpace * 0.16) +
-          (progression * 0.12) +
-          (simulatedResult * 0.14),
+      (laneSafety * ScanPassScoreWeights.laneSafety) +
+          (arrivalMargin * ScanPassScoreWeights.arrivalMargin) +
+          (receiverSpace * ScanPassScoreWeights.receiverSpace) +
+          (progression * ScanPassScoreWeights.progression) +
+          (simulatedResult * ScanPassScoreWeights.connectionStability),
     );
     final reactionBonus =
-        decisionScore >= 50 ? _reactionBonus(responseTime, choiceWindow) : 0.0;
+        decisionScore >= ScanPassScoreWeights.reactionThreshold
+            ? _reactionBonus(responseTime, choiceWindow)
+            : 0.0;
     final totalScore = _clampScore(decisionScore + reactionBonus).round();
     return ScanPassRouteScore(
       targetId: target.id,
@@ -312,10 +328,17 @@ class ScanPassScorer {
   static double _reactionBonus(Duration responseTime, Duration choiceWindow) {
     final responseMs = responseTime.inMilliseconds.clamp(0, 1 << 30);
     final windowMs = math.max(1, choiceWindow.inMilliseconds);
-    if (responseMs <= 450) return 10;
+    if (responseMs <= ScanPassScoreWeights.fastestReactionBonusMs) {
+      return ScanPassScoreWeights.maxReactionBonus;
+    }
     if (responseMs >= windowMs) return 0;
     return _clampScore(
-          ((windowMs - responseMs) / math.max(1, windowMs - 450)) * 100,
+          ((windowMs - responseMs) /
+                  math.max(
+                    1,
+                    windowMs - ScanPassScoreWeights.fastestReactionBonusMs,
+                  )) *
+              100,
         ) /
         10;
   }

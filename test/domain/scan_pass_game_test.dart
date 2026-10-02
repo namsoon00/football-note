@@ -113,6 +113,50 @@ void main() {
       expect(blocked.reactionBonus, 0);
     });
 
+    test('score weights sum to scorer decision subtotal and final max', () {
+      final route = scorer
+          .evaluateRound(
+            _singleRouteRound(defender: const ScanPassPoint(0.48, 0.82)),
+            responseTime: const Duration(milliseconds: 300),
+          )
+          .routes
+          .single;
+
+      final subtotal = (route.laneSafety * ScanPassScoreWeights.laneSafety) +
+          (route.arrivalMargin * ScanPassScoreWeights.arrivalMargin) +
+          (route.receiverSpace * ScanPassScoreWeights.receiverSpace) +
+          (route.progression * ScanPassScoreWeights.progression) +
+          (route.simulatedResult * ScanPassScoreWeights.connectionStability);
+
+      expect(ScanPassScoreWeights.maxDecisionPoints, 90);
+      expect(ScanPassScoreWeights.maxReactionBonus, 10);
+      expect(
+        ScanPassScoreWeights.maxDecisionPoints +
+            ScanPassScoreWeights.maxReactionBonus,
+        100,
+      );
+      expect(subtotal, closeTo(route.decisionScore, 0.0001));
+      expect(
+        route.totalScore,
+        closeTo(route.decisionScore + route.reactionBonus, 0.5),
+      );
+    });
+
+    test('practice-style evaluation has no reaction bonus and maxes at 90', () {
+      final route = scorer
+          .evaluateRound(
+            _singleRouteRound(defender: const ScanPassPoint(0.48, 0.82)),
+            responseTime: ScanPassScorer.defaultChoiceWindow,
+            choiceWindow: ScanPassScorer.defaultChoiceWindow,
+          )
+          .routes
+          .single;
+
+      expect(route.decisionScore, lessThanOrEqualTo(90));
+      expect(route.reactionBonus, 0);
+      expect(route.totalScore, route.decisionScore.round());
+    });
+
     test('treats close high scores as comparable route choices', () {
       final round = _singleRouteRound();
       final evaluation = ScanPassRoundEvaluation(

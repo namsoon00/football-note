@@ -37,9 +37,10 @@ class ScanPassGameScreen extends StatefulWidget {
 
 class _ScanPassGameScreenState extends State<ScanPassGameScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
-  static const Color _navy = Color(0xFF071A2F);
-  static const Color _surface = Color(0xFF0D2740);
-  static const Color _cyan = Color(0xFF34D5E5);
+  static const Color _charcoal = Color(0xFF101820);
+  static const Color _surface = Color(0xFF17212B);
+  static const Color _line = Color(0xFF3A4652);
+  static const Color _offWhite = Color(0xFFF2EFE7);
   static const int _roundCount = ScanPassRoundGenerator.roundCount;
   static const ScanPassRound _practiceRound = ScanPassRound(
     roundNumber: 0,
@@ -447,11 +448,11 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: _navy,
+      backgroundColor: _charcoal,
       appBar: AppBar(
         title: Text(l10n.scanPassTitle),
-        backgroundColor: _navy,
-        foregroundColor: Colors.white,
+        backgroundColor: _charcoal,
+        foregroundColor: _offWhite,
         surfaceTintColor: Colors.transparent,
         actions: [
           if (_flow != _ScanPassFlow.intro)
@@ -491,8 +492,8 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
                     key: const ValueKey<String>('scan-pass-intro-title'),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
+                          color: _offWhite,
+                          fontWeight: FontWeight.w700,
                         ),
                   ),
                   const SizedBox(height: 8),
@@ -500,17 +501,18 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
                     l10n.scanPassIntroSubtitle,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.82),
-                          height: 1.28,
+                          color: _offWhite.withValues(alpha: 0.78),
+                          height: 1.34,
                         ),
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
-                    height: compact ? 220 : 300,
+                    height: compact ? 190 : 300,
                     child: Semantics(
                       label: l10n.scanPassSampleFieldSemantics,
                       image: true,
                       child: _ScanPassField(
+                        key: const ValueKey<String>('scan-pass-intro-field'),
                         round: _practiceRound,
                         phase: _ScanPassPhase.preview,
                         previewProgress: 1,
@@ -525,6 +527,8 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
                   _ScanPassLegend(l10n: l10n),
                   const SizedBox(height: 16),
                   _ScanPassIntroSteps(l10n: l10n),
+                  const SizedBox(height: 12),
+                  _ScanPassScoringGuide(l10n: l10n),
                   const SizedBox(height: 20),
                   Wrap(
                     spacing: 10,
@@ -550,11 +554,9 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
                         icon: const Icon(Icons.flag_outlined),
                         label: Text(l10n.scanPassStartChallengeAction),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
+                          foregroundColor: _offWhite,
                           backgroundColor: _surface,
-                          side: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.54),
-                          ),
+                          side: const BorderSide(color: _line),
                           minimumSize: const Size(180, 50),
                         ),
                       ),
@@ -572,51 +574,107 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
   Widget _buildRound(AppLocalizations l10n) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact = constraints.maxHeight < 620;
-        return Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(16, compact ? 8 : 12, 16, 6),
-              child: _buildStatus(l10n),
-            ),
-            Expanded(
-              child: Center(
+        final compactHeight = constraints.maxHeight < 620;
+        final wide =
+            constraints.maxWidth >= 900 && constraints.maxHeight >= 520;
+        final field = _buildAnimatedField(l10n);
+        final status = Padding(
+          padding: EdgeInsets.fromLTRB(16, compactHeight ? 8 : 12, 16, 6),
+          child: _buildStatus(l10n),
+        );
+
+        if (wide) {
+          final analysisWidth = math.min(430.0, constraints.maxWidth * 0.38);
+          return Column(
+            children: [
+              status,
+              Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: AnimatedBuilder(
-                    animation: Listenable.merge([
-                      _previewController,
-                      _passController,
-                    ]),
-                    builder: (context, _) {
-                      return _ScanPassField(
-                        round: _round,
-                        phase: _phase,
-                        previewProgress: _previewController.value,
-                        passProgress: _passController.value,
-                        selectedTargetId: _selectedScore?.targetId,
-                        onTargetTap: _phase == _ScanPassPhase.choice
-                            ? _selectTarget
-                            : null,
-                        l10n: l10n,
-                      );
-                    },
+                  padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
+                  child: Row(
+                    key: const ValueKey<String>('scan-pass-wide-layout'),
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: Center(child: field),
+                      ),
+                      const SizedBox(width: 18),
+                      SizedBox(
+                        width: analysisWidth,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: _surface.withValues(alpha: 0.82),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: _line),
+                          ),
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(16),
+                            child: _buildBottomPanel(l10n),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: _phase == _ScanPassPhase.feedback
-                    ? math.max(220, constraints.maxHeight * 0.46)
-                    : math.max(150, constraints.maxHeight * 0.30),
+            ],
+          );
+        }
+
+        final expectedFieldHeight =
+            (constraints.maxWidth - 24) / _ScanPassField.aspectRatio;
+        final fieldHeight = expectedFieldHeight
+            .clamp(188.0, compactHeight ? 232.0 : 340.0)
+            .toDouble();
+        return Column(
+          children: [
+            status,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+              child: SizedBox(
+                height: fieldHeight,
+                child: Center(child: field),
               ),
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(16, 8, 16, compact ? 10 : 16),
-                child: _buildBottomPanel(l10n),
+            ),
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: _surface.withValues(alpha: 0.68),
+                  border: const Border(top: BorderSide(color: _line)),
+                ),
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    12,
+                    16,
+                    compactHeight ? 12 : 18,
+                  ),
+                  child: _buildBottomPanel(l10n),
+                ),
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAnimatedField(AppLocalizations l10n) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        _previewController,
+        _passController,
+      ]),
+      builder: (context, _) {
+        return _ScanPassField(
+          key: const ValueKey<String>('scan-pass-active-field'),
+          round: _round,
+          phase: _phase,
+          previewProgress: _previewController.value,
+          passProgress: _passController.value,
+          selectedTargetId: _selectedScore?.targetId,
+          onTargetTap: _phase == _ScanPassPhase.choice ? _selectTarget : null,
+          l10n: l10n,
         );
       },
     );
@@ -632,8 +690,8 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
           key: const ValueKey<String>('scan-pass-phase-heading'),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
+                color: _offWhite,
+                fontWeight: FontWeight.w700,
               ),
         ),
         const SizedBox(height: 8),
@@ -693,107 +751,95 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
 
   Widget _buildBottomPanel(AppLocalizations l10n) {
     final feedback = _feedbackText(l10n);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              feedback,
-              key: const ValueKey<String>('scan-pass-bottom-text'),
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: const Color(0xFFF5F7FA),
-                    height: 1.25,
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            if (_phase == _ScanPassPhase.feedback) ...[
-              const SizedBox(height: 12),
-              _buildRouteComparison(l10n),
-            ],
-            if (_isPractice && _phase == _ScanPassPhase.preview) ...[
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerRight,
-                child: FilledButton.icon(
-                  key: const ValueKey<String>('scan-pass-ready-button'),
-                  onPressed: _beginPracticeChoice,
-                  icon: const Icon(Icons.visibility_outlined),
-                  label: Text(l10n.scanPassPracticeReadyAction),
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          feedback,
+          key: const ValueKey<String>('scan-pass-bottom-text'),
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: _offWhite,
+                height: 1.34,
+                fontWeight: FontWeight.w600,
               ),
-            ],
-            if (_isPractice && _phase == _ScanPassPhase.feedback) ...[
-              const SizedBox(height: 12),
-              Text(
-                l10n.scanPassPracticeScoreNote,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.72),
-                      height: 1.25,
-                    ),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                alignment: WrapAlignment.end,
-                children: [
-                  OutlinedButton.icon(
-                    key: const ValueKey<String>(
-                      'scan-pass-retry-practice-button',
-                    ),
-                    onPressed: _startPractice,
-                    icon: const Icon(Icons.replay),
-                    label: Text(l10n.scanPassRetryPracticeAction),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: _surface,
-                      side: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.46),
-                      ),
-                    ),
-                  ),
-                  FilledButton.icon(
-                    key: const ValueKey<String>(
-                      'scan-pass-practice-start-challenge-button',
-                    ),
-                    onPressed: _startSession,
-                    icon: const Icon(Icons.flag_outlined),
-                    label: Text(l10n.scanPassStartChallengeAction),
-                  ),
-                ],
-              ),
-            ],
-            if (_isChallenge && _phase == _ScanPassPhase.feedback) ...[
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerRight,
-                child: FilledButton.icon(
-                  key: const ValueKey<String>('scan-pass-next-button'),
-                  onPressed: _advance,
-                  icon: Icon(
-                    _results.length >= _roundCount
-                        ? Icons.assessment_outlined
-                        : Icons.arrow_forward,
-                  ),
-                  label: Text(
-                    _results.length >= _roundCount
-                        ? l10n.scanPassSeeResultAction
-                        : l10n.scanPassNextRoundAction,
-                  ),
-                ),
-              ),
-            ],
-          ],
         ),
-      ),
+        if (_phase == _ScanPassPhase.feedback) ...[
+          const SizedBox(height: 14),
+          _buildRouteComparison(l10n),
+        ],
+        if (_isPractice && _phase == _ScanPassPhase.preview) ...[
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton.icon(
+              key: const ValueKey<String>('scan-pass-ready-button'),
+              onPressed: _beginPracticeChoice,
+              icon: const Icon(Icons.visibility_outlined),
+              label: Text(l10n.scanPassPracticeReadyAction),
+            ),
+          ),
+        ],
+        if (_isPractice && _phase == _ScanPassPhase.feedback) ...[
+          const SizedBox(height: 12),
+          Text(
+            l10n.scanPassPracticeScoreNote,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: _offWhite.withValues(alpha: 0.70),
+                  height: 1.28,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            alignment: WrapAlignment.end,
+            children: [
+              OutlinedButton.icon(
+                key: const ValueKey<String>(
+                  'scan-pass-retry-practice-button',
+                ),
+                onPressed: _startPractice,
+                icon: const Icon(Icons.replay),
+                label: Text(l10n.scanPassRetryPracticeAction),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: _offWhite,
+                  backgroundColor: _surface,
+                  side: BorderSide(color: _line.withValues(alpha: 0.92)),
+                ),
+              ),
+              FilledButton.icon(
+                key: const ValueKey<String>(
+                  'scan-pass-practice-start-challenge-button',
+                ),
+                onPressed: _startSession,
+                icon: const Icon(Icons.flag_outlined),
+                label: Text(l10n.scanPassStartChallengeAction),
+              ),
+            ],
+          ),
+        ],
+        if (_isChallenge && _phase == _ScanPassPhase.feedback) ...[
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton.icon(
+              key: const ValueKey<String>('scan-pass-next-button'),
+              onPressed: _advance,
+              icon: Icon(
+                _results.length >= _roundCount
+                    ? Icons.assessment_outlined
+                    : Icons.arrow_forward,
+              ),
+              label: Text(
+                _results.length >= _roundCount
+                    ? l10n.scanPassSeeResultAction
+                    : l10n.scanPassNextRoundAction,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -853,21 +899,64 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
         Text(
           l10n.scanPassRouteComparisonTitle,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
+                color: _offWhite,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          l10n.scanPassRouteComparisonSubtitle,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: _offWhite.withValues(alpha: 0.68),
+                height: 1.24,
+              ),
+        ),
+        const SizedBox(height: 10),
+        _ScanPassRouteTotals(
+          routes: evaluation.routes,
+          selectedTargetId: _selectedScore?.targetId,
+          isPractice: _isPractice,
+          isComparable: evaluation.isComparableToBest,
+          l10n: l10n,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          l10n.scanPassRouteDetailsTitle,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: _offWhite,
+                fontWeight: FontWeight.w700,
               ),
         ),
         const SizedBox(height: 8),
-        for (final route in evaluation.routes) ...[
-          _ScanPassRouteCard(
+        for (final route in evaluation.routes)
+          _ScanPassRouteDetailTile(
             key: ValueKey<String>('scan-pass-route-${route.targetId}'),
             route: route,
-            reason: _reasonText(l10n, route.feedbackType),
+            initiallyExpanded: _selectedScore == null
+                ? route.totalScore == evaluation.bestScore
+                : route.targetId == _selectedScore?.targetId,
             selected: route.targetId == _selectedScore?.targetId,
             comparable: evaluation.isComparableToBest(route),
+            isPractice: _isPractice,
             l10n: l10n,
           ),
-          const SizedBox(height: 8),
+        const SizedBox(height: 8),
+        Text(
+          l10n.scanPassMethodologyNote,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: _offWhite.withValues(alpha: 0.62),
+                height: 1.24,
+              ),
+        ),
+        if (_isChallenge) ...[
+          const SizedBox(height: 6),
+          Text(
+            l10n.scanPassReactionSameTimeNote,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: _offWhite.withValues(alpha: 0.62),
+                  height: 1.24,
+                ),
+          ),
         ],
       ],
     );
@@ -910,7 +999,7 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
                     color: _surface,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: _cyan.withValues(alpha: 0.34),
+                      color: _line,
                       width: 1.2,
                     ),
                   ),
@@ -929,8 +1018,8 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
                               .textTheme
                               .headlineSmall
                               ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w900,
+                                color: _offWhite,
+                                fontWeight: FontWeight.w700,
                               ),
                         ),
                         const SizedBox(height: 8),
@@ -946,8 +1035,8 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
                           textAlign: TextAlign.center,
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.80),
-                                    height: 1.25,
+                                    color: _offWhite.withValues(alpha: 0.78),
+                                    height: 1.28,
                                   ),
                         ),
                         const SizedBox(height: 18),
@@ -996,6 +1085,8 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
                             ),
                           ],
                         ),
+                        const SizedBox(height: 14),
+                        _ScanPassResultNotes(l10n: l10n),
                         const SizedBox(height: 18),
                         FilledButton.icon(
                           key: const ValueKey<String>(
@@ -1019,9 +1110,10 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
 }
 
 class _ScanPassLegend extends StatelessWidget {
-  static const Color _blue = Color(0xFF3D7BFF);
-  static const Color _coral = Color(0xFFFF6B5F);
-  static const Color _yellow = Color(0xFFFFD54D);
+  static const Color _blue = Color(0xFF6F8FAF);
+  static const Color _coral = Color(0xFFC77868);
+  static const Color _yellow = Color(0xFFD6B46C);
+  static const Color _offWhite = Color(0xFFF2EFE7);
 
   final AppLocalizations l10n;
   final bool compact;
@@ -1034,8 +1126,8 @@ class _ScanPassLegend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: Colors.white.withValues(alpha: 0.86),
-          fontWeight: FontWeight.w800,
+          color: _offWhite.withValues(alpha: 0.82),
+          fontWeight: FontWeight.w600,
         );
     return Wrap(
       spacing: compact ? 8 : 12,
@@ -1067,10 +1159,18 @@ class _ScanPassLegend extends StatelessWidget {
                 Icon(
                   Icons.arrow_forward,
                   size: 18,
-                  color: Colors.white.withValues(alpha: 0.86),
+                  color: _offWhite.withValues(alpha: 0.82),
                 ),
                 const SizedBox(width: 5),
-                Text(l10n.scanPassAttackDirection, style: style),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: compact ? 112 : 160),
+                  child: Text(
+                    l10n.scanPassAttackDirection,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: style,
+                  ),
+                ),
               ],
             ),
           ),
@@ -1102,7 +1202,9 @@ class _ScanPassLegendItem extends StatelessWidget {
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withValues(alpha: 0.42)),
+            border: Border.all(
+              color: const Color(0xFFF2EFE7).withValues(alpha: 0.36),
+            ),
           ),
         ),
         const SizedBox(width: 6),
@@ -1138,9 +1240,9 @@ class _ScanPassIntroSteps extends StatelessWidget {
     ];
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: const Color(0xFF17212B),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+        border: Border.all(color: const Color(0xFF3A4652)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -1189,7 +1291,7 @@ class _ScanPassIntroStep extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: const Color(0xFF34D5E5), size: 24),
+        Icon(icon, color: const Color(0xFFD6B46C), size: 22),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -1198,15 +1300,15 @@ class _ScanPassIntroStep extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFFF2EFE7),
+                      fontWeight: FontWeight.w700,
                     ),
               ),
               const SizedBox(height: 4),
               Text(
                 body,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.76),
+                      color: const Color(0xFFF2EFE7).withValues(alpha: 0.72),
                       height: 1.25,
                     ),
               ),
@@ -1218,7 +1320,114 @@ class _ScanPassIntroStep extends StatelessWidget {
   }
 }
 
+class _ScanPassScoringGuide extends StatelessWidget {
+  static const Color _surface = Color(0xFF17212B);
+  static const Color _line = Color(0xFF3A4652);
+  static const Color _offWhite = Color(0xFFF2EFE7);
+  static const Color _amber = Color(0xFFD6B46C);
+
+  final AppLocalizations l10n;
+
+  const _ScanPassScoringGuide({required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    final titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(
+          color: _offWhite,
+          fontWeight: FontWeight.w700,
+        );
+    final bodyStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: _offWhite.withValues(alpha: 0.72),
+          height: 1.28,
+        );
+    return Theme(
+      data: Theme.of(context).copyWith(
+        dividerColor: Colors.transparent,
+        splashColor: _amber.withValues(alpha: 0.08),
+        highlightColor: _amber.withValues(alpha: 0.08),
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _line),
+        ),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+          childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+          iconColor: _offWhite,
+          collapsedIconColor: _offWhite.withValues(alpha: 0.72),
+          title: Text(l10n.scanPassIntroScoringGuideTitle, style: titleStyle),
+          subtitle: Text(
+            l10n.scanPassIntroScoringGuideSummary,
+            style: bodyStyle,
+          ),
+          children: [
+            _ScanPassGuideLine(
+              icon: Icons.analytics_outlined,
+              text: l10n.scanPassScoringGuideDecision,
+            ),
+            _ScanPassGuideLine(
+              icon: Icons.timer_outlined,
+              text: l10n.scanPassScoringGuideReaction,
+            ),
+            _ScanPassGuideLine(
+              icon: Icons.school_outlined,
+              text: l10n.scanPassScoringGuidePractice,
+            ),
+            _ScanPassGuideLine(
+              icon: Icons.info_outline,
+              text: l10n.scanPassScoringGuideMethod,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScanPassGuideLine extends StatelessWidget {
+  static const Color _offWhite = Color(0xFFF2EFE7);
+  static const Color _amber = Color(0xFFD6B46C);
+
+  final IconData icon;
+  final String text;
+
+  const _ScanPassGuideLine({
+    required this.icon,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: _amber, size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: _offWhite.withValues(alpha: 0.74),
+                    height: 1.28,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ScanPassStatusPill extends StatelessWidget {
+  static const Color _surface = Color(0xFF17212B);
+  static const Color _line = Color(0xFF3A4652);
+  static const Color _offWhite = Color(0xFFF2EFE7);
+  static const Color _amber = Color(0xFFD6B46C);
+
   final IconData icon;
   final String label;
   final bool emphasized;
@@ -1234,13 +1443,11 @@ class _ScanPassStatusPill extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: emphasized
-            ? const Color(0xFF34D5E5).withValues(alpha: 0.20)
-            : Colors.white.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(999),
+            ? _amber.withValues(alpha: 0.14)
+            : _surface.withValues(alpha: 0.80),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: emphasized
-              ? const Color(0xFF34D5E5)
-              : Colors.white.withValues(alpha: 0.12),
+          color: emphasized ? _amber.withValues(alpha: 0.72) : _line,
         ),
       ),
       child: Padding(
@@ -1248,13 +1455,13 @@ class _ScanPassStatusPill extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: Colors.white),
+            Icon(icon, size: 16, color: emphasized ? _amber : _offWhite),
             const SizedBox(width: 6),
             Text(
               label,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
+                    color: _offWhite,
+                    fontWeight: FontWeight.w600,
                   ),
             ),
           ],
@@ -1264,107 +1471,433 @@ class _ScanPassStatusPill extends StatelessWidget {
   }
 }
 
-class _ScanPassRouteCard extends StatelessWidget {
-  final ScanPassRouteScore route;
-  final String reason;
-  final bool selected;
-  final bool comparable;
+class _ScanPassRouteTotals extends StatelessWidget {
+  final List<ScanPassRouteScore> routes;
+  final int? selectedTargetId;
+  final bool isPractice;
+  final bool Function(ScanPassRouteScore route) isComparable;
   final AppLocalizations l10n;
 
-  const _ScanPassRouteCard({
+  const _ScanPassRouteTotals({
+    required this.routes,
+    required this.selectedTargetId,
+    required this.isPractice,
+    required this.isComparable,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (final route in routes) ...[
+          _ScanPassRouteTotalRow(
+            key: ValueKey<String>('scan-pass-route-total-${route.targetId}'),
+            route: route,
+            selected: route.targetId == selectedTargetId,
+            comparable: isComparable(route),
+            isPractice: isPractice,
+            l10n: l10n,
+          ),
+          if (route != routes.last) const SizedBox(height: 6),
+        ],
+      ],
+    );
+  }
+}
+
+class _ScanPassRouteTotalRow extends StatelessWidget {
+  static const Color _surfaceAlt = Color(0xFF202B35);
+  static const Color _line = Color(0xFF3A4652);
+  static const Color _offWhite = Color(0xFFF2EFE7);
+  static const Color _amber = Color(0xFFD6B46C);
+
+  final ScanPassRouteScore route;
+  final bool selected;
+  final bool comparable;
+  final bool isPractice;
+  final AppLocalizations l10n;
+
+  const _ScanPassRouteTotalRow({
     super.key,
     required this.route,
-    required this.reason,
     required this.selected,
     required this.comparable,
+    required this.isPractice,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scoreMax = isPractice
+        ? ScanPassScoreWeights.maxDecisionPoints.round()
+        : (ScanPassScoreWeights.maxDecisionPoints +
+                ScanPassScoreWeights.maxReactionBonus)
+            .round();
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: selected ? _amber.withValues(alpha: 0.11) : _surfaceAlt,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: selected ? _amber.withValues(alpha: 0.64) : _line,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        child: Row(
+          children: [
+            _ScanPassPlayerNumber(number: route.targetNumber),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.scanPassRouteTeammate(route.targetNumber),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: _offWhite,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: 3),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 2,
+                    children: [
+                      if (selected)
+                        _ScanPassInlineMarker(
+                          icon: Icons.radio_button_checked,
+                          label: l10n.scanPassSelectedRouteLabel,
+                        ),
+                      if (comparable)
+                        _ScanPassInlineMarker(
+                          icon: Icons.trending_up,
+                          label: l10n.scanPassComparableRouteLabel,
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 72),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  l10n.scanPassRouteFinalValue(scoreMax, route.totalScore),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: _offWhite,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScanPassRouteDetailTile extends StatelessWidget {
+  static const Color _surfaceAlt = Color(0xFF202B35);
+  static const Color _line = Color(0xFF3A4652);
+  static const Color _offWhite = Color(0xFFF2EFE7);
+  static const Color _amber = Color(0xFFD6B46C);
+
+  final ScanPassRouteScore route;
+  final bool initiallyExpanded;
+  final bool selected;
+  final bool comparable;
+  final bool isPractice;
+  final AppLocalizations l10n;
+
+  const _ScanPassRouteDetailTile({
+    super.key,
+    required this.route,
+    required this.initiallyExpanded,
+    required this.selected,
+    required this.comparable,
+    required this.isPractice,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final metrics = _routeMetrics(route, l10n);
+    final scoreMax = isPractice
+        ? ScanPassScoreWeights.maxDecisionPoints.round()
+        : (ScanPassScoreWeights.maxDecisionPoints +
+                ScanPassScoreWeights.maxReactionBonus)
+            .round();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          dividerColor: Colors.transparent,
+          splashColor: _amber.withValues(alpha: 0.08),
+          highlightColor: _amber.withValues(alpha: 0.08),
+        ),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: _surfaceAlt,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: selected ? _amber.withValues(alpha: 0.64) : _line,
+            ),
+          ),
+          child: ExpansionTile(
+            key: ValueKey<String>('scan-pass-route-details-${route.targetId}'),
+            initiallyExpanded: initiallyExpanded,
+            maintainState: true,
+            tilePadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+            childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+            iconColor: _offWhite,
+            collapsedIconColor: _offWhite.withValues(alpha: 0.70),
+            title: Row(
+              children: [
+                _ScanPassPlayerNumber(number: route.targetNumber),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.scanPassRouteTeammate(route.targetNumber),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: _offWhite,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 68),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      l10n.scanPassRouteFinalValue(scoreMax, route.totalScore),
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: _offWhite,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            subtitle: Wrap(
+              spacing: 8,
+              runSpacing: 2,
+              children: [
+                if (selected)
+                  _ScanPassInlineMarker(
+                    icon: Icons.radio_button_checked,
+                    label: l10n.scanPassSelectedRouteLabel,
+                  ),
+                if (comparable)
+                  _ScanPassInlineMarker(
+                    icon: Icons.trending_up,
+                    label: l10n.scanPassComparableRouteLabel,
+                  ),
+              ],
+            ),
+            children: [
+              _ScanPassRouteScoreBreakdown(
+                route: route,
+                isPractice: isPractice,
+                l10n: l10n,
+              ),
+              const SizedBox(height: 12),
+              _ScanPassRouteInsight(
+                metrics: metrics,
+                l10n: l10n,
+              ),
+              const SizedBox(height: 12),
+              for (final metric in metrics) ...[
+                _ScanPassMetricRow(metric: metric, l10n: l10n),
+                if (metric != metrics.last) const SizedBox(height: 10),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScanPassRouteScoreBreakdown extends StatelessWidget {
+  static const Color _line = Color(0xFF3A4652);
+  static const Color _offWhite = Color(0xFFF2EFE7);
+
+  final ScanPassRouteScore route;
+  final bool isPractice;
+  final AppLocalizations l10n;
+
+  const _ScanPassRouteScoreBreakdown({
+    required this.route,
+    required this.isPractice,
     required this.l10n,
   });
 
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: selected
-            ? const Color(0xFF34D5E5).withValues(alpha: 0.16)
-            : Colors.white.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: selected
-              ? const Color(0xFF34D5E5).withValues(alpha: 0.78)
-              : Colors.white.withValues(alpha: 0.10),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: _line)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Column(
+          children: [
+            _ScanPassScoreLine(
+              label: l10n.scanPassDecisionSubtotalLabel,
+              value: l10n.scanPassScoreOutOf(
+                ScanPassScoreWeights.maxDecisionPoints.round(),
+                route.decisionScore.toStringAsFixed(1),
+              ),
+            ),
+            if (isPractice)
+              _ScanPassScoreLine(
+                label: l10n.scanPassPracticeTotalLabel,
+                value: l10n.scanPassScoreOutOf(
+                  ScanPassScoreWeights.maxDecisionPoints.round(),
+                  route.totalScore,
+                ),
+              )
+            else ...[
+              _ScanPassScoreLine(
+                label: l10n.scanPassReactionBonusLabel,
+                value: l10n.scanPassScoreOutOf(
+                  ScanPassScoreWeights.maxReactionBonus.round(),
+                  route.reactionBonus.toStringAsFixed(1),
+                ),
+              ),
+              _ScanPassScoreLine(
+                label: l10n.scanPassFinalScoreLabel,
+                value: l10n.scanPassScoreOutOf(
+                  (ScanPassScoreWeights.maxDecisionPoints +
+                          ScanPassScoreWeights.maxReactionBonus)
+                      .round(),
+                  route.totalScore,
+                ),
+              ),
+            ],
+            const SizedBox(height: 6),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                isPractice
+                    ? l10n.scanPassPracticeNoBonusDetail
+                    : route.decisionScore <
+                            ScanPassScoreWeights.reactionThreshold
+                        ? l10n.scanPassReactionBelowThresholdNote
+                        : l10n.scanPassScoreRoundedNote,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: _offWhite.withValues(alpha: 0.62),
+                      height: 1.22,
+                    ),
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _ScanPassScoreLine extends StatelessWidget {
+  static const Color _offWhite = Color(0xFFF2EFE7);
+
+  final String label;
+  final String value;
+
+  const _ScanPassScoreLine({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: _offWhite.withValues(alpha: 0.72),
+                    height: 1.18,
+                  ),
+            ),
+          ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 96),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Text(
+                value,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: _offWhite,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScanPassRouteInsight extends StatelessWidget {
+  static const Color _line = Color(0xFF3A4652);
+
+  final List<_ScanPassRouteMetricData> metrics;
+  final AppLocalizations l10n;
+
+  const _ScanPassRouteInsight({
+    required this.metrics,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final strongest = metrics.reduce((a, b) => a.raw >= b.raw ? a : b);
+    final weakest = metrics.reduce((a, b) => a.raw <= b.raw ? a : b);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: _line.withValues(alpha: 0.82)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF3D7BFF),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    route.targetNumber.toString(),
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.scanPassRouteTeammate(route.targetNumber),
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                            ),
-                      ),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          _ScanPassRouteBadge(
-                            label: l10n.scanPassRouteScoreValue(
-                              route.totalScore,
-                            ),
-                            emphasized: true,
-                          ),
-                          if (selected)
-                            _ScanPassRouteBadge(
-                              label: l10n.scanPassSelectedRouteLabel,
-                              icon: Icons.radio_button_checked,
-                            ),
-                          if (comparable)
-                            _ScanPassRouteBadge(
-                              label: l10n.scanPassComparableRouteLabel,
-                              icon: Icons.trending_up,
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            _ScanPassInsightLine(
+              label: l10n.scanPassInsightStrengthLabel,
+              text: _metricStrengthText(l10n, strongest.kind),
             ),
             const SizedBox(height: 8),
-            Text(
-              reason,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.78),
-                    height: 1.24,
-                  ),
+            _ScanPassInsightLine(
+              label: l10n.scanPassInsightRiskLabel,
+              text: weakest.raw >= 65
+                  ? l10n.scanPassRouteRiskManaged
+                  : _metricRiskText(l10n, weakest.kind),
+            ),
+            const SizedBox(height: 8),
+            _ScanPassInsightLine(
+              label: l10n.scanPassInsightCueLabel,
+              text: _metricCueText(l10n, weakest.kind),
             ),
           ],
         ),
@@ -1373,55 +1906,376 @@ class _ScanPassRouteCard extends StatelessWidget {
   }
 }
 
-class _ScanPassRouteBadge extends StatelessWidget {
-  final String label;
-  final IconData? icon;
-  final bool emphasized;
+class _ScanPassInsightLine extends StatelessWidget {
+  static const Color _offWhite = Color(0xFFF2EFE7);
+  static const Color _amber = Color(0xFFD6B46C);
 
-  const _ScanPassRouteBadge({
+  final String label;
+  final String text;
+
+  const _ScanPassInsightLine({
     required this.label,
-    this.icon,
-    this.emphasized = false,
+    required this.text,
   });
 
   @override
   Widget build(BuildContext context) {
-    final background = emphasized
-        ? const Color(0xFFFFD54D).withValues(alpha: 0.22)
-        : Colors.white.withValues(alpha: 0.10);
-    final foreground = emphasized
-        ? const Color(0xFFFFE8A0)
-        : Colors.white.withValues(alpha: 0.86);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: foreground.withValues(alpha: 0.32)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(icon, color: foreground, size: 14),
-              const SizedBox(width: 4),
-            ],
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: foreground,
-                    fontWeight: FontWeight.w900,
-                  ),
+    return RichText(
+      text: TextSpan(
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: _offWhite.withValues(alpha: 0.74),
+              height: 1.26,
             ),
-          ],
-        ),
+        children: [
+          TextSpan(
+            text: '$label ',
+            style: const TextStyle(
+              color: _amber,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          TextSpan(text: text),
+        ],
       ),
     );
   }
 }
 
+class _ScanPassMetricRow extends StatelessWidget {
+  static const Color _line = Color(0xFF3A4652);
+  static const Color _offWhite = Color(0xFFF2EFE7);
+  static const Color _amber = Color(0xFFD6B46C);
+
+  final _ScanPassRouteMetricData metric;
+  final AppLocalizations l10n;
+
+  const _ScanPassMetricRow({
+    required this.metric,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final rawText = metric.raw.round().clamp(0, 100).toString();
+    final contributionText = l10n.scanPassMetricContribution(
+      metric.maxPoints.round(),
+      metric.contribution.toStringAsFixed(1),
+    );
+    return Column(
+      key: ValueKey<String>('scan-pass-metric-${metric.kind.name}'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                l10n.scanPassMetricRawValue(metric.label, rawText),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: _offWhite,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 96),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  contributionText,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: _offWhite,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(2),
+          child: LinearProgressIndicator(
+            minHeight: 5,
+            value: (metric.raw / 100).clamp(0.0, 1.0),
+            backgroundColor: _line,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              metric.raw >= 72
+                  ? _amber
+                  : _offWhite.withValues(alpha: metric.raw >= 48 ? 0.58 : 0.38),
+            ),
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          metric.explanation,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: _offWhite.withValues(alpha: 0.66),
+                height: 1.24,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScanPassInlineMarker extends StatelessWidget {
+  static const Color _offWhite = Color(0xFFF2EFE7);
+  static const Color _amber = Color(0xFFD6B46C);
+
+  final IconData icon;
+  final String label;
+
+  const _ScanPassInlineMarker({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: _amber, size: 14),
+        const SizedBox(width: 4),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 126),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: _offWhite.withValues(alpha: 0.78),
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScanPassPlayerNumber extends StatelessWidget {
+  static const Color _blue = Color(0xFF6F8FAF);
+  static const Color _offWhite = Color(0xFFF2EFE7);
+
+  final int number;
+
+  const _ScanPassPlayerNumber({required this.number});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 34,
+      height: 34,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: _blue,
+        shape: BoxShape.circle,
+        border: Border.all(color: _offWhite.withValues(alpha: 0.28)),
+      ),
+      child: Text(
+        number.toString(),
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: _offWhite,
+              fontWeight: FontWeight.w700,
+            ),
+      ),
+    );
+  }
+}
+
+enum _ScanPassRouteMetricKind {
+  lane,
+  arrival,
+  space,
+  progression,
+  connection,
+}
+
+class _ScanPassRouteMetricData {
+  final _ScanPassRouteMetricKind kind;
+  final String label;
+  final double raw;
+  final double contribution;
+  final double maxPoints;
+  final String explanation;
+
+  const _ScanPassRouteMetricData({
+    required this.kind,
+    required this.label,
+    required this.raw,
+    required this.contribution,
+    required this.maxPoints,
+    required this.explanation,
+  });
+}
+
+List<_ScanPassRouteMetricData> _routeMetrics(
+  ScanPassRouteScore route,
+  AppLocalizations l10n,
+) {
+  return [
+    _metricData(
+      kind: _ScanPassRouteMetricKind.lane,
+      label: l10n.scanPassMetricLaneLabel,
+      raw: route.laneSafety,
+      weight: ScanPassScoreWeights.laneSafety,
+      explanation: _metricExplanation(
+        l10n,
+        _ScanPassRouteMetricKind.lane,
+        route.laneSafety,
+      ),
+    ),
+    _metricData(
+      kind: _ScanPassRouteMetricKind.arrival,
+      label: l10n.scanPassMetricArrivalLabel,
+      raw: route.arrivalMargin,
+      weight: ScanPassScoreWeights.arrivalMargin,
+      explanation: _metricExplanation(
+        l10n,
+        _ScanPassRouteMetricKind.arrival,
+        route.arrivalMargin,
+      ),
+    ),
+    _metricData(
+      kind: _ScanPassRouteMetricKind.space,
+      label: l10n.scanPassMetricSpaceLabel,
+      raw: route.receiverSpace,
+      weight: ScanPassScoreWeights.receiverSpace,
+      explanation: _metricExplanation(
+        l10n,
+        _ScanPassRouteMetricKind.space,
+        route.receiverSpace,
+      ),
+    ),
+    _metricData(
+      kind: _ScanPassRouteMetricKind.progression,
+      label: l10n.scanPassMetricProgressionLabel,
+      raw: route.progression,
+      weight: ScanPassScoreWeights.progression,
+      explanation: _metricExplanation(
+        l10n,
+        _ScanPassRouteMetricKind.progression,
+        route.progression,
+      ),
+    ),
+    _metricData(
+      kind: _ScanPassRouteMetricKind.connection,
+      label: l10n.scanPassMetricConnectionLabel,
+      raw: route.simulatedResult,
+      weight: ScanPassScoreWeights.connectionStability,
+      explanation: _metricExplanation(
+        l10n,
+        _ScanPassRouteMetricKind.connection,
+        route.simulatedResult,
+      ),
+    ),
+  ];
+}
+
+_ScanPassRouteMetricData _metricData({
+  required _ScanPassRouteMetricKind kind,
+  required String label,
+  required double raw,
+  required double weight,
+  required String explanation,
+}) {
+  return _ScanPassRouteMetricData(
+    kind: kind,
+    label: label,
+    raw: raw,
+    contribution: raw * weight,
+    maxPoints: 100 * weight,
+    explanation: explanation,
+  );
+}
+
+String _metricExplanation(
+  AppLocalizations l10n,
+  _ScanPassRouteMetricKind kind,
+  double value,
+) {
+  final tier = value >= 72
+      ? 2
+      : value >= 48
+          ? 1
+          : 0;
+  return switch (kind) {
+    _ScanPassRouteMetricKind.lane => switch (tier) {
+        2 => l10n.scanPassMetricLaneHigh,
+        1 => l10n.scanPassMetricLaneMid,
+        _ => l10n.scanPassMetricLaneLow,
+      },
+    _ScanPassRouteMetricKind.arrival => switch (tier) {
+        2 => l10n.scanPassMetricArrivalHigh,
+        1 => l10n.scanPassMetricArrivalMid,
+        _ => l10n.scanPassMetricArrivalLow,
+      },
+    _ScanPassRouteMetricKind.space => switch (tier) {
+        2 => l10n.scanPassMetricSpaceHigh,
+        1 => l10n.scanPassMetricSpaceMid,
+        _ => l10n.scanPassMetricSpaceLow,
+      },
+    _ScanPassRouteMetricKind.progression => switch (tier) {
+        2 => l10n.scanPassMetricProgressionHigh,
+        1 => l10n.scanPassMetricProgressionMid,
+        _ => l10n.scanPassMetricProgressionLow,
+      },
+    _ScanPassRouteMetricKind.connection => switch (tier) {
+        2 => l10n.scanPassMetricConnectionHigh,
+        1 => l10n.scanPassMetricConnectionMid,
+        _ => l10n.scanPassMetricConnectionLow,
+      },
+  };
+}
+
+String _metricStrengthText(
+  AppLocalizations l10n,
+  _ScanPassRouteMetricKind kind,
+) {
+  return switch (kind) {
+    _ScanPassRouteMetricKind.lane => l10n.scanPassStrengthLane,
+    _ScanPassRouteMetricKind.arrival => l10n.scanPassStrengthArrival,
+    _ScanPassRouteMetricKind.space => l10n.scanPassStrengthSpace,
+    _ScanPassRouteMetricKind.progression => l10n.scanPassStrengthProgression,
+    _ScanPassRouteMetricKind.connection => l10n.scanPassStrengthConnection,
+  };
+}
+
+String _metricRiskText(
+  AppLocalizations l10n,
+  _ScanPassRouteMetricKind kind,
+) {
+  return switch (kind) {
+    _ScanPassRouteMetricKind.lane => l10n.scanPassRiskLane,
+    _ScanPassRouteMetricKind.arrival => l10n.scanPassRiskArrival,
+    _ScanPassRouteMetricKind.space => l10n.scanPassRiskSpace,
+    _ScanPassRouteMetricKind.progression => l10n.scanPassRiskProgression,
+    _ScanPassRouteMetricKind.connection => l10n.scanPassRiskConnection,
+  };
+}
+
+String _metricCueText(
+  AppLocalizations l10n,
+  _ScanPassRouteMetricKind kind,
+) {
+  return switch (kind) {
+    _ScanPassRouteMetricKind.lane => l10n.scanPassCueLane,
+    _ScanPassRouteMetricKind.arrival => l10n.scanPassCueArrival,
+    _ScanPassRouteMetricKind.space => l10n.scanPassCueSpace,
+    _ScanPassRouteMetricKind.progression => l10n.scanPassCueProgression,
+    _ScanPassRouteMetricKind.connection => l10n.scanPassCueConnection,
+  };
+}
+
 class _ScanPassField extends StatelessWidget {
+  static const double aspectRatio = 1.58;
+
   final ScanPassRound round;
   final _ScanPassPhase phase;
   final double previewProgress;
@@ -1431,6 +2285,7 @@ class _ScanPassField extends StatelessWidget {
   final AppLocalizations l10n;
 
   const _ScanPassField({
+    super.key,
     required this.round,
     required this.phase,
     required this.previewProgress,
@@ -1446,9 +2301,9 @@ class _ScanPassField extends StatelessWidget {
       builder: (context, constraints) {
         final width = math.min(
           constraints.maxWidth,
-          constraints.maxHeight * 0.68,
+          constraints.maxHeight * aspectRatio,
         );
-        final height = math.min(constraints.maxHeight, width / 0.68);
+        final height = math.min(constraints.maxHeight, width / aspectRatio);
         final size = Size(width, height);
         return Semantics(
           container: true,
@@ -1504,13 +2359,13 @@ class _ScanPassField extends StatelessWidget {
 }
 
 class _ScanPassFieldPainter extends CustomPainter {
-  static const Color _emerald = Color(0xFF087A5F);
-  static const Color _emeraldDark = Color(0xFF05664F);
-  static const Color _cyan = Color(0xFF34D5E5);
-  static const Color _blue = Color(0xFF3D7BFF);
-  static const Color _coral = Color(0xFFFF6B5F);
-  static const Color _yellow = Color(0xFFFFD54D);
-  static const Color _offWhite = Color(0xFFF5F7FA);
+  static const Color _pitch = Color(0xFF31483F);
+  static const Color _pitchDark = Color(0xFF293D36);
+  static const Color _line = Color(0xFFE0D6C0);
+  static const Color _blue = Color(0xFF6F8FAF);
+  static const Color _coral = Color(0xFFC77868);
+  static const Color _amber = Color(0xFFD6B46C);
+  static const Color _offWhite = Color(0xFFF2EFE7);
 
   final ScanPassRound round;
   final _ScanPassPhase phase;
@@ -1530,7 +2385,7 @@ class _ScanPassFieldPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final field = Offset.zero & size;
     final fieldRadius = BorderRadius.circular(8).toRRect(field);
-    canvas.drawRRect(fieldRadius, Paint()..color = _emerald);
+    canvas.drawRRect(fieldRadius, Paint()..color = _pitch);
     _drawStripes(canvas, size);
     _drawFieldLines(canvas, size);
     _drawDefenders(canvas, size);
@@ -1539,7 +2394,7 @@ class _ScanPassFieldPainter extends CustomPainter {
       canvas,
       size,
       round.ballCarrier,
-      fill: _yellow,
+      fill: _amber,
       textColor: const Color(0xFF102135),
       radiusScale: 1.08,
     );
@@ -1556,7 +2411,7 @@ class _ScanPassFieldPainter extends CustomPainter {
   }
 
   void _drawStripes(Canvas canvas, Size size) {
-    final stripePaint = Paint()..color = _emeraldDark.withValues(alpha: 0.18);
+    final stripePaint = Paint()..color = _pitchDark.withValues(alpha: 0.24);
     final stripeHeight = size.height / 8;
     for (var i = 0; i < 8; i += 2) {
       canvas.drawRect(
@@ -1568,9 +2423,9 @@ class _ScanPassFieldPainter extends CustomPainter {
 
   void _drawFieldLines(Canvas canvas, Size size) {
     final linePaint = Paint()
-      ..color = _offWhite.withValues(alpha: 0.42)
+      ..color = _line.withValues(alpha: 0.46)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4;
+      ..strokeWidth = 1.1;
     final margin = size.shortestSide * 0.055;
     final inner = Rect.fromLTWH(
       margin,
@@ -1603,6 +2458,17 @@ class _ScanPassFieldPainter extends CustomPainter {
       ),
       linePaint,
     );
+    final arrowPaint = Paint()
+      ..color = _line.withValues(alpha: 0.46)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round;
+    final arrowY = inner.top + (inner.height * 0.10);
+    final arrowStart = Offset(inner.right - inner.width * 0.22, arrowY);
+    final arrowEnd = Offset(inner.right - inner.width * 0.10, arrowY);
+    canvas.drawLine(arrowStart, arrowEnd, arrowPaint);
+    canvas.drawLine(arrowEnd, arrowEnd + const Offset(-7, -5), arrowPaint);
+    canvas.drawLine(arrowEnd, arrowEnd + const Offset(-7, 5), arrowPaint);
   }
 
   void _drawDefenders(Canvas canvas, Size size) {
@@ -1617,7 +2483,7 @@ class _ScanPassFieldPainter extends CustomPainter {
       _ScanPassPhase.choice => 0.24,
       _ => 0.62,
     };
-    final radius = size.shortestSide * 0.034;
+    final radius = math.max(10.0, size.shortestSide * 0.044);
     for (final defender in round.defenders) {
       final predicted = defender.predictedPosition();
       final position = round.occlusionMode == ScanPassOcclusionMode.prediction
@@ -1627,7 +2493,7 @@ class _ScanPassFieldPainter extends CustomPainter {
           phase == _ScanPassPhase.preview) {
         final trailPaint = Paint()
           ..color = _coral.withValues(alpha: 0.36)
-          ..strokeWidth = 2
+          ..strokeWidth = 1.6
           ..style = PaintingStyle.stroke;
         canvas.drawLine(
           _toOffset(defender.position, size),
@@ -1664,14 +2530,14 @@ class _ScanPassFieldPainter extends CustomPainter {
     final from = _toOffset(round.ballCarrier.position, size);
     final to = _toOffset(target.position, size);
     final linePaint = Paint()
-      ..color = _cyan.withValues(alpha: 0.72)
-      ..strokeWidth = 3
+      ..color = _offWhite.withValues(alpha: 0.72)
+      ..strokeWidth = 2.4
       ..strokeCap = StrokeCap.round;
     canvas.drawLine(from, to, linePaint);
     final ringPaint = Paint()
-      ..color = _cyan.withValues(alpha: 0.32)
+      ..color = _offWhite.withValues(alpha: 0.28)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
+      ..strokeWidth = 2.4;
     canvas.drawCircle(
       to,
       (size.shortestSide * 0.050) + (8 * passProgress),
@@ -1681,7 +2547,7 @@ class _ScanPassFieldPainter extends CustomPainter {
     canvas.drawCircle(
       ballPosition,
       math.max(4, size.shortestSide * 0.013),
-      Paint()..color = _yellow,
+      Paint()..color = _amber,
     );
   }
 
@@ -1695,16 +2561,16 @@ class _ScanPassFieldPainter extends CustomPainter {
     double radiusScale = 1,
   }) {
     final center = _toOffset(player.position, size);
-    final radius = size.shortestSide * 0.040 * radiusScale;
+    final radius = math.max(12.0, size.shortestSide * 0.052) * radiusScale;
     if (selected &&
         (phase == _ScanPassPhase.pass || phase == _ScanPassPhase.feedback)) {
       canvas.drawCircle(
         center,
         radius + 8,
         Paint()
-          ..color = _cyan.withValues(alpha: 0.20)
+          ..color = _offWhite.withValues(alpha: 0.18)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 3,
+          ..strokeWidth = 2.4,
       );
     }
     canvas.drawCircle(
@@ -1720,7 +2586,7 @@ class _ScanPassFieldPainter extends CustomPainter {
         style: TextStyle(
           color: textColor,
           fontSize: radius * 0.86,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w800,
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -1774,6 +2640,70 @@ Offset _toOffset(ScanPassPoint point, Size size) {
   return Offset(point.x * size.width, point.y * size.height);
 }
 
+class _ScanPassResultNotes extends StatelessWidget {
+  static const Color _line = Color(0xFF3A4652);
+  static const Color _offWhite = Color(0xFFF2EFE7);
+  static const Color _amber = Color(0xFFD6B46C);
+
+  final AppLocalizations l10n;
+
+  const _ScanPassResultNotes({required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    final notes = [
+      l10n.scanPassResultAverageScoreNote,
+      l10n.scanPassResultAccuracyNote,
+      l10n.scanPassResultTimeoutNote,
+    ];
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: _line),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.scanPassResultMethodTitle,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: _offWhite,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            for (final note in notes) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 4),
+                    child: Icon(Icons.remove, size: 14, color: _amber),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      note,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: _offWhite.withValues(alpha: 0.70),
+                            height: 1.26,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+              if (note != notes.last) const SizedBox(height: 6),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ScanPassMetricData {
   final String label;
   final String value;
@@ -1782,6 +2712,10 @@ class _ScanPassMetricData {
 }
 
 class _ScanPassMetricGrid extends StatelessWidget {
+  static const Color _surfaceAlt = Color(0xFF202B35);
+  static const Color _line = Color(0xFF3A4652);
+  static const Color _offWhite = Color(0xFFF2EFE7);
+
   final List<_ScanPassMetricData> metrics;
 
   const _ScanPassMetricGrid({required this.metrics});
@@ -1805,9 +2739,9 @@ class _ScanPassMetricGrid extends StatelessWidget {
             final metric = metrics[index];
             return DecoratedBox(
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
+                color: _surfaceAlt,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+                border: Border.all(color: _line),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(10),
@@ -1819,8 +2753,8 @@ class _ScanPassMetricGrid extends StatelessWidget {
                       child: Text(
                         metric.value,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
+                              color: _offWhite,
+                              fontWeight: FontWeight.w700,
                             ),
                       ),
                     ),
@@ -1831,9 +2765,9 @@ class _ScanPassMetricGrid extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.74),
+                            color: _offWhite.withValues(alpha: 0.70),
                             height: 1.05,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                           ),
                     ),
                   ],

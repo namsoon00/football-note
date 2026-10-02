@@ -5228,23 +5228,23 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassTitle => '스캔 패스';
 
   @override
-  String get scanPassHelpAction => '설명 보기';
+  String get scanPassHelpAction => '분석 가이드';
 
   @override
-  String get scanPassIntroTitle => '수비를 보고, 공간을 기억해 패스하세요';
+  String get scanPassIntroTitle => '스캔 패스 분석';
 
   @override
   String get scanPassIntroSubtitle =>
-      '노란색은 내가 조작하는 볼 소유자입니다. 빨간 수비 위치를 보고 공간을 기억한 뒤 파란 동료를 눌러 더 안전하고 쓸모 있는 패스를 고르는 게임이에요.';
+      '패스 길 여유, 수비 도착 타이밍, 받는 선수 압박, 전진 효과를 관찰합니다. 그 뒤 안전성과 이득의 균형이 가장 나은 패스 루트를 선택하세요.';
 
   @override
   String get scanPassSampleFieldSemantics => '스캔 패스 예시 경기장';
 
   @override
-  String get scanPassPracticeAction => '연습해 보기';
+  String get scanPassPracticeAction => '제한 없는 연습';
 
   @override
-  String get scanPassStartChallengeAction => '10라운드 시작';
+  String get scanPassStartChallengeAction => '10라운드 챌린지';
 
   @override
   String scanPassRoundStatus(int round, int total) {
@@ -5258,112 +5258,143 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String scanPassStreakStatus(int streak) {
-    return '연속 $streak';
+    return '상위 점수군 연속 $streak';
   }
 
   @override
   String get scanPassPracticeStatus => '연습';
 
   @override
-  String get scanPassPhaseObserveHeading => '1. 수비 위치 보기';
+  String get scanPassPhaseObserveHeading => '1. 수비 압박 관찰';
 
   @override
-  String get scanPassPhaseChoiceHeading => '2. 파란 동료를 눌러 패스';
+  String get scanPassPhaseChoiceHeading => '2. 패스 루트 선택';
 
   @override
-  String get scanPassPhaseCompareHeading => '3. 선택 비교';
+  String get scanPassPhaseCompareHeading => '3. 루트 분석 확인';
 
   @override
-  String get scanPassPracticeObserveHeading => '연습 1. 수비 위치 보기';
+  String get scanPassPracticeObserveHeading => '연습 1. 형태 관찰';
 
   @override
-  String get scanPassPracticeChoiceHeading => '연습 2. 동료 선택하기';
+  String get scanPassPracticeChoiceHeading => '연습 2. 루트 선택';
 
   @override
-  String get scanPassPracticeCompareHeading => '연습 3. 선택 비교';
+  String get scanPassPracticeCompareHeading => '연습 3. 판단 근거 확인';
 
   @override
   String get scanPassLegendBallCarrier => '나: 볼 소유';
 
   @override
-  String get scanPassLegendTeammate => '파란 동료';
+  String get scanPassLegendTeammate => '동료';
 
   @override
-  String get scanPassLegendDefender => '빨간 수비';
+  String get scanPassLegendDefender => '수비';
 
   @override
-  String get scanPassAttackDirection => '공격 방향';
+  String get scanPassAttackDirection => '공격 방향: 오른쪽';
 
   @override
-  String get scanPassIntroStepObserveTitle => '먼저 보기';
+  String get scanPassIntroStepObserveTitle => '관찰';
 
   @override
-  String get scanPassIntroStepObserveBody => '빨간 수비가 막거나 도착할 수 있는 길을 봅니다.';
+  String get scanPassIntroStepObserveBody =>
+      '패스 길, 수비 도착 경로, 받는 선수 압박, 열린 공간을 읽습니다.';
 
   @override
-  String get scanPassIntroStepChooseTitle => '동료 누르기';
+  String get scanPassIntroStepChooseTitle => '패스 선택';
 
   @override
-  String get scanPassIntroStepChooseBody => '수비가 사라진 뒤 파란 동료 한 명을 선택합니다.';
+  String get scanPassIntroStepChooseBody => '수비가 사라진 뒤 균형이 가장 좋은 동료 루트를 고릅니다.';
 
   @override
-  String get scanPassIntroStepCompareTitle => '루트 비교';
+  String get scanPassIntroStepCompareTitle => '루트 분석';
 
   @override
   String get scanPassIntroStepCompareBody =>
-      '세 동료 모두 점수가 나오며, 비슷하게 좋은 선택도 있습니다.';
+      '세 루트 모두 점수가 나옵니다. 높은 점수도 위험을 포함할 수 있습니다.';
+
+  @override
+  String get scanPassIntroScoringGuideTitle => '점수 산정 가이드';
+
+  @override
+  String get scanPassIntroScoringGuideSummary => '판단 점수는 반응 보너스 전 최대 90점입니다.';
+
+  @override
+  String get scanPassScoringGuideDecision =>
+      '판단 소계: 패스 길 여유 26점, 수비 도착 여유 22점, 받는 선수 공간 16점, 전진 효과 12점, 연결 안정성 14점입니다. 합계는 90점입니다.';
+
+  @override
+  String get scanPassScoringGuideReaction =>
+      '챌린지 반응 보너스는 판단 소계가 50점 이상일 때만 붙습니다. 450ms 이하는 최대 10점이고 선택 제한 시간에 가까워질수록 0점까지 줄어듭니다.';
+
+  @override
+  String get scanPassScoringGuidePractice =>
+      '연습은 제한 시간이 없고 루트 판단 점수만 보여줍니다. 최대 90점이며 기록 저장과 반응 보너스가 없습니다.';
+
+  @override
+  String get scanPassScoringGuideMethod =>
+      '방법: 지표는 정규화된 게임 위치와 속도 기반입니다. 실제 경기 확률, 실제 초, 미터, xG, 성공률이 아닙니다.';
 
   @override
   String get scanPassPreviewInstruction =>
-      '빨간 수비와 파란 동료 위치를 보세요. 공격은 오른쪽으로 진행되고, 곧 수비가 가려집니다.';
+      '수비와 동료를 관찰하세요. 공격은 오른쪽으로 진행되고, 곧 수비 압박이 가려집니다.';
 
   @override
   String get scanPassPredictionPreviewInstruction =>
-      '빨간 수비의 첫 움직임을 보세요. 사라진 뒤 어디로 움직일지 생각하며 선택합니다.';
+      '수비의 첫 움직임을 관찰하세요. 사라진 뒤 압박이 어디에 도착할지 판단합니다.';
 
   @override
   String get scanPassSilhouetteChoiceInstruction =>
-      '희미한 빨간 수비를 기억하면서 파란 동료를 누르세요.';
+      '희미한 수비 위치를 기억하면서 루트를 선택하세요.';
 
   @override
   String get scanPassHiddenChoiceInstruction =>
-      '빨간 수비가 숨겨졌습니다. 더 안전하고 쓸모 있는 길의 파란 동료를 누르세요.';
+      '수비가 숨겨졌습니다. 패스 길 여유, 타이밍, 공간, 전진 효과의 균형이 가장 나은 루트를 선택하세요.';
 
   @override
   String get scanPassPredictionChoiceInstruction =>
-      '빨간 수비가 이동한 위치를 예상하고 믿을 수 있는 파란 동료를 누르세요.';
+      '수비 이동을 예측한 뒤 판단 근거가 있는 루트를 선택하세요.';
 
   @override
   String get scanPassPracticeObserveInstruction =>
-      '천천히 봐도 됩니다. 빨간 수비와 빈 공간이 이해되면 계속하세요.';
+      '천천히 봐도 됩니다. 패스 길, 도착 타이밍, 받는 선수 압박, 전진 가치를 설명할 수 있으면 계속하세요.';
 
   @override
   String get scanPassPracticeChoiceInstruction =>
-      '빨간 수비가 숨겨졌습니다. 연습에는 제한 시간이 없으니 파란 동료 한 명을 누르세요.';
+      '수비가 숨겨졌습니다. 연습에는 제한 시간이 없으니 루트 하나를 선택하세요.';
 
   @override
-  String get scanPassPracticeReadyAction => '준비됐어요';
+  String get scanPassPracticeReadyAction => '준비';
 
   @override
-  String get scanPassPassInFlight => '패스가 출발했습니다. 패스 길과 도착 타이밍을 확인해요.';
+  String get scanPassPassInFlight =>
+      '패스가 출발했습니다. 패스 길, 받는 선수 압박, 도착 여유를 확인하세요.';
 
   @override
   String scanPassFeedbackComparable(int score, Object reason) {
-    return '루트 점수 $score점. 이 선택은 좋은 선택지들과 비슷해요: $reason';
+    return '$score점. 이 루트는 같은 반응 시간 기준 상위 점수군입니다: $reason';
   }
 
   @override
   String scanPassFeedbackBehind(int score, int best, Object reason) {
-    return '루트 점수 $score점. 이번 라운드 최고 선택지는 $best점입니다; $reason';
+    return '$score점. 같은 반응 시간 기준 최고 루트는 $best점입니다; $reason';
   }
 
   @override
   String scanPassTimeoutFeedback(int best) {
-    return '패스하기 전에 선택 시간이 끝났어요. 이번 라운드 최고 선택지는 $best점입니다; 다음에는 보고 바로 결정해요.';
+    return '선택 시간 안에 패스하지 못했습니다. 최고 루트는 $best점이지만 이 라운드는 0점으로 기록되고 반응 시간은 제한 시간으로 계산됩니다.';
   }
 
   @override
-  String get scanPassRouteComparisonTitle => '루트 점수';
+  String get scanPassRouteComparisonTitle => '루트 비교';
+
+  @override
+  String get scanPassRouteComparisonSubtitle =>
+      '세 루트 모두 같은 반응 시간을 적용합니다. 상위 점수군은 최고점과 7점 이내라는 뜻이며, 자동으로 안전하다는 뜻은 아닙니다.';
+
+  @override
+  String get scanPassRouteDetailsTitle => '세부 루트 분석';
 
   @override
   String scanPassRouteTeammate(int number) {
@@ -5379,11 +5410,189 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassSelectedRouteLabel => '내 선택';
 
   @override
-  String get scanPassComparableRouteLabel => '좋은 선택지';
+  String get scanPassComparableRouteLabel => '상위 점수군';
+
+  @override
+  String scanPassRouteFinalValue(Object max, Object score) {
+    return '$score/$max';
+  }
+
+  @override
+  String scanPassScoreOutOf(Object max, Object value) {
+    return '$value/$max';
+  }
+
+  @override
+  String get scanPassDecisionSubtotalLabel => '판단 소계';
+
+  @override
+  String get scanPassReactionBonusLabel => '반응 보너스';
+
+  @override
+  String get scanPassFinalScoreLabel => '최종 점수';
+
+  @override
+  String get scanPassPracticeTotalLabel => '연습 총점';
+
+  @override
+  String get scanPassScoreRoundedNote =>
+      '최종 정수 점수는 판단 소계와 반응 보너스를 더한 뒤 반올림합니다.';
+
+  @override
+  String get scanPassReactionBelowThresholdNote =>
+      '판단 소계가 50점 미만이라 반응 보너스는 0점입니다.';
+
+  @override
+  String get scanPassPracticeNoBonusDetail =>
+      '연습에는 반응 보너스가 적용되지 않아 얻을 수 있는 최대 점수는 90점입니다.';
+
+  @override
+  String get scanPassMetricLaneLabel => '패스 길 여유';
+
+  @override
+  String get scanPassMetricArrivalLabel => '도착 여유';
+
+  @override
+  String get scanPassMetricSpaceLabel => '받는 선수 공간';
+
+  @override
+  String get scanPassMetricProgressionLabel => '전진 효과';
+
+  @override
+  String get scanPassMetricConnectionLabel => '연결 안정성';
+
+  @override
+  String scanPassMetricRawValue(Object label, Object value) {
+    return '$label · $value/100';
+  }
+
+  @override
+  String scanPassMetricContribution(Object max, Object value) {
+    return '$value/$max점';
+  }
+
+  @override
+  String get scanPassMetricLaneHigh => '가장 가까운 수비가 패스 구간 전체에서 충분히 떨어져 있습니다.';
+
+  @override
+  String get scanPassMetricLaneMid => '패스 구간에 사용할 여유는 있지만 가까운 수비가 압박할 수 있습니다.';
+
+  @override
+  String get scanPassMetricLaneLow => '가장 가까운 수비가 패스 구간 전체에 가까워 패스 길 압박이 큽니다.';
+
+  @override
+  String get scanPassMetricArrivalHigh =>
+      '정규화 모델에서 공이 가장 가까운 수비보다 충분히 먼저 도착합니다.';
+
+  @override
+  String get scanPassMetricArrivalMid => '정규화 모델에서 공 도착과 수비 도착이 가깝습니다.';
+
+  @override
+  String get scanPassMetricArrivalLow =>
+      '가장 가까운 수비가 공과 거의 동시에, 또는 더 먼저 받을 지점에 도착할 수 있습니다.';
+
+  @override
+  String get scanPassMetricSpaceHigh => '받는 선수가 수비와 떨어져 있고 터치라인 페널티도 작습니다.';
+
+  @override
+  String get scanPassMetricSpaceMid =>
+      '받는 선수에게 공간은 있지만 압박이나 터치라인 위치가 다음 터치를 좁힙니다.';
+
+  @override
+  String get scanPassMetricSpaceLow =>
+      '받는 선수가 수비 압박이나 터치라인에 가까워 쓸 수 있는 공간이 줄어듭니다.';
+
+  @override
+  String get scanPassMetricProgressionHigh => '오른쪽 전진 폭이 크고 중앙 활용 가치도 유지됩니다.';
+
+  @override
+  String get scanPassMetricProgressionMid =>
+      '적당히 전진하거나 위치 확보를 위해 전진 폭을 일부 포기합니다.';
+
+  @override
+  String get scanPassMetricProgressionLow => '오른쪽 전진이 작거나 덜 중앙적인 구역으로 이동합니다.';
+
+  @override
+  String get scanPassMetricConnectionHigh =>
+      '패스 길, 도착 여유, 공간이 함께 좋아 압박 페널티가 작게 반영된 파생 지표입니다.';
+
+  @override
+  String get scanPassMetricConnectionMid =>
+      '압박 요소 하나가 복합 점수를 낮춰 연결 안정성이 엇갈립니다.';
+
+  @override
+  String get scanPassMetricConnectionLow =>
+      '압박 페널티 뒤 연결 안정성이 낮습니다. 실제 성공 확률은 아닙니다.';
+
+  @override
+  String get scanPassInsightStrengthLabel => '강점';
+
+  @override
+  String get scanPassInsightRiskLabel => '위험';
+
+  @override
+  String get scanPassInsightCueLabel => '읽을 단서';
+
+  @override
+  String get scanPassStrengthLane => '가장 큰 장점은 패스 길이 수비와 떨어져 있다는 점입니다.';
+
+  @override
+  String get scanPassStrengthArrival => '가장 큰 장점은 공이 수비 압박보다 먼저 도착한다는 점입니다.';
+
+  @override
+  String get scanPassStrengthSpace => '이 선택은 받는 선수의 첫 터치 환경이 가장 좋습니다.';
+
+  @override
+  String get scanPassStrengthProgression => '이 선택은 공격을 오른쪽으로 가장 효과적으로 전진시킵니다.';
+
+  @override
+  String get scanPassStrengthConnection => '패스 길, 타이밍, 공간을 합친 안정성이 가장 큰 장점입니다.';
+
+  @override
+  String get scanPassRouteRiskManaged =>
+      '크게 노출된 단일 지표는 없지만, 전진 이득에 비해 충분한 선택인지 비교하세요.';
+
+  @override
+  String get scanPassRiskLane => '수비가 패스 구간을 다툴 수 있을 만큼 가깝습니다.';
+
+  @override
+  String get scanPassRiskArrival => '모델상 수비 도착이 공 도착과 가깝습니다.';
+
+  @override
+  String get scanPassRiskSpace => '패스 뒤 받는 선수가 바로 압박받을 수 있습니다.';
+
+  @override
+  String get scanPassRiskProgression => '공 소유는 지키지만 공격 전진 효과는 제한적입니다.';
+
+  @override
+  String get scanPassRiskConnection => '복합 압박이 연결 안정성 지표를 낮춥니다.';
+
+  @override
+  String get scanPassCueLane => '가장 가까운 수비가 패스 길 안으로 발을 뻗을 수 있는지 보세요.';
+
+  @override
+  String get scanPassCueArrival => '수비가 받는 선수에게 가는 경로와 공의 경로를 비교하세요.';
+
+  @override
+  String get scanPassCueSpace => '받는 선수의 첫 터치 구역과 터치라인 거리를 확인하세요.';
+
+  @override
+  String get scanPassCueProgression => '공이 오른쪽의 쓸 수 있는 중앙 통로로 이동하는지 판단하세요.';
+
+  @override
+  String get scanPassCueConnection => '패스 길, 도착 여유, 공간이 함께 맞을 때 안정적인 루트로 보세요.';
+
+  @override
+  String get scanPassMethodologyNote =>
+      '방법: 정규화된 위치와 속도 기반의 게임 지표이며 실제 경기 확률이 아닙니다.';
+
+  @override
+  String get scanPassReactionSameTimeNote =>
+      '반응 보너스가 가능한 경우에도 이번 라운드의 모든 루트에 같은 반응 시간이 적용됩니다.';
 
   @override
   String get scanPassPracticeScoreNote =>
-      '연습은 루트 점수만 비교하며 기록 저장이나 빠른 선택 보너스가 없어요.';
+      '연습은 루트 판단만 비교합니다. 보너스 전 최대 90점이며 기록 저장과 반응 보너스가 없습니다.';
 
   @override
   String get scanPassRetryPracticeAction => '연습 다시 하기';
@@ -5427,28 +5636,43 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassPlayAgainAction => '10라운드 다시 시작';
 
   @override
-  String get scanPassReasonClearLane => '패스 길이 압박에서 잘 벗어났어요.';
+  String get scanPassResultMethodTitle => '숫자 읽는 법';
 
   @override
-  String get scanPassReasonTimedRun => '수비가 좁히기 전에 공이 먼저 도착했어요.';
+  String get scanPassResultAverageScoreNote =>
+      '평균 루트 점수는 각 라운드에 기록된 최종 점수의 평균입니다. 시간 초과는 0점으로 기록됩니다.';
 
   @override
-  String get scanPassReasonOpenSpace => '받는 선수가 첫 터치 후 쓸 공간을 확보했어요.';
+  String get scanPassResultAccuracyNote =>
+      '선택 점수율은 선택한 점수를 그 라운드 최고 루트 점수로 나눈 값이며, 라운드 평균으로 계산합니다.';
 
   @override
-  String get scanPassReasonForwardThreat => '공격이 더 위협적인 구역으로 전진했어요.';
+  String get scanPassResultTimeoutNote =>
+      '평균 반응에는 시간 초과가 선택 제한 시간으로 포함되므로 놓친 라운드는 반응 평균을 늦춥니다.';
 
   @override
-  String get scanPassReasonPressuredLane => '패스 길에 압박이 있어 위험이 있었습니다.';
+  String get scanPassReasonClearLane => '패스 길 여유가 주요 강점입니다.';
 
   @override
-  String get scanPassReasonLateArrival => '수비가 공과 거의 같은 시간에 도착할 수 있었습니다.';
+  String get scanPassReasonTimedRun => '도착 여유가 주요 강점입니다.';
 
   @override
-  String get scanPassReasonTightReceiver => '패스 후 받는 선수가 붐비는 공간에 놓였습니다.';
+  String get scanPassReasonOpenSpace => '받는 선수 공간이 주요 강점입니다.';
 
   @override
-  String get scanPassReasonLowProgression => '안전하지만 공격 전진 효과는 크지 않았어요.';
+  String get scanPassReasonForwardThreat => '전진 효과가 주요 강점입니다.';
+
+  @override
+  String get scanPassReasonPressuredLane => '패스 길 압박이 주요 위험입니다.';
+
+  @override
+  String get scanPassReasonLateArrival => '수비 도착 타이밍이 주요 위험입니다.';
+
+  @override
+  String get scanPassReasonTightReceiver => '받는 선수 압박이 주요 위험입니다.';
+
+  @override
+  String get scanPassReasonLowProgression => '전진 효과가 제한적입니다.';
 
   @override
   String scanPassTargetSemantics(int number) {
@@ -5457,7 +5681,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassFieldSemantics =>
-      '축구 경기장입니다. 노란색은 나, 파란색은 동료, 빨간색은 수비이며 공격은 오른쪽으로 진행됩니다.';
+      '축구 경기장입니다. 앰버색은 볼 소유자, 파란색은 동료, 코랄색은 수비이며 공격은 오른쪽으로 진행됩니다.';
 
   @override
   String scanPassSecondsValue(Object seconds) {
