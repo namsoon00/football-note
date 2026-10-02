@@ -5231,11 +5231,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassHelpAction => '분석 가이드';
 
   @override
-  String get scanPassIntroTitle => '스캔 패스 분석';
+  String get scanPassIntroTitle => '4v3 스캔 패스';
 
   @override
   String get scanPassIntroSubtitle =>
-      '패스 길 여유, 수비 도착 타이밍, 받는 선수 압박, 전진 효과를 관찰합니다. 그 뒤 안전성과 이득의 균형이 가장 나은 패스 루트를 선택하세요.';
+      '6번 미드필더가 되어 받기 전에 주변을 확인하고, 첫 터치와 다음 패스 또는 움직임을 선택하세요. 화면 속 판단을 연습하는 게임입니다.';
 
   @override
   String get scanPassSampleFieldSemantics => '스캔 패스 예시 경기장';
@@ -5265,13 +5265,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassPracticeStatus => '연습';
 
   @override
-  String get scanPassPhaseObserveHeading => '1. 수비 압박 관찰';
+  String get scanPassPhaseObserveHeading => '1. 받기 전 관찰';
 
   @override
   String get scanPassPhaseChoiceHeading => '2. 패스 루트 선택';
 
   @override
-  String get scanPassPhaseCompareHeading => '3. 루트 분석 확인';
+  String get scanPassPhaseCompareHeading => '4. 판단 복기';
 
   @override
   String get scanPassPracticeObserveHeading => '연습 1. 형태 관찰';
@@ -5280,10 +5280,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassPracticeChoiceHeading => '연습 2. 루트 선택';
 
   @override
-  String get scanPassPracticeCompareHeading => '연습 3. 판단 근거 확인';
+  String get scanPassPracticeCompareHeading => '연습 4. 판단 복기';
 
   @override
-  String get scanPassLegendBallCarrier => '나: 볼 소유';
+  String get scanPassLegendBallCarrier => '나: 6번';
 
   @override
   String get scanPassLegendTeammate => '동료';
@@ -5298,43 +5298,44 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassIntroStepObserveTitle => '관찰';
 
   @override
-  String get scanPassIntroStepObserveBody =>
-      '패스 길, 수비 도착 경로, 받는 선수 압박, 열린 공간을 읽습니다.';
+  String get scanPassIntroStepObserveBody => '스캔 버튼으로 6번 뒤쪽 압박의 기억 위치를 갱신합니다.';
 
   @override
   String get scanPassIntroStepChooseTitle => '패스 선택';
 
   @override
-  String get scanPassIntroStepChooseBody => '수비가 사라진 뒤 균형이 가장 좋은 동료 루트를 고릅니다.';
+  String get scanPassIntroStepChooseBody =>
+      '첫 터치 뒤 4번, 8번, 9번으로 연결하거나 움직이는 길이 바뀔 때 잠깐 보류합니다.';
 
   @override
   String get scanPassIntroStepCompareTitle => '루트 분석';
 
   @override
   String get scanPassIntroStepCompareBody =>
-      '세 루트 모두 점수가 나옵니다. 높은 점수도 위험을 포함할 수 있습니다.';
+      '같은 시작 상태와 비슷한 타이밍의 강한 대안을 내 선택과 비교합니다.';
 
   @override
   String get scanPassIntroScoringGuideTitle => '점수 산정 가이드';
 
   @override
-  String get scanPassIntroScoringGuideSummary => '판단 점수는 반응 보너스 전 최대 90점입니다.';
+  String get scanPassIntroScoringGuideSummary =>
+      '네 가지 구성 요소가 실제 합산되어 100점 만점이 됩니다.';
 
   @override
   String get scanPassScoringGuideDecision =>
-      '판단 소계: 패스 길 여유 26점, 수비 도착 여유 22점, 받는 선수 공간 16점, 전진 효과 12점, 연결 안정성 14점입니다. 합계는 90점입니다.';
+      '점수: 컨트롤 30점, 압박 탈출 22점, 이어가기 24점, 상황 적합도 24점입니다. 각 구성 점수를 반올림한 뒤 더합니다.';
 
   @override
   String get scanPassScoringGuideReaction =>
-      '챌린지 반응 보너스는 판단 소계가 50점 이상일 때만 붙습니다. 450ms 이하는 최대 10점이고 선택 제한 시간에 가까워질수록 0점까지 줄어듭니다.';
+      '판단 시간은 수비와 동료가 계속 움직이는 게임 상태를 바꿉니다. 보편적인 빠른 클릭 보너스는 없습니다.';
 
   @override
   String get scanPassScoringGuidePractice =>
-      '연습은 제한 시간이 없고 루트 판단 점수만 보여줍니다. 최대 90점이며 기록 저장과 반응 보너스가 없습니다.';
+      '연습은 기록에 저장되지 않고 반복할 수 있습니다. 10라운드 챌린지는 마지막 복기 뒤 한 번 저장됩니다.';
 
   @override
   String get scanPassScoringGuideMethod =>
-      '방법: 지표는 정규화된 게임 위치와 속도 기반입니다. 실제 경기 확률, 실제 초, 미터, xG, 성공률이 아닙니다.';
+      '점수는 경기 상황을 단순화한 게임 기준입니다. 실제 경기력, 머리·시선 스캔 능력이나 패스 성공률을 측정하지 않습니다.';
 
   @override
   String get scanPassPreviewInstruction =>
@@ -5358,7 +5359,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassPracticeObserveInstruction =>
-      '천천히 봐도 됩니다. 패스 길, 도착 타이밍, 받는 선수 압박, 전진 가치를 설명할 수 있으면 계속하세요.';
+      '천천히 봐도 됩니다. 현재 뒤쪽 상황을 보고 싶으면 스캔하고, 받을 준비가 되면 계속하세요.';
 
   @override
   String get scanPassPracticeChoiceInstruction =>
@@ -5584,7 +5585,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassMethodologyNote =>
-      '방법: 정규화된 위치와 속도 기반의 게임 지표이며 실제 경기 확률이 아닙니다.';
+      '점수와 예상 결과는 게임 속 판단을 비교하는 기준입니다. 실제 경기력이나 패스 성공률을 뜻하지 않습니다.';
 
   @override
   String get scanPassReactionSameTimeNote =>
@@ -5607,8 +5608,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassResultTitle => '스캔 패스 결과';
 
   @override
-  String scanPassResultSubtitle(int score, int accuracy, Object response) {
-    return '평균 루트 $score점, 선택 점수율 $accuracy%, 평균 반응 $response.';
+  String scanPassResultSubtitle(int score, int accuracy, int timeouts) {
+    return '평균 점수 $score점, 선택 점수율 $accuracy%, 미완료 라운드 $timeouts.';
   }
 
   @override
@@ -5618,7 +5619,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassDecisionAccuracy => '선택 점수율';
 
   @override
-  String get scanPassAverageResponse => '평균 반응';
+  String get scanPassAverageResponse => '평균 판단 시간';
 
   @override
   String get scanPassBestAverageRouteScore => '최고 평균 루트';
@@ -5640,15 +5641,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassResultAverageScoreNote =>
-      '평균 루트 점수는 각 라운드에 기록된 최종 점수의 평균입니다. 시간 초과는 0점으로 기록됩니다.';
+      '평균 점수는 기록된 라운드 점수의 평균입니다. 시간 초과는 0점입니다.';
 
   @override
   String get scanPassResultAccuracyNote =>
-      '선택 점수율은 선택한 점수를 그 라운드 최고 루트 점수로 나눈 값이며, 라운드 평균으로 계산합니다.';
+      '선택 점수율은 내 점수를 같은 조건에서 가장 높은 경로 점수와 비교한 라운드별 비율의 평균입니다.';
 
   @override
   String get scanPassResultTimeoutNote =>
-      '평균 반응에는 시간 초과가 선택 제한 시간으로 포함되므로 놓친 라운드는 반응 평균을 늦춥니다.';
+      '미완료 라운드는 첫 터치 또는 다음 행동 시간 초과입니다. 연습은 기록에 쓰지 않습니다.';
 
   @override
   String get scanPassReasonClearLane => '패스 길 여유가 주요 강점입니다.';
@@ -5681,7 +5682,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassFieldSemantics =>
-      '축구 경기장입니다. 앰버색은 볼 소유자, 파란색은 동료, 코랄색은 수비이며 공격은 오른쪽으로 진행됩니다.';
+      '축구 경기장입니다. 노란색 6번은 조종하는 선수, 파란색은 동료, 붉은색은 수비이며 공격은 오른쪽으로 진행됩니다.';
 
   @override
   String scanPassSecondsValue(Object seconds) {
@@ -5692,6 +5693,347 @@ class AppLocalizationsKo extends AppLocalizations {
   String scanPassPercentValue(int percent) {
     return '$percent%';
   }
+
+  @override
+  String get scanPassPhaseFirstTouchHeading => '2. 첫 터치 선택';
+
+  @override
+  String get scanPassPhaseNextActionHeading => '3. 다음 행동 선택';
+
+  @override
+  String get scanPassPhaseReviewHeading => '4. 판단 복기';
+
+  @override
+  String get scanPassPracticeFirstTouchHeading => '연습 2. 첫 터치 선택';
+
+  @override
+  String get scanPassPracticeNextActionHeading => '연습 3. 다음 행동 선택';
+
+  @override
+  String get scanPassPracticeReviewHeading => '연습 4. 판단 복기';
+
+  @override
+  String get scanPassStageObserve => '관찰';
+
+  @override
+  String get scanPassStageFirstTouch => '첫 터치';
+
+  @override
+  String get scanPassStageNextAction => '다음 행동';
+
+  @override
+  String get scanPassStageReview => '복기';
+
+  @override
+  String get scanPassIntroStepTouchTitle => '터치와 이어가기';
+
+  @override
+  String get scanPassIntroStepTouchBody =>
+      '터치 방향에 따라 몸 방향, 공을 지킬 여유, 다음에 가능한 행동이 바뀝니다.';
+
+  @override
+  String get scanPassScenarioContextTitle => '경기 상황';
+
+  @override
+  String get scanPassFamilyRearPress => '6번 등 뒤 압박';
+
+  @override
+  String get scanPassFamilyRetreatingPressure => '물러나는 압박';
+
+  @override
+  String get scanPassFamilyMarkedSupport => '막힌 지원 옵션';
+
+  @override
+  String get scanPassFamilyClosingForwardLane => '닫히는 전방 길';
+
+  @override
+  String get scanPassFamilyReturnReceive => '리턴 패스 뒤 다시 받기';
+
+  @override
+  String get scanPassRegionCentralMidfield => '중앙 미드필드';
+
+  @override
+  String get scanPassRegionLeftHalfSpace => '왼쪽 하프스페이스';
+
+  @override
+  String get scanPassRegionRightHalfSpace => '오른쪽 하프스페이스';
+
+  @override
+  String get scanPassRegionDefensiveThird => '수비 진영';
+
+  @override
+  String get scanPassRegionAttackingHalf => '공격 진영';
+
+  @override
+  String get scanPassObjectiveProtectPossession => '소유 지키기';
+
+  @override
+  String get scanPassObjectiveChaseGoal => '득점 추격';
+
+  @override
+  String scanPassMatchClock(Object minute, Object score) {
+    return '$minute\' · $score';
+  }
+
+  @override
+  String get scanPassObserveInstruction =>
+      '공이 4번에서 6번으로 이동 중입니다. 갱신된 뒤쪽 압박을 보고 싶으면 스캔하세요. 챌린지는 공이 도착하면 자동으로 진행됩니다.';
+
+  @override
+  String get scanPassFirstTouchInstruction =>
+      '수비와 빈 공간을 보고 첫 터치 방향 또는 4번 리턴을 선택하세요.';
+
+  @override
+  String get scanPassNextPassInstruction =>
+      '이제 패스를 선택하세요. 수비와 동료가 계속 움직이므로 잠깐 기다리기가 도움이 될 수도, 위험할 수도 있습니다.';
+
+  @override
+  String get scanPassNextMoveInstruction =>
+      '공은 4번에게 돌아갔습니다. 6번이 다시 받을 각도를 만들거나 중앙 포켓에 머무르세요.';
+
+  @override
+  String get scanPassReviewInstruction =>
+      '선택한 경로를 다시 보고, 같은 시작 장면에서 계산된 강한 대안과 비교하세요.';
+
+  @override
+  String get scanPassTimeoutFirstTouch =>
+      '제한 시간 안에 첫 터치를 고르지 못했습니다. 이 라운드는 0점으로 기록되고 복기로 이동합니다.';
+
+  @override
+  String get scanPassTimeoutNextAction =>
+      '제한 시간 안에 다음 행동을 고르지 못했습니다. 이 라운드는 0점으로 기록되고 복기로 이동합니다.';
+
+  @override
+  String get scanPassNoScanStatus => '등 뒤 압박을 아직 관찰하지 않았습니다.';
+
+  @override
+  String scanPassLastScanStatus(Object seconds) {
+    return '$seconds초에 확인한 위치입니다. 흐린 수비 표시는 당시 위치를 뜻합니다.';
+  }
+
+  @override
+  String get scanPassScanAction => '스캔';
+
+  @override
+  String get scanPassTouchUpperTitle => '위쪽 터치';
+
+  @override
+  String get scanPassTouchUpperSubtitle => '6번을 위쪽 채널로 이동합니다.';
+
+  @override
+  String get scanPassTouchUpperShort => '위쪽 터치';
+
+  @override
+  String get scanPassTouchLowerTitle => '아래쪽 터치';
+
+  @override
+  String get scanPassTouchLowerSubtitle => '6번을 아래쪽 채널로 이동합니다.';
+
+  @override
+  String get scanPassTouchLowerShort => '아래쪽 터치';
+
+  @override
+  String get scanPassTouchTurnTitle => '전방으로 돌기';
+
+  @override
+  String get scanPassTouchTurnSubtitle => '더 노출되지만 9번 방향으로 몸을 엽니다.';
+
+  @override
+  String get scanPassTouchTurnShort => '전방 턴';
+
+  @override
+  String get scanPassTouchReturnTitle => '4번에게 리턴';
+
+  @override
+  String get scanPassTouchReturnSubtitle => '원터치로 돌려주고 다시 움직입니다.';
+
+  @override
+  String get scanPassTouchReturnShort => '4번 리턴';
+
+  @override
+  String get scanPassPass4Title => '4번에게 패스';
+
+  @override
+  String get scanPassPass4Subtitle => '센터백을 통해 재구성합니다.';
+
+  @override
+  String get scanPassPass4Short => '4번 패스';
+
+  @override
+  String get scanPassPass8Title => '8번에게 패스';
+
+  @override
+  String get scanPassPass8Subtitle => '가까운 지원 선수와 연결합니다.';
+
+  @override
+  String get scanPassPass8Short => '8번 패스';
+
+  @override
+  String get scanPassPass9Title => '9번에게 패스';
+
+  @override
+  String get scanPassPass9Subtitle => '전방 길을 시도합니다.';
+
+  @override
+  String get scanPassPass9Short => '9번 패스';
+
+  @override
+  String get scanPassHold8Title => '기다린 뒤 8번';
+
+  @override
+  String get scanPassHold8Subtitle => '잠깐 기다린 뒤 지원 패스를 합니다.';
+
+  @override
+  String get scanPassHold8Short => '보류 뒤 8번';
+
+  @override
+  String get scanPassSupportUpperTitle => '위쪽 지원';
+
+  @override
+  String get scanPassSupportUpperSubtitle => '압박 옆으로 돌아 다시 받습니다.';
+
+  @override
+  String get scanPassSupportUpperShort => '위쪽 지원';
+
+  @override
+  String get scanPassSupportForwardTitle => '전방 지원';
+
+  @override
+  String get scanPassSupportForwardSubtitle => '압박 앞쪽으로 움직여 리턴 길을 만듭니다.';
+
+  @override
+  String get scanPassSupportForwardShort => '전방 지원';
+
+  @override
+  String get scanPassHoldPocketTitle => '포켓 유지';
+
+  @override
+  String get scanPassHoldPocketSubtitle => '중앙에서 리턴 패스를 기다립니다.';
+
+  @override
+  String get scanPassHoldPocketShort => '포켓 유지';
+
+  @override
+  String get scanPassReviewMineAction => '내 경로';
+
+  @override
+  String get scanPassReviewAlternativeAction => '대안';
+
+  @override
+  String get scanPassReviewMineTitle => '선택한 경로';
+
+  @override
+  String get scanPassReviewAlternativeTitle => '강한 대안';
+
+  @override
+  String get scanPassReviewTimeoutTitle => '시간 초과 복기';
+
+  @override
+  String scanPassReviewComparable(Object plan, int score, Object outcome) {
+    return '$plan: $score/100, $outcome. 비슷한 타이밍 기준 상위 그룹입니다.';
+  }
+
+  @override
+  String scanPassReviewBehind(
+      Object plan, int score, int best, Object outcome) {
+    return '$plan: $score/100, $outcome. 같은 조건에서 다른 경로의 최고 점수는 $best/100입니다.';
+  }
+
+  @override
+  String scanPassTimeoutReviewSummary(Object plan, int score, Object outcome) {
+    return '$plan 복기: $score/100, $outcome. 시간 초과 뒤 가능한 플랜을 보여줍니다.';
+  }
+
+  @override
+  String scanPassPlanName(Object first, Object next) {
+    return '$first -> $next';
+  }
+
+  @override
+  String get scanPassScoreBreakdownTitle => '점수 구성';
+
+  @override
+  String scanPassComponentValue(int earned, int max) {
+    return '$earned/$max';
+  }
+
+  @override
+  String get scanPassComponentControl => '컨트롤';
+
+  @override
+  String get scanPassComponentPressureEscape => '압박 탈출';
+
+  @override
+  String get scanPassComponentContinuation => '이어가기';
+
+  @override
+  String get scanPassComponentContextFit => '상황 적합도';
+
+  @override
+  String get scanPassPressureHandling => '압박 처리';
+
+  @override
+  String get scanPassContinuation => '이어가기';
+
+  @override
+  String get scanPassIncompleteRounds => '미완료 라운드';
+
+  @override
+  String get scanPassReasonPanelTitle => '판단 단서';
+
+  @override
+  String get scanPassReasonControlledTouch => '첫 터치가 다음 행동에 필요한 컨트롤을 남겼습니다.';
+
+  @override
+  String get scanPassReasonExposedTouch => '첫 터치에서 공이나 몸 방향이 압박에 노출됐습니다.';
+
+  @override
+  String get scanPassReasonPressureEscaped => '터치 또는 리턴이 가장 가까운 압박에서 벗어났습니다.';
+
+  @override
+  String get scanPassReasonPressureStayed => '압박이 다음 행동에 영향을 줄 만큼 가까웠습니다.';
+
+  @override
+  String get scanPassReasonReceiverAvailable => '받는 선수가 다음 터치를 할 공간을 확보했습니다.';
+
+  @override
+  String get scanPassReasonSupportAngleCreated =>
+      '리턴 뒤 움직임이 6번의 새 수신 각도를 만들었습니다.';
+
+  @override
+  String get scanPassReasonSupportAngleWeak => '리턴 뒤 6번이 새 각도를 충분히 만들지 못했습니다.';
+
+  @override
+  String get scanPassReasonHoldOpenedLane =>
+      '이 움직이는 장면에서는 잠깐 기다린 것이 지원 길을 열었습니다.';
+
+  @override
+  String get scanPassReasonHoldInvitedPressure => '잠깐 기다리는 동안 압박이 지원 길을 닫았습니다.';
+
+  @override
+  String get scanPassReasonObjectiveProtected =>
+      '경기 목표가 소유 유지와 빼앗김 비용을 더 크게 봤습니다.';
+
+  @override
+  String get scanPassReasonObjectiveProgressed => '경기 목표가 유효한 전진을 더 크게 평가했습니다.';
+
+  @override
+  String get scanPassOutcomeKept => '소유 유지';
+
+  @override
+  String get scanPassOutcomeProgressed => '공격 전진';
+
+  @override
+  String get scanPassOutcomeRecycled => '소유 재구성';
+
+  @override
+  String get scanPassOutcomeContested => '볼 경합';
+
+  @override
+  String get scanPassOutcomeIntercepted => '패스 차단';
+
+  @override
+  String get scanPassOutcomeTimeout => '시간 초과';
 
   @override
   String get gameGuideTitle => '게임 가이드';
@@ -17392,4 +17734,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String runningCoachHistoryTrendSummary(int best, int delta) {
     return '확정 최고 $best점 · 최근 변화 $delta점';
   }
+
+  @override
+  String calendarHolidayLabel(String name) {
+    return '공휴일 · $name';
+  }
+
+  @override
+  String get calendarNoRecordsForDay => '이 날짜의 기록이 없습니다.';
 }
