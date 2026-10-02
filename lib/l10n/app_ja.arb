@@ -3189,6 +3189,12 @@
     }
   },
   "scanPassTitle": "スキャンパス",
+  "scanPassHelpAction": "説明を見る",
+  "scanPassIntroTitle": "守備を見て、スペースを覚えてパス",
+  "scanPassIntroSubtitle": "黄色はあなたが操作するボール保持者です。赤い守備者の位置と空いたスペースを覚え、青い味方をタップして安全で役立つパスを選びます。",
+  "scanPassSampleFieldSemantics": "スキャンパスのサンプルピッチ",
+  "scanPassPracticeAction": "練習する",
+  "scanPassStartChallengeAction": "10ラウンド開始",
   "scanPassRoundStatus": "ラウンド {round} / {total}",
   "@scanPassRoundStatus": {
     "placeholders": {
@@ -3200,7 +3206,7 @@
       }
     }
   },
-  "scanPassTimeStatus": "{seconds}秒",
+  "scanPassTimeStatus": "選択 {seconds}秒",
   "@scanPassTimeStatus": {
     "placeholders": {
       "seconds": {}
@@ -3214,13 +3220,33 @@
       }
     }
   },
-  "scanPassPreviewInstruction": "ボール保持者、3人の味方、2人の守備者を素早く確認しましょう。まもなく守備情報が隠れます。",
-  "scanPassPredictionPreviewInstruction": "守備者の最初の一歩を見ましょう。隠れた後の位置予測が重要です。",
-  "scanPassSilhouetteChoiceInstruction": "薄い守備シルエットを記憶に残しながら味方を選びましょう。",
-  "scanPassHiddenChoiceInstruction": "守備者は隠れています。それでも信頼できるルートを選びましょう。",
-  "scanPassPredictionChoiceInstruction": "守備者が動いた位置を予測して、見えている中で最善のルートを選びましょう。",
+  "scanPassPracticeStatus": "練習",
+  "scanPassPhaseObserveHeading": "1. 守備位置を見る",
+  "scanPassPhaseChoiceHeading": "2. 青い味方をタップしてパス",
+  "scanPassPhaseCompareHeading": "3. 選択を比べる",
+  "scanPassPracticeObserveHeading": "練習 1. 守備を見る",
+  "scanPassPracticeChoiceHeading": "練習 2. 味方を選ぶ",
+  "scanPassPracticeCompareHeading": "練習 3. 選択を比べる",
+  "scanPassLegendBallCarrier": "自分: ボール保持",
+  "scanPassLegendTeammate": "青い味方",
+  "scanPassLegendDefender": "赤い守備",
+  "scanPassAttackDirection": "攻撃方向",
+  "scanPassIntroStepObserveTitle": "まず見る",
+  "scanPassIntroStepObserveBody": "赤い守備者がふさげる道や到達できる場所を読みます。",
+  "scanPassIntroStepChooseTitle": "味方をタップ",
+  "scanPassIntroStepChooseBody": "守備が消えた後、青い味方を1人選びます。",
+  "scanPassIntroStepCompareTitle": "ルート比較",
+  "scanPassIntroStepCompareBody": "3人全員にスコアが出るので、近い選択も役立ちます。",
+  "scanPassPreviewInstruction": "赤い守備者と青い味方の位置を見ましょう。攻撃は右へ進み、まもなく守備が隠れます。",
+  "scanPassPredictionPreviewInstruction": "赤い守備者の最初の動きを見ましょう。消えた後の移動先を考えて選びます。",
+  "scanPassSilhouetteChoiceInstruction": "薄い赤い守備を覚えながら、青い味方をタップしましょう。",
+  "scanPassHiddenChoiceInstruction": "赤い守備は隠れています。より安全で役立つレーンの青い味方をタップしましょう。",
+  "scanPassPredictionChoiceInstruction": "赤い守備者が動いた位置を予測し、信頼できる青い味方をタップしましょう。",
+  "scanPassPracticeObserveInstruction": "ゆっくり見て大丈夫です。赤い守備と空いたスペースが分かったら進みましょう。",
+  "scanPassPracticeChoiceInstruction": "赤い守備は隠れています。練習に制限時間はないので、青い味方を1人タップしましょう。",
+  "scanPassPracticeReadyAction": "準備できた",
   "scanPassPassInFlight": "パスが出ました。レーンと到着タイミングを読みましょう。",
-  "scanPassFeedbackComparable": "ルートスコア {score}。この選択は上位グループです: {reason}",
+  "scanPassFeedbackComparable": "ルートスコア {score}。この選択は良い選択肢に近いです: {reason}",
   "@scanPassFeedbackComparable": {
     "placeholders": {
       "score": {
@@ -3229,7 +3255,7 @@
       "reason": {}
     }
   },
-  "scanPassFeedbackBehind": "ルートスコア {score}。このラウンドの最高ルートは {best}; {reason}",
+  "scanPassFeedbackBehind": "ルートスコア {score}。このラウンドの最高選択肢は {best}; {reason}",
   "@scanPassFeedbackBehind": {
     "placeholders": {
       "score": {
@@ -3241,7 +3267,7 @@
       "reason": {}
     }
   },
-  "scanPassTimeoutFeedback": "パスを選ぶ前に時間が終わりました。このラウンドの最高ルートは {best}; 次は早めにスキャンして決めましょう。",
+  "scanPassTimeoutFeedback": "パスを選ぶ前に時間が終わりました。このラウンドの最高選択肢は {best}; 次は見てすぐ決めましょう。",
   "@scanPassTimeoutFeedback": {
     "placeholders": {
       "best": {
@@ -3249,10 +3275,31 @@
       }
     }
   },
+  "scanPassRouteComparisonTitle": "ルートスコア",
+  "scanPassRouteTeammate": "{number}番の味方",
+  "@scanPassRouteTeammate": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassRouteScoreValue": "{score}点",
+  "@scanPassRouteScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassSelectedRouteLabel": "自分の選択",
+  "scanPassComparableRouteLabel": "良い選択肢",
+  "scanPassPracticeScoreNote": "練習ではルートスコアだけを比較し、履歴保存やスピードボーナスはありません。",
+  "scanPassRetryPracticeAction": "練習をやり直す",
   "scanPassNextRoundAction": "次のラウンド",
   "scanPassSeeResultAction": "結果を見る",
   "scanPassResultTitle": "スキャンパス結果",
-  "scanPassResultSubtitle": "平均ルート {score}、判断精度 {accuracy}%、平均反応 {response}。",
+  "scanPassResultSubtitle": "平均ルート {score}、選択スコア率 {accuracy}%、平均反応 {response}。",
   "@scanPassResultSubtitle": {
     "placeholders": {
       "score": {
@@ -3265,13 +3312,13 @@
     }
   },
   "scanPassAverageRouteScore": "平均ルートスコア",
-  "scanPassDecisionAccuracy": "判断精度",
+  "scanPassDecisionAccuracy": "選択スコア率",
   "scanPassAverageResponse": "平均反応",
   "scanPassBestAverageRouteScore": "最高平均ルート",
-  "scanPassBestAccuracy": "最高精度",
+  "scanPassBestAccuracy": "最高選択スコア率",
   "scanPassBestResponse": "最高反応",
   "scanPassNoHistoryValue": "-",
-  "scanPassPlayAgainAction": "もう一度",
+  "scanPassPlayAgainAction": "10ラウンドをもう一度",
   "scanPassReasonClearLane": "パスレーンがプレッシャーから離れていました。",
   "scanPassReasonTimedRun": "守備者が寄せる前にボールが届きました。",
   "scanPassReasonOpenSpace": "受け手がファーストタッチ後に使えるスペースを持っていました。",
@@ -3288,6 +3335,7 @@
       }
     }
   },
+  "scanPassFieldSemantics": "サッカーピッチです。黄色は自分、青は味方、赤は守備者で、攻撃は右へ進みます。",
   "scanPassSecondsValue": "{seconds}秒",
   "@scanPassSecondsValue": {
     "placeholders": {

@@ -9,6 +9,9 @@ import '../../application/scan_pass_history_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../domain/scan_pass/scan_pass_game.dart';
 import '../theme/app_motion.dart';
+import '../widgets/app_bar_action_button.dart';
+
+enum _ScanPassFlow { intro, practice, challenge }
 
 enum _ScanPassPhase { preview, choice, pass, feedback, result }
 
@@ -38,11 +41,51 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
   static const Color _surface = Color(0xFF0D2740);
   static const Color _cyan = Color(0xFF34D5E5);
   static const int _roundCount = ScanPassRoundGenerator.roundCount;
+  static const ScanPassRound _practiceRound = ScanPassRound(
+    roundNumber: 0,
+    ballCarrier: ScanPassPlayer(
+      id: 0,
+      number: 8,
+      position: ScanPassPoint(0.20, 0.58),
+      facingRadians: -0.6,
+    ),
+    teammates: <ScanPassPlayer>[
+      ScanPassPlayer(
+        id: 1,
+        number: 9,
+        position: ScanPassPoint(0.56, 0.34),
+        facingRadians: -0.6,
+      ),
+      ScanPassPlayer(
+        id: 2,
+        number: 10,
+        position: ScanPassPoint(0.77, 0.59),
+        facingRadians: 0,
+      ),
+      ScanPassPlayer(
+        id: 3,
+        number: 11,
+        position: ScanPassPoint(0.56, 0.79),
+        facingRadians: 0.6,
+      ),
+    ],
+    defenders: <ScanPassDefender>[
+      ScanPassDefender(
+        id: 1,
+        position: ScanPassPoint(0.45, 0.47),
+      ),
+      ScanPassDefender(
+        id: 2,
+        position: ScanPassPoint(0.63, 0.63),
+      ),
+    ],
+    occlusionMode: ScanPassOcclusionMode.hidden,
+  );
 
   final ScanPassScorer _scorer = const ScanPassScorer();
   late final AnimationController _previewController;
   late final AnimationController _passController;
-  late List<ScanPassRound> _rounds;
+  List<ScanPassRound> _rounds = const <ScanPassRound>[];
   Timer? _phaseTimer;
   Timer? _choiceTicker;
   ScanPassChoiceClock? _choiceClock;
@@ -51,13 +94,19 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
   ScanPassRoundEvaluation? _evaluation;
   ScanPassRouteScore? _selectedScore;
   Duration _remainingChoice = ScanPassScorer.defaultChoiceWindow;
+  _ScanPassFlow _flow = _ScanPassFlow.intro;
   _ScanPassPhase _phase = _ScanPassPhase.preview;
   final List<ScanPassRoundResult> _results = <ScanPassRoundResult>[];
   int _roundIndex = 0;
   int _phaseToken = 0;
   bool _savingHistory = false;
 
-  ScanPassRound get _round => _rounds[_roundIndex];
+  bool get _isPractice => _flow == _ScanPassFlow.practice;
+
+  bool get _isChallenge => _flow == _ScanPassFlow.challenge;
+
+  ScanPassRound get _round =>
+      _isPractice ? _practiceRound : _rounds[_roundIndex];
 
   int get _currentRoundNumber => _roundIndex + 1;
 
@@ -82,8 +131,8 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
       vsync: this,
       duration: widget.passAnimationDuration,
     );
+    _previewController.value = 1;
     _personalSummary = ScanPassHistoryService(widget.optionRepository).load();
-    _startSession();
   }
 
   @override
@@ -104,6 +153,10 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
       return;
     }
     if (state != AppLifecycleState.resumed || !mounted) return;
+    if (!_isChallenge) {
+      if (_phase == _ScanPassPhase.pass) _showFeedback();
+      return;
+    }
     switch (_phase) {
       case _ScanPassPhase.preview:
         _startPreview();
@@ -120,6 +173,62 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
     }
   }
 
+  void _showIntro() {
+    _cancelTimers();
+    _previewController
+      ..stop()
+      ..value = 1;
+    _passController
+      ..stop()
+      ..value = 0;
+    setState(() {
+      _flow = _ScanPassFlow.intro;
+      _phase = _ScanPassPhase.preview;
+      _rounds = const <ScanPassRound>[];
+      _results.clear();
+      _roundIndex = 0;
+      _selectedScore = null;
+      _evaluation = null;
+      _remainingChoice = widget.choiceDuration;
+      _savingHistory = false;
+    });
+  }
+
+  void _startPractice() {
+    _cancelTimers();
+    _previewController
+      ..stop()
+      ..value = 1;
+    _passController
+      ..stop()
+      ..value = 0;
+    setState(() {
+      _flow = _ScanPassFlow.practice;
+      _phase = _ScanPassPhase.preview;
+      _rounds = const <ScanPassRound>[];
+      _results.clear();
+      _roundIndex = 0;
+      _selectedScore = null;
+      _evaluation = null;
+      _remainingChoice = widget.choiceDuration;
+      _savingHistory = false;
+    });
+  }
+
+  void _beginPracticeChoice() {
+    if (!_isPractice || _phase != _ScanPassPhase.preview) return;
+    _cancelTimers();
+    _passController
+      ..stop()
+      ..value = 0;
+    setState(() {
+      _phase = _ScanPassPhase.choice;
+      _selectedScore = null;
+      _evaluation = null;
+      _remainingChoice = widget.choiceDuration;
+    });
+  }
+
   void _startSession() {
     final seed = widget.seed ?? DateTime.now().millisecondsSinceEpoch;
     _rounds = ScanPassRoundGenerator(seed: seed).generateSession();
@@ -128,6 +237,7 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
     _selectedScore = null;
     _evaluation = null;
     _savingHistory = false;
+    _flow = _ScanPassFlow.challenge;
     _startPreview();
   }
 
@@ -160,6 +270,7 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
   }
 
   void _beginChoice() {
+    if (!_isChallenge) return;
     _cancelTimers(incrementToken: false);
     _phaseToken += 1;
     final token = _phaseToken;
@@ -185,7 +296,10 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
   }
 
   void _handleTimeout(int token) {
-    if (!mounted || token != _phaseToken || _phase != _ScanPassPhase.choice) {
+    if (!mounted ||
+        !_isChallenge ||
+        token != _phaseToken ||
+        _phase != _ScanPassPhase.choice) {
       return;
     }
     _choiceTicker?.cancel();
@@ -214,6 +328,11 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
 
   void _selectTarget(ScanPassPlayer target) {
     if (_phase != _ScanPassPhase.choice || _selectedScore != null) return;
+    if (_isPractice) {
+      _selectPracticeTarget(target);
+      return;
+    }
+    if (!_isChallenge) return;
     final clock = _choiceClock;
     if (clock == null) return;
     _phaseToken += 1;
@@ -254,6 +373,34 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
       });
   }
 
+  void _selectPracticeTarget(ScanPassPlayer target) {
+    _phaseToken += 1;
+    final evaluation = _scorer.evaluateRound(
+      _round,
+      responseTime: widget.choiceDuration,
+      choiceWindow: widget.choiceDuration,
+    );
+    final selected = evaluation.routeForTarget(target.id);
+    HapticFeedback.selectionClick();
+    setState(() {
+      _evaluation = evaluation;
+      _selectedScore = selected;
+      _phase = _ScanPassPhase.pass;
+    });
+    if (AppMotion.reduceMotion(context) ||
+        widget.passAnimationDuration == Duration.zero) {
+      _passController.value = 1;
+      _showFeedback();
+      return;
+    }
+    _passController
+      ..duration = widget.passAnimationDuration
+      ..forward(from: 0).whenComplete(() {
+        if (!mounted || _phase != _ScanPassPhase.pass) return;
+        _showFeedback();
+      });
+  }
+
   void _showFeedback() {
     _cancelTimers(incrementToken: false);
     if (!mounted) return;
@@ -261,7 +408,7 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
   }
 
   void _advance() {
-    if (_phase != _ScanPassPhase.feedback) return;
+    if (!_isChallenge || _phase != _ScanPassPhase.feedback) return;
     if (_results.length >= _roundCount) {
       _showResult();
       return;
@@ -293,6 +440,7 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
     _phaseTimer = null;
     _choiceTicker?.cancel();
     _choiceTicker = null;
+    _choiceClock = null;
   }
 
   @override
@@ -305,12 +453,118 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
         backgroundColor: _navy,
         foregroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
+        actions: [
+          if (_flow != _ScanPassFlow.intro)
+            AppBarActionButton(
+              key: const ValueKey<String>('scan-pass-help-button'),
+              tooltip: l10n.scanPassHelpAction,
+              onPressed: _showIntro,
+              icon: const Icon(Icons.help_outline),
+            ),
+        ],
       ),
       body: SafeArea(
-        child: _phase == _ScanPassPhase.result
-            ? _buildResult(l10n)
-            : _buildRound(l10n),
+        child: switch (_flow) {
+          _ScanPassFlow.intro => _buildIntro(l10n),
+          _ when _phase == _ScanPassPhase.result => _buildResult(l10n),
+          _ => _buildRound(l10n),
+        },
       ),
+    );
+  }
+
+  Widget _buildIntro(AppLocalizations l10n) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact =
+            constraints.maxWidth < 480 || constraints.maxHeight < 640;
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(18, compact ? 14 : 24, 18, 24),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    l10n.scanPassIntroTitle,
+                    key: const ValueKey<String>('scan-pass-intro-title'),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.scanPassIntroSubtitle,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.82),
+                          height: 1.28,
+                        ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: compact ? 220 : 300,
+                    child: Semantics(
+                      label: l10n.scanPassSampleFieldSemantics,
+                      image: true,
+                      child: _ScanPassField(
+                        round: _practiceRound,
+                        phase: _ScanPassPhase.preview,
+                        previewProgress: 1,
+                        passProgress: 0,
+                        selectedTargetId: null,
+                        onTargetTap: null,
+                        l10n: l10n,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _ScanPassLegend(l10n: l10n),
+                  const SizedBox(height: 16),
+                  _ScanPassIntroSteps(l10n: l10n),
+                  const SizedBox(height: 20),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      FilledButton.icon(
+                        key: const ValueKey<String>(
+                          'scan-pass-practice-button',
+                        ),
+                        onPressed: _startPractice,
+                        icon: const Icon(Icons.sports_soccer_outlined),
+                        label: Text(l10n.scanPassPracticeAction),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(180, 50),
+                        ),
+                      ),
+                      OutlinedButton.icon(
+                        key: const ValueKey<String>(
+                          'scan-pass-start-challenge-button',
+                        ),
+                        onPressed: _startSession,
+                        icon: const Icon(Icons.flag_outlined),
+                        label: Text(l10n.scanPassStartChallengeAction),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.54),
+                          ),
+                          minimumSize: const Size(180, 50),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -321,7 +575,7 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
         return Column(
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(16, compact ? 8 : 12, 16, 8),
+              padding: EdgeInsets.fromLTRB(16, compact ? 8 : 12, 16, 6),
               child: _buildStatus(l10n),
             ),
             Expanded(
@@ -352,7 +606,9 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
             ),
             ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: math.max(150, constraints.maxHeight * 0.34),
+                maxHeight: _phase == _ScanPassPhase.feedback
+                    ? math.max(220, constraints.maxHeight * 0.46)
+                    : math.max(150, constraints.maxHeight * 0.30),
               ),
               child: SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(16, 8, 16, compact ? 10 : 16),
@@ -367,26 +623,71 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
 
   Widget _buildStatus(AppLocalizations l10n) {
     final seconds = (_remainingChoice.inMilliseconds / 1000).clamp(0.0, 99.0);
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      alignment: WrapAlignment.center,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _ScanPassStatusPill(
-          icon: Icons.flag_outlined,
-          label: l10n.scanPassRoundStatus(_currentRoundNumber, _roundCount),
+        Text(
+          _phaseHeading(l10n),
+          key: const ValueKey<String>('scan-pass-phase-heading'),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+              ),
         ),
-        _ScanPassStatusPill(
-          icon: Icons.timer_outlined,
-          label: l10n.scanPassTimeStatus(seconds.toStringAsFixed(1)),
-          emphasized: _phase == _ScanPassPhase.choice,
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          alignment: WrapAlignment.center,
+          children: [
+            if (_isChallenge) ...[
+              _ScanPassStatusPill(
+                icon: Icons.flag_outlined,
+                label: l10n.scanPassRoundStatus(
+                  _currentRoundNumber,
+                  _roundCount,
+                ),
+              ),
+              if (_phase == _ScanPassPhase.choice)
+                _ScanPassStatusPill(
+                  icon: Icons.timer_outlined,
+                  label: l10n.scanPassTimeStatus(seconds.toStringAsFixed(1)),
+                  emphasized: true,
+                ),
+              _ScanPassStatusPill(
+                icon: Icons.bolt_outlined,
+                label: l10n.scanPassStreakStatus(_currentTopGroupStreak),
+              ),
+            ] else
+              _ScanPassStatusPill(
+                icon: Icons.school_outlined,
+                label: l10n.scanPassPracticeStatus,
+              ),
+          ],
         ),
-        _ScanPassStatusPill(
-          icon: Icons.bolt_outlined,
-          label: l10n.scanPassStreakStatus(_currentTopGroupStreak),
+        const SizedBox(height: 8),
+        _ScanPassLegend(
+          l10n: l10n,
+          compact: true,
         ),
       ],
     );
+  }
+
+  String _phaseHeading(AppLocalizations l10n) {
+    return switch (_phase) {
+      _ScanPassPhase.preview => _isPractice
+          ? l10n.scanPassPracticeObserveHeading
+          : l10n.scanPassPhaseObserveHeading,
+      _ScanPassPhase.choice => _isPractice
+          ? l10n.scanPassPracticeChoiceHeading
+          : l10n.scanPassPhaseChoiceHeading,
+      _ScanPassPhase.pass || _ScanPassPhase.feedback => _isPractice
+          ? l10n.scanPassPracticeCompareHeading
+          : l10n.scanPassPhaseCompareHeading,
+      _ScanPassPhase.result => '',
+    };
   }
 
   Widget _buildBottomPanel(AppLocalizations l10n) {
@@ -413,6 +714,62 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
                   ),
             ),
             if (_phase == _ScanPassPhase.feedback) ...[
+              const SizedBox(height: 12),
+              _buildRouteComparison(l10n),
+            ],
+            if (_isPractice && _phase == _ScanPassPhase.preview) ...[
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton.icon(
+                  key: const ValueKey<String>('scan-pass-ready-button'),
+                  onPressed: _beginPracticeChoice,
+                  icon: const Icon(Icons.visibility_outlined),
+                  label: Text(l10n.scanPassPracticeReadyAction),
+                ),
+              ),
+            ],
+            if (_isPractice && _phase == _ScanPassPhase.feedback) ...[
+              const SizedBox(height: 12),
+              Text(
+                l10n.scanPassPracticeScoreNote,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.72),
+                      height: 1.25,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                alignment: WrapAlignment.end,
+                children: [
+                  OutlinedButton.icon(
+                    key: const ValueKey<String>(
+                      'scan-pass-retry-practice-button',
+                    ),
+                    onPressed: _startPractice,
+                    icon: const Icon(Icons.replay),
+                    label: Text(l10n.scanPassRetryPracticeAction),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.46),
+                      ),
+                    ),
+                  ),
+                  FilledButton.icon(
+                    key: const ValueKey<String>(
+                      'scan-pass-practice-start-challenge-button',
+                    ),
+                    onPressed: _startSession,
+                    icon: const Icon(Icons.flag_outlined),
+                    label: Text(l10n.scanPassStartChallengeAction),
+                  ),
+                ],
+              ),
+            ],
+            if (_isChallenge && _phase == _ScanPassPhase.feedback) ...[
               const SizedBox(height: 12),
               Align(
                 alignment: Alignment.centerRight,
@@ -441,11 +798,17 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
   String _feedbackText(AppLocalizations l10n) {
     switch (_phase) {
       case _ScanPassPhase.preview:
+        if (_isPractice) {
+          return l10n.scanPassPracticeObserveInstruction;
+        }
         if (_round.occlusionMode == ScanPassOcclusionMode.prediction) {
           return l10n.scanPassPredictionPreviewInstruction;
         }
         return l10n.scanPassPreviewInstruction;
       case _ScanPassPhase.choice:
+        if (_isPractice) {
+          return l10n.scanPassPracticeChoiceInstruction;
+        }
         return switch (_round.occlusionMode) {
           ScanPassOcclusionMode.silhouettes =>
             l10n.scanPassSilhouetteChoiceInstruction,
@@ -476,6 +839,36 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
       case _ScanPassPhase.result:
         return '';
     }
+  }
+
+  Widget _buildRouteComparison(AppLocalizations l10n) {
+    final evaluation = _evaluation;
+    if (evaluation == null) return const SizedBox.shrink();
+    return Column(
+      key: const ValueKey<String>('scan-pass-route-comparison'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.scanPassRouteComparisonTitle,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+              ),
+        ),
+        const SizedBox(height: 8),
+        for (final route in evaluation.routes) ...[
+          _ScanPassRouteCard(
+            key: ValueKey<String>('scan-pass-route-${route.targetId}'),
+            route: route,
+            reason: _reasonText(l10n, route.feedbackType),
+            selected: route.targetId == _selectedScore?.targetId,
+            comparable: evaluation.isComparableToBest(route),
+            l10n: l10n,
+          ),
+          const SizedBox(height: 8),
+        ],
+      ],
+    );
   }
 
   String _reasonText(
@@ -623,6 +1016,206 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
   }
 }
 
+class _ScanPassLegend extends StatelessWidget {
+  static const Color _blue = Color(0xFF3D7BFF);
+  static const Color _coral = Color(0xFFFF6B5F);
+  static const Color _yellow = Color(0xFFFFD54D);
+
+  final AppLocalizations l10n;
+  final bool compact;
+
+  const _ScanPassLegend({
+    required this.l10n,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: Colors.white.withValues(alpha: 0.86),
+          fontWeight: FontWeight.w800,
+        );
+    return Wrap(
+      spacing: compact ? 8 : 12,
+      runSpacing: 8,
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        _ScanPassLegendItem(
+          color: _yellow,
+          label: l10n.scanPassLegendBallCarrier,
+          textStyle: style,
+        ),
+        _ScanPassLegendItem(
+          color: _blue,
+          label: l10n.scanPassLegendTeammate,
+          textStyle: style,
+        ),
+        _ScanPassLegendItem(
+          color: _coral,
+          label: l10n.scanPassLegendDefender,
+          textStyle: style,
+        ),
+        Semantics(
+          label: l10n.scanPassAttackDirection,
+          child: ExcludeSemantics(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.arrow_forward,
+                  size: 18,
+                  color: Colors.white.withValues(alpha: 0.86),
+                ),
+                const SizedBox(width: 5),
+                Text(l10n.scanPassAttackDirection, style: style),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScanPassLegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+  final TextStyle? textStyle;
+
+  const _ScanPassLegendItem({
+    required this.color,
+    required this.label,
+    required this.textStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.42)),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: textStyle),
+      ],
+    );
+  }
+}
+
+class _ScanPassIntroSteps extends StatelessWidget {
+  final AppLocalizations l10n;
+
+  const _ScanPassIntroSteps({required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = [
+      _ScanPassIntroStep(
+        icon: Icons.visibility_outlined,
+        title: l10n.scanPassIntroStepObserveTitle,
+        body: l10n.scanPassIntroStepObserveBody,
+      ),
+      _ScanPassIntroStep(
+        icon: Icons.touch_app_outlined,
+        title: l10n.scanPassIntroStepChooseTitle,
+        body: l10n.scanPassIntroStepChooseBody,
+      ),
+      _ScanPassIntroStep(
+        icon: Icons.compare_arrows_outlined,
+        title: l10n.scanPassIntroStepCompareTitle,
+        body: l10n.scanPassIntroStepCompareBody,
+      ),
+    ];
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 640;
+            if (wide) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (var i = 0; i < steps.length; i += 1) ...[
+                    Expanded(child: steps[i]),
+                    if (i != steps.length - 1) const SizedBox(width: 12),
+                  ],
+                ],
+              );
+            }
+            return Column(
+              children: [
+                for (var i = 0; i < steps.length; i += 1) ...[
+                  steps[i],
+                  if (i != steps.length - 1) const SizedBox(height: 12),
+                ],
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _ScanPassIntroStep extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+
+  const _ScanPassIntroStep({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: const Color(0xFF34D5E5), size: 24),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                body,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.76),
+                      height: 1.25,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ScanPassStatusPill extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -669,6 +1262,163 @@ class _ScanPassStatusPill extends StatelessWidget {
   }
 }
 
+class _ScanPassRouteCard extends StatelessWidget {
+  final ScanPassRouteScore route;
+  final String reason;
+  final bool selected;
+  final bool comparable;
+  final AppLocalizations l10n;
+
+  const _ScanPassRouteCard({
+    super.key,
+    required this.route,
+    required this.reason,
+    required this.selected,
+    required this.comparable,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: selected
+            ? const Color(0xFF34D5E5).withValues(alpha: 0.16)
+            : Colors.white.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: selected
+              ? const Color(0xFF34D5E5).withValues(alpha: 0.78)
+              : Colors.white.withValues(alpha: 0.10),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF3D7BFF),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    route.targetNumber.toString(),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.scanPassRouteTeammate(route.targetNumber),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                            ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _ScanPassRouteBadge(
+                            label: l10n.scanPassRouteScoreValue(
+                              route.totalScore,
+                            ),
+                            emphasized: true,
+                          ),
+                          if (selected)
+                            _ScanPassRouteBadge(
+                              label: l10n.scanPassSelectedRouteLabel,
+                              icon: Icons.radio_button_checked,
+                            ),
+                          if (comparable)
+                            _ScanPassRouteBadge(
+                              label: l10n.scanPassComparableRouteLabel,
+                              icon: Icons.trending_up,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              reason,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.78),
+                    height: 1.24,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScanPassRouteBadge extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final bool emphasized;
+
+  const _ScanPassRouteBadge({
+    required this.label,
+    this.icon,
+    this.emphasized = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final background = emphasized
+        ? const Color(0xFFFFD54D).withValues(alpha: 0.22)
+        : Colors.white.withValues(alpha: 0.10);
+    final foreground = emphasized
+        ? const Color(0xFFFFE8A0)
+        : Colors.white.withValues(alpha: 0.86);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: foreground.withValues(alpha: 0.32)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: foreground, size: 14),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: foreground,
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ScanPassField extends StatelessWidget {
   final ScanPassRound round;
   final _ScanPassPhase phase;
@@ -698,25 +1448,31 @@ class _ScanPassField extends StatelessWidget {
         );
         final height = math.min(constraints.maxHeight, width / 0.68);
         final size = Size(width, height);
-        return SizedBox(
-          width: width,
-          height: height,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: _ScanPassFieldPainter(
-                    round: round,
-                    phase: phase,
-                    previewProgress: previewProgress,
-                    passProgress: passProgress,
-                    selectedTargetId: selectedTargetId,
+        return Semantics(
+          container: true,
+          explicitChildNodes: true,
+          label: l10n.scanPassFieldSemantics,
+          child: SizedBox(
+            width: width,
+            height: height,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _ScanPassFieldPainter(
+                      round: round,
+                      phase: phase,
+                      previewProgress: previewProgress,
+                      passProgress: passProgress,
+                      selectedTargetId: selectedTargetId,
+                    ),
                   ),
                 ),
-              ),
-              for (final teammate in round.teammates)
-                _targetHotspot(teammate, size),
-            ],
+                if (onTargetTap != null)
+                  for (final teammate in round.teammates)
+                    _targetHotspot(teammate, size),
+              ],
+            ),
           ),
         );
       },

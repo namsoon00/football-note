@@ -5228,13 +5228,32 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassTitle => '스캔 패스';
 
   @override
+  String get scanPassHelpAction => '설명 보기';
+
+  @override
+  String get scanPassIntroTitle => '수비를 보고, 공간을 기억해 패스하세요';
+
+  @override
+  String get scanPassIntroSubtitle =>
+      '노란색은 내가 조작하는 볼 소유자입니다. 빨간 수비 위치를 보고 공간을 기억한 뒤 파란 동료를 눌러 더 안전하고 쓸모 있는 패스를 고르는 게임이에요.';
+
+  @override
+  String get scanPassSampleFieldSemantics => '스캔 패스 예시 경기장';
+
+  @override
+  String get scanPassPracticeAction => '연습해 보기';
+
+  @override
+  String get scanPassStartChallengeAction => '10라운드 시작';
+
+  @override
   String scanPassRoundStatus(int round, int total) {
     return '$total라운드 중 $round';
   }
 
   @override
   String scanPassTimeStatus(Object seconds) {
-    return '$seconds초';
+    return '선택 $seconds초';
   }
 
   @override
@@ -5243,42 +5262,131 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get scanPassPracticeStatus => '연습';
+
+  @override
+  String get scanPassPhaseObserveHeading => '1. 수비 위치 보기';
+
+  @override
+  String get scanPassPhaseChoiceHeading => '2. 파란 동료를 눌러 패스';
+
+  @override
+  String get scanPassPhaseCompareHeading => '3. 선택 비교';
+
+  @override
+  String get scanPassPracticeObserveHeading => '연습 1. 수비 위치 보기';
+
+  @override
+  String get scanPassPracticeChoiceHeading => '연습 2. 동료 선택하기';
+
+  @override
+  String get scanPassPracticeCompareHeading => '연습 3. 선택 비교';
+
+  @override
+  String get scanPassLegendBallCarrier => '나: 볼 소유';
+
+  @override
+  String get scanPassLegendTeammate => '파란 동료';
+
+  @override
+  String get scanPassLegendDefender => '빨간 수비';
+
+  @override
+  String get scanPassAttackDirection => '공격 방향';
+
+  @override
+  String get scanPassIntroStepObserveTitle => '먼저 보기';
+
+  @override
+  String get scanPassIntroStepObserveBody => '빨간 수비가 막거나 도착할 수 있는 길을 봅니다.';
+
+  @override
+  String get scanPassIntroStepChooseTitle => '동료 누르기';
+
+  @override
+  String get scanPassIntroStepChooseBody => '수비가 사라진 뒤 파란 동료 한 명을 선택합니다.';
+
+  @override
+  String get scanPassIntroStepCompareTitle => '루트 비교';
+
+  @override
+  String get scanPassIntroStepCompareBody =>
+      '세 동료 모두 점수가 나오며, 비슷하게 좋은 선택도 있습니다.';
+
+  @override
   String get scanPassPreviewInstruction =>
-      '볼 소유자, 세 명의 동료, 두 명의 수비수를 빠르게 훑어보세요. 곧 수비 정보가 가려집니다.';
+      '빨간 수비와 파란 동료 위치를 보세요. 공격은 오른쪽으로 진행되고, 곧 수비가 가려집니다.';
 
   @override
   String get scanPassPredictionPreviewInstruction =>
-      '수비수의 첫 움직임을 보세요. 화면이 가려진 뒤의 위치를 예측해야 합니다.';
+      '빨간 수비의 첫 움직임을 보세요. 사라진 뒤 어디로 움직일지 생각하며 선택합니다.';
 
   @override
   String get scanPassSilhouetteChoiceInstruction =>
-      '희미한 수비 실루엣을 기억하면서 동료를 고르세요.';
+      '희미한 빨간 수비를 기억하면서 파란 동료를 누르세요.';
 
   @override
   String get scanPassHiddenChoiceInstruction =>
-      '이제 수비수가 보이지 않습니다. 그래도 믿을 수 있는 루트를 고르세요.';
+      '빨간 수비가 숨겨졌습니다. 더 안전하고 쓸모 있는 길의 파란 동료를 누르세요.';
 
   @override
   String get scanPassPredictionChoiceInstruction =>
-      '수비수가 이동한 위치를 예측하고 가장 좋은 루트를 고르세요.';
+      '빨간 수비가 이동한 위치를 예상하고 믿을 수 있는 파란 동료를 누르세요.';
+
+  @override
+  String get scanPassPracticeObserveInstruction =>
+      '천천히 봐도 됩니다. 빨간 수비와 빈 공간이 이해되면 계속하세요.';
+
+  @override
+  String get scanPassPracticeChoiceInstruction =>
+      '빨간 수비가 숨겨졌습니다. 연습에는 제한 시간이 없으니 파란 동료 한 명을 누르세요.';
+
+  @override
+  String get scanPassPracticeReadyAction => '준비됐어요';
 
   @override
   String get scanPassPassInFlight => '패스가 출발했습니다. 패스 길과 도착 타이밍을 확인해요.';
 
   @override
   String scanPassFeedbackComparable(int score, Object reason) {
-    return '루트 점수 $score. 이 선택은 상위 그룹입니다: $reason';
+    return '루트 점수 $score점. 이 선택은 좋은 선택지들과 비슷해요: $reason';
   }
 
   @override
   String scanPassFeedbackBehind(int score, int best, Object reason) {
-    return '루트 점수 $score. 이번 라운드 최고 루트는 $best점입니다; $reason';
+    return '루트 점수 $score점. 이번 라운드 최고 선택지는 $best점입니다; $reason';
   }
 
   @override
   String scanPassTimeoutFeedback(int best) {
-    return '패스하기 전에 선택 시간이 끝났어요. 이번 라운드 최고 루트는 $best점입니다; 다음에는 더 일찍 스캔하고 결정해요.';
+    return '패스하기 전에 선택 시간이 끝났어요. 이번 라운드 최고 선택지는 $best점입니다; 다음에는 보고 바로 결정해요.';
   }
+
+  @override
+  String get scanPassRouteComparisonTitle => '루트 점수';
+
+  @override
+  String scanPassRouteTeammate(int number) {
+    return '$number번 동료';
+  }
+
+  @override
+  String scanPassRouteScoreValue(int score) {
+    return '$score점';
+  }
+
+  @override
+  String get scanPassSelectedRouteLabel => '내 선택';
+
+  @override
+  String get scanPassComparableRouteLabel => '좋은 선택지';
+
+  @override
+  String get scanPassPracticeScoreNote =>
+      '연습은 루트 점수만 비교하며 기록 저장이나 빠른 선택 보너스가 없어요.';
+
+  @override
+  String get scanPassRetryPracticeAction => '연습 다시 하기';
 
   @override
   String get scanPassNextRoundAction => '다음 라운드';
@@ -5291,14 +5399,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String scanPassResultSubtitle(int score, int accuracy, Object response) {
-    return '평균 루트 $score점, 판단 정확도 $accuracy%, 평균 반응 $response.';
+    return '평균 루트 $score점, 선택 점수율 $accuracy%, 평균 반응 $response.';
   }
 
   @override
   String get scanPassAverageRouteScore => '평균 루트 점수';
 
   @override
-  String get scanPassDecisionAccuracy => '판단 정확도';
+  String get scanPassDecisionAccuracy => '선택 점수율';
 
   @override
   String get scanPassAverageResponse => '평균 반응';
@@ -5307,7 +5415,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassBestAverageRouteScore => '최고 평균 루트';
 
   @override
-  String get scanPassBestAccuracy => '최고 정확도';
+  String get scanPassBestAccuracy => '최고 선택 점수율';
 
   @override
   String get scanPassBestResponse => '최고 반응';
@@ -5316,7 +5424,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassNoHistoryValue => '-';
 
   @override
-  String get scanPassPlayAgainAction => '다시 하기';
+  String get scanPassPlayAgainAction => '10라운드 다시 시작';
 
   @override
   String get scanPassReasonClearLane => '패스 길이 압박에서 잘 벗어났어요.';
@@ -5346,6 +5454,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String scanPassTargetSemantics(int number) {
     return '$number번 동료 선택';
   }
+
+  @override
+  String get scanPassFieldSemantics =>
+      '축구 경기장입니다. 노란색은 나, 파란색은 동료, 빨간색은 수비이며 공격은 오른쪽으로 진행됩니다.';
 
   @override
   String scanPassSecondsValue(Object seconds) {

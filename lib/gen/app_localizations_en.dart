@@ -5367,13 +5367,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassTitle => 'Scan Pass';
 
   @override
+  String get scanPassHelpAction => 'Instructions';
+
+  @override
+  String get scanPassIntroTitle => 'Read the defenders, then choose a pass';
+
+  @override
+  String get scanPassIntroSubtitle =>
+      'You are the yellow ball carrier. Watch the red defenders, remember the space, then tap a blue teammate for a safer, useful pass.';
+
+  @override
+  String get scanPassSampleFieldSemantics => 'Sample Scan Pass pitch';
+
+  @override
+  String get scanPassPracticeAction => 'Try practice';
+
+  @override
+  String get scanPassStartChallengeAction => 'Start 10 rounds';
+
+  @override
   String scanPassRoundStatus(int round, int total) {
     return 'Round $round / $total';
   }
 
   @override
   String scanPassTimeStatus(Object seconds) {
-    return '${seconds}s';
+    return 'Choose ${seconds}s';
   }
 
   @override
@@ -5382,24 +5401,89 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get scanPassPracticeStatus => 'Practice';
+
+  @override
+  String get scanPassPhaseObserveHeading => '1. View defender positions';
+
+  @override
+  String get scanPassPhaseChoiceHeading => '2. Tap a blue teammate to pass';
+
+  @override
+  String get scanPassPhaseCompareHeading => '3. Compare choices';
+
+  @override
+  String get scanPassPracticeObserveHeading => 'Practice 1. View defenders';
+
+  @override
+  String get scanPassPracticeChoiceHeading => 'Practice 2. Choose a teammate';
+
+  @override
+  String get scanPassPracticeCompareHeading => 'Practice 3. Compare choices';
+
+  @override
+  String get scanPassLegendBallCarrier => 'You: ball carrier';
+
+  @override
+  String get scanPassLegendTeammate => 'Blue teammate';
+
+  @override
+  String get scanPassLegendDefender => 'Red defender';
+
+  @override
+  String get scanPassAttackDirection => 'Attack direction';
+
+  @override
+  String get scanPassIntroStepObserveTitle => 'Look first';
+
+  @override
+  String get scanPassIntroStepObserveBody =>
+      'Read where red defenders can block or arrive.';
+
+  @override
+  String get scanPassIntroStepChooseTitle => 'Tap a teammate';
+
+  @override
+  String get scanPassIntroStepChooseBody =>
+      'Pick a blue teammate after the defenders fade.';
+
+  @override
+  String get scanPassIntroStepCompareTitle => 'Compare routes';
+
+  @override
+  String get scanPassIntroStepCompareBody =>
+      'Every teammate gets a score, so close choices can both be useful.';
+
+  @override
   String get scanPassPreviewInstruction =>
-      'Scan the ball carrier, three teammates, and two defenders. The defenders will be occluded soon.';
+      'Look at the red defenders and blue teammates. Attack moves to the right; defenders will soon be hidden.';
 
   @override
   String get scanPassPredictionPreviewInstruction =>
-      'Watch the defenders\' first step. Their next position matters after the screen hides them.';
+      'Watch the defenders\' first step. After they fade, choose based on where they are moving.';
 
   @override
   String get scanPassSilhouetteChoiceInstruction =>
-      'Choose a teammate while the defender silhouettes are still in memory.';
+      'Tap a blue teammate while the faint red defenders stay in memory.';
 
   @override
   String get scanPassHiddenChoiceInstruction =>
-      'Defenders are hidden now. Choose the route you can still trust.';
+      'The red defenders are hidden. Tap the blue teammate with the safer, useful lane.';
 
   @override
   String get scanPassPredictionChoiceInstruction =>
-      'Predict where the defenders moved, then choose the best route you see.';
+      'Predict where the red defenders moved, then tap the blue teammate you trust.';
+
+  @override
+  String get scanPassPracticeObserveInstruction =>
+      'Take your time. When the red defenders and open spaces make sense, continue.';
+
+  @override
+  String get scanPassPracticeChoiceInstruction =>
+      'The red defenders are hidden. Tap one blue teammate; there is no deadline in practice.';
+
+  @override
+  String get scanPassPracticeReadyAction => 'I\'m ready';
 
   @override
   String get scanPassPassInFlight =>
@@ -5407,18 +5491,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String scanPassFeedbackComparable(int score, Object reason) {
-    return 'Route score $score. This choice is in the top group: $reason';
+    return 'Route score $score. This option is close to the best choices: $reason';
   }
 
   @override
   String scanPassFeedbackBehind(int score, int best, Object reason) {
-    return 'Route score $score. Highest route this round was $best; $reason';
+    return 'Route score $score. Best option this round was $best; $reason';
   }
 
   @override
   String scanPassTimeoutFeedback(int best) {
-    return 'The window closed before a pass. Highest route this round was $best; reset your scan and decide earlier next time.';
+    return 'The window closed before a pass. Best option this round was $best; scan, then decide earlier next time.';
   }
+
+  @override
+  String get scanPassRouteComparisonTitle => 'Route scores';
+
+  @override
+  String scanPassRouteTeammate(int number) {
+    return 'Teammate $number';
+  }
+
+  @override
+  String scanPassRouteScoreValue(int score) {
+    return '$score pts';
+  }
+
+  @override
+  String get scanPassSelectedRouteLabel => 'Selected';
+
+  @override
+  String get scanPassComparableRouteLabel => 'Strong option';
+
+  @override
+  String get scanPassPracticeScoreNote =>
+      'Practice compares the pass routes only; it does not save history or add a speed bonus.';
+
+  @override
+  String get scanPassRetryPracticeAction => 'Retry practice';
 
   @override
   String get scanPassNextRoundAction => 'Next round';
@@ -5431,14 +5541,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String scanPassResultSubtitle(int score, int accuracy, Object response) {
-    return 'Average route $score, decision accuracy $accuracy%, average response $response.';
+    return 'Average route $score, choice score match $accuracy%, average response $response.';
   }
 
   @override
   String get scanPassAverageRouteScore => 'Avg route score';
 
   @override
-  String get scanPassDecisionAccuracy => 'Decision accuracy';
+  String get scanPassDecisionAccuracy => 'Choice score match';
 
   @override
   String get scanPassAverageResponse => 'Avg response';
@@ -5447,7 +5557,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassBestAverageRouteScore => 'Best avg route';
 
   @override
-  String get scanPassBestAccuracy => 'Best accuracy';
+  String get scanPassBestAccuracy => 'Best choice match';
 
   @override
   String get scanPassBestResponse => 'Best response';
@@ -5456,7 +5566,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassNoHistoryValue => '-';
 
   @override
-  String get scanPassPlayAgainAction => 'Play again';
+  String get scanPassPlayAgainAction => 'Start 10 rounds again';
 
   @override
   String get scanPassReasonClearLane => 'the lane stayed clear of pressure.';
@@ -5475,7 +5585,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassReasonPressuredLane =>
-      'the lane was under pressure, so the route carried risk.';
+      'the lane had pressure, so the route carried risk.';
 
   @override
   String get scanPassReasonLateArrival =>
@@ -5493,6 +5603,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String scanPassTargetSemantics(int number) {
     return 'Choose teammate $number';
   }
+
+  @override
+  String get scanPassFieldSemantics =>
+      'Football pitch. Yellow is you, blue players are teammates, red players are defenders, and attack moves right.';
 
   @override
   String scanPassSecondsValue(Object seconds) {

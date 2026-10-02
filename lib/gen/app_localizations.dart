@@ -9390,6 +9390,42 @@ abstract class AppLocalizations {
   /// **'Scan Pass'**
   String get scanPassTitle;
 
+  /// No description provided for @scanPassHelpAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructions'**
+  String get scanPassHelpAction;
+
+  /// No description provided for @scanPassIntroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the defenders, then choose a pass'**
+  String get scanPassIntroTitle;
+
+  /// No description provided for @scanPassIntroSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You are the yellow ball carrier. Watch the red defenders, remember the space, then tap a blue teammate for a safer, useful pass.'**
+  String get scanPassIntroSubtitle;
+
+  /// No description provided for @scanPassSampleFieldSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample Scan Pass pitch'**
+  String get scanPassSampleFieldSemantics;
+
+  /// No description provided for @scanPassPracticeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Try practice'**
+  String get scanPassPracticeAction;
+
+  /// No description provided for @scanPassStartChallengeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start 10 rounds'**
+  String get scanPassStartChallengeAction;
+
   /// No description provided for @scanPassRoundStatus.
   ///
   /// In en, this message translates to:
@@ -9399,7 +9435,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassTimeStatus.
   ///
   /// In en, this message translates to:
-  /// **'{seconds}s'**
+  /// **'Choose {seconds}s'**
   String scanPassTimeStatus(Object seconds);
 
   /// No description provided for @scanPassStreakStatus.
@@ -9408,35 +9444,155 @@ abstract class AppLocalizations {
   /// **'Streak {streak}'**
   String scanPassStreakStatus(int streak);
 
+  /// No description provided for @scanPassPracticeStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice'**
+  String get scanPassPracticeStatus;
+
+  /// No description provided for @scanPassPhaseObserveHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'1. View defender positions'**
+  String get scanPassPhaseObserveHeading;
+
+  /// No description provided for @scanPassPhaseChoiceHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'2. Tap a blue teammate to pass'**
+  String get scanPassPhaseChoiceHeading;
+
+  /// No description provided for @scanPassPhaseCompareHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'3. Compare choices'**
+  String get scanPassPhaseCompareHeading;
+
+  /// No description provided for @scanPassPracticeObserveHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice 1. View defenders'**
+  String get scanPassPracticeObserveHeading;
+
+  /// No description provided for @scanPassPracticeChoiceHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice 2. Choose a teammate'**
+  String get scanPassPracticeChoiceHeading;
+
+  /// No description provided for @scanPassPracticeCompareHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice 3. Compare choices'**
+  String get scanPassPracticeCompareHeading;
+
+  /// No description provided for @scanPassLegendBallCarrier.
+  ///
+  /// In en, this message translates to:
+  /// **'You: ball carrier'**
+  String get scanPassLegendBallCarrier;
+
+  /// No description provided for @scanPassLegendTeammate.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue teammate'**
+  String get scanPassLegendTeammate;
+
+  /// No description provided for @scanPassLegendDefender.
+  ///
+  /// In en, this message translates to:
+  /// **'Red defender'**
+  String get scanPassLegendDefender;
+
+  /// No description provided for @scanPassAttackDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Attack direction'**
+  String get scanPassAttackDirection;
+
+  /// No description provided for @scanPassIntroStepObserveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Look first'**
+  String get scanPassIntroStepObserveTitle;
+
+  /// No description provided for @scanPassIntroStepObserveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Read where red defenders can block or arrive.'**
+  String get scanPassIntroStepObserveBody;
+
+  /// No description provided for @scanPassIntroStepChooseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a teammate'**
+  String get scanPassIntroStepChooseTitle;
+
+  /// No description provided for @scanPassIntroStepChooseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a blue teammate after the defenders fade.'**
+  String get scanPassIntroStepChooseBody;
+
+  /// No description provided for @scanPassIntroStepCompareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare routes'**
+  String get scanPassIntroStepCompareTitle;
+
+  /// No description provided for @scanPassIntroStepCompareBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every teammate gets a score, so close choices can both be useful.'**
+  String get scanPassIntroStepCompareBody;
+
   /// No description provided for @scanPassPreviewInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Scan the ball carrier, three teammates, and two defenders. The defenders will be occluded soon.'**
+  /// **'Look at the red defenders and blue teammates. Attack moves to the right; defenders will soon be hidden.'**
   String get scanPassPreviewInstruction;
 
   /// No description provided for @scanPassPredictionPreviewInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Watch the defenders\' first step. Their next position matters after the screen hides them.'**
+  /// **'Watch the defenders\' first step. After they fade, choose based on where they are moving.'**
   String get scanPassPredictionPreviewInstruction;
 
   /// No description provided for @scanPassSilhouetteChoiceInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Choose a teammate while the defender silhouettes are still in memory.'**
+  /// **'Tap a blue teammate while the faint red defenders stay in memory.'**
   String get scanPassSilhouetteChoiceInstruction;
 
   /// No description provided for @scanPassHiddenChoiceInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Defenders are hidden now. Choose the route you can still trust.'**
+  /// **'The red defenders are hidden. Tap the blue teammate with the safer, useful lane.'**
   String get scanPassHiddenChoiceInstruction;
 
   /// No description provided for @scanPassPredictionChoiceInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Predict where the defenders moved, then choose the best route you see.'**
+  /// **'Predict where the red defenders moved, then tap the blue teammate you trust.'**
   String get scanPassPredictionChoiceInstruction;
+
+  /// No description provided for @scanPassPracticeObserveInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Take your time. When the red defenders and open spaces make sense, continue.'**
+  String get scanPassPracticeObserveInstruction;
+
+  /// No description provided for @scanPassPracticeChoiceInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'The red defenders are hidden. Tap one blue teammate; there is no deadline in practice.'**
+  String get scanPassPracticeChoiceInstruction;
+
+  /// No description provided for @scanPassPracticeReadyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m ready'**
+  String get scanPassPracticeReadyAction;
 
   /// No description provided for @scanPassPassInFlight.
   ///
@@ -9447,20 +9603,62 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassFeedbackComparable.
   ///
   /// In en, this message translates to:
-  /// **'Route score {score}. This choice is in the top group: {reason}'**
+  /// **'Route score {score}. This option is close to the best choices: {reason}'**
   String scanPassFeedbackComparable(int score, Object reason);
 
   /// No description provided for @scanPassFeedbackBehind.
   ///
   /// In en, this message translates to:
-  /// **'Route score {score}. Highest route this round was {best}; {reason}'**
+  /// **'Route score {score}. Best option this round was {best}; {reason}'**
   String scanPassFeedbackBehind(int score, int best, Object reason);
 
   /// No description provided for @scanPassTimeoutFeedback.
   ///
   /// In en, this message translates to:
-  /// **'The window closed before a pass. Highest route this round was {best}; reset your scan and decide earlier next time.'**
+  /// **'The window closed before a pass. Best option this round was {best}; scan, then decide earlier next time.'**
   String scanPassTimeoutFeedback(int best);
+
+  /// No description provided for @scanPassRouteComparisonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Route scores'**
+  String get scanPassRouteComparisonTitle;
+
+  /// No description provided for @scanPassRouteTeammate.
+  ///
+  /// In en, this message translates to:
+  /// **'Teammate {number}'**
+  String scanPassRouteTeammate(int number);
+
+  /// No description provided for @scanPassRouteScoreValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{score} pts'**
+  String scanPassRouteScoreValue(int score);
+
+  /// No description provided for @scanPassSelectedRouteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected'**
+  String get scanPassSelectedRouteLabel;
+
+  /// No description provided for @scanPassComparableRouteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong option'**
+  String get scanPassComparableRouteLabel;
+
+  /// No description provided for @scanPassPracticeScoreNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice compares the pass routes only; it does not save history or add a speed bonus.'**
+  String get scanPassPracticeScoreNote;
+
+  /// No description provided for @scanPassRetryPracticeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry practice'**
+  String get scanPassRetryPracticeAction;
 
   /// No description provided for @scanPassNextRoundAction.
   ///
@@ -9483,7 +9681,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassResultSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Average route {score}, decision accuracy {accuracy}%, average response {response}.'**
+  /// **'Average route {score}, choice score match {accuracy}%, average response {response}.'**
   String scanPassResultSubtitle(int score, int accuracy, Object response);
 
   /// No description provided for @scanPassAverageRouteScore.
@@ -9495,7 +9693,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassDecisionAccuracy.
   ///
   /// In en, this message translates to:
-  /// **'Decision accuracy'**
+  /// **'Choice score match'**
   String get scanPassDecisionAccuracy;
 
   /// No description provided for @scanPassAverageResponse.
@@ -9513,7 +9711,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassBestAccuracy.
   ///
   /// In en, this message translates to:
-  /// **'Best accuracy'**
+  /// **'Best choice match'**
   String get scanPassBestAccuracy;
 
   /// No description provided for @scanPassBestResponse.
@@ -9531,7 +9729,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPlayAgainAction.
   ///
   /// In en, this message translates to:
-  /// **'Play again'**
+  /// **'Start 10 rounds again'**
   String get scanPassPlayAgainAction;
 
   /// No description provided for @scanPassReasonClearLane.
@@ -9561,7 +9759,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassReasonPressuredLane.
   ///
   /// In en, this message translates to:
-  /// **'the lane was under pressure, so the route carried risk.'**
+  /// **'the lane had pressure, so the route carried risk.'**
   String get scanPassReasonPressuredLane;
 
   /// No description provided for @scanPassReasonLateArrival.
@@ -9587,6 +9785,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose teammate {number}'**
   String scanPassTargetSemantics(int number);
+
+  /// No description provided for @scanPassFieldSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Football pitch. Yellow is you, blue players are teammates, red players are defenders, and attack moves right.'**
+  String get scanPassFieldSemantics;
 
   /// No description provided for @scanPassSecondsValue.
   ///
