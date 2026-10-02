@@ -1204,6 +1204,7 @@
   "homeQuickActionsTitle": "クイック操作",
   "homeQuickActionMatch": "試合を記録",
   "homeQuickActionPlan": "練習計画を追加",
+  "homeQuickActionScanPass": "スキャンパス",
   "homeContinueTitle": "続きから",
   "homeContinueEmpty": "今日は続きから再開する項目がありません。下から新しいアクションを選びましょう。",
   "homeContinueWrongAnswerReview": "間違えた問題の復習を続ける",
@@ -3185,6 +3186,120 @@
     "placeholders": {
       "current": {},
       "total": {}
+    }
+  },
+  "scanPassTitle": "スキャンパス",
+  "scanPassRoundStatus": "ラウンド {round} / {total}",
+  "@scanPassRoundStatus": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassTimeStatus": "{seconds}秒",
+  "@scanPassTimeStatus": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
+  "scanPassStreakStatus": "連続 {streak}",
+  "@scanPassStreakStatus": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPreviewInstruction": "ボール保持者、3人の味方、2人の守備者を素早く確認しましょう。まもなく守備情報が隠れます。",
+  "scanPassPredictionPreviewInstruction": "守備者の最初の一歩を見ましょう。隠れた後の位置予測が重要です。",
+  "scanPassSilhouetteChoiceInstruction": "薄い守備シルエットを記憶に残しながら味方を選びましょう。",
+  "scanPassHiddenChoiceInstruction": "守備者は隠れています。それでも信頼できるルートを選びましょう。",
+  "scanPassPredictionChoiceInstruction": "守備者が動いた位置を予測して、見えている中で最善のルートを選びましょう。",
+  "scanPassPassInFlight": "パスが出ました。レーンと到着タイミングを読みましょう。",
+  "scanPassFeedbackComparable": "ルートスコア {score}。この選択は上位グループです: {reason}",
+  "@scanPassFeedbackComparable": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "reason": {}
+    }
+  },
+  "scanPassFeedbackBehind": "ルートスコア {score}。このラウンドの最高ルートは {best}; {reason}",
+  "@scanPassFeedbackBehind": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "best": {
+        "type": "int"
+      },
+      "reason": {}
+    }
+  },
+  "scanPassTimeoutFeedback": "パスを選ぶ前に時間が終わりました。このラウンドの最高ルートは {best}; 次は早めにスキャンして決めましょう。",
+  "@scanPassTimeoutFeedback": {
+    "placeholders": {
+      "best": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassNextRoundAction": "次のラウンド",
+  "scanPassSeeResultAction": "結果を見る",
+  "scanPassResultTitle": "スキャンパス結果",
+  "scanPassResultSubtitle": "平均ルート {score}、判断精度 {accuracy}%、平均反応 {response}。",
+  "@scanPassResultSubtitle": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "accuracy": {
+        "type": "int"
+      },
+      "response": {}
+    }
+  },
+  "scanPassAverageRouteScore": "平均ルートスコア",
+  "scanPassDecisionAccuracy": "判断精度",
+  "scanPassAverageResponse": "平均反応",
+  "scanPassBestAverageRouteScore": "最高平均ルート",
+  "scanPassBestAccuracy": "最高精度",
+  "scanPassBestResponse": "最高反応",
+  "scanPassNoHistoryValue": "-",
+  "scanPassPlayAgainAction": "もう一度",
+  "scanPassReasonClearLane": "パスレーンがプレッシャーから離れていました。",
+  "scanPassReasonTimedRun": "守備者が寄せる前にボールが届きました。",
+  "scanPassReasonOpenSpace": "受け手がファーストタッチ後に使えるスペースを持っていました。",
+  "scanPassReasonForwardThreat": "攻撃をより強いエリアへ進めました。",
+  "scanPassReasonPressuredLane": "レーンにプレッシャーがあり、リスクを含むルートでした。",
+  "scanPassReasonLateArrival": "守備者がボールとほぼ同時に到達できる状況でした。",
+  "scanPassReasonTightReceiver": "パス後の受け手が密集した場所にいました。",
+  "scanPassReasonLowProgression": "安全ですが、攻撃を大きく前進させるルートではありませんでした。",
+  "scanPassTargetSemantics": "{number}番の味方を選択",
+  "@scanPassTargetSemantics": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassSecondsValue": "{seconds}秒",
+  "@scanPassSecondsValue": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
+  "scanPassPercentValue": "{percent}%",
+  "@scanPassPercentValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "gameGuideTitle": "ゲームガイド",

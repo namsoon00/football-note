@@ -1204,6 +1204,7 @@
   "homeQuickActionsTitle": "빠른 실행",
   "homeQuickActionMatch": "시합 기록",
   "homeQuickActionPlan": "훈련 계획",
+  "homeQuickActionScanPass": "스캔 패스",
   "homeContinueTitle": "이어하기",
   "homeContinueEmpty": "오늘은 이어서 할 액션이 없어요. 아래에서 새 도전을 골라보세요.",
   "homeContinueWrongAnswerReview": "오답 복습 이어하기",
@@ -3185,6 +3186,120 @@
     "placeholders": {
       "current": {},
       "total": {}
+    }
+  },
+  "scanPassTitle": "스캔 패스",
+  "scanPassRoundStatus": "{total}라운드 중 {round}",
+  "@scanPassRoundStatus": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassTimeStatus": "{seconds}초",
+  "@scanPassTimeStatus": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
+  "scanPassStreakStatus": "연속 {streak}",
+  "@scanPassStreakStatus": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPreviewInstruction": "볼 소유자, 세 명의 동료, 두 명의 수비수를 빠르게 훑어보세요. 곧 수비 정보가 가려집니다.",
+  "scanPassPredictionPreviewInstruction": "수비수의 첫 움직임을 보세요. 화면이 가려진 뒤의 위치를 예측해야 합니다.",
+  "scanPassSilhouetteChoiceInstruction": "희미한 수비 실루엣을 기억하면서 동료를 고르세요.",
+  "scanPassHiddenChoiceInstruction": "이제 수비수가 보이지 않습니다. 그래도 믿을 수 있는 루트를 고르세요.",
+  "scanPassPredictionChoiceInstruction": "수비수가 이동한 위치를 예측하고 가장 좋은 루트를 고르세요.",
+  "scanPassPassInFlight": "패스가 출발했습니다. 패스 길과 도착 타이밍을 확인해요.",
+  "scanPassFeedbackComparable": "루트 점수 {score}. 이 선택은 상위 그룹입니다: {reason}",
+  "@scanPassFeedbackComparable": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "reason": {}
+    }
+  },
+  "scanPassFeedbackBehind": "루트 점수 {score}. 이번 라운드 최고 루트는 {best}점입니다; {reason}",
+  "@scanPassFeedbackBehind": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "best": {
+        "type": "int"
+      },
+      "reason": {}
+    }
+  },
+  "scanPassTimeoutFeedback": "패스하기 전에 선택 시간이 끝났어요. 이번 라운드 최고 루트는 {best}점입니다; 다음에는 더 일찍 스캔하고 결정해요.",
+  "@scanPassTimeoutFeedback": {
+    "placeholders": {
+      "best": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassNextRoundAction": "다음 라운드",
+  "scanPassSeeResultAction": "결과 보기",
+  "scanPassResultTitle": "스캔 패스 결과",
+  "scanPassResultSubtitle": "평균 루트 {score}점, 판단 정확도 {accuracy}%, 평균 반응 {response}.",
+  "@scanPassResultSubtitle": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "accuracy": {
+        "type": "int"
+      },
+      "response": {}
+    }
+  },
+  "scanPassAverageRouteScore": "평균 루트 점수",
+  "scanPassDecisionAccuracy": "판단 정확도",
+  "scanPassAverageResponse": "평균 반응",
+  "scanPassBestAverageRouteScore": "최고 평균 루트",
+  "scanPassBestAccuracy": "최고 정확도",
+  "scanPassBestResponse": "최고 반응",
+  "scanPassNoHistoryValue": "-",
+  "scanPassPlayAgainAction": "다시 하기",
+  "scanPassReasonClearLane": "패스 길이 압박에서 잘 벗어났어요.",
+  "scanPassReasonTimedRun": "수비가 좁히기 전에 공이 먼저 도착했어요.",
+  "scanPassReasonOpenSpace": "받는 선수가 첫 터치 후 쓸 공간을 확보했어요.",
+  "scanPassReasonForwardThreat": "공격이 더 위협적인 구역으로 전진했어요.",
+  "scanPassReasonPressuredLane": "패스 길에 압박이 있어 위험이 있었습니다.",
+  "scanPassReasonLateArrival": "수비가 공과 거의 같은 시간에 도착할 수 있었습니다.",
+  "scanPassReasonTightReceiver": "패스 후 받는 선수가 붐비는 공간에 놓였습니다.",
+  "scanPassReasonLowProgression": "안전하지만 공격 전진 효과는 크지 않았어요.",
+  "scanPassTargetSemantics": "{number}번 동료 선택",
+  "@scanPassTargetSemantics": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassSecondsValue": "{seconds}초",
+  "@scanPassSecondsValue": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
+  "scanPassPercentValue": "{percent}%",
+  "@scanPassPercentValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "gameGuideTitle": "게임 가이드",

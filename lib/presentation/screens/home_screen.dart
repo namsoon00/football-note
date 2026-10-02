@@ -27,6 +27,7 @@ import '../widgets/app_page_route.dart';
 import '../widgets/coach_mark_target.dart';
 import '../widgets/sport_scope.dart';
 import 'skill_quiz_screen.dart';
+import 'scan_pass_game_screen.dart';
 import 'home_hub_screen.dart';
 import 'match_record_screen.dart';
 import 'team_management_screen.dart';
@@ -426,6 +427,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               _openCalendarQuickCreate(CalendarQuickCreateAction.plan),
           onQuickMatch: () => openMatchRecord(DateTime.now()),
           onQuickQuiz: _openQuiz,
+          onQuickScanPass: _openScanPass,
           onQuickMeal: () => _openMealLog(initialDate: DateTime.now()),
           onQuickBoard: _openTrainingBoards,
           onOpenMatchHub: openTeamManagementHub,
@@ -966,6 +968,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       AppPageRoute(
         builder: (_) =>
             SkillQuizScreen(optionRepository: widget.optionRepository),
+      ),
+    );
+  }
+
+  Future<void> _openScanPass() async {
+    await _pushPageSafely(
+      AppPageRoute(
+        builder: (_) => ScanPassGameScreen(
+          optionRepository: widget.optionRepository,
+        ),
       ),
     );
   }

@@ -551,6 +551,7 @@ class DriveBackupService implements BackupRepository {
     'skill_quiz_history_v1',
     'space_speed_ranking_history_v1',
     'space_speed_played_count_v1',
+    'scan_pass_summary_v1',
 
     // News, fixture, and tournament user state used by diary or favorites.
     'news_opened_items_v1',
@@ -606,6 +607,7 @@ class DriveBackupService implements BackupRepository {
     'space_speed_ranking_history_v1_',
     'space_speed_played_count_v1_',
     'space_speed_weekly_best_',
+    'scan_pass_summary_v1_',
   ];
   static const Set<String> _localDeviceOptionKeys = {
     _autoDailyKey,
@@ -812,6 +814,7 @@ class DriveBackupService implements BackupRepository {
     'skill_quiz_history_v1',
     'skill_quiz_cleared_sets_v1',
     'space_speed_ranking_history_v1',
+    'scan_pass_summary_v1',
     'news_scrapped_links',
     'news_scrapped_items_v1',
   };
@@ -836,6 +839,7 @@ class DriveBackupService implements BackupRepository {
     'skill_quiz_history_v1_',
     'skill_quiz_cleared_sets_v1_',
     'space_speed_ranking_history_v1_',
+    'scan_pass_summary_v1_',
     'news_scrapped_links_',
     'news_scrapped_items_v1_',
   ];

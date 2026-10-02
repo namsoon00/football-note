@@ -3500,6 +3500,12 @@ abstract class AppLocalizations {
   /// **'Add plan'**
   String get homeQuickActionPlan;
 
+  /// No description provided for @homeQuickActionScanPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Pass'**
+  String get homeQuickActionScanPass;
+
   /// No description provided for @homeContinueTitle.
   ///
   /// In en, this message translates to:
@@ -9377,6 +9383,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{current} / {total}'**
   String photoViewerCounter(Object current, Object total);
+
+  /// No description provided for @scanPassTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Pass'**
+  String get scanPassTitle;
+
+  /// No description provided for @scanPassRoundStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {round} / {total}'**
+  String scanPassRoundStatus(int round, int total);
+
+  /// No description provided for @scanPassTimeStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s'**
+  String scanPassTimeStatus(Object seconds);
+
+  /// No description provided for @scanPassStreakStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak {streak}'**
+  String scanPassStreakStatus(int streak);
+
+  /// No description provided for @scanPassPreviewInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the ball carrier, three teammates, and two defenders. The defenders will be occluded soon.'**
+  String get scanPassPreviewInstruction;
+
+  /// No description provided for @scanPassPredictionPreviewInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the defenders\' first step. Their next position matters after the screen hides them.'**
+  String get scanPassPredictionPreviewInstruction;
+
+  /// No description provided for @scanPassSilhouetteChoiceInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a teammate while the defender silhouettes are still in memory.'**
+  String get scanPassSilhouetteChoiceInstruction;
+
+  /// No description provided for @scanPassHiddenChoiceInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Defenders are hidden now. Choose the route you can still trust.'**
+  String get scanPassHiddenChoiceInstruction;
+
+  /// No description provided for @scanPassPredictionChoiceInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Predict where the defenders moved, then choose the best route you see.'**
+  String get scanPassPredictionChoiceInstruction;
+
+  /// No description provided for @scanPassPassInFlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass released. Read the lane and arrival timing.'**
+  String get scanPassPassInFlight;
+
+  /// No description provided for @scanPassFeedbackComparable.
+  ///
+  /// In en, this message translates to:
+  /// **'Route score {score}. This choice is in the top group: {reason}'**
+  String scanPassFeedbackComparable(int score, Object reason);
+
+  /// No description provided for @scanPassFeedbackBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'Route score {score}. Highest route this round was {best}; {reason}'**
+  String scanPassFeedbackBehind(int score, int best, Object reason);
+
+  /// No description provided for @scanPassTimeoutFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'The window closed before a pass. Highest route this round was {best}; reset your scan and decide earlier next time.'**
+  String scanPassTimeoutFeedback(int best);
+
+  /// No description provided for @scanPassNextRoundAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Next round'**
+  String get scanPassNextRoundAction;
+
+  /// No description provided for @scanPassSeeResultAction.
+  ///
+  /// In en, this message translates to:
+  /// **'See result'**
+  String get scanPassSeeResultAction;
+
+  /// No description provided for @scanPassResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Pass result'**
+  String get scanPassResultTitle;
+
+  /// No description provided for @scanPassResultSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Average route {score}, decision accuracy {accuracy}%, average response {response}.'**
+  String scanPassResultSubtitle(int score, int accuracy, Object response);
+
+  /// No description provided for @scanPassAverageRouteScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg route score'**
+  String get scanPassAverageRouteScore;
+
+  /// No description provided for @scanPassDecisionAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Decision accuracy'**
+  String get scanPassDecisionAccuracy;
+
+  /// No description provided for @scanPassAverageResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg response'**
+  String get scanPassAverageResponse;
+
+  /// No description provided for @scanPassBestAverageRouteScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Best avg route'**
+  String get scanPassBestAverageRouteScore;
+
+  /// No description provided for @scanPassBestAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Best accuracy'**
+  String get scanPassBestAccuracy;
+
+  /// No description provided for @scanPassBestResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Best response'**
+  String get scanPassBestResponse;
+
+  /// No description provided for @scanPassNoHistoryValue.
+  ///
+  /// In en, this message translates to:
+  /// **'-'**
+  String get scanPassNoHistoryValue;
+
+  /// No description provided for @scanPassPlayAgainAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Play again'**
+  String get scanPassPlayAgainAction;
+
+  /// No description provided for @scanPassReasonClearLane.
+  ///
+  /// In en, this message translates to:
+  /// **'the lane stayed clear of pressure.'**
+  String get scanPassReasonClearLane;
+
+  /// No description provided for @scanPassReasonTimedRun.
+  ///
+  /// In en, this message translates to:
+  /// **'the ball arrived before defenders could close.'**
+  String get scanPassReasonTimedRun;
+
+  /// No description provided for @scanPassReasonOpenSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'the receiver had useful space after the first touch.'**
+  String get scanPassReasonOpenSpace;
+
+  /// No description provided for @scanPassReasonForwardThreat.
+  ///
+  /// In en, this message translates to:
+  /// **'the pass moved the attack into a stronger area.'**
+  String get scanPassReasonForwardThreat;
+
+  /// No description provided for @scanPassReasonPressuredLane.
+  ///
+  /// In en, this message translates to:
+  /// **'the lane was under pressure, so the route carried risk.'**
+  String get scanPassReasonPressuredLane;
+
+  /// No description provided for @scanPassReasonLateArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'defenders could arrive at nearly the same time as the ball.'**
+  String get scanPassReasonLateArrival;
+
+  /// No description provided for @scanPassReasonTightReceiver.
+  ///
+  /// In en, this message translates to:
+  /// **'the receiver was crowded after the pass.'**
+  String get scanPassReasonTightReceiver;
+
+  /// No description provided for @scanPassReasonLowProgression.
+  ///
+  /// In en, this message translates to:
+  /// **'the route was safe but did not advance the attack much.'**
+  String get scanPassReasonLowProgression;
+
+  /// No description provided for @scanPassTargetSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose teammate {number}'**
+  String scanPassTargetSemantics(int number);
+
+  /// No description provided for @scanPassSecondsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s'**
+  String scanPassSecondsValue(Object seconds);
+
+  /// No description provided for @scanPassPercentValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String scanPassPercentValue(int percent);
 
   /// No description provided for @gameGuideTitle.
   ///
