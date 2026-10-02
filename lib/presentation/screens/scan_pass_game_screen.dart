@@ -65,18 +65,18 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
       ScanPassPlayer(
         id: 3,
         number: 11,
-        position: ScanPassPoint(0.56, 0.79),
+        position: ScanPassPoint(0.55, 0.84),
         facingRadians: 0.6,
       ),
     ],
     defenders: <ScanPassDefender>[
       ScanPassDefender(
         id: 1,
-        position: ScanPassPoint(0.45, 0.47),
+        position: ScanPassPoint(0.44, 0.36),
       ),
       ScanPassDefender(
         id: 2,
-        position: ScanPassPoint(0.63, 0.63),
+        position: ScanPassPoint(0.75, 0.48),
       ),
     ],
     occlusionMode: ScanPassOcclusionMode.hidden,
@@ -551,6 +551,7 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
                         label: Text(l10n.scanPassStartChallengeAction),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
+                          backgroundColor: _surface,
                           side: BorderSide(
                             color: Colors.white.withValues(alpha: 0.54),
                           ),
@@ -753,6 +754,7 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
                     label: Text(l10n.scanPassRetryPracticeAction),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
+                      backgroundColor: _surface,
                       side: BorderSide(
                         color: Colors.white.withValues(alpha: 0.46),
                       ),
@@ -1578,24 +1580,26 @@ class _ScanPassFieldPainter extends CustomPainter {
     );
     canvas.drawRRect(BorderRadius.circular(6).toRRect(inner), linePaint);
     canvas.drawLine(
-      Offset(inner.left, inner.center.dy),
-      Offset(inner.right, inner.center.dy),
+      Offset(inner.center.dx, inner.top),
+      Offset(inner.center.dx, inner.bottom),
       linePaint,
     );
-    canvas.drawCircle(inner.center, size.width * 0.095, linePaint);
+    canvas.drawCircle(inner.center, size.shortestSide * 0.095, linePaint);
     canvas.drawRect(
-      Rect.fromCenter(
-        center: Offset(inner.center.dx, inner.top),
-        width: size.width * 0.42,
-        height: size.height * 0.16,
+      Rect.fromLTWH(
+        inner.left,
+        inner.center.dy - inner.height * 0.21,
+        inner.width * 0.16,
+        inner.height * 0.42,
       ),
       linePaint,
     );
     canvas.drawRect(
-      Rect.fromCenter(
-        center: Offset(inner.center.dx, inner.bottom),
-        width: size.width * 0.42,
-        height: size.height * 0.16,
+      Rect.fromLTWH(
+        inner.right - inner.width * 0.16,
+        inner.center.dy - inner.height * 0.21,
+        inner.width * 0.16,
+        inner.height * 0.42,
       ),
       linePaint,
     );
@@ -1738,16 +1742,16 @@ class _ScanPassFieldPainter extends CustomPainter {
         center + Offset(math.cos(angle), math.sin(angle)) * (radius + 6);
     final left = center +
         Offset(
-              math.cos(angle + 2.55),
-              math.sin(angle + 2.55),
+              math.cos(angle + 0.4),
+              math.sin(angle + 0.4),
             ) *
-            (radius * 0.38);
+            (radius * 0.85);
     final right = center +
         Offset(
-              math.cos(angle - 2.55),
-              math.sin(angle - 2.55),
+              math.cos(angle - 0.4),
+              math.sin(angle - 0.4),
             ) *
-            (radius * 0.38);
+            (radius * 0.85);
     final path = Path()
       ..moveTo(tip.dx, tip.dy)
       ..lineTo(left.dx, left.dy)
