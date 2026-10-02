@@ -589,6 +589,7 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
         title: Text(l10n.scanPassTitle),
         backgroundColor: _charcoal,
         foregroundColor: _offWhite,
+        iconTheme: const IconThemeData(color: _offWhite),
         surfaceTintColor: Colors.transparent,
         actions: [
           if (_flow != _ScanPassFlow.intro)
