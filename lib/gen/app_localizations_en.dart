@@ -5370,11 +5370,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassHelpAction => 'Analysis guide';
 
   @override
-  String get scanPassIntroTitle => 'Scan Pass Analysis';
+  String get scanPassIntroTitle => '4v3 Scan Pass';
 
   @override
   String get scanPassIntroSubtitle =>
-      'Observe lane clearance, defender arrival, receiver pressure, and forward progress. Then choose the pass route that best balances safety and advantage.';
+      'Play as midfielder #6: check your surroundings before receiving, then choose your first touch and next pass or movement. Practice reading the situation on screen.';
 
   @override
   String get scanPassSampleFieldSemantics => 'Sample Scan Pass pitch';
@@ -5404,13 +5404,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassPracticeStatus => 'Practice';
 
   @override
-  String get scanPassPhaseObserveHeading => '1. Observe defensive pressure';
+  String get scanPassPhaseObserveHeading => '1. Observe before receiving';
 
   @override
   String get scanPassPhaseChoiceHeading => '2. Select a passing route';
 
   @override
-  String get scanPassPhaseCompareHeading => '3. Review route analysis';
+  String get scanPassPhaseCompareHeading => '4. Review the decision';
 
   @override
   String get scanPassPracticeObserveHeading => 'Practice 1. Observe the shape';
@@ -5420,10 +5420,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassPracticeCompareHeading =>
-      'Practice 3. Review the evidence';
+      'Practice 4. Review the decision';
 
   @override
-  String get scanPassLegendBallCarrier => 'You: ball carrier';
+  String get scanPassLegendBallCarrier => 'You: #6';
 
   @override
   String get scanPassLegendTeammate => 'Teammate';
@@ -5439,44 +5439,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassIntroStepObserveBody =>
-      'Read the lane, defender arrival path, receiver pressure, and open space.';
+      'Use the scan control to update remembered pressure before the ball reaches #6.';
 
   @override
   String get scanPassIntroStepChooseTitle => 'Pass selection';
 
   @override
   String get scanPassIntroStepChooseBody =>
-      'After defenders fade, select the teammate whose route best fits the tradeoff.';
+      'After the first touch, connect to #4, #8, #9, or hold briefly when the lane is changing.';
 
   @override
   String get scanPassIntroStepCompareTitle => 'Route analysis';
 
   @override
   String get scanPassIntroStepCompareBody =>
-      'All three routes are scored. A high-scoring route can still have risk.';
+      'Review your path against a strong alternative from the same starting state and comparable timing.';
 
   @override
   String get scanPassIntroScoringGuideTitle => 'Scoring guide';
 
   @override
   String get scanPassIntroScoringGuideSummary =>
-      'Decision points max at 90 before any challenge reaction bonus.';
+      'Four components add truthfully to a score out of 100.';
 
   @override
   String get scanPassScoringGuideDecision =>
-      'Decision subtotal: lane clearance 26, defender-arrival margin 22, receiver space 16, forward progress 12, and connection stability 14. These add to 90.';
+      'Score: control 30, pressure escape 22, continuation 24, and context fit 24. Component values are rounded first, then summed.';
 
   @override
   String get scanPassScoringGuideReaction =>
-      'Challenge reaction bonus applies only when the decision subtotal is at least 50. It can add up to 10 at 450 ms or faster and decreases to 0 at the choice deadline.';
+      'Decision time changes the simulated football state because defenders and teammates keep moving. There is no universal speed bonus.';
 
   @override
   String get scanPassScoringGuidePractice =>
-      'Practice is untimed and shows route judgment only: max 90, no history save, no reaction bonus.';
+      'Practice is unscored for history and can be repeated. Ten-round challenge results save once after the final review.';
 
   @override
   String get scanPassScoringGuideMethod =>
-      'Methodology: indices use normalized game geometry and speeds. They are not measured match probabilities, real seconds, meters, xG, or success percentages.';
+      'Scores use a simplified game model. They do not measure real football ability, physical head or eye scanning, or pass success rates.';
 
   @override
   String get scanPassPreviewInstruction =>
@@ -5500,7 +5500,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassPracticeObserveInstruction =>
-      'Take your time. Continue when you can explain the lane, arrival, receiver pressure, and forward value.';
+      'Take your time. Scan if you want a current look behind #6, then continue when you are ready to receive.';
 
   @override
   String get scanPassPracticeChoiceInstruction =>
@@ -5748,7 +5748,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassMethodologyNote =>
-      'Methodology: game-geometry indices from normalized positions and speeds, not measured match probabilities.';
+      'Scores and predicted outcomes compare choices within this game. They are not measurements of real football ability or pass success rates.';
 
   @override
   String get scanPassReactionSameTimeNote =>
@@ -5771,8 +5771,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassResultTitle => 'Scan Pass result';
 
   @override
-  String scanPassResultSubtitle(int score, int accuracy, Object response) {
-    return 'Average route $score, choice score rate $accuracy%, average response $response.';
+  String scanPassResultSubtitle(int score, int accuracy, int timeouts) {
+    return 'Average score $score, choice score rate $accuracy%, incomplete rounds $timeouts.';
   }
 
   @override
@@ -5782,7 +5782,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassDecisionAccuracy => 'Choice score rate';
 
   @override
-  String get scanPassAverageResponse => 'Avg response';
+  String get scanPassAverageResponse => 'Avg decision time';
 
   @override
   String get scanPassBestAverageRouteScore => 'Best avg route';
@@ -5804,15 +5804,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassResultAverageScoreNote =>
-      'Average route score is the mean of each round\'s recorded final score. A timeout records 0.';
+      'Average score is the mean of the recorded round scores. A timeout records 0.';
 
   @override
   String get scanPassResultAccuracyNote =>
-      'Choice score rate is chosen score divided by that round\'s best route score, averaged across rounds.';
+      'Decision score ratio averages each round’s chosen score divided by its highest route score under the same conditions.';
 
   @override
   String get scanPassResultTimeoutNote =>
-      'Average response includes timeouts at the choice limit, so missed rounds slow the response average.';
+      'Incomplete rounds are first-touch or next-action timeouts. Practice never writes history.';
 
   @override
   String get scanPassReasonClearLane => 'lane clearance was the main strength.';
@@ -5848,7 +5848,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassFieldSemantics =>
-      'Football pitch. Amber is the ball carrier, blue players are teammates, coral players are defenders, and attack moves right.';
+      'Football pitch. Amber #6 is your player, blue players are teammates, coral players are defenders, and attack moves right.';
 
   @override
   String scanPassSecondsValue(Object seconds) {
@@ -5859,6 +5859,361 @@ class AppLocalizationsEn extends AppLocalizations {
   String scanPassPercentValue(int percent) {
     return '$percent%';
   }
+
+  @override
+  String get scanPassPhaseFirstTouchHeading => '2. Choose the first touch';
+
+  @override
+  String get scanPassPhaseNextActionHeading => '3. Choose the next action';
+
+  @override
+  String get scanPassPhaseReviewHeading => '4. Review the decision';
+
+  @override
+  String get scanPassPracticeFirstTouchHeading =>
+      'Practice 2. Choose the first touch';
+
+  @override
+  String get scanPassPracticeNextActionHeading =>
+      'Practice 3. Choose the next action';
+
+  @override
+  String get scanPassPracticeReviewHeading => 'Practice 4. Review the decision';
+
+  @override
+  String get scanPassStageObserve => 'Observe';
+
+  @override
+  String get scanPassStageFirstTouch => 'First touch';
+
+  @override
+  String get scanPassStageNextAction => 'Next action';
+
+  @override
+  String get scanPassStageReview => 'Review';
+
+  @override
+  String get scanPassIntroStepTouchTitle => 'Touch and continue';
+
+  @override
+  String get scanPassIntroStepTouchBody =>
+      'Your touch changes your body angle, space on the ball, and next options.';
+
+  @override
+  String get scanPassScenarioContextTitle => 'Match context';
+
+  @override
+  String get scanPassFamilyRearPress => 'Rear pressure around #6';
+
+  @override
+  String get scanPassFamilyRetreatingPressure => 'Retreating pressure';
+
+  @override
+  String get scanPassFamilyMarkedSupport => 'Marked support option';
+
+  @override
+  String get scanPassFamilyClosingForwardLane => 'Forward lane closing';
+
+  @override
+  String get scanPassFamilyReturnReceive => 'Return pass and receive again';
+
+  @override
+  String get scanPassRegionCentralMidfield => 'Central midfield';
+
+  @override
+  String get scanPassRegionLeftHalfSpace => 'Left half-space';
+
+  @override
+  String get scanPassRegionRightHalfSpace => 'Right half-space';
+
+  @override
+  String get scanPassRegionDefensiveThird => 'Defensive third';
+
+  @override
+  String get scanPassRegionAttackingHalf => 'Attacking half';
+
+  @override
+  String get scanPassObjectiveProtectPossession => 'Protect possession';
+
+  @override
+  String get scanPassObjectiveChaseGoal => 'Chase a goal';
+
+  @override
+  String scanPassMatchClock(Object minute, Object score) {
+    return '$minute\' · $score';
+  }
+
+  @override
+  String get scanPassObserveInstruction =>
+      'The ball is traveling from #4 to #6. Scan if you want updated remembered pressure; the challenge will advance when the ball arrives.';
+
+  @override
+  String get scanPassFirstTouchInstruction =>
+      'Read the defenders and available space, then choose a touch direction or return the ball to #4.';
+
+  @override
+  String get scanPassNextPassInstruction =>
+      'Now choose the pass. Defenders and teammates keep moving, so holding briefly can help or hurt depending on this scene.';
+
+  @override
+  String get scanPassNextMoveInstruction =>
+      'The ball went back to #4. Move #6 to create the next receiving angle, or hold the pocket.';
+
+  @override
+  String get scanPassReviewInstruction =>
+      'Replay the selected path, then compare it with another strong plan from the same initial scene.';
+
+  @override
+  String get scanPassTimeoutFirstTouch =>
+      'No first touch was chosen before the window closed. This round records 0 and moves to review.';
+
+  @override
+  String get scanPassTimeoutNextAction =>
+      'No next action was chosen before the window closed. This round records 0 and moves to review.';
+
+  @override
+  String get scanPassNoScanStatus => 'Rear pressure is not currently observed.';
+
+  @override
+  String scanPassLastScanStatus(Object seconds) {
+    return 'Last observed pressure at ${seconds}s. Faded defenders mark their positions at that moment.';
+  }
+
+  @override
+  String get scanPassScanAction => 'Scan';
+
+  @override
+  String get scanPassTouchUpperTitle => 'Upper touch';
+
+  @override
+  String get scanPassTouchUpperSubtitle => 'Move #6 toward the upper channel.';
+
+  @override
+  String get scanPassTouchUpperShort => 'upper touch';
+
+  @override
+  String get scanPassTouchLowerTitle => 'Lower touch';
+
+  @override
+  String get scanPassTouchLowerSubtitle => 'Move #6 toward the lower channel.';
+
+  @override
+  String get scanPassTouchLowerShort => 'lower touch';
+
+  @override
+  String get scanPassTouchTurnTitle => 'Turn forward';
+
+  @override
+  String get scanPassTouchTurnSubtitle =>
+      'Open the body toward #9 with more exposure.';
+
+  @override
+  String get scanPassTouchTurnShort => 'turn forward';
+
+  @override
+  String get scanPassTouchReturnTitle => 'Return to #4';
+
+  @override
+  String get scanPassTouchReturnSubtitle =>
+      'One-touch return, then move again.';
+
+  @override
+  String get scanPassTouchReturnShort => 'return to #4';
+
+  @override
+  String get scanPassPass4Title => 'Pass to #4';
+
+  @override
+  String get scanPassPass4Subtitle => 'Recycle through the centerback.';
+
+  @override
+  String get scanPassPass4Short => 'pass to #4';
+
+  @override
+  String get scanPassPass8Title => 'Pass to #8';
+
+  @override
+  String get scanPassPass8Subtitle => 'Connect with the nearby support.';
+
+  @override
+  String get scanPassPass8Short => 'pass to #8';
+
+  @override
+  String get scanPassPass9Title => 'Pass to #9';
+
+  @override
+  String get scanPassPass9Subtitle => 'Try the forward lane.';
+
+  @override
+  String get scanPassPass9Short => 'pass to #9';
+
+  @override
+  String get scanPassHold8Title => 'Hold, then #8';
+
+  @override
+  String get scanPassHold8Subtitle => 'Wait briefly before the support pass.';
+
+  @override
+  String get scanPassHold8Short => 'hold then #8';
+
+  @override
+  String get scanPassSupportUpperTitle => 'Upper support';
+
+  @override
+  String get scanPassSupportUpperSubtitle =>
+      'Arc away from pressure to receive again.';
+
+  @override
+  String get scanPassSupportUpperShort => 'upper support';
+
+  @override
+  String get scanPassSupportForwardTitle => 'Forward support';
+
+  @override
+  String get scanPassSupportForwardSubtitle =>
+      'Move ahead of the press for a return lane.';
+
+  @override
+  String get scanPassSupportForwardShort => 'forward support';
+
+  @override
+  String get scanPassHoldPocketTitle => 'Hold pocket';
+
+  @override
+  String get scanPassHoldPocketSubtitle => 'Stay central for the return pass.';
+
+  @override
+  String get scanPassHoldPocketShort => 'hold pocket';
+
+  @override
+  String get scanPassReviewMineAction => 'My path';
+
+  @override
+  String get scanPassReviewAlternativeAction => 'Alternative';
+
+  @override
+  String get scanPassReviewMineTitle => 'Selected path';
+
+  @override
+  String get scanPassReviewAlternativeTitle => 'Strong alternative';
+
+  @override
+  String get scanPassReviewTimeoutTitle => 'Timeout review';
+
+  @override
+  String scanPassReviewComparable(Object plan, int score, Object outcome) {
+    return '$plan: $score/100, $outcome. This is in the top group for comparable timing.';
+  }
+
+  @override
+  String scanPassReviewBehind(
+      Object plan, int score, int best, Object outcome) {
+    return '$plan: $score/100, $outcome. Another route scores up to $best/100 under the same conditions.';
+  }
+
+  @override
+  String scanPassTimeoutReviewSummary(Object plan, int score, Object outcome) {
+    return 'Reviewing $plan: $score/100, $outcome. It shows a plausible plan after the timeout.';
+  }
+
+  @override
+  String scanPassPlanName(Object first, Object next) {
+    return '$first -> $next';
+  }
+
+  @override
+  String get scanPassScoreBreakdownTitle => 'Score breakdown';
+
+  @override
+  String scanPassComponentValue(int earned, int max) {
+    return '$earned/$max';
+  }
+
+  @override
+  String get scanPassComponentControl => 'Control';
+
+  @override
+  String get scanPassComponentPressureEscape => 'Pressure escape';
+
+  @override
+  String get scanPassComponentContinuation => 'Continuation';
+
+  @override
+  String get scanPassComponentContextFit => 'Context fit';
+
+  @override
+  String get scanPassPressureHandling => 'Pressure handling';
+
+  @override
+  String get scanPassContinuation => 'Continuation';
+
+  @override
+  String get scanPassIncompleteRounds => 'Incomplete rounds';
+
+  @override
+  String get scanPassReasonPanelTitle => 'Decision cues';
+
+  @override
+  String get scanPassReasonControlledTouch =>
+      'The first touch kept enough control for the next action.';
+
+  @override
+  String get scanPassReasonExposedTouch =>
+      'The first touch exposed the ball or body angle under pressure.';
+
+  @override
+  String get scanPassReasonPressureEscaped =>
+      'The touch or return moved away from the nearest pressure.';
+
+  @override
+  String get scanPassReasonPressureStayed =>
+      'Pressure stayed close enough to affect the next action.';
+
+  @override
+  String get scanPassReasonReceiverAvailable =>
+      'The receiving player had enough space for the next touch.';
+
+  @override
+  String get scanPassReasonSupportAngleCreated =>
+      'The return-and-move choice created a new receiving angle for #6.';
+
+  @override
+  String get scanPassReasonSupportAngleWeak =>
+      '#6 did not create much new angle after returning the ball.';
+
+  @override
+  String get scanPassReasonHoldOpenedLane =>
+      'The brief hold improved the support lane in this moving snapshot.';
+
+  @override
+  String get scanPassReasonHoldInvitedPressure =>
+      'The brief hold allowed pressure to close the support lane.';
+
+  @override
+  String get scanPassReasonObjectiveProtected =>
+      'The match objective valued secure possession and loss cost.';
+
+  @override
+  String get scanPassReasonObjectiveProgressed =>
+      'The match objective increased the value of useful forward progress.';
+
+  @override
+  String get scanPassOutcomeKept => 'possession kept';
+
+  @override
+  String get scanPassOutcomeProgressed => 'attack progressed';
+
+  @override
+  String get scanPassOutcomeRecycled => 'possession recycled';
+
+  @override
+  String get scanPassOutcomeContested => 'ball contested';
+
+  @override
+  String get scanPassOutcomeIntercepted => 'pass intercepted';
+
+  @override
+  String get scanPassOutcomeTimeout => 'timeout';
 
   @override
   String get gameGuideTitle => 'Game Guide';
@@ -17967,4 +18322,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String runningCoachHistoryTrendSummary(int best, int delta) {
     return 'Best confirmed score $best · latest change $delta';
   }
+
+  @override
+  String calendarHolidayLabel(String name) {
+    return 'Holiday · $name';
+  }
+
+  @override
+  String get calendarNoRecordsForDay => 'No records for this day.';
 }

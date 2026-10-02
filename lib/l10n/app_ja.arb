@@ -3190,8 +3190,8 @@
   },
   "scanPassTitle": "スキャンパス",
   "scanPassHelpAction": "分析ガイド",
-  "scanPassIntroTitle": "スキャンパス分析",
-  "scanPassIntroSubtitle": "パスレーンの余裕、守備者の到達、受け手への圧力、前進効果を観察します。その上で安全性と前進価値のバランスがよいルートを選びます。",
+  "scanPassIntroTitle": "4v3 スキャンパス",
+  "scanPassIntroSubtitle": "6番のミッドフィールダーになり、受ける前に周囲を確認し、ファーストタッチと次のパスや動きを選びましょう。画面上の状況を読む練習ゲームです。",
   "scanPassSampleFieldSemantics": "スキャンパスのサンプルピッチ",
   "scanPassPracticeAction": "時間制限なし練習",
   "scanPassStartChallengeAction": "10ラウンドチャレンジ",
@@ -3221,34 +3221,34 @@
     }
   },
   "scanPassPracticeStatus": "練習",
-  "scanPassPhaseObserveHeading": "1. 守備圧力を観察",
+  "scanPassPhaseObserveHeading": "1. 受ける前に観察",
   "scanPassPhaseChoiceHeading": "2. パスルートを選択",
-  "scanPassPhaseCompareHeading": "3. ルート分析を確認",
+  "scanPassPhaseCompareHeading": "4. 判断を振り返る",
   "scanPassPracticeObserveHeading": "練習 1. 形を観察",
   "scanPassPracticeChoiceHeading": "練習 2. ルートを選択",
-  "scanPassPracticeCompareHeading": "練習 3. 判断根拠を確認",
-  "scanPassLegendBallCarrier": "自分: ボール保持",
+  "scanPassPracticeCompareHeading": "練習 4. 判断を振り返る",
+  "scanPassLegendBallCarrier": "自分: 6番",
   "scanPassLegendTeammate": "味方",
   "scanPassLegendDefender": "守備者",
   "scanPassAttackDirection": "攻撃方向: 右",
   "scanPassIntroStepObserveTitle": "観察",
-  "scanPassIntroStepObserveBody": "レーン、守備者の到達経路、受け手への圧力、空きスペースを読みます。",
+  "scanPassIntroStepObserveBody": "スキャン操作で6番の背後の圧力を記憶として更新します。",
   "scanPassIntroStepChooseTitle": "パス選択",
-  "scanPassIntroStepChooseBody": "守備が消えた後、最もバランスのよい味方ルートを選びます。",
+  "scanPassIntroStepChooseBody": "ファーストタッチ後に4番、8番、9番へつなぐか、レーンが変わる時は少し保持します。",
   "scanPassIntroStepCompareTitle": "ルート分析",
-  "scanPassIntroStepCompareBody": "3つのルートすべてにスコアが出ます。高いスコアでもリスクを含む場合があります。",
+  "scanPassIntroStepCompareBody": "同じ開始状態と近いタイミングで計算された強い代替案と比較します。",
   "scanPassIntroScoringGuideTitle": "スコアガイド",
-  "scanPassIntroScoringGuideSummary": "判断点は反応ボーナス前で最大90点です。",
-  "scanPassScoringGuideDecision": "判断小計: レーンの余裕26点、守備者到達マージン22点、受け手スペース16点、前進効果12点、接続安定性14点。合計90点です。",
-  "scanPassScoringGuideReaction": "チャレンジの反応ボーナスは判断小計が50点以上のときだけ加算されます。450ms以下で最大10点、選択期限に近づくほど0点になります。",
-  "scanPassScoringGuidePractice": "練習は時間制限なしでルート判断だけを表示します。最大90点で、履歴保存も反応ボーナスもありません。",
-  "scanPassScoringGuideMethod": "方法: 指標は正規化されたゲーム内の位置と速度に基づきます。実際の試合確率、実秒、距離、xG、成功率ではありません。",
+  "scanPassIntroScoringGuideSummary": "4つの構成要素が正しく合計され、100点満点になります。",
+  "scanPassScoringGuideDecision": "スコア: コントロール30点、圧力回避22点、継続24点、状況適合24点。各構成点を丸めてから合計します。",
+  "scanPassScoringGuideReaction": "判断時間は、守備者と味方が動き続けるためゲーム状態を変えます。共通の早押しボーナスはありません。",
+  "scanPassScoringGuidePractice": "練習は履歴に保存されず、繰り返せます。10ラウンドチャレンジは最後の振り返り後に一度だけ保存されます。",
+  "scanPassScoringGuideMethod": "得点は試合状況を簡略化したゲーム内の基準です。実際の競技力、頭や視線によるスキャン能力、パス成功率を測定するものではありません。",
   "scanPassPreviewInstruction": "守備者と味方を観察しましょう。攻撃は右へ進み、まもなく守備圧力が隠れます。",
   "scanPassPredictionPreviewInstruction": "守備者の最初の動きを観察しましょう。消えた後に圧力がどこへ届くか判断します。",
   "scanPassSilhouetteChoiceInstruction": "薄い守備位置を記憶しながらルートを選びましょう。",
   "scanPassHiddenChoiceInstruction": "守備は隠れています。レーン、タイミング、スペース、前進効果のバランスがよいルートを選びましょう。",
   "scanPassPredictionChoiceInstruction": "守備者の移動を予測し、根拠を持てるルートを選びましょう。",
-  "scanPassPracticeObserveInstruction": "ゆっくり見て大丈夫です。レーン、到達、受け手への圧力、前進価値を説明できたら進みましょう。",
+  "scanPassPracticeObserveInstruction": "ゆっくり見て大丈夫です。背後の現在状況を見たい時はスキャンし、受ける準備ができたら進みましょう。",
   "scanPassPracticeChoiceInstruction": "守備は隠れています。練習に制限時間はないので、ルートを1つ選びましょう。",
   "scanPassPracticeReadyAction": "準備",
   "scanPassPassInFlight": "パスが出ました。レーン、受け手への圧力、到達マージンを確認しましょう。",
@@ -3352,14 +3352,14 @@
   "scanPassCueSpace": "受け手のファーストタッチ地点とタッチラインまでの距離を見ましょう。",
   "scanPassCueProgression": "ボールが右方向の使える中央レーンへ動くか判断しましょう。",
   "scanPassCueConnection": "レーン、到達、スペースがそろう時だけ安定したルートとして扱いましょう。",
-  "scanPassMethodologyNote": "方法: 正規化された位置と速度に基づくゲーム内指標で、実際の試合確率ではありません。",
+  "scanPassMethodologyNote": "得点と予測結果はゲーム内の選択を比較するための基準です。実際の競技力やパス成功率を示すものではありません。",
   "scanPassReactionSameTimeNote": "反応ボーナスが入る場合でも、このラウンドの全ルートに同じ反応時間を使います。",
   "scanPassPracticeScoreNote": "練習はルート判断だけを比較します。ボーナス前の最大値は90点で、履歴保存や反応ボーナスはありません。",
   "scanPassRetryPracticeAction": "練習をやり直す",
   "scanPassNextRoundAction": "次のラウンド",
   "scanPassSeeResultAction": "結果を見る",
   "scanPassResultTitle": "スキャンパス結果",
-  "scanPassResultSubtitle": "平均ルート {score}、選択スコア率 {accuracy}%、平均反応 {response}。",
+  "scanPassResultSubtitle": "平均スコア {score}、選択スコア率 {accuracy}%、未完了ラウンド {timeouts}。",
   "@scanPassResultSubtitle": {
     "placeholders": {
       "score": {
@@ -3368,21 +3368,23 @@
       "accuracy": {
         "type": "int"
       },
-      "response": {}
+      "timeouts": {
+        "type": "int"
+      }
     }
   },
   "scanPassAverageRouteScore": "平均ルートスコア",
   "scanPassDecisionAccuracy": "選択スコア率",
-  "scanPassAverageResponse": "平均反応",
+  "scanPassAverageResponse": "平均判断時間",
   "scanPassBestAverageRouteScore": "最高平均ルート",
   "scanPassBestAccuracy": "最高選択スコア率",
   "scanPassBestResponse": "最高反応",
   "scanPassNoHistoryValue": "-",
   "scanPassPlayAgainAction": "10ラウンドをもう一度",
   "scanPassResultMethodTitle": "数字の読み方",
-  "scanPassResultAverageScoreNote": "平均ルートスコアは各ラウンドに記録された最終スコアの平均です。タイムアウトは0点です。",
-  "scanPassResultAccuracyNote": "選択スコア率は選んだスコアをそのラウンドの最高ルートスコアで割り、ラウンド平均にした値です。",
-  "scanPassResultTimeoutNote": "平均反応にはタイムアウトが選択期限として含まれるため、未選択ラウンドは平均反応を遅くします。",
+  "scanPassResultAverageScoreNote": "平均スコアは記録された各ラウンド点の平均です。タイムアウトは0点です。",
+  "scanPassResultAccuracyNote": "選択得点率は、各ラウンドで選んだ得点を同じ条件の最高ルート得点で割った比率の平均です。",
+  "scanPassResultTimeoutNote": "未完了ラウンドはファーストタッチまたは次の行動のタイムアウトです。練習は履歴に書きません。",
   "scanPassReasonClearLane": "レーンの余裕が主な強みです。",
   "scanPassReasonTimedRun": "到達マージンが主な強みです。",
   "scanPassReasonOpenSpace": "受け手スペースが主な強みです。",
@@ -3399,7 +3401,7 @@
       }
     }
   },
-  "scanPassFieldSemantics": "サッカーピッチです。アンバーはボール保持者、青は味方、コーラルは守備者で、攻撃は右へ進みます。",
+  "scanPassFieldSemantics": "サッカーピッチです。黄色の6番が操作する選手、青色が味方、赤色が守備で、攻撃は右方向に進みます。",
   "scanPassSecondsValue": "{seconds}秒",
   "@scanPassSecondsValue": {
     "placeholders": {
@@ -3414,6 +3416,168 @@
       }
     }
   },
+  "scanPassPhaseFirstTouchHeading": "2. ファーストタッチを選ぶ",
+  "scanPassPhaseNextActionHeading": "3. 次の行動を選ぶ",
+  "scanPassPhaseReviewHeading": "4. 判断を振り返る",
+  "scanPassPracticeFirstTouchHeading": "練習 2. ファーストタッチを選ぶ",
+  "scanPassPracticeNextActionHeading": "練習 3. 次の行動を選ぶ",
+  "scanPassPracticeReviewHeading": "練習 4. 判断を振り返る",
+  "scanPassStageObserve": "観察",
+  "scanPassStageFirstTouch": "初タッチ",
+  "scanPassStageNextAction": "次の行動",
+  "scanPassStageReview": "振り返り",
+  "scanPassIntroStepTouchTitle": "タッチと継続",
+  "scanPassIntroStepTouchBody": "タッチの方向によって体の向き、ボールを守る余裕、次に選べるプレーが変わります。",
+  "scanPassScenarioContextTitle": "試合状況",
+  "scanPassFamilyRearPress": "6番の背後圧力",
+  "scanPassFamilyRetreatingPressure": "下がる圧力",
+  "scanPassFamilyMarkedSupport": "マークされたサポート",
+  "scanPassFamilyClosingForwardLane": "閉じる前方レーン",
+  "scanPassFamilyReturnReceive": "返してもう一度受ける",
+  "scanPassRegionCentralMidfield": "中央ミッドフィールド",
+  "scanPassRegionLeftHalfSpace": "左ハーフスペース",
+  "scanPassRegionRightHalfSpace": "右ハーフスペース",
+  "scanPassRegionDefensiveThird": "守備側3分の1",
+  "scanPassRegionAttackingHalf": "攻撃側ハーフ",
+  "scanPassObjectiveProtectPossession": "保持を守る",
+  "scanPassObjectiveChaseGoal": "得点を追う",
+  "scanPassMatchClock": "{minute}' · {score}",
+  "@scanPassMatchClock": {
+    "placeholders": {
+      "minute": {},
+      "score": {}
+    }
+  },
+  "scanPassObserveInstruction": "ボールは4番から6番へ移動中です。背後の圧力を更新して見たい時はスキャンします。チャレンジはボール到着で自動的に進みます。",
+  "scanPassFirstTouchInstruction": "守備と空いているスペースを見て、タッチの方向か4番へのリターンを選びましょう。",
+  "scanPassNextPassInstruction": "次のパスを選びましょう。守備者と味方は動き続けるため、少し待つことが助けにもリスクにもなります。",
+  "scanPassNextMoveInstruction": "ボールは4番へ戻りました。6番がもう一度受ける角度を作るか、ポケットに残りましょう。",
+  "scanPassReviewInstruction": "選んだ経路を再生し、同じ開始場面で計算された強い代替案と比べましょう。",
+  "scanPassTimeoutFirstTouch": "時間内にファーストタッチを選べませんでした。このラウンドは0点で記録され、振り返りへ進みます。",
+  "scanPassTimeoutNextAction": "時間内に次の行動を選べませんでした。このラウンドは0点で記録され、振り返りへ進みます。",
+  "scanPassNoScanStatus": "背後の圧力はまだ観察していません。",
+  "scanPassLastScanStatus": "{seconds}秒の時点で確認した位置です。薄い守備の表示は、その時点の位置を示します。",
+  "@scanPassLastScanStatus": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
+  "scanPassScanAction": "スキャン",
+  "scanPassTouchUpperTitle": "上へタッチ",
+  "scanPassTouchUpperSubtitle": "6番を上側のチャンネルへ動かします。",
+  "scanPassTouchUpperShort": "上へタッチ",
+  "scanPassTouchLowerTitle": "下へタッチ",
+  "scanPassTouchLowerSubtitle": "6番を下側のチャンネルへ動かします。",
+  "scanPassTouchLowerShort": "下へタッチ",
+  "scanPassTouchTurnTitle": "前を向く",
+  "scanPassTouchTurnSubtitle": "露出は増えますが、9番方向へ体を開きます。",
+  "scanPassTouchTurnShort": "前向きターン",
+  "scanPassTouchReturnTitle": "4番へ返す",
+  "scanPassTouchReturnSubtitle": "ワンタッチで返し、もう一度動きます。",
+  "scanPassTouchReturnShort": "4番へ返す",
+  "scanPassPass4Title": "4番へパス",
+  "scanPassPass4Subtitle": "センターバック経由で作り直します。",
+  "scanPassPass4Short": "4番へパス",
+  "scanPassPass8Title": "8番へパス",
+  "scanPassPass8Subtitle": "近いサポートとつなぎます。",
+  "scanPassPass8Short": "8番へパス",
+  "scanPassPass9Title": "9番へパス",
+  "scanPassPass9Subtitle": "前方レーンを試します。",
+  "scanPassPass9Short": "9番へパス",
+  "scanPassHold8Title": "待って8番",
+  "scanPassHold8Subtitle": "少し待ってからサポートへ出します。",
+  "scanPassHold8Short": "保持して8番",
+  "scanPassSupportUpperTitle": "上側サポート",
+  "scanPassSupportUpperSubtitle": "圧力の横を回ってもう一度受けます。",
+  "scanPassSupportUpperShort": "上側サポート",
+  "scanPassSupportForwardTitle": "前方サポート",
+  "scanPassSupportForwardSubtitle": "圧力の前へ動き、返しのレーンを作ります。",
+  "scanPassSupportForwardShort": "前方サポート",
+  "scanPassHoldPocketTitle": "ポケット維持",
+  "scanPassHoldPocketSubtitle": "中央で返しのパスを待ちます。",
+  "scanPassHoldPocketShort": "ポケット維持",
+  "scanPassReviewMineAction": "自分の経路",
+  "scanPassReviewAlternativeAction": "代替案",
+  "scanPassReviewMineTitle": "選択した経路",
+  "scanPassReviewAlternativeTitle": "強い代替案",
+  "scanPassReviewTimeoutTitle": "タイムアウト振り返り",
+  "scanPassReviewComparable": "{plan}: {score}/100、{outcome}。近いタイミングで上位グループです。",
+  "@scanPassReviewComparable": {
+    "placeholders": {
+      "plan": {},
+      "score": {
+        "type": "int"
+      },
+      "outcome": {}
+    }
+  },
+  "scanPassReviewBehind": "{plan}: {score}/100、{outcome}。同じ条件で、別のルートの最高得点は{best}/100です。",
+  "@scanPassReviewBehind": {
+    "placeholders": {
+      "plan": {},
+      "score": {
+        "type": "int"
+      },
+      "best": {
+        "type": "int"
+      },
+      "outcome": {}
+    }
+  },
+  "scanPassTimeoutReviewSummary": "{plan} を確認中: {score}/100、{outcome}。タイムアウト後の有力なプランを示しています。",
+  "@scanPassTimeoutReviewSummary": {
+    "placeholders": {
+      "plan": {},
+      "score": {
+        "type": "int"
+      },
+      "outcome": {}
+    }
+  },
+  "scanPassPlanName": "{first} -> {next}",
+  "@scanPassPlanName": {
+    "placeholders": {
+      "first": {},
+      "next": {}
+    }
+  },
+  "scanPassScoreBreakdownTitle": "スコア内訳",
+  "scanPassComponentValue": "{earned}/{max}",
+  "@scanPassComponentValue": {
+    "placeholders": {
+      "earned": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassComponentControl": "コントロール",
+  "scanPassComponentPressureEscape": "圧力回避",
+  "scanPassComponentContinuation": "継続",
+  "scanPassComponentContextFit": "状況適合",
+  "scanPassPressureHandling": "圧力対応",
+  "scanPassContinuation": "継続",
+  "scanPassIncompleteRounds": "未完了ラウンド",
+  "scanPassReasonPanelTitle": "判断の手がかり",
+  "scanPassReasonControlledTouch": "ファーストタッチが次の行動に必要なコントロールを残しました。",
+  "scanPassReasonExposedTouch": "ファーストタッチでボールや体の向きが圧力にさらされました。",
+  "scanPassReasonPressureEscaped": "タッチまたは返しが最も近い圧力から離れました。",
+  "scanPassReasonPressureStayed": "圧力が次の行動に影響する距離に残りました。",
+  "scanPassReasonReceiverAvailable": "受け手には次のタッチに使えるスペースがありました。",
+  "scanPassReasonSupportAngleCreated": "返して動いたことで6番の新しい受け角度ができました。",
+  "scanPassReasonSupportAngleWeak": "返した後、6番は十分な新しい角度を作れませんでした。",
+  "scanPassReasonHoldOpenedLane": "この動く場面では、少し待つことでサポートレーンが開きました。",
+  "scanPassReasonHoldInvitedPressure": "少し待つ間に圧力がサポートレーンを閉じました。",
+  "scanPassReasonObjectiveProtected": "試合目標が保持の安全性と失うコストを重く見ました。",
+  "scanPassReasonObjectiveProgressed": "試合目標が有効な前進をより高く評価しました。",
+  "scanPassOutcomeKept": "保持継続",
+  "scanPassOutcomeProgressed": "攻撃前進",
+  "scanPassOutcomeRecycled": "保持を作り直し",
+  "scanPassOutcomeContested": "ボール争い",
+  "scanPassOutcomeIntercepted": "パスカット",
+  "scanPassOutcomeTimeout": "タイムアウト",
   "gameGuideTitle": "ゲームガイド",
   "gameGuideQuickTitle": "現在のゲームの流れ",
   "gameGuideQuickLine1": "各実行時間は 20 秒で、ライフは 3 つから始まります。失敗した場合は、ライフが残っている間にすぐに再試行できます。",
@@ -5028,31 +5192,106 @@
   "runningCoachPreviewResolutionWarning": "解像度が低いため、一部の項目は推定値になる場合があります。",
   "runningCoachPreviewUnknownInfo": "不明",
   "runningCoachPreviewMegabytes": "{value}MB",
-  "@runningCoachPreviewMegabytes": {"placeholders": {"value": {"type": "String"}}},
+  "@runningCoachPreviewMegabytes": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachPreviewVideoInfo": "{duration} · {size} · {resolution}",
-  "@runningCoachPreviewVideoInfo": {"placeholders": {"duration": {"type": "String"}, "size": {"type": "String"}, "resolution": {"type": "String"}}},
+  "@runningCoachPreviewVideoInfo": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      },
+      "resolution": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachPreviewTimeline": "{current} / {total}",
-  "@runningCoachPreviewTimeline": {"placeholders": {"current": {"type": "String"}, "total": {"type": "String"}}},
+  "@runningCoachPreviewTimeline": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachCoordinatePreviewLabel": "座標プレビュー",
   "runningCoachSlowLoopTitle": "動画でこの瞬間を見る",
   "runningCoachSlowLoopBody": "この測定の前後だけを0.5倍速で繰り返し再生します。",
   "runningCoachSlowLoopUnavailable": "元の動画が保存されていないため、この瞬間は再生できません。",
   "runningCoachSlowLoopCaptureOnly": "元の動画を保持していないため、保存した実際のキャプチャのみ表示できます。",
   "runningCoachSlowLoopTiming": "0.5倍速ループ · {start}秒〜{end}秒",
-  "@runningCoachSlowLoopTiming": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@runningCoachSlowLoopTiming": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachConfirmedScoreLabel": "確定スコア",
   "runningCoachEstimatedScoreLabel": "予想スコア",
   "runningCoachEstimatedScoreSummary": "この動画で利用できる座標から計算した予想スコアです",
   "runningCoachMeasurementCountTitle": "測定結果 {count}/{total}",
-  "@runningCoachMeasurementCountTitle": {"placeholders": {"count": {"type": "int"}, "total": {"type": "int"}}},
+  "@runningCoachMeasurementCountTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachMeasurementStatusEstimated": "推定測定",
   "runningCoachMeasurementStatusCoordinatesUnavailable": "座標なし",
   "runningCoachMeasurementExpectedRange": "予想範囲 {lower}〜{upper}",
-  "@runningCoachMeasurementExpectedRange": {"placeholders": {"lower": {"type": "String"}, "upper": {"type": "String"}}},
+  "@runningCoachMeasurementExpectedRange": {
+    "placeholders": {
+      "lower": {
+        "type": "String"
+      },
+      "upper": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachEvidenceFrameMetadata": "{side} · {time} · {value} · 信頼度 {confidence}%",
-  "@runningCoachEvidenceFrameMetadata": {"placeholders": {"side": {"type": "String"}, "time": {"type": "String"}, "value": {"type": "String"}, "confidence": {"type": "int"}}},
+  "@runningCoachEvidenceFrameMetadata": {
+    "placeholders": {
+      "side": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      },
+      "confidence": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachEvidenceViewAtTime": "動画の{time}を見る",
-  "@runningCoachEvidenceViewAtTime": {"placeholders": {"time": {"type": "String"}}},
+  "@runningCoachEvidenceViewAtTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachCaptureFlowBody": "横向き動画を撮影または選択し、プレビューしてから分析を確定します。長い動画も固定フレーム予算で処理します。",
   "runningCoachCaptureAction": "今すぐ撮影",
   "runningCoachCaptureAndAnalyzeAction": "撮影してすぐ分析",
@@ -5318,8 +5557,12 @@
   "runningCoachDenseContactVerificationProgress": "{verified}/{required}回を検証",
   "@runningCoachDenseContactVerificationProgress": {
     "placeholders": {
-      "verified": { "type": "int" },
-      "required": { "type": "int" }
+      "verified": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
     }
   },
   "runningCoachDenseContactConfidenceLabel": "根拠",
@@ -5382,7 +5625,9 @@
   "runningCoachMeasuredMetricSampleCount": "{count}サンプル",
   "@runningCoachMeasuredMetricSampleCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "runningCoachMeasuredMetricNoSamples": "根拠にできるサンプルなし",
@@ -5441,7 +5686,22 @@
   "runningCoachEvidenceNextFrame": "次の根拠フレーム",
   "runningCoachEvidenceImageViewerTitle": "根拠画像",
   "runningCoachEvidenceImageViewerMetadata": "{kind} · {role} · {side} · {time}",
-  "@runningCoachEvidenceImageViewerMetadata": {"placeholders": {"kind": {"type": "String"}, "role": {"type": "String"}, "side": {"type": "String"}, "time": {"type": "String"}}},
+  "@runningCoachEvidenceImageViewerMetadata": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "role": {
+        "type": "String"
+      },
+      "side": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachEvidenceFocusView": "ランナーを拡大",
   "runningCoachEvidenceOriginalView": "全体フレームを表示",
   "runningCoachEvidenceOverlayOn": "オーバーレイを表示",
@@ -6599,20 +6859,36 @@
   "healthConnectLastResult": "前回: 確認 {scanned} · 登録 {imported} · 更新 {updated} · 削除 {deleted} · 重複 {duplicate}",
   "@healthConnectLastResult": {
     "placeholders": {
-      "scanned": {"type": "int"},
-      "imported": {"type": "int"},
-      "updated": {"type": "int"},
-      "deleted": {"type": "int"},
-      "duplicate": {"type": "int"}
+      "scanned": {
+        "type": "int"
+      },
+      "imported": {
+        "type": "int"
+      },
+      "updated": {
+        "type": "int"
+      },
+      "deleted": {
+        "type": "int"
+      },
+      "duplicate": {
+        "type": "int"
+      }
     }
   },
   "healthConnectPermissionDeniedGuidance": "権限が複数回拒否されました。Health Connectの権限管理で、Taeo's Noteの運動データ読み取りを許可してください。",
   "healthConnectSyncApplied": "登録{imported}件、更新{updated}件、削除{deleted}件を反映しました。",
   "@healthConnectSyncApplied": {
     "placeholders": {
-      "imported": {"type": "int"},
-      "updated": {"type": "int"},
-      "deleted": {"type": "int"}
+      "imported": {
+        "type": "int"
+      },
+      "updated": {
+        "type": "int"
+      },
+      "deleted": {
+        "type": "int"
+      }
     }
   },
   "healthConnectPrivacyTitle": "Health Connectデータ利用について",
@@ -9417,8 +9693,12 @@
   "matchCompetitionRebuildDialogBody": "変更後の構成に合わせて{fixtures}試合を組み直します。記録済みの結果{results}件が初期化される場合があります。",
   "@matchCompetitionRebuildDialogBody": {
     "placeholders": {
-      "fixtures": { "type": "int" },
-      "results": { "type": "int" }
+      "fixtures": {
+        "type": "int"
+      },
+      "results": {
+        "type": "int"
+      }
     }
   },
   "matchCompetitionRebuildConfirm": "組み直す",
@@ -9431,13 +9711,17 @@
   "matchCompetitionScheduleUnscheduledCount": "日程未定 {count}試合",
   "@matchCompetitionScheduleUnscheduledCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "matchCompetitionScheduleIssuesCount": "確認が必要な項目 {count}件",
   "@matchCompetitionScheduleIssuesCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "matchCompetitionScheduleIssueVenueOverlap": "会場の予定が重複しています",
@@ -9485,15 +9769,25 @@
   "runningCoachGaitRangeValue": "{median} · 範囲 {minimum}–{maximum}",
   "@runningCoachGaitRangeValue": {
     "placeholders": {
-      "median": { "type": "String" },
-      "minimum": { "type": "String" },
-      "maximum": { "type": "String" }
+      "median": {
+        "type": "String"
+      },
+      "minimum": {
+        "type": "String"
+      },
+      "maximum": {
+        "type": "String"
+      }
     }
   },
   "runningCoachGaitStepsTitle": "検証済みの歩み",
   "runningCoachGaitStepNumber": "{number}歩目",
   "@runningCoachGaitStepNumber": {
-    "placeholders": { "number": { "type": "int" } }
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
   },
   "runningCoachGaitStepLeft": "左足",
   "runningCoachGaitStepRight": "右足",
@@ -9511,7 +9805,9 @@
     "placeholders": {
       "effort": {},
       "surface": {},
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "runningCoachTrendInsufficientBaselineTitle": "検証済み基準が不足",
@@ -9527,8 +9823,12 @@
   "runningCoachComparisonBody": "今回の記録は {effort}・{surface} 条件として保存されます。同じ条件の以前の動画だけと比較してください。",
   "@runningCoachComparisonBody": {
     "placeholders": {
-      "effort": { "type": "String" },
-      "surface": { "type": "String" }
+      "effort": {
+        "type": "String"
+      },
+      "surface": {
+        "type": "String"
+      }
     }
   },
   "runningCoachComparisonNoBaselineTitle": "同条件の過去記録がまだありません",
@@ -9539,14 +9839,24 @@
   "runningCoachComparisonChangeValue": "{previous} → {current}",
   "@runningCoachComparisonChangeValue": {
     "placeholders": {
-      "previous": { "type": "String" },
-      "current": { "type": "String" }
+      "previous": {
+        "type": "String"
+      },
+      "current": {
+        "type": "String"
+      }
     }
   },
   "runningCoachComparisonSameConditionRetake": "同じ条件で撮り直す",
   "runningCoachDefaultRunner": "自分",
   "runningCoachRunnerTarget": "分析対象: {name}",
-  "@runningCoachRunnerTarget": {"placeholders": {"name": {"type": "String"}}},
+  "@runningCoachRunnerTarget": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachManageRunners": "ランナー管理",
   "runningCoachSelectRunnerTitle": "誰を分析しますか？",
   "runningCoachAddRunner": "ランナーを追加",
@@ -9587,11 +9897,29 @@
   "runningCoachAnalysisQualityBadgeStrong": "安定した分析",
   "runningCoachAnalysisQualityBadgeLimited": "制限付き分析",
   "runningCoachPreviousScoreDelta": "前回比 {delta}",
-  "@runningCoachPreviousScoreDelta": {"placeholders": {"delta": {"type": "int"}}},
+  "@runningCoachPreviousScoreDelta": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachHistoryConfirmedScore": "確定 {score}",
-  "@runningCoachHistoryConfirmedScore": {"placeholders": {"score": {"type": "int"}}},
+  "@runningCoachHistoryConfirmedScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachHistoryEstimatedScore": "推定 {score}",
-  "@runningCoachHistoryEstimatedScore": {"placeholders": {"score": {"type": "int"}}},
+  "@runningCoachHistoryEstimatedScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachHistoryScoreUnavailable": "スコア保留",
   "runningCoachMultiplePersonLabel": "複数人を検出",
   "runningCoachTargetIdentityUnstableLabel": "ランナー追跡の変化",
@@ -9599,5 +9927,23 @@
   "runningCoachTargetIdentityUnstableReason": "ランナー追跡が急に変化したため、別人の記録を混ぜないようスコアを保留しました。",
   "runningCoachSingleRunnerRetake": "一度に1人だけを撮影し、ほかの人は画面の外にしてください。",
   "runningCoachHistoryTrendSummary": "確定ベスト {best}点・直近の変化 {delta}点",
-  "@runningCoachHistoryTrendSummary": {"placeholders": {"best": {"type": "int"}, "delta": {"type": "int"}}}
+  "@runningCoachHistoryTrendSummary": {
+    "placeholders": {
+      "best": {
+        "type": "int"
+      },
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarHolidayLabel": "祝日 · {name}",
+  "@calendarHolidayLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarNoRecordsForDay": "この日の記録はありません。"
 }

@@ -3190,8 +3190,8 @@
   },
   "scanPassTitle": "스캔 패스",
   "scanPassHelpAction": "분석 가이드",
-  "scanPassIntroTitle": "스캔 패스 분석",
-  "scanPassIntroSubtitle": "패스 길 여유, 수비 도착 타이밍, 받는 선수 압박, 전진 효과를 관찰합니다. 그 뒤 안전성과 이득의 균형이 가장 나은 패스 루트를 선택하세요.",
+  "scanPassIntroTitle": "4v3 스캔 패스",
+  "scanPassIntroSubtitle": "6번 미드필더가 되어 받기 전에 주변을 확인하고, 첫 터치와 다음 패스 또는 움직임을 선택하세요. 화면 속 판단을 연습하는 게임입니다.",
   "scanPassSampleFieldSemantics": "스캔 패스 예시 경기장",
   "scanPassPracticeAction": "제한 없는 연습",
   "scanPassStartChallengeAction": "10라운드 챌린지",
@@ -3221,34 +3221,34 @@
     }
   },
   "scanPassPracticeStatus": "연습",
-  "scanPassPhaseObserveHeading": "1. 수비 압박 관찰",
+  "scanPassPhaseObserveHeading": "1. 받기 전 관찰",
   "scanPassPhaseChoiceHeading": "2. 패스 루트 선택",
-  "scanPassPhaseCompareHeading": "3. 루트 분석 확인",
+  "scanPassPhaseCompareHeading": "4. 판단 복기",
   "scanPassPracticeObserveHeading": "연습 1. 형태 관찰",
   "scanPassPracticeChoiceHeading": "연습 2. 루트 선택",
-  "scanPassPracticeCompareHeading": "연습 3. 판단 근거 확인",
-  "scanPassLegendBallCarrier": "나: 볼 소유",
+  "scanPassPracticeCompareHeading": "연습 4. 판단 복기",
+  "scanPassLegendBallCarrier": "나: 6번",
   "scanPassLegendTeammate": "동료",
   "scanPassLegendDefender": "수비",
   "scanPassAttackDirection": "공격 방향: 오른쪽",
   "scanPassIntroStepObserveTitle": "관찰",
-  "scanPassIntroStepObserveBody": "패스 길, 수비 도착 경로, 받는 선수 압박, 열린 공간을 읽습니다.",
+  "scanPassIntroStepObserveBody": "스캔 버튼으로 6번 뒤쪽 압박의 기억 위치를 갱신합니다.",
   "scanPassIntroStepChooseTitle": "패스 선택",
-  "scanPassIntroStepChooseBody": "수비가 사라진 뒤 균형이 가장 좋은 동료 루트를 고릅니다.",
+  "scanPassIntroStepChooseBody": "첫 터치 뒤 4번, 8번, 9번으로 연결하거나 움직이는 길이 바뀔 때 잠깐 보류합니다.",
   "scanPassIntroStepCompareTitle": "루트 분석",
-  "scanPassIntroStepCompareBody": "세 루트 모두 점수가 나옵니다. 높은 점수도 위험을 포함할 수 있습니다.",
+  "scanPassIntroStepCompareBody": "같은 시작 상태와 비슷한 타이밍의 강한 대안을 내 선택과 비교합니다.",
   "scanPassIntroScoringGuideTitle": "점수 산정 가이드",
-  "scanPassIntroScoringGuideSummary": "판단 점수는 반응 보너스 전 최대 90점입니다.",
-  "scanPassScoringGuideDecision": "판단 소계: 패스 길 여유 26점, 수비 도착 여유 22점, 받는 선수 공간 16점, 전진 효과 12점, 연결 안정성 14점입니다. 합계는 90점입니다.",
-  "scanPassScoringGuideReaction": "챌린지 반응 보너스는 판단 소계가 50점 이상일 때만 붙습니다. 450ms 이하는 최대 10점이고 선택 제한 시간에 가까워질수록 0점까지 줄어듭니다.",
-  "scanPassScoringGuidePractice": "연습은 제한 시간이 없고 루트 판단 점수만 보여줍니다. 최대 90점이며 기록 저장과 반응 보너스가 없습니다.",
-  "scanPassScoringGuideMethod": "방법: 지표는 정규화된 게임 위치와 속도 기반입니다. 실제 경기 확률, 실제 초, 미터, xG, 성공률이 아닙니다.",
+  "scanPassIntroScoringGuideSummary": "네 가지 구성 요소가 실제 합산되어 100점 만점이 됩니다.",
+  "scanPassScoringGuideDecision": "점수: 컨트롤 30점, 압박 탈출 22점, 이어가기 24점, 상황 적합도 24점입니다. 각 구성 점수를 반올림한 뒤 더합니다.",
+  "scanPassScoringGuideReaction": "판단 시간은 수비와 동료가 계속 움직이는 게임 상태를 바꿉니다. 보편적인 빠른 클릭 보너스는 없습니다.",
+  "scanPassScoringGuidePractice": "연습은 기록에 저장되지 않고 반복할 수 있습니다. 10라운드 챌린지는 마지막 복기 뒤 한 번 저장됩니다.",
+  "scanPassScoringGuideMethod": "점수는 경기 상황을 단순화한 게임 기준입니다. 실제 경기력, 머리·시선 스캔 능력이나 패스 성공률을 측정하지 않습니다.",
   "scanPassPreviewInstruction": "수비와 동료를 관찰하세요. 공격은 오른쪽으로 진행되고, 곧 수비 압박이 가려집니다.",
   "scanPassPredictionPreviewInstruction": "수비의 첫 움직임을 관찰하세요. 사라진 뒤 압박이 어디에 도착할지 판단합니다.",
   "scanPassSilhouetteChoiceInstruction": "희미한 수비 위치를 기억하면서 루트를 선택하세요.",
   "scanPassHiddenChoiceInstruction": "수비가 숨겨졌습니다. 패스 길 여유, 타이밍, 공간, 전진 효과의 균형이 가장 나은 루트를 선택하세요.",
   "scanPassPredictionChoiceInstruction": "수비 이동을 예측한 뒤 판단 근거가 있는 루트를 선택하세요.",
-  "scanPassPracticeObserveInstruction": "천천히 봐도 됩니다. 패스 길, 도착 타이밍, 받는 선수 압박, 전진 가치를 설명할 수 있으면 계속하세요.",
+  "scanPassPracticeObserveInstruction": "천천히 봐도 됩니다. 현재 뒤쪽 상황을 보고 싶으면 스캔하고, 받을 준비가 되면 계속하세요.",
   "scanPassPracticeChoiceInstruction": "수비가 숨겨졌습니다. 연습에는 제한 시간이 없으니 루트 하나를 선택하세요.",
   "scanPassPracticeReadyAction": "준비",
   "scanPassPassInFlight": "패스가 출발했습니다. 패스 길, 받는 선수 압박, 도착 여유를 확인하세요.",
@@ -3352,14 +3352,14 @@
   "scanPassCueSpace": "받는 선수의 첫 터치 구역과 터치라인 거리를 확인하세요.",
   "scanPassCueProgression": "공이 오른쪽의 쓸 수 있는 중앙 통로로 이동하는지 판단하세요.",
   "scanPassCueConnection": "패스 길, 도착 여유, 공간이 함께 맞을 때 안정적인 루트로 보세요.",
-  "scanPassMethodologyNote": "방법: 정규화된 위치와 속도 기반의 게임 지표이며 실제 경기 확률이 아닙니다.",
+  "scanPassMethodologyNote": "점수와 예상 결과는 게임 속 판단을 비교하는 기준입니다. 실제 경기력이나 패스 성공률을 뜻하지 않습니다.",
   "scanPassReactionSameTimeNote": "반응 보너스가 가능한 경우에도 이번 라운드의 모든 루트에 같은 반응 시간이 적용됩니다.",
   "scanPassPracticeScoreNote": "연습은 루트 판단만 비교합니다. 보너스 전 최대 90점이며 기록 저장과 반응 보너스가 없습니다.",
   "scanPassRetryPracticeAction": "연습 다시 하기",
   "scanPassNextRoundAction": "다음 라운드",
   "scanPassSeeResultAction": "결과 보기",
   "scanPassResultTitle": "스캔 패스 결과",
-  "scanPassResultSubtitle": "평균 루트 {score}점, 선택 점수율 {accuracy}%, 평균 반응 {response}.",
+  "scanPassResultSubtitle": "평균 점수 {score}점, 선택 점수율 {accuracy}%, 미완료 라운드 {timeouts}.",
   "@scanPassResultSubtitle": {
     "placeholders": {
       "score": {
@@ -3368,21 +3368,23 @@
       "accuracy": {
         "type": "int"
       },
-      "response": {}
+      "timeouts": {
+        "type": "int"
+      }
     }
   },
   "scanPassAverageRouteScore": "평균 루트 점수",
   "scanPassDecisionAccuracy": "선택 점수율",
-  "scanPassAverageResponse": "평균 반응",
+  "scanPassAverageResponse": "평균 판단 시간",
   "scanPassBestAverageRouteScore": "최고 평균 루트",
   "scanPassBestAccuracy": "최고 선택 점수율",
   "scanPassBestResponse": "최고 반응",
   "scanPassNoHistoryValue": "-",
   "scanPassPlayAgainAction": "10라운드 다시 시작",
   "scanPassResultMethodTitle": "숫자 읽는 법",
-  "scanPassResultAverageScoreNote": "평균 루트 점수는 각 라운드에 기록된 최종 점수의 평균입니다. 시간 초과는 0점으로 기록됩니다.",
-  "scanPassResultAccuracyNote": "선택 점수율은 선택한 점수를 그 라운드 최고 루트 점수로 나눈 값이며, 라운드 평균으로 계산합니다.",
-  "scanPassResultTimeoutNote": "평균 반응에는 시간 초과가 선택 제한 시간으로 포함되므로 놓친 라운드는 반응 평균을 늦춥니다.",
+  "scanPassResultAverageScoreNote": "평균 점수는 기록된 라운드 점수의 평균입니다. 시간 초과는 0점입니다.",
+  "scanPassResultAccuracyNote": "선택 점수율은 내 점수를 같은 조건에서 가장 높은 경로 점수와 비교한 라운드별 비율의 평균입니다.",
+  "scanPassResultTimeoutNote": "미완료 라운드는 첫 터치 또는 다음 행동 시간 초과입니다. 연습은 기록에 쓰지 않습니다.",
   "scanPassReasonClearLane": "패스 길 여유가 주요 강점입니다.",
   "scanPassReasonTimedRun": "도착 여유가 주요 강점입니다.",
   "scanPassReasonOpenSpace": "받는 선수 공간이 주요 강점입니다.",
@@ -3399,7 +3401,7 @@
       }
     }
   },
-  "scanPassFieldSemantics": "축구 경기장입니다. 앰버색은 볼 소유자, 파란색은 동료, 코랄색은 수비이며 공격은 오른쪽으로 진행됩니다.",
+  "scanPassFieldSemantics": "축구 경기장입니다. 노란색 6번은 조종하는 선수, 파란색은 동료, 붉은색은 수비이며 공격은 오른쪽으로 진행됩니다.",
   "scanPassSecondsValue": "{seconds}초",
   "@scanPassSecondsValue": {
     "placeholders": {
@@ -3414,6 +3416,168 @@
       }
     }
   },
+  "scanPassPhaseFirstTouchHeading": "2. 첫 터치 선택",
+  "scanPassPhaseNextActionHeading": "3. 다음 행동 선택",
+  "scanPassPhaseReviewHeading": "4. 판단 복기",
+  "scanPassPracticeFirstTouchHeading": "연습 2. 첫 터치 선택",
+  "scanPassPracticeNextActionHeading": "연습 3. 다음 행동 선택",
+  "scanPassPracticeReviewHeading": "연습 4. 판단 복기",
+  "scanPassStageObserve": "관찰",
+  "scanPassStageFirstTouch": "첫 터치",
+  "scanPassStageNextAction": "다음 행동",
+  "scanPassStageReview": "복기",
+  "scanPassIntroStepTouchTitle": "터치와 이어가기",
+  "scanPassIntroStepTouchBody": "터치 방향에 따라 몸 방향, 공을 지킬 여유, 다음에 가능한 행동이 바뀝니다.",
+  "scanPassScenarioContextTitle": "경기 상황",
+  "scanPassFamilyRearPress": "6번 등 뒤 압박",
+  "scanPassFamilyRetreatingPressure": "물러나는 압박",
+  "scanPassFamilyMarkedSupport": "막힌 지원 옵션",
+  "scanPassFamilyClosingForwardLane": "닫히는 전방 길",
+  "scanPassFamilyReturnReceive": "리턴 패스 뒤 다시 받기",
+  "scanPassRegionCentralMidfield": "중앙 미드필드",
+  "scanPassRegionLeftHalfSpace": "왼쪽 하프스페이스",
+  "scanPassRegionRightHalfSpace": "오른쪽 하프스페이스",
+  "scanPassRegionDefensiveThird": "수비 진영",
+  "scanPassRegionAttackingHalf": "공격 진영",
+  "scanPassObjectiveProtectPossession": "소유 지키기",
+  "scanPassObjectiveChaseGoal": "득점 추격",
+  "scanPassMatchClock": "{minute}' · {score}",
+  "@scanPassMatchClock": {
+    "placeholders": {
+      "minute": {},
+      "score": {}
+    }
+  },
+  "scanPassObserveInstruction": "공이 4번에서 6번으로 이동 중입니다. 갱신된 뒤쪽 압박을 보고 싶으면 스캔하세요. 챌린지는 공이 도착하면 자동으로 진행됩니다.",
+  "scanPassFirstTouchInstruction": "수비와 빈 공간을 보고 첫 터치 방향 또는 4번 리턴을 선택하세요.",
+  "scanPassNextPassInstruction": "이제 패스를 선택하세요. 수비와 동료가 계속 움직이므로 잠깐 기다리기가 도움이 될 수도, 위험할 수도 있습니다.",
+  "scanPassNextMoveInstruction": "공은 4번에게 돌아갔습니다. 6번이 다시 받을 각도를 만들거나 중앙 포켓에 머무르세요.",
+  "scanPassReviewInstruction": "선택한 경로를 다시 보고, 같은 시작 장면에서 계산된 강한 대안과 비교하세요.",
+  "scanPassTimeoutFirstTouch": "제한 시간 안에 첫 터치를 고르지 못했습니다. 이 라운드는 0점으로 기록되고 복기로 이동합니다.",
+  "scanPassTimeoutNextAction": "제한 시간 안에 다음 행동을 고르지 못했습니다. 이 라운드는 0점으로 기록되고 복기로 이동합니다.",
+  "scanPassNoScanStatus": "등 뒤 압박을 아직 관찰하지 않았습니다.",
+  "scanPassLastScanStatus": "{seconds}초에 확인한 위치입니다. 흐린 수비 표시는 당시 위치를 뜻합니다.",
+  "@scanPassLastScanStatus": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
+  "scanPassScanAction": "스캔",
+  "scanPassTouchUpperTitle": "위쪽 터치",
+  "scanPassTouchUpperSubtitle": "6번을 위쪽 채널로 이동합니다.",
+  "scanPassTouchUpperShort": "위쪽 터치",
+  "scanPassTouchLowerTitle": "아래쪽 터치",
+  "scanPassTouchLowerSubtitle": "6번을 아래쪽 채널로 이동합니다.",
+  "scanPassTouchLowerShort": "아래쪽 터치",
+  "scanPassTouchTurnTitle": "전방으로 돌기",
+  "scanPassTouchTurnSubtitle": "더 노출되지만 9번 방향으로 몸을 엽니다.",
+  "scanPassTouchTurnShort": "전방 턴",
+  "scanPassTouchReturnTitle": "4번에게 리턴",
+  "scanPassTouchReturnSubtitle": "원터치로 돌려주고 다시 움직입니다.",
+  "scanPassTouchReturnShort": "4번 리턴",
+  "scanPassPass4Title": "4번에게 패스",
+  "scanPassPass4Subtitle": "센터백을 통해 재구성합니다.",
+  "scanPassPass4Short": "4번 패스",
+  "scanPassPass8Title": "8번에게 패스",
+  "scanPassPass8Subtitle": "가까운 지원 선수와 연결합니다.",
+  "scanPassPass8Short": "8번 패스",
+  "scanPassPass9Title": "9번에게 패스",
+  "scanPassPass9Subtitle": "전방 길을 시도합니다.",
+  "scanPassPass9Short": "9번 패스",
+  "scanPassHold8Title": "기다린 뒤 8번",
+  "scanPassHold8Subtitle": "잠깐 기다린 뒤 지원 패스를 합니다.",
+  "scanPassHold8Short": "보류 뒤 8번",
+  "scanPassSupportUpperTitle": "위쪽 지원",
+  "scanPassSupportUpperSubtitle": "압박 옆으로 돌아 다시 받습니다.",
+  "scanPassSupportUpperShort": "위쪽 지원",
+  "scanPassSupportForwardTitle": "전방 지원",
+  "scanPassSupportForwardSubtitle": "압박 앞쪽으로 움직여 리턴 길을 만듭니다.",
+  "scanPassSupportForwardShort": "전방 지원",
+  "scanPassHoldPocketTitle": "포켓 유지",
+  "scanPassHoldPocketSubtitle": "중앙에서 리턴 패스를 기다립니다.",
+  "scanPassHoldPocketShort": "포켓 유지",
+  "scanPassReviewMineAction": "내 경로",
+  "scanPassReviewAlternativeAction": "대안",
+  "scanPassReviewMineTitle": "선택한 경로",
+  "scanPassReviewAlternativeTitle": "강한 대안",
+  "scanPassReviewTimeoutTitle": "시간 초과 복기",
+  "scanPassReviewComparable": "{plan}: {score}/100, {outcome}. 비슷한 타이밍 기준 상위 그룹입니다.",
+  "@scanPassReviewComparable": {
+    "placeholders": {
+      "plan": {},
+      "score": {
+        "type": "int"
+      },
+      "outcome": {}
+    }
+  },
+  "scanPassReviewBehind": "{plan}: {score}/100, {outcome}. 같은 조건에서 다른 경로의 최고 점수는 {best}/100입니다.",
+  "@scanPassReviewBehind": {
+    "placeholders": {
+      "plan": {},
+      "score": {
+        "type": "int"
+      },
+      "best": {
+        "type": "int"
+      },
+      "outcome": {}
+    }
+  },
+  "scanPassTimeoutReviewSummary": "{plan} 복기: {score}/100, {outcome}. 시간 초과 뒤 가능한 플랜을 보여줍니다.",
+  "@scanPassTimeoutReviewSummary": {
+    "placeholders": {
+      "plan": {},
+      "score": {
+        "type": "int"
+      },
+      "outcome": {}
+    }
+  },
+  "scanPassPlanName": "{first} -> {next}",
+  "@scanPassPlanName": {
+    "placeholders": {
+      "first": {},
+      "next": {}
+    }
+  },
+  "scanPassScoreBreakdownTitle": "점수 구성",
+  "scanPassComponentValue": "{earned}/{max}",
+  "@scanPassComponentValue": {
+    "placeholders": {
+      "earned": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassComponentControl": "컨트롤",
+  "scanPassComponentPressureEscape": "압박 탈출",
+  "scanPassComponentContinuation": "이어가기",
+  "scanPassComponentContextFit": "상황 적합도",
+  "scanPassPressureHandling": "압박 처리",
+  "scanPassContinuation": "이어가기",
+  "scanPassIncompleteRounds": "미완료 라운드",
+  "scanPassReasonPanelTitle": "판단 단서",
+  "scanPassReasonControlledTouch": "첫 터치가 다음 행동에 필요한 컨트롤을 남겼습니다.",
+  "scanPassReasonExposedTouch": "첫 터치에서 공이나 몸 방향이 압박에 노출됐습니다.",
+  "scanPassReasonPressureEscaped": "터치 또는 리턴이 가장 가까운 압박에서 벗어났습니다.",
+  "scanPassReasonPressureStayed": "압박이 다음 행동에 영향을 줄 만큼 가까웠습니다.",
+  "scanPassReasonReceiverAvailable": "받는 선수가 다음 터치를 할 공간을 확보했습니다.",
+  "scanPassReasonSupportAngleCreated": "리턴 뒤 움직임이 6번의 새 수신 각도를 만들었습니다.",
+  "scanPassReasonSupportAngleWeak": "리턴 뒤 6번이 새 각도를 충분히 만들지 못했습니다.",
+  "scanPassReasonHoldOpenedLane": "이 움직이는 장면에서는 잠깐 기다린 것이 지원 길을 열었습니다.",
+  "scanPassReasonHoldInvitedPressure": "잠깐 기다리는 동안 압박이 지원 길을 닫았습니다.",
+  "scanPassReasonObjectiveProtected": "경기 목표가 소유 유지와 빼앗김 비용을 더 크게 봤습니다.",
+  "scanPassReasonObjectiveProgressed": "경기 목표가 유효한 전진을 더 크게 평가했습니다.",
+  "scanPassOutcomeKept": "소유 유지",
+  "scanPassOutcomeProgressed": "공격 전진",
+  "scanPassOutcomeRecycled": "소유 재구성",
+  "scanPassOutcomeContested": "볼 경합",
+  "scanPassOutcomeIntercepted": "패스 차단",
+  "scanPassOutcomeTimeout": "시간 초과",
   "gameGuideTitle": "게임 가이드",
   "gameGuideQuickTitle": "현재 게임 흐름",
   "gameGuideQuickLine1": "한 판은 20초이며 시작 생명은 3개입니다. 실패해도 생명이 남으면 바로 재도전합니다.",
@@ -5028,31 +5192,106 @@
   "runningCoachPreviewResolutionWarning": "해상도가 낮아 일부 항목은 추정값으로 표시될 수 있어요.",
   "runningCoachPreviewUnknownInfo": "정보 없음",
   "runningCoachPreviewMegabytes": "{value}MB",
-  "@runningCoachPreviewMegabytes": {"placeholders": {"value": {"type": "String"}}},
+  "@runningCoachPreviewMegabytes": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachPreviewVideoInfo": "{duration} · {size} · {resolution}",
-  "@runningCoachPreviewVideoInfo": {"placeholders": {"duration": {"type": "String"}, "size": {"type": "String"}, "resolution": {"type": "String"}}},
+  "@runningCoachPreviewVideoInfo": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      },
+      "resolution": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachPreviewTimeline": "{current} / {total}",
-  "@runningCoachPreviewTimeline": {"placeholders": {"current": {"type": "String"}, "total": {"type": "String"}}},
+  "@runningCoachPreviewTimeline": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachCoordinatePreviewLabel": "좌표 미리보기",
   "runningCoachSlowLoopTitle": "영상에서 이 순간 보기",
   "runningCoachSlowLoopBody": "이 측정 전후의 짧은 구간만 0.5배속으로 반복 재생해요.",
   "runningCoachSlowLoopUnavailable": "원본 영상을 저장하지 않아 이 순간을 재생할 수 없어요.",
   "runningCoachSlowLoopCaptureOnly": "원본 영상을 보관하지 않아 저장된 실제 캡처만 볼 수 있어요.",
   "runningCoachSlowLoopTiming": "0.5배속 반복 · {start}초–{end}초",
-  "@runningCoachSlowLoopTiming": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@runningCoachSlowLoopTiming": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachConfirmedScoreLabel": "확정 점수",
   "runningCoachEstimatedScoreLabel": "예상 점수",
   "runningCoachEstimatedScoreSummary": "이 영상에서 읽은 좌표로 계산한 예상 점수예요",
   "runningCoachMeasurementCountTitle": "측정 결과 {count}/{total}",
-  "@runningCoachMeasurementCountTitle": {"placeholders": {"count": {"type": "int"}, "total": {"type": "int"}}},
+  "@runningCoachMeasurementCountTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachMeasurementStatusEstimated": "추정 측정",
   "runningCoachMeasurementStatusCoordinatesUnavailable": "좌표 없음",
   "runningCoachMeasurementExpectedRange": "예상 범위 {lower}–{upper}",
-  "@runningCoachMeasurementExpectedRange": {"placeholders": {"lower": {"type": "String"}, "upper": {"type": "String"}}},
+  "@runningCoachMeasurementExpectedRange": {
+    "placeholders": {
+      "lower": {
+        "type": "String"
+      },
+      "upper": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachEvidenceFrameMetadata": "{side} · {time} · {value} · 신뢰도 {confidence}%",
-  "@runningCoachEvidenceFrameMetadata": {"placeholders": {"side": {"type": "String"}, "time": {"type": "String"}, "value": {"type": "String"}, "confidence": {"type": "int"}}},
+  "@runningCoachEvidenceFrameMetadata": {
+    "placeholders": {
+      "side": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      },
+      "confidence": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachEvidenceViewAtTime": "영상에서 {time} 보기",
-  "@runningCoachEvidenceViewAtTime": {"placeholders": {"time": {"type": "String"}}},
+  "@runningCoachEvidenceViewAtTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachCaptureFlowBody": "측면 영상을 촬영하거나 고른 뒤 미리 보고 분석을 확정하세요. 긴 영상도 정해진 프레임 예산으로 처리해요.",
   "runningCoachCaptureAction": "바로 촬영",
   "runningCoachCaptureAndAnalyzeAction": "바로 촬영하고 분석하기",
@@ -5318,8 +5557,12 @@
   "runningCoachDenseContactVerificationProgress": "{verified}/{required}회 검증",
   "@runningCoachDenseContactVerificationProgress": {
     "placeholders": {
-      "verified": { "type": "int" },
-      "required": { "type": "int" }
+      "verified": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
     }
   },
   "runningCoachDenseContactConfidenceLabel": "근거",
@@ -5382,7 +5625,9 @@
   "runningCoachMeasuredMetricSampleCount": "{count}개 샘플",
   "@runningCoachMeasuredMetricSampleCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "runningCoachMeasuredMetricNoSamples": "방어 가능한 샘플 없음",
@@ -5441,7 +5686,22 @@
   "runningCoachEvidenceNextFrame": "다음 근거 프레임",
   "runningCoachEvidenceImageViewerTitle": "근거 이미지",
   "runningCoachEvidenceImageViewerMetadata": "{kind} · {role} · {side} · {time}",
-  "@runningCoachEvidenceImageViewerMetadata": {"placeholders": {"kind": {"type": "String"}, "role": {"type": "String"}, "side": {"type": "String"}, "time": {"type": "String"}}},
+  "@runningCoachEvidenceImageViewerMetadata": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "role": {
+        "type": "String"
+      },
+      "side": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachEvidenceFocusView": "러너 확대 보기",
   "runningCoachEvidenceOriginalView": "전체 프레임 보기",
   "runningCoachEvidenceOverlayOn": "오버레이 보기",
@@ -6599,20 +6859,36 @@
   "healthConnectLastResult": "마지막 처리: 검사 {scanned} · 등록 {imported} · 수정 {updated} · 삭제 {deleted} · 중복 {duplicate}",
   "@healthConnectLastResult": {
     "placeholders": {
-      "scanned": {"type": "int"},
-      "imported": {"type": "int"},
-      "updated": {"type": "int"},
-      "deleted": {"type": "int"},
-      "duplicate": {"type": "int"}
+      "scanned": {
+        "type": "int"
+      },
+      "imported": {
+        "type": "int"
+      },
+      "updated": {
+        "type": "int"
+      },
+      "deleted": {
+        "type": "int"
+      },
+      "duplicate": {
+        "type": "int"
+      }
     }
   },
   "healthConnectPermissionDeniedGuidance": "권한 요청이 반복해서 거부됐어요. Health Connect 권한 관리에서 태오의노트의 운동 읽기 권한을 켜 주세요.",
   "healthConnectSyncApplied": "등록 {imported}개, 수정 {updated}개, 삭제 {deleted}개를 반영했어요.",
   "@healthConnectSyncApplied": {
     "placeholders": {
-      "imported": {"type": "int"},
-      "updated": {"type": "int"},
-      "deleted": {"type": "int"}
+      "imported": {
+        "type": "int"
+      },
+      "updated": {
+        "type": "int"
+      },
+      "deleted": {
+        "type": "int"
+      }
     }
   },
   "healthConnectPrivacyTitle": "Health Connect 데이터 이용 안내",
@@ -9417,8 +9693,12 @@
   "matchCompetitionRebuildDialogBody": "변경된 구성에 맞춰 경기 {fixtures}개를 다시 편성합니다. 기록된 결과 {results}개가 초기화될 수 있어요.",
   "@matchCompetitionRebuildDialogBody": {
     "placeholders": {
-      "fixtures": { "type": "int" },
-      "results": { "type": "int" }
+      "fixtures": {
+        "type": "int"
+      },
+      "results": {
+        "type": "int"
+      }
     }
   },
   "matchCompetitionRebuildConfirm": "다시 편성",
@@ -9431,13 +9711,17 @@
   "matchCompetitionScheduleUnscheduledCount": "일정 미정 {count}경기",
   "@matchCompetitionScheduleUnscheduledCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "matchCompetitionScheduleIssuesCount": "확인이 필요한 항목 {count}건",
   "@matchCompetitionScheduleIssuesCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "matchCompetitionScheduleIssueVenueOverlap": "같은 장소의 경기 일정이 겹쳐요",
@@ -9485,15 +9769,25 @@
   "runningCoachGaitRangeValue": "{median} · 범위 {minimum}–{maximum}",
   "@runningCoachGaitRangeValue": {
     "placeholders": {
-      "median": { "type": "String" },
-      "minimum": { "type": "String" },
-      "maximum": { "type": "String" }
+      "median": {
+        "type": "String"
+      },
+      "minimum": {
+        "type": "String"
+      },
+      "maximum": {
+        "type": "String"
+      }
     }
   },
   "runningCoachGaitStepsTitle": "검증된 걸음",
   "runningCoachGaitStepNumber": "{number}번째 걸음",
   "@runningCoachGaitStepNumber": {
-    "placeholders": { "number": { "type": "int" } }
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
   },
   "runningCoachGaitStepLeft": "왼발",
   "runningCoachGaitStepRight": "오른발",
@@ -9511,7 +9805,9 @@
     "placeholders": {
       "effort": {},
       "surface": {},
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "runningCoachTrendInsufficientBaselineTitle": "검증 기준선 부족",
@@ -9527,8 +9823,12 @@
   "runningCoachComparisonBody": "이번 기록은 {effort} · {surface} 조건으로 저장됩니다. 같은 조건의 이전 영상과만 비교하세요.",
   "@runningCoachComparisonBody": {
     "placeholders": {
-      "effort": { "type": "String" },
-      "surface": { "type": "String" }
+      "effort": {
+        "type": "String"
+      },
+      "surface": {
+        "type": "String"
+      }
     }
   },
   "runningCoachComparisonNoBaselineTitle": "같은 조건의 이전 기록이 아직 없어요",
@@ -9539,14 +9839,24 @@
   "runningCoachComparisonChangeValue": "{previous} → {current}",
   "@runningCoachComparisonChangeValue": {
     "placeholders": {
-      "previous": { "type": "String" },
-      "current": { "type": "String" }
+      "previous": {
+        "type": "String"
+      },
+      "current": {
+        "type": "String"
+      }
     }
   },
   "runningCoachComparisonSameConditionRetake": "같은 조건으로 다시 촬영",
   "runningCoachDefaultRunner": "나",
   "runningCoachRunnerTarget": "분석 대상: {name}",
-  "@runningCoachRunnerTarget": {"placeholders": {"name": {"type": "String"}}},
+  "@runningCoachRunnerTarget": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachManageRunners": "러너 관리",
   "runningCoachSelectRunnerTitle": "누구를 분석할까요?",
   "runningCoachAddRunner": "러너 추가",
@@ -9587,11 +9897,29 @@
   "runningCoachAnalysisQualityBadgeStrong": "안정적 분석",
   "runningCoachAnalysisQualityBadgeLimited": "제한적 분석",
   "runningCoachPreviousScoreDelta": "이전 대비 {delta}",
-  "@runningCoachPreviousScoreDelta": {"placeholders": {"delta": {"type": "int"}}},
+  "@runningCoachPreviousScoreDelta": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachHistoryConfirmedScore": "확정 {score}",
-  "@runningCoachHistoryConfirmedScore": {"placeholders": {"score": {"type": "int"}}},
+  "@runningCoachHistoryConfirmedScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachHistoryEstimatedScore": "추정 {score}",
-  "@runningCoachHistoryEstimatedScore": {"placeholders": {"score": {"type": "int"}}},
+  "@runningCoachHistoryEstimatedScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachHistoryScoreUnavailable": "점수 보류",
   "runningCoachMultiplePersonLabel": "여러 사람 감지",
   "runningCoachTargetIdentityUnstableLabel": "러너 추적 변경",
@@ -9599,5 +9927,23 @@
   "runningCoachTargetIdentityUnstableReason": "러너 추적이 갑자기 바뀌어 서로 다른 사람의 기록이 섞이지 않도록 점수를 보류했어요.",
   "runningCoachSingleRunnerRetake": "한 번에 한 명만 촬영하고 다른 사람은 화면 밖에 있도록 해주세요.",
   "runningCoachHistoryTrendSummary": "확정 최고 {best}점 · 최근 변화 {delta}점",
-  "@runningCoachHistoryTrendSummary": {"placeholders": {"best": {"type": "int"}, "delta": {"type": "int"}}}
+  "@runningCoachHistoryTrendSummary": {
+    "placeholders": {
+      "best": {
+        "type": "int"
+      },
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarHolidayLabel": "공휴일 · {name}",
+  "@calendarHolidayLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarNoRecordsForDay": "이 날짜의 기록이 없습니다."
 }

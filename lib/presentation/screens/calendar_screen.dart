@@ -5252,33 +5252,37 @@ class _DayTimeline extends StatelessWidget {
         sortedMatchEntries.isEmpty &&
         sortedTrainingEntries.isEmpty &&
         dayMealEntry == null) {
+      final l10n = AppLocalizations.of(context)!;
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if ((holidayName ?? '').isNotEmpty) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.12),
-                  borderRadius: AppRadius.full,
-                  border: Border.all(color: Colors.red.withValues(alpha: 0.35)),
-                ),
-                child: Text(
-                  isKo ? '공휴일 · $holidayName' : 'Holiday · $holidayName',
-                  style: TextStyle(
-                    color: Colors.red.shade500,
-                    fontWeight: FontWeight.w700,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if ((holidayName ?? '').isNotEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.12),
+                    borderRadius: AppRadius.full,
+                    border:
+                        Border.all(color: Colors.red.withValues(alpha: 0.35)),
+                  ),
+                  child: Text(
+                    l10n.calendarHolidayLabel(holidayName ?? ''),
+                    style: TextStyle(
+                      color: Colors.red.shade500,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 8),
+                const SizedBox(height: 8),
+              ],
+              Text(l10n.calendarNoRecordsForDay),
             ],
-            Text(isKo ? '이 날짜의 기록이 없습니다.' : 'No records for this day.'),
-          ],
+          ),
         ),
       );
     }

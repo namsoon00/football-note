@@ -3190,8 +3190,8 @@
   },
   "scanPassTitle": "Scan Pass",
   "scanPassHelpAction": "Analysis guide",
-  "scanPassIntroTitle": "Scan Pass Analysis",
-  "scanPassIntroSubtitle": "Observe lane clearance, defender arrival, receiver pressure, and forward progress. Then choose the pass route that best balances safety and advantage.",
+  "scanPassIntroTitle": "4v3 Scan Pass",
+  "scanPassIntroSubtitle": "Play as midfielder #6: check your surroundings before receiving, then choose your first touch and next pass or movement. Practice reading the situation on screen.",
   "scanPassSampleFieldSemantics": "Sample Scan Pass pitch",
   "scanPassPracticeAction": "Untimed practice",
   "scanPassStartChallengeAction": "Start 10-round challenge",
@@ -3221,34 +3221,34 @@
     }
   },
   "scanPassPracticeStatus": "Practice",
-  "scanPassPhaseObserveHeading": "1. Observe defensive pressure",
+  "scanPassPhaseObserveHeading": "1. Observe before receiving",
   "scanPassPhaseChoiceHeading": "2. Select a passing route",
-  "scanPassPhaseCompareHeading": "3. Review route analysis",
+  "scanPassPhaseCompareHeading": "4. Review the decision",
   "scanPassPracticeObserveHeading": "Practice 1. Observe the shape",
   "scanPassPracticeChoiceHeading": "Practice 2. Select a route",
-  "scanPassPracticeCompareHeading": "Practice 3. Review the evidence",
-  "scanPassLegendBallCarrier": "You: ball carrier",
+  "scanPassPracticeCompareHeading": "Practice 4. Review the decision",
+  "scanPassLegendBallCarrier": "You: #6",
   "scanPassLegendTeammate": "Teammate",
   "scanPassLegendDefender": "Defender",
   "scanPassAttackDirection": "Attack direction: right",
   "scanPassIntroStepObserveTitle": "Observation",
-  "scanPassIntroStepObserveBody": "Read the lane, defender arrival path, receiver pressure, and open space.",
+  "scanPassIntroStepObserveBody": "Use the scan control to update remembered pressure before the ball reaches #6.",
   "scanPassIntroStepChooseTitle": "Pass selection",
-  "scanPassIntroStepChooseBody": "After defenders fade, select the teammate whose route best fits the tradeoff.",
+  "scanPassIntroStepChooseBody": "After the first touch, connect to #4, #8, #9, or hold briefly when the lane is changing.",
   "scanPassIntroStepCompareTitle": "Route analysis",
-  "scanPassIntroStepCompareBody": "All three routes are scored. A high-scoring route can still have risk.",
+  "scanPassIntroStepCompareBody": "Review your path against a strong alternative from the same starting state and comparable timing.",
   "scanPassIntroScoringGuideTitle": "Scoring guide",
-  "scanPassIntroScoringGuideSummary": "Decision points max at 90 before any challenge reaction bonus.",
-  "scanPassScoringGuideDecision": "Decision subtotal: lane clearance 26, defender-arrival margin 22, receiver space 16, forward progress 12, and connection stability 14. These add to 90.",
-  "scanPassScoringGuideReaction": "Challenge reaction bonus applies only when the decision subtotal is at least 50. It can add up to 10 at 450 ms or faster and decreases to 0 at the choice deadline.",
-  "scanPassScoringGuidePractice": "Practice is untimed and shows route judgment only: max 90, no history save, no reaction bonus.",
-  "scanPassScoringGuideMethod": "Methodology: indices use normalized game geometry and speeds. They are not measured match probabilities, real seconds, meters, xG, or success percentages.",
+  "scanPassIntroScoringGuideSummary": "Four components add truthfully to a score out of 100.",
+  "scanPassScoringGuideDecision": "Score: control 30, pressure escape 22, continuation 24, and context fit 24. Component values are rounded first, then summed.",
+  "scanPassScoringGuideReaction": "Decision time changes the simulated football state because defenders and teammates keep moving. There is no universal speed bonus.",
+  "scanPassScoringGuidePractice": "Practice is unscored for history and can be repeated. Ten-round challenge results save once after the final review.",
+  "scanPassScoringGuideMethod": "Scores use a simplified game model. They do not measure real football ability, physical head or eye scanning, or pass success rates.",
   "scanPassPreviewInstruction": "Observe defenders and teammates. Attack moves right; the defensive pressure will soon be hidden.",
   "scanPassPredictionPreviewInstruction": "Observe the defenders' first step. Then judge where pressure will arrive after they fade.",
   "scanPassSilhouetteChoiceInstruction": "Select a route while the faint defender positions stay in memory.",
   "scanPassHiddenChoiceInstruction": "Defenders are hidden. Choose the route with the best balance of lane clearance, timing, space, and progress.",
   "scanPassPredictionChoiceInstruction": "Predict the defender movement, then select the route you can justify.",
-  "scanPassPracticeObserveInstruction": "Take your time. Continue when you can explain the lane, arrival, receiver pressure, and forward value.",
+  "scanPassPracticeObserveInstruction": "Take your time. Scan if you want a current look behind #6, then continue when you are ready to receive.",
   "scanPassPracticeChoiceInstruction": "Defenders are hidden. Select one route; practice has no deadline.",
   "scanPassPracticeReadyAction": "Ready",
   "scanPassPassInFlight": "Pass released. Review the lane, receiver pressure, and arrival margin.",
@@ -3352,14 +3352,14 @@
   "scanPassCueSpace": "Look at the receiver's first touch zone and touchline distance.",
   "scanPassCueProgression": "Ask whether the route moves the ball rightward into a useful central lane.",
   "scanPassCueConnection": "Treat the route as stable only when lane, arrival, and space agree.",
-  "scanPassMethodologyNote": "Methodology: game-geometry indices from normalized positions and speeds, not measured match probabilities.",
+  "scanPassMethodologyNote": "Scores and predicted outcomes compare choices within this game. They are not measurements of real football ability or pass success rates.",
   "scanPassReactionSameTimeNote": "Reaction bonus, when available, is calculated with the same response time for every route in this round.",
   "scanPassPracticeScoreNote": "Practice compares route judgment only: max 90 before any bonus, no history save, no reaction bonus.",
   "scanPassRetryPracticeAction": "Retry practice",
   "scanPassNextRoundAction": "Next round",
   "scanPassSeeResultAction": "See result",
   "scanPassResultTitle": "Scan Pass result",
-  "scanPassResultSubtitle": "Average route {score}, choice score rate {accuracy}%, average response {response}.",
+  "scanPassResultSubtitle": "Average score {score}, choice score rate {accuracy}%, incomplete rounds {timeouts}.",
   "@scanPassResultSubtitle": {
     "placeholders": {
       "score": {
@@ -3368,21 +3368,23 @@
       "accuracy": {
         "type": "int"
       },
-      "response": {}
+      "timeouts": {
+        "type": "int"
+      }
     }
   },
   "scanPassAverageRouteScore": "Avg route score",
   "scanPassDecisionAccuracy": "Choice score rate",
-  "scanPassAverageResponse": "Avg response",
+  "scanPassAverageResponse": "Avg decision time",
   "scanPassBestAverageRouteScore": "Best avg route",
   "scanPassBestAccuracy": "Best choice rate",
   "scanPassBestResponse": "Best response",
   "scanPassNoHistoryValue": "-",
   "scanPassPlayAgainAction": "Start 10 rounds again",
   "scanPassResultMethodTitle": "How to read these numbers",
-  "scanPassResultAverageScoreNote": "Average route score is the mean of each round's recorded final score. A timeout records 0.",
-  "scanPassResultAccuracyNote": "Choice score rate is chosen score divided by that round's best route score, averaged across rounds.",
-  "scanPassResultTimeoutNote": "Average response includes timeouts at the choice limit, so missed rounds slow the response average.",
+  "scanPassResultAverageScoreNote": "Average score is the mean of the recorded round scores. A timeout records 0.",
+  "scanPassResultAccuracyNote": "Decision score ratio averages each round’s chosen score divided by its highest route score under the same conditions.",
+  "scanPassResultTimeoutNote": "Incomplete rounds are first-touch or next-action timeouts. Practice never writes history.",
   "scanPassReasonClearLane": "lane clearance was the main strength.",
   "scanPassReasonTimedRun": "arrival margin was the main strength.",
   "scanPassReasonOpenSpace": "receiver space was the main strength.",
@@ -3399,7 +3401,7 @@
       }
     }
   },
-  "scanPassFieldSemantics": "Football pitch. Amber is the ball carrier, blue players are teammates, coral players are defenders, and attack moves right.",
+  "scanPassFieldSemantics": "Football pitch. Amber #6 is your player, blue players are teammates, coral players are defenders, and attack moves right.",
   "scanPassSecondsValue": "{seconds}s",
   "@scanPassSecondsValue": {
     "placeholders": {
@@ -3414,6 +3416,168 @@
       }
     }
   },
+  "scanPassPhaseFirstTouchHeading": "2. Choose the first touch",
+  "scanPassPhaseNextActionHeading": "3. Choose the next action",
+  "scanPassPhaseReviewHeading": "4. Review the decision",
+  "scanPassPracticeFirstTouchHeading": "Practice 2. Choose the first touch",
+  "scanPassPracticeNextActionHeading": "Practice 3. Choose the next action",
+  "scanPassPracticeReviewHeading": "Practice 4. Review the decision",
+  "scanPassStageObserve": "Observe",
+  "scanPassStageFirstTouch": "First touch",
+  "scanPassStageNextAction": "Next action",
+  "scanPassStageReview": "Review",
+  "scanPassIntroStepTouchTitle": "Touch and continue",
+  "scanPassIntroStepTouchBody": "Your touch changes your body angle, space on the ball, and next options.",
+  "scanPassScenarioContextTitle": "Match context",
+  "scanPassFamilyRearPress": "Rear pressure around #6",
+  "scanPassFamilyRetreatingPressure": "Retreating pressure",
+  "scanPassFamilyMarkedSupport": "Marked support option",
+  "scanPassFamilyClosingForwardLane": "Forward lane closing",
+  "scanPassFamilyReturnReceive": "Return pass and receive again",
+  "scanPassRegionCentralMidfield": "Central midfield",
+  "scanPassRegionLeftHalfSpace": "Left half-space",
+  "scanPassRegionRightHalfSpace": "Right half-space",
+  "scanPassRegionDefensiveThird": "Defensive third",
+  "scanPassRegionAttackingHalf": "Attacking half",
+  "scanPassObjectiveProtectPossession": "Protect possession",
+  "scanPassObjectiveChaseGoal": "Chase a goal",
+  "scanPassMatchClock": "{minute}' · {score}",
+  "@scanPassMatchClock": {
+    "placeholders": {
+      "minute": {},
+      "score": {}
+    }
+  },
+  "scanPassObserveInstruction": "The ball is traveling from #4 to #6. Scan if you want updated remembered pressure; the challenge will advance when the ball arrives.",
+  "scanPassFirstTouchInstruction": "Read the defenders and available space, then choose a touch direction or return the ball to #4.",
+  "scanPassNextPassInstruction": "Now choose the pass. Defenders and teammates keep moving, so holding briefly can help or hurt depending on this scene.",
+  "scanPassNextMoveInstruction": "The ball went back to #4. Move #6 to create the next receiving angle, or hold the pocket.",
+  "scanPassReviewInstruction": "Replay the selected path, then compare it with another strong plan from the same initial scene.",
+  "scanPassTimeoutFirstTouch": "No first touch was chosen before the window closed. This round records 0 and moves to review.",
+  "scanPassTimeoutNextAction": "No next action was chosen before the window closed. This round records 0 and moves to review.",
+  "scanPassNoScanStatus": "Rear pressure is not currently observed.",
+  "scanPassLastScanStatus": "Last observed pressure at {seconds}s. Faded defenders mark their positions at that moment.",
+  "@scanPassLastScanStatus": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
+  "scanPassScanAction": "Scan",
+  "scanPassTouchUpperTitle": "Upper touch",
+  "scanPassTouchUpperSubtitle": "Move #6 toward the upper channel.",
+  "scanPassTouchUpperShort": "upper touch",
+  "scanPassTouchLowerTitle": "Lower touch",
+  "scanPassTouchLowerSubtitle": "Move #6 toward the lower channel.",
+  "scanPassTouchLowerShort": "lower touch",
+  "scanPassTouchTurnTitle": "Turn forward",
+  "scanPassTouchTurnSubtitle": "Open the body toward #9 with more exposure.",
+  "scanPassTouchTurnShort": "turn forward",
+  "scanPassTouchReturnTitle": "Return to #4",
+  "scanPassTouchReturnSubtitle": "One-touch return, then move again.",
+  "scanPassTouchReturnShort": "return to #4",
+  "scanPassPass4Title": "Pass to #4",
+  "scanPassPass4Subtitle": "Recycle through the centerback.",
+  "scanPassPass4Short": "pass to #4",
+  "scanPassPass8Title": "Pass to #8",
+  "scanPassPass8Subtitle": "Connect with the nearby support.",
+  "scanPassPass8Short": "pass to #8",
+  "scanPassPass9Title": "Pass to #9",
+  "scanPassPass9Subtitle": "Try the forward lane.",
+  "scanPassPass9Short": "pass to #9",
+  "scanPassHold8Title": "Hold, then #8",
+  "scanPassHold8Subtitle": "Wait briefly before the support pass.",
+  "scanPassHold8Short": "hold then #8",
+  "scanPassSupportUpperTitle": "Upper support",
+  "scanPassSupportUpperSubtitle": "Arc away from pressure to receive again.",
+  "scanPassSupportUpperShort": "upper support",
+  "scanPassSupportForwardTitle": "Forward support",
+  "scanPassSupportForwardSubtitle": "Move ahead of the press for a return lane.",
+  "scanPassSupportForwardShort": "forward support",
+  "scanPassHoldPocketTitle": "Hold pocket",
+  "scanPassHoldPocketSubtitle": "Stay central for the return pass.",
+  "scanPassHoldPocketShort": "hold pocket",
+  "scanPassReviewMineAction": "My path",
+  "scanPassReviewAlternativeAction": "Alternative",
+  "scanPassReviewMineTitle": "Selected path",
+  "scanPassReviewAlternativeTitle": "Strong alternative",
+  "scanPassReviewTimeoutTitle": "Timeout review",
+  "scanPassReviewComparable": "{plan}: {score}/100, {outcome}. This is in the top group for comparable timing.",
+  "@scanPassReviewComparable": {
+    "placeholders": {
+      "plan": {},
+      "score": {
+        "type": "int"
+      },
+      "outcome": {}
+    }
+  },
+  "scanPassReviewBehind": "{plan}: {score}/100, {outcome}. Another route scores up to {best}/100 under the same conditions.",
+  "@scanPassReviewBehind": {
+    "placeholders": {
+      "plan": {},
+      "score": {
+        "type": "int"
+      },
+      "best": {
+        "type": "int"
+      },
+      "outcome": {}
+    }
+  },
+  "scanPassTimeoutReviewSummary": "Reviewing {plan}: {score}/100, {outcome}. It shows a plausible plan after the timeout.",
+  "@scanPassTimeoutReviewSummary": {
+    "placeholders": {
+      "plan": {},
+      "score": {
+        "type": "int"
+      },
+      "outcome": {}
+    }
+  },
+  "scanPassPlanName": "{first} -> {next}",
+  "@scanPassPlanName": {
+    "placeholders": {
+      "first": {},
+      "next": {}
+    }
+  },
+  "scanPassScoreBreakdownTitle": "Score breakdown",
+  "scanPassComponentValue": "{earned}/{max}",
+  "@scanPassComponentValue": {
+    "placeholders": {
+      "earned": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassComponentControl": "Control",
+  "scanPassComponentPressureEscape": "Pressure escape",
+  "scanPassComponentContinuation": "Continuation",
+  "scanPassComponentContextFit": "Context fit",
+  "scanPassPressureHandling": "Pressure handling",
+  "scanPassContinuation": "Continuation",
+  "scanPassIncompleteRounds": "Incomplete rounds",
+  "scanPassReasonPanelTitle": "Decision cues",
+  "scanPassReasonControlledTouch": "The first touch kept enough control for the next action.",
+  "scanPassReasonExposedTouch": "The first touch exposed the ball or body angle under pressure.",
+  "scanPassReasonPressureEscaped": "The touch or return moved away from the nearest pressure.",
+  "scanPassReasonPressureStayed": "Pressure stayed close enough to affect the next action.",
+  "scanPassReasonReceiverAvailable": "The receiving player had enough space for the next touch.",
+  "scanPassReasonSupportAngleCreated": "The return-and-move choice created a new receiving angle for #6.",
+  "scanPassReasonSupportAngleWeak": "#6 did not create much new angle after returning the ball.",
+  "scanPassReasonHoldOpenedLane": "The brief hold improved the support lane in this moving snapshot.",
+  "scanPassReasonHoldInvitedPressure": "The brief hold allowed pressure to close the support lane.",
+  "scanPassReasonObjectiveProtected": "The match objective valued secure possession and loss cost.",
+  "scanPassReasonObjectiveProgressed": "The match objective increased the value of useful forward progress.",
+  "scanPassOutcomeKept": "possession kept",
+  "scanPassOutcomeProgressed": "attack progressed",
+  "scanPassOutcomeRecycled": "possession recycled",
+  "scanPassOutcomeContested": "ball contested",
+  "scanPassOutcomeIntercepted": "pass intercepted",
+  "scanPassOutcomeTimeout": "timeout",
   "gameGuideTitle": "Game Guide",
   "gameGuideQuickTitle": "Current Game Flow",
   "gameGuideQuickLine1": "Each run is 20 seconds, and you start with 3 lives. If you fail, you instantly retry while lives remain.",
@@ -5028,31 +5192,106 @@
   "runningCoachPreviewResolutionWarning": "The resolution is low, so some measurements may be estimates.",
   "runningCoachPreviewUnknownInfo": "unknown",
   "runningCoachPreviewMegabytes": "{value} MB",
-  "@runningCoachPreviewMegabytes": {"placeholders": {"value": {"type": "String"}}},
+  "@runningCoachPreviewMegabytes": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachPreviewVideoInfo": "{duration} · {size} · {resolution}",
-  "@runningCoachPreviewVideoInfo": {"placeholders": {"duration": {"type": "String"}, "size": {"type": "String"}, "resolution": {"type": "String"}}},
+  "@runningCoachPreviewVideoInfo": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      },
+      "resolution": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachPreviewTimeline": "{current} / {total}",
-  "@runningCoachPreviewTimeline": {"placeholders": {"current": {"type": "String"}, "total": {"type": "String"}}},
+  "@runningCoachPreviewTimeline": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachCoordinatePreviewLabel": "Coordinate preview",
   "runningCoachSlowLoopTitle": "View this moment in the video",
   "runningCoachSlowLoopBody": "Plays only the short interval around this measurement at 0.5× speed and repeats it.",
   "runningCoachSlowLoopUnavailable": "The original video was not saved, so this moment cannot be played.",
   "runningCoachSlowLoopCaptureOnly": "Only the saved real capture is available because the original video was not retained.",
   "runningCoachSlowLoopTiming": "0.5× loop · {start}s–{end}s",
-  "@runningCoachSlowLoopTiming": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@runningCoachSlowLoopTiming": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachConfirmedScoreLabel": "Confirmed score",
   "runningCoachEstimatedScoreLabel": "Expected score",
   "runningCoachEstimatedScoreSummary": "An expected score based on the coordinates available in this video",
   "runningCoachMeasurementCountTitle": "Measurement results {count}/{total}",
-  "@runningCoachMeasurementCountTitle": {"placeholders": {"count": {"type": "int"}, "total": {"type": "int"}}},
+  "@runningCoachMeasurementCountTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachMeasurementStatusEstimated": "Estimated measurement",
   "runningCoachMeasurementStatusCoordinatesUnavailable": "No coordinates",
   "runningCoachMeasurementExpectedRange": "Expected range {lower}–{upper}",
-  "@runningCoachMeasurementExpectedRange": {"placeholders": {"lower": {"type": "String"}, "upper": {"type": "String"}}},
+  "@runningCoachMeasurementExpectedRange": {
+    "placeholders": {
+      "lower": {
+        "type": "String"
+      },
+      "upper": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachEvidenceFrameMetadata": "{side} · {time} · {value} · confidence {confidence}%",
-  "@runningCoachEvidenceFrameMetadata": {"placeholders": {"side": {"type": "String"}, "time": {"type": "String"}, "value": {"type": "String"}, "confidence": {"type": "int"}}},
+  "@runningCoachEvidenceFrameMetadata": {
+    "placeholders": {
+      "side": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      },
+      "confidence": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachEvidenceViewAtTime": "View at {time} in video",
-  "@runningCoachEvidenceViewAtTime": {"placeholders": {"time": {"type": "String"}}},
+  "@runningCoachEvidenceViewAtTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachCaptureFlowBody": "Record or choose a side-view clip, preview it, then confirm analysis. Longer clips are handled within a fixed frame budget.",
   "runningCoachCaptureAction": "Record now",
   "runningCoachCaptureAndAnalyzeAction": "Record and analyze now",
@@ -5318,8 +5557,12 @@
   "runningCoachDenseContactVerificationProgress": "{verified}/{required} verified",
   "@runningCoachDenseContactVerificationProgress": {
     "placeholders": {
-      "verified": { "type": "int" },
-      "required": { "type": "int" }
+      "verified": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
     }
   },
   "runningCoachDenseContactConfidenceLabel": "Evidence",
@@ -5382,7 +5625,9 @@
   "runningCoachMeasuredMetricSampleCount": "{count} samples",
   "@runningCoachMeasuredMetricSampleCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "runningCoachMeasuredMetricNoSamples": "No defensible sample",
@@ -5441,7 +5686,22 @@
   "runningCoachEvidenceNextFrame": "Next evidence frame",
   "runningCoachEvidenceImageViewerTitle": "Evidence image",
   "runningCoachEvidenceImageViewerMetadata": "{kind} · {role} · {side} · {time}",
-  "@runningCoachEvidenceImageViewerMetadata": {"placeholders": {"kind": {"type": "String"}, "role": {"type": "String"}, "side": {"type": "String"}, "time": {"type": "String"}}},
+  "@runningCoachEvidenceImageViewerMetadata": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "role": {
+        "type": "String"
+      },
+      "side": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachEvidenceFocusView": "Zoom to runner",
   "runningCoachEvidenceOriginalView": "Show full frame",
   "runningCoachEvidenceOverlayOn": "Show overlay",
@@ -6599,20 +6859,36 @@
   "healthConnectLastResult": "Last run: scanned {scanned} · imported {imported} · updated {updated} · deleted {deleted} · duplicate {duplicate}",
   "@healthConnectLastResult": {
     "placeholders": {
-      "scanned": {"type": "int"},
-      "imported": {"type": "int"},
-      "updated": {"type": "int"},
-      "deleted": {"type": "int"},
-      "duplicate": {"type": "int"}
+      "scanned": {
+        "type": "int"
+      },
+      "imported": {
+        "type": "int"
+      },
+      "updated": {
+        "type": "int"
+      },
+      "deleted": {
+        "type": "int"
+      },
+      "duplicate": {
+        "type": "int"
+      }
     }
   },
   "healthConnectPermissionDeniedGuidance": "Access was denied more than once. Open Health Connect access settings and allow Taeo's Note to read exercise data.",
   "healthConnectSyncApplied": "Applied {imported} import(s), {updated} update(s), and {deleted} deletion(s).",
   "@healthConnectSyncApplied": {
     "placeholders": {
-      "imported": {"type": "int"},
-      "updated": {"type": "int"},
-      "deleted": {"type": "int"}
+      "imported": {
+        "type": "int"
+      },
+      "updated": {
+        "type": "int"
+      },
+      "deleted": {
+        "type": "int"
+      }
     }
   },
   "healthConnectPrivacyTitle": "Health Connect data use",
@@ -9417,8 +9693,12 @@
   "matchCompetitionRebuildDialogBody": "This rebuilds {fixtures} fixtures for the new setup. {results} recorded results may be cleared.",
   "@matchCompetitionRebuildDialogBody": {
     "placeholders": {
-      "fixtures": { "type": "int" },
-      "results": { "type": "int" }
+      "fixtures": {
+        "type": "int"
+      },
+      "results": {
+        "type": "int"
+      }
     }
   },
   "matchCompetitionRebuildConfirm": "Rebuild",
@@ -9431,13 +9711,17 @@
   "matchCompetitionScheduleUnscheduledCount": "{count} unscheduled matches",
   "@matchCompetitionScheduleUnscheduledCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "matchCompetitionScheduleIssuesCount": "{count} items need attention",
   "@matchCompetitionScheduleIssuesCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "matchCompetitionScheduleIssueVenueOverlap": "Venue conflict",
@@ -9485,15 +9769,25 @@
   "runningCoachGaitRangeValue": "{median} · range {minimum}–{maximum}",
   "@runningCoachGaitRangeValue": {
     "placeholders": {
-      "median": { "type": "String" },
-      "minimum": { "type": "String" },
-      "maximum": { "type": "String" }
+      "median": {
+        "type": "String"
+      },
+      "minimum": {
+        "type": "String"
+      },
+      "maximum": {
+        "type": "String"
+      }
     }
   },
   "runningCoachGaitStepsTitle": "Validated steps",
   "runningCoachGaitStepNumber": "Step {number}",
   "@runningCoachGaitStepNumber": {
-    "placeholders": { "number": { "type": "int" } }
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
   },
   "runningCoachGaitStepLeft": "Left",
   "runningCoachGaitStepRight": "Right",
@@ -9511,7 +9805,9 @@
     "placeholders": {
       "effort": {},
       "surface": {},
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "runningCoachTrendInsufficientBaselineTitle": "Insufficient verified baseline",
@@ -9527,8 +9823,12 @@
   "runningCoachComparisonBody": "This recording is stored as {effort} on {surface}. Only compare it with a previous recording under the same conditions.",
   "@runningCoachComparisonBody": {
     "placeholders": {
-      "effort": { "type": "String" },
-      "surface": { "type": "String" }
+      "effort": {
+        "type": "String"
+      },
+      "surface": {
+        "type": "String"
+      }
     }
   },
   "runningCoachComparisonNoBaselineTitle": "No same-condition baseline yet",
@@ -9539,14 +9839,24 @@
   "runningCoachComparisonChangeValue": "{previous} → {current}",
   "@runningCoachComparisonChangeValue": {
     "placeholders": {
-      "previous": { "type": "String" },
-      "current": { "type": "String" }
+      "previous": {
+        "type": "String"
+      },
+      "current": {
+        "type": "String"
+      }
     }
   },
   "runningCoachComparisonSameConditionRetake": "Retake in the same conditions",
   "runningCoachDefaultRunner": "Me",
   "runningCoachRunnerTarget": "Analysis target: {name}",
-  "@runningCoachRunnerTarget": {"placeholders": {"name": {"type": "String"}}},
+  "@runningCoachRunnerTarget": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachManageRunners": "Manage runners",
   "runningCoachSelectRunnerTitle": "Who are you analyzing?",
   "runningCoachAddRunner": "Add runner",
@@ -9587,11 +9897,29 @@
   "runningCoachAnalysisQualityBadgeStrong": "Stable analysis",
   "runningCoachAnalysisQualityBadgeLimited": "Limited analysis",
   "runningCoachPreviousScoreDelta": "Previous {delta}",
-  "@runningCoachPreviousScoreDelta": {"placeholders": {"delta": {"type": "int"}}},
+  "@runningCoachPreviousScoreDelta": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachHistoryConfirmedScore": "Confirmed {score}",
-  "@runningCoachHistoryConfirmedScore": {"placeholders": {"score": {"type": "int"}}},
+  "@runningCoachHistoryConfirmedScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachHistoryEstimatedScore": "Estimated {score}",
-  "@runningCoachHistoryEstimatedScore": {"placeholders": {"score": {"type": "int"}}},
+  "@runningCoachHistoryEstimatedScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachHistoryScoreUnavailable": "Score withheld",
   "runningCoachMultiplePersonLabel": "More than one person",
   "runningCoachTargetIdentityUnstableLabel": "Runner tracking changed",
@@ -9599,5 +9927,23 @@
   "runningCoachTargetIdentityUnstableReason": "Runner tracking changed abruptly, so the app withheld the score to avoid mixing people.",
   "runningCoachSingleRunnerRetake": "Record one runner at a time and keep everyone else outside the frame.",
   "runningCoachHistoryTrendSummary": "Best confirmed score {best} · latest change {delta}",
-  "@runningCoachHistoryTrendSummary": {"placeholders": {"best": {"type": "int"}, "delta": {"type": "int"}}}
+  "@runningCoachHistoryTrendSummary": {
+    "placeholders": {
+      "best": {
+        "type": "int"
+      },
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarHolidayLabel": "Holiday · {name}",
+  "@calendarHolidayLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarNoRecordsForDay": "No records for this day."
 }
