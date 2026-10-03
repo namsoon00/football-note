@@ -62,6 +62,7 @@ Future<void> _runFor(WidgetTester tester, double seconds) async {
 void main() {
   testWidgets('free ground aiming is neutral and requires an explicit action',
       (tester) async {
+    final semantics = tester.ensureSemantics();
     await tester.pumpWidget(_app());
     expect(_state(tester).pitch.attackers.length, 3);
     expect(_state(tester).pitch.defenders.length, 2);
@@ -77,11 +78,15 @@ void main() {
     expect(state.outcome, isNull);
     await _runFor(tester, 2);
     expect(_state(tester).elapsed, 0);
+    await _aim(tester, const ScanPassPoint(.66, .34));
+    expect(_state(tester).receiveTarget!.x, closeTo(.66, .001));
+    expect(_state(tester).receiveTarget!.y, closeTo(.34, .001));
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
     await tester.pump();
-    expect(_state(tester).receiveTarget!.x, lessThan(.46));
+    expect(_state(tester).receiveTarget!.x, lessThan(.66));
     expect(find.byKey(const ValueKey('space-outcome')), findsNothing);
     await tester.pumpWidget(const SizedBox());
+    semantics.dispose();
   });
 
   testWidgets(
