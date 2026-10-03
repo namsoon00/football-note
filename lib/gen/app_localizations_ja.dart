@@ -5228,7 +5228,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassTitle => 'スキャンパス';
 
   @override
-  String get scanPassHelpAction => '分析ガイド';
+  String get scanPassHelpAction => '学習ガイド';
 
   @override
   String get scanPassIntroTitle => '4v3 スキャンパス';
@@ -5241,14 +5241,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassSampleFieldSemantics => 'スキャンパスのサンプルピッチ';
 
   @override
-  String get scanPassPracticeAction => '時間制限なし練習';
+  String get scanPassPracticeAction => '場面を理解する';
 
   @override
-  String get scanPassStartChallengeAction => '10ラウンドチャレンジ';
+  String get scanPassStartChallengeAction => '別の場面を練習';
 
   @override
   String scanPassRoundStatus(int round, int total) {
-    return 'ラウンド $round / $total';
+    return '場面 $round / $total';
   }
 
   @override
@@ -5262,10 +5262,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get scanPassPracticeStatus => '練習';
+  String get scanPassPracticeStatus => '学習';
 
   @override
-  String get scanPassPhaseObserveHeading => '1. 受ける前に観察';
+  String get scanPassPhaseObserveHeading => '1. 周囲を確認';
 
   @override
   String get scanPassPhaseChoiceHeading => '2. パスルートを選択';
@@ -5274,7 +5274,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassPhaseCompareHeading => '4. 判断を振り返る';
 
   @override
-  String get scanPassPracticeObserveHeading => '練習 1. 形を観察';
+  String get scanPassPracticeObserveHeading => '1. 周囲を確認';
 
   @override
   String get scanPassPracticeChoiceHeading => '練習 2. ルートを選択';
@@ -5283,7 +5283,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassPracticeCompareHeading => '練習 4. 判断を振り返る';
 
   @override
-  String get scanPassLegendBallCarrier => '自分: 6番';
+  String get scanPassLegendBallCarrier => '自分 · 6番';
 
   @override
   String get scanPassLegendTeammate => '味方';
@@ -5582,16 +5582,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassPracticeScoreNote =>
-      '練習はルート判断だけを比較します。ボーナス前の最大値は90点で、履歴保存や反応ボーナスはありません。';
+      '学習場面は現在の振り返り内でのみ選択を比較し、スコア履歴には保存されません。';
 
   @override
-  String get scanPassRetryPracticeAction => '練習をやり直す';
+  String get scanPassRetryPracticeAction => '場面をやり直す';
 
   @override
-  String get scanPassNextRoundAction => '次のラウンド';
+  String get scanPassNextRoundAction => '次の場面';
 
   @override
-  String get scanPassSeeResultAction => '結果を見る';
+  String get scanPassSeeResultAction => '振り返りを終える';
 
   @override
   String get scanPassResultTitle => 'スキャンパス結果';
@@ -5623,7 +5623,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassNoHistoryValue => '-';
 
   @override
-  String get scanPassPlayAgainAction => '10ラウンドをもう一度';
+  String get scanPassPlayAgainAction => '学習をもう一度';
 
   @override
   String get scanPassResultMethodTitle => '数字の読み方';
@@ -5637,8 +5637,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '選択得点率は、各ラウンドで選んだ得点を同じ条件の最高ルート得点で割った比率の平均です。';
 
   @override
-  String get scanPassResultTimeoutNote =>
-      '未完了ラウンドはファーストタッチまたは次の行動のタイムアウトです。練習は履歴に書きません。';
+  String get scanPassResultTimeoutNote => '自分のペースで進める学習場面は、新しいスコア履歴を作りません。';
 
   @override
   String get scanPassReasonClearLane => 'レーンの余裕が主な強みです。';
@@ -5702,7 +5701,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassPracticeReviewHeading => '練習 4. 判断を振り返る';
 
   @override
-  String get scanPassStageObserve => '観察';
+  String get scanPassStageObserve => '周囲確認';
 
   @override
   String get scanPassStageFirstTouch => '初タッチ';
@@ -5766,7 +5765,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassObserveInstruction =>
-      'ボールは4番から6番へ移動中です。背後の圧力を更新して見たい時はスキャンします。チャレンジはボール到着で自動的に進みます。';
+      'ボールは4番から6番へ移動中です。まず体の背後を確認しましょう。場面は読む間そのまま待ちます。';
 
   @override
   String get scanPassFirstTouchInstruction =>
@@ -5774,14 +5773,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassNextPassInstruction =>
-      '次のパスを選びましょう。守備者と味方は動き続けるため、少し待つことが助けにもリスクにもなります。';
+      '次の行動をはっきり選びましょう。明示的な保持だけがパス前にモデル時間を進めます。';
 
   @override
   String get scanPassNextMoveInstruction =>
       'ボールは4番へ戻りました。6番がもう一度受ける角度を作るか、ポケットに残りましょう。';
 
   @override
-  String get scanPassReviewInstruction => '選んだ経路を再生し、同じ開始場面で計算された強い代替案と比べましょう。';
+  String get scanPassReviewInstruction => '選んだ経路を再生し、同じ開始場面からの別の可能な選択と比べましょう。';
 
   @override
   String get scanPassTimeoutFirstTouch =>
@@ -5792,7 +5791,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '時間内に次の行動を選べませんでした。このラウンドは0点で記録され、振り返りへ進みます。';
 
   @override
-  String get scanPassNoScanStatus => '背後の圧力はまだ観察していません。';
+  String get scanPassNoScanStatus => '背後の圧力はまだ確認していません。';
 
   @override
   String scanPassLastScanStatus(Object seconds) {
@@ -5800,22 +5799,22 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get scanPassScanAction => 'スキャン';
+  String get scanPassScanAction => '背後を確認';
 
   @override
-  String get scanPassTouchUpperTitle => '上へタッチ';
+  String get scanPassTouchUpperTitle => '上側へ受ける';
 
   @override
-  String get scanPassTouchUpperSubtitle => '6番を上側のチャンネルへ動かします。';
+  String get scanPassTouchUpperSubtitle => 'ピッチの上側へボールを運んで受けます。';
 
   @override
   String get scanPassTouchUpperShort => '上へタッチ';
 
   @override
-  String get scanPassTouchLowerTitle => '下へタッチ';
+  String get scanPassTouchLowerTitle => '下側へ受ける';
 
   @override
-  String get scanPassTouchLowerSubtitle => '6番を下側のチャンネルへ動かします。';
+  String get scanPassTouchLowerSubtitle => 'ピッチの下側へボールを運んで受けます。';
 
   @override
   String get scanPassTouchLowerShort => '下へタッチ';
@@ -5824,7 +5823,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassTouchTurnTitle => '前を向く';
 
   @override
-  String get scanPassTouchTurnSubtitle => '露出は増えますが、9番方向へ体を開きます。';
+  String get scanPassTouchTurnSubtitle => '右側の攻撃方向へ体を向けます。';
 
   @override
   String get scanPassTouchTurnShort => '前向きターン';
@@ -5833,7 +5832,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassTouchReturnTitle => '4番へ返す';
 
   @override
-  String get scanPassTouchReturnSubtitle => 'ワンタッチで返し、もう一度動きます。';
+  String get scanPassTouchReturnSubtitle => '4番へ返し、もう一度動きます。';
 
   @override
   String get scanPassTouchReturnShort => '4番へ返す';
@@ -5902,10 +5901,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassHoldPocketShort => 'ポケット維持';
 
   @override
-  String get scanPassReviewMineAction => '自分の経路';
+  String get scanPassReviewMineAction => '自分の選択を再生';
 
   @override
-  String get scanPassReviewAlternativeAction => '代替案';
+  String get scanPassReviewAlternativeAction => '別の選択';
 
   @override
   String get scanPassReviewMineTitle => '選択した経路';
@@ -6019,6 +6018,307 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassOutcomeTimeout => 'タイムアウト';
+
+  @override
+  String get scanPassHelpSheetTitle => 'スキャンパスの進め方';
+
+  @override
+  String get scanPassHelpSheetBody =>
+      '黄色の6番が自分で、攻撃方向は右です。まず近くの背後のスペースを確認しましょう。行動を選ぶと、意図した動きが点線で表示されます。実行した後の変化を見て、別の選択と比べてください。説明やヘルプを読んでいる間、場面は停止しています。';
+
+  @override
+  String get scanPassHelpCloseAction => '閉じる';
+
+  @override
+  String get scanPassIntroPreviewLabel => '学習場面';
+
+  @override
+  String get scanPassIntroSceneQuestion => '受ける前にどこを見ますか？';
+
+  @override
+  String get scanPassIntroSceneTask => 'ボールを受ける前に背後の守備者を確認しましょう。';
+
+  @override
+  String get scanPassUnderstandSceneAction => '場面を理解する';
+
+  @override
+  String get scanPassOtherSceneAction => '別の場面を練習';
+
+  @override
+  String scanPassIntroHistoryNote(int sessions) {
+    return '既存の保存済みチャレンジ履歴は変わりません。保存済みセッション: $sessions件。';
+  }
+
+  @override
+  String get scanPassLegendRoute => '移動 / パス';
+
+  @override
+  String get scanPassAttackDirectionShort => '右へ攻撃';
+
+  @override
+  String get scanPassUnknownRearArea => '背後 · 未確認';
+
+  @override
+  String get scanPassRearPressureLabel => '背後圧力';
+
+  @override
+  String get scanPassSelfPlayerLabel => '自分 · 6番';
+
+  @override
+  String get scanPassPasserLabel => '4番のパス';
+
+  @override
+  String get scanPassIntendedRouteLabel => 'プレビュー経路';
+
+  @override
+  String get scanPassSceneRearPressureTitle => '6番の背後圧力を外す';
+
+  @override
+  String get scanPassMatchShape => '4対3 · 中央MF';
+
+  @override
+  String scanPassSessionKicker(int round, Object region) {
+    return '場面 $round / $region';
+  }
+
+  @override
+  String get scanPassObservePhaseLabel => '01 / 受ける前';
+
+  @override
+  String get scanPassFirstTouchPhaseLabel => '02 / ファーストタッチ';
+
+  @override
+  String get scanPassNextActionPhaseLabel => '03 / 次の行動';
+
+  @override
+  String get scanPassReviewPhaseLabel => '04 / 振り返り';
+
+  @override
+  String get scanPassObserveQuestion => '6番の背後には何がある？';
+
+  @override
+  String get scanPassFirstTouchQuestion => 'ファーストタッチをどこへ動かす？';
+
+  @override
+  String get scanPassNextPassQuestion => '次のパスはどこへ出す？';
+
+  @override
+  String get scanPassNextMoveQuestion => '6番はどこへ動いてもう一度受ける？';
+
+  @override
+  String get scanPassReceiveAction => 'ボールを受ける';
+
+  @override
+  String get scanPassFactMyPlayer => '自分の選手';
+
+  @override
+  String get scanPassFactMyPlayerValue => '自分 · 6番';
+
+  @override
+  String get scanPassFactPasser => 'パサー';
+
+  @override
+  String get scanPassFactPasserValue => '4番がボールを出す';
+
+  @override
+  String get scanPassFactAttackDirection => '攻撃';
+
+  @override
+  String get scanPassFactAttackRight => '右方向へ進む';
+
+  @override
+  String get scanPassFactBodyDirection => '体の向き';
+
+  @override
+  String get scanPassFactFacingPasser => '4番を向く';
+
+  @override
+  String get scanPassFactVisibleOption => '見えている選択肢';
+
+  @override
+  String get scanPassFactForwardOption => '前方の9番';
+
+  @override
+  String get scanPassFactRearPressure => '背後圧力';
+
+  @override
+  String get scanPassFactObserved => '確認済み';
+
+  @override
+  String get scanPassFactNotObserved => 'まだ未確認';
+
+  @override
+  String get scanPassFactObservedPressure => '確認した圧力';
+
+  @override
+  String get scanPassFactCurrentPossession => 'ボール';
+
+  @override
+  String get scanPassFactFirstChoice => '最初の選択';
+
+  @override
+  String get scanPassFactPressureNow => '変わったこと';
+
+  @override
+  String get scanPassPossession4 => '4番が保持';
+
+  @override
+  String get scanPassPossession6 => '自分 · 6番が保持';
+
+  @override
+  String get scanPassPressureUpperSide => '上側';
+
+  @override
+  String get scanPassPressureLowerSide => '下側';
+
+  @override
+  String get scanPassPressureCentralSide => '中央';
+
+  @override
+  String get scanPassPressureClosingMotion => '6番へ近づいている';
+
+  @override
+  String get scanPassPressureLeavingMotion => '6番から離れている';
+
+  @override
+  String get scanPassPressureHoldingMotion => '位置を維持しています';
+
+  @override
+  String scanPassPressureCue(Object side, Object motion) {
+    return '近くの守備は$sideで$motion。';
+  }
+
+  @override
+  String get scanPassTouchUpperPreview => 'プレビュー: 6番が画面の上側へファーストタッチします。';
+
+  @override
+  String get scanPassTouchLowerPreview => 'プレビュー: 6番が画面の下側へファーストタッチします。';
+
+  @override
+  String get scanPassTouchTurnPreview => 'プレビュー: 6番が前方へ体を開きますが、次の行動前に露出が増えます。';
+
+  @override
+  String get scanPassTouchReturnPreview => 'プレビュー: 6番が4番へ戻し、もう一度受ける位置を作ります。';
+
+  @override
+  String get scanPassExecuteChoiceAction => 'この選択でプレー';
+
+  @override
+  String get scanPassTouchExecutingTitle => 'ファーストタッチで何が変わったか見る';
+
+  @override
+  String get scanPassTouchChangeKept => '最初のタッチ後も6番が保持しており、次のプレーを選べます。';
+
+  @override
+  String get scanPassTouchChangeReturned => 'ボールは4番へ戻り、6番は新しい受ける角度を作る必要があります。';
+
+  @override
+  String get scanPassTouchChangeContested => 'ボールは6番にありますが、圧力が次のプレーに影響する距離です。';
+
+  @override
+  String get scanPassTouchChangeIntercepted =>
+      '戻す経路に守備者が先に届いたため、そのまま振り返りへ進みます。';
+
+  @override
+  String get scanPassPass4Preview => 'プレビュー: 確定せずに4番経由で作り直す経路を見ます。';
+
+  @override
+  String get scanPassPass8Preview => 'プレビュー: 8番への接続と意図したパスレーンを表示します。';
+
+  @override
+  String get scanPassPass9Preview => 'プレビュー: 9番へ向かう前方レーンを試します。';
+
+  @override
+  String get scanPassHold8Preview => 'プレビュー: 6番が少し待ってから8番へ出します。';
+
+  @override
+  String get scanPassSupportUpperPreview =>
+      'プレビュー: 6番が圧力の上側へ動き、4番から次のパスを受けようとします。';
+
+  @override
+  String get scanPassSupportForwardPreview => 'プレビュー: 6番が前方へ動き、リターンレーンを作ります。';
+
+  @override
+  String get scanPassHoldPocketPreview => 'プレビュー: 6番が同じポケットに残り、4番からのパスを待ちます。';
+
+  @override
+  String get scanPassReviewViewingMine => '確定した自分の選択を表示中';
+
+  @override
+  String get scanPassReviewViewingAlternative => '別の可能な選択を表示中';
+
+  @override
+  String scanPassReviewOutcomeSummary(Object plan, Object outcome) {
+    return '$plan: $outcome。';
+  }
+
+  @override
+  String get scanPassReviewSituationLabel => '確認した状況';
+
+  @override
+  String get scanPassReviewChoiceLabel => '自分の選択';
+
+  @override
+  String get scanPassReviewNextSceneLabel => '変わった次の場面';
+
+  @override
+  String get scanPassReviewSituationBody => 'ファーストタッチを選ぶ前、スキャン後に使えた情報です。';
+
+  @override
+  String get scanPassReviewReasonFallback => '選んだタッチと経路によって次の場面が変わりました。';
+
+  @override
+  String get scanPassFinalReceiver4 => '4番が保持';
+
+  @override
+  String get scanPassFinalReceiver6 => '6番が再び受ける';
+
+  @override
+  String get scanPassFinalReceiver8 => '8番が受ける';
+
+  @override
+  String get scanPassFinalReceiver9 => '9番が受ける';
+
+  @override
+  String get scanPassFinalReceiverLoose => '守備者が先に届く';
+
+  @override
+  String get scanPassOutcomeDetailKept => '保持は続きますが、次の角度がまだ重要です。';
+
+  @override
+  String get scanPassOutcomeDetailProgressed => 'ボールがより前進した次の行動へつながりました。';
+
+  @override
+  String get scanPassOutcomeDetailRecycled => 'ボールをつなぎ直し、チームで保持できました。';
+
+  @override
+  String get scanPassOutcomeDetailContested => 'プレーは続きましたが、圧力がボール近くに到着しました。';
+
+  @override
+  String get scanPassOutcomeDetailIntercepted => '守備が先にパスコースへ入り、ボールを奪いました。';
+
+  @override
+  String get scanPassDetailedEvaluationTitle => '詳しい評価';
+
+  @override
+  String get scanPassDetailedEvaluationSubtitle => '同じ状況の選択を比べるための参考スコアです。';
+
+  @override
+  String get scanPassRetrySceneAction => '同じ場面を再試行';
+
+  @override
+  String get scanPassNextSceneAction => '次の場面';
+
+  @override
+  String get scanPassFinishLearningAction => '振り返りを終える';
+
+  @override
+  String get scanPassLearningResultTitle => '振り返った場面';
+
+  @override
+  String scanPassLearningResultBody(int count) {
+    return '$count個の場面で、プレッシャーの方向と次のパスコースを確認しました。';
+  }
 
   @override
   String get gameGuideTitle => 'ゲームガイド';
@@ -17697,4 +17997,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get calendarNoRecordsForDay => 'この日の記録はありません。';
+
+  @override
+  String get scanPassChangeChoiceAction => '選び直す';
+
+  @override
+  String get scanPassFactFacingForward => '攻撃方向を向いている';
+
+  @override
+  String get scanPassTouchChangePressureRemains =>
+      '6番がボールを持っていますが、近くの守備のプレッシャーは残っています。';
+
+  @override
+  String get scanPassTouchInMotionBody =>
+      '選んだ方向へボールと6番が動きます。動きが終わったら次の行動を選びましょう。';
 }
