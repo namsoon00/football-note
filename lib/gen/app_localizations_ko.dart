@@ -18735,4 +18735,224 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get spaceLearner => '나 · 6';
+
+  @override
+  String get chainTitle => '첫 터치와 다음 공간';
+
+  @override
+  String get chainHelpTitle => '연결 훈련 안내';
+
+  @override
+  String get chainHelpBody =>
+      '끝까지 같은 6번을 조작합니다.\n\n① 공을 받기 전에 6번에서 끌어 첫 터치의 방향과 거리를 정하세요. 지면을 한 번 찍어도 됩니다. 최대 3m 안에서 짧게 잡거나 길게 빼 놓을 수 있습니다.\n\n② 터치 뒤의 수비와 몸 방향을 보고 다음 행동을 고르세요. 동료를 찍으면 패스, 빈 곳으로 끌면 운반입니다. ‘보호’를 고르면 짧게 돌아서 공을 지킵니다. 선택 후 버튼으로 실행하세요.\n\n③ 패스가 끝나도 내 선수는 6번입니다. 동료가 공을 갖는 동안 다시 받을 공간을 직접 고르세요. 수비와 거리가 있고 돌아오는 길이 열리면 다음 첫 터치를 준비합니다. 두 번 다시 받으면 흐름을 되짚어 봅니다.\n\n선택 중에는 시간이 멈춥니다. 움직임은 절반 속도이며 멈춤·한 걸음 보기를 지원합니다. 금색 화살표는 내 선택이고 정답 표시는 아닙니다.\n\n키보드: 경기장에 초점을 맞추고 방향키로 위치, Enter로 실행합니다. 다음 행동에서 4·8 키로 패스할 동료를 고를 수 있습니다. 골과 오프사이드는 상단 축구공 버튼의 자유 공격에서 연습할 수 있습니다.';
+
+  @override
+  String get chainStepTouch => '첫 터치';
+
+  @override
+  String get chainStepAction => '다음 행동';
+
+  @override
+  String get chainStepRun => '다시 받을 공간';
+
+  @override
+  String get chainPickTouch => '6번에서 끌어 첫 터치 방향과 거리를 정하세요.';
+
+  @override
+  String get chainPickReturnTouch => '다시 받을 준비가 됐습니다. 다음 첫 터치를 정하세요.';
+
+  @override
+  String get chainWatchIncoming => '공이 오는 동안 수비가 어디로 접근하는지 보세요.';
+
+  @override
+  String get chainWatchTouch => '내 터치가 몸의 방향과 다음 패스 길을 바꿉니다.';
+
+  @override
+  String get chainPickAction => '동료를 찍어 패스하거나, 빈 곳으로 끌어 운반하세요.';
+
+  @override
+  String get chainPickCarry => '공을 가지고 움직일 방향과 거리를 정하세요.';
+
+  @override
+  String get chainPickTurn => '수비를 등지고 돌아설 방향을 짧게 끌어 정하세요.';
+
+  @override
+  String get chainWatchAction => '공의 이동과 수비의 반응을 함께 보세요.';
+
+  @override
+  String get chainPickRun => '계속 6번을 조작합니다. 다시 받을 공간을 찍으세요.';
+
+  @override
+  String get chainWatchRun => '6번의 움직임이 돌아오는 패스 길을 만드는지 보세요.';
+
+  @override
+  String get chainReviewInstruction => '내 첫 터치부터 다시 받을 위치까지 연결해서 보세요.';
+
+  @override
+  String get chainPitchDescription =>
+      '3대2 훈련 경기장. 내 선수는 계속 파란 6번입니다. 파란 4번과 8번은 동료, 빨간 두 명은 수비입니다. 끌기 또는 탭으로 위치를 고르고 방향키로 조절하세요.';
+
+  @override
+  String get chainPitchHeader => '3 : 2 · 연결 훈련';
+
+  @override
+  String get chainYourPlayer => '내 선수 · 6번';
+
+  @override
+  String chainReturns(int count) {
+    return '다시 받기 $count / 2';
+  }
+
+  @override
+  String get chainReturnTouch => '다음 첫 터치';
+
+  @override
+  String get chainNoSelection => '아직 선택하지 않았습니다';
+
+  @override
+  String chainSelectedDistance(String metres) {
+    return '선택한 이동 거리 · ${metres}m';
+  }
+
+  @override
+  String get chainWatchRelation => '내 선택에 따라 상황이 변합니다';
+
+  @override
+  String chainOffBallNote(int number) {
+    return '공은 $number번이 갖고 있습니다. 내 6번이 다시 받을 길을 만드세요.';
+  }
+
+  @override
+  String get chainNeutralSelection => '금색 화살표는 내 선택입니다. 다른 곳으로 바꿀 수 있어요.';
+
+  @override
+  String get chainDragHint => '6번에서 끌거나 지면을 찍으세요. 실행 전까지 바꿀 수 있습니다.';
+
+  @override
+  String get chainReceive => '이 방향으로 받기';
+
+  @override
+  String get chainRun => '공간으로 이동';
+
+  @override
+  String get chainPass => '선택한 동료에게 패스';
+
+  @override
+  String get chainCarry => '선택한 곳으로 운반';
+
+  @override
+  String get chainTurn => '돌아서 보호';
+
+  @override
+  String get chainModePass => '패스';
+
+  @override
+  String get chainModeCarry => '운반';
+
+  @override
+  String get chainModeTurn => '보호';
+
+  @override
+  String get chainSlowMotion => '절반 속도로 움직임을 관찰합니다.';
+
+  @override
+  String get chainLegend => '파랑 · 우리 팀   빨강 · 수비\n작은 삼각형 · 몸의 방향';
+
+  @override
+  String get chainBeforeTouch => '터치 전';
+
+  @override
+  String get chainAfterTouch => '터치 후';
+
+  @override
+  String get chainAfterAction => '행동 후';
+
+  @override
+  String get chainAfterRun => '이동 후';
+
+  @override
+  String get chainReturnReady => '다시 받을 준비';
+
+  @override
+  String chainMomentLabel(int cycle, String moment) {
+    return '$cycle · $moment';
+  }
+
+  @override
+  String get chainEndLinked => '두 번 다시 받아 연결했습니다';
+
+  @override
+  String get chainEndTouch => '첫 터치에서 공을 잃었습니다';
+
+  @override
+  String get chainEndIntercepted => '패스 길이 막혔습니다';
+
+  @override
+  String get chainEndCrowded => '수비와 너무 가까워졌습니다';
+
+  @override
+  String get chainEndLane => '돌아오는 패스 길이 닫혔습니다';
+
+  @override
+  String get chainEndSupport => '동료가 압박을 받았습니다';
+
+  @override
+  String get chainReasonLinked =>
+      '터치로 다음 행동을 준비하고, 패스 뒤 다시 받을 위치까지 이어졌습니다. 같은 배치에서 다른 터치가 어떤 길을 만드는지 비교해 보세요.';
+
+  @override
+  String get chainReasonTouch =>
+      '터치하는 동안 수비가 공에 닿았습니다. 터치 전후를 눌러 방향과 거리, 수비가 접근한 길을 비교해 보세요.';
+
+  @override
+  String get chainReasonIntercepted =>
+      '공이 도착하기 전에 수비가 패스 길에 들어왔습니다. 출발 순간과 차단 순간의 위치를 비교해 보세요.';
+
+  @override
+  String get chainReasonCrowded =>
+      '다음 행동을 이어갈 만큼 수비와의 간격이 남지 않았습니다. 움직임 전후를 비교하고 다른 방향으로 시도해 보세요.';
+
+  @override
+  String get chainReasonLane =>
+      '이동한 위치와 공을 가진 동료 사이에 열린 길이 없었습니다. 수비의 옆으로 나와 서로 보이는 각도를 만들어 보세요.';
+
+  @override
+  String get chainReasonSupport =>
+      '6번이 이동하는 동안 공을 가진 동료에게 수비가 닿았습니다. 더 짧은 움직임으로 받을 각도를 만들 수 있는지 비교해 보세요.';
+
+  @override
+  String get chainReviewTouch => '첫 터치가 바꾼 상황';
+
+  @override
+  String chainPressureChange(String before, String after) {
+    return '가까운 수비와 간격  ${before}m → ${after}m';
+  }
+
+  @override
+  String chainLanesChange(String before, String after) {
+    return '열린 패스 후보  $before → $after';
+  }
+
+  @override
+  String get chainNoLane => '없음';
+
+  @override
+  String chainPlayerNumber(int number) {
+    return '$number번';
+  }
+
+  @override
+  String get chainReviewHint =>
+      '경기장 위의 순간을 눌러 비교하세요. 파란 점선은 당시 수비 위치와 몸 방향으로 본 패스 후보입니다.';
+
+  @override
+  String chainPlaybackPosition(int percent) {
+    return '플레이 흐름 $percent%';
+  }
+
+  @override
+  String get chainReplay => '전체 흐름 다시 보기';
+
+  @override
+  String get chainRetry => '같은 배치 · 다른 첫 터치';
 }

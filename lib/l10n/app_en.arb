@@ -10441,5 +10441,135 @@
   "spaceRetry": "Try the same layout",
   "spaceNewLayout": "Read a new layout",
   "spacePitchHeader": "3 : 2  ·  SPACE PRACTICE",
-  "spaceLearner": "YOU · 6"
+  "spaceLearner": "YOU · 6",
+  "chainTitle": "First touch & next space",
+  "chainHelpTitle": "About this practice",
+  "chainHelpBody": "Keep control of the same number 6 throughout.\n\n1. Before the pass arrives, drag from 6 to plan the direction and length of your first touch. You can also tap the ground. Keep it close or take it into space within 3 m.\n\n2. Read the defenders and your body direction after the touch. Tap a teammate to pass, or drag into space to carry. Choose Protect for a short shielding turn. Confirm your choice with the action button.\n\n3. After the pass you still control 6. While your teammate holds the ball, choose where to move to receive again. Separation and a clear return lane let you plan your next touch. Review the sequence after two return receptions.\n\nDecisions pause the action. Movement plays at half speed and can be paused or stepped. Gold arrows show your choice, not the correct answer.\n\nKeyboard: focus the pitch, use arrows to aim and Enter to act. In the next-action stage, press 4 or 8 to choose a pass. The football button opens Free attack for goals and offside.",
+  "chainStepTouch": "First touch",
+  "chainStepAction": "Next action",
+  "chainStepRun": "Space to receive again",
+  "chainPickTouch": "Drag from 6 to plan the direction and length of your first touch.",
+  "chainPickReturnTouch": "You are available again. Plan your next first touch.",
+  "chainWatchIncoming": "Watch how the defenders approach as the ball arrives.",
+  "chainWatchTouch": "Your touch changes your body direction and the next passing lanes.",
+  "chainPickAction": "Tap a teammate to pass, or drag into space to carry.",
+  "chainPickCarry": "Choose where and how far to carry the ball.",
+  "chainPickTurn": "Use a short drag to choose a shielding turn.",
+  "chainWatchAction": "Watch the ball and the defenders respond together.",
+  "chainPickRun": "You still control 6. Choose space to receive again.",
+  "chainWatchRun": "Watch whether your run opens a return passing lane.",
+  "chainReviewInstruction": "Trace your first touch through to the space for your return.",
+  "chainPitchDescription": "3 versus 2 practice pitch. You always control blue 6. Blue 4 and 8 are teammates; the two red players defend. Drag or tap to choose a location, or use arrow keys.",
+  "chainPitchHeader": "3 : 2 · CONNECTED PLAY",
+  "chainYourPlayer": "Your player · 6",
+  "chainReturns": "Returns {count} / 2",
+  "@chainReturns": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chainReturnTouch": "Next first touch",
+  "chainNoSelection": "No choice yet",
+  "chainSelectedDistance": "Chosen distance · {metres} m",
+  "@chainSelectedDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "chainWatchRelation": "The situation is changing with your choice",
+  "chainOffBallNote": "{number} has the ball. Move your 6 to offer a return.",
+  "@chainOffBallNote": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "chainNeutralSelection": "The gold arrow is your choice. You can change it before acting.",
+  "chainDragHint": "Drag from 6 or tap the ground. Adjust before you act.",
+  "chainReceive": "Receive with this touch",
+  "chainRun": "Move into space",
+  "chainPass": "Pass to this teammate",
+  "chainCarry": "Carry to this space",
+  "chainTurn": "Turn and protect",
+  "chainModePass": "Pass",
+  "chainModeCarry": "Carry",
+  "chainModeTurn": "Protect",
+  "chainSlowMotion": "Watch the movement at half speed.",
+  "chainLegend": "Blue · our team   Red · defenders\nSmall triangle · body direction",
+  "chainBeforeTouch": "Before touch",
+  "chainAfterTouch": "After touch",
+  "chainAfterAction": "After action",
+  "chainAfterRun": "After run",
+  "chainReturnReady": "Return ready",
+  "chainMomentLabel": "{cycle} · {moment}",
+  "@chainMomentLabel": {
+    "placeholders": {
+      "cycle": {
+        "type": "int"
+      },
+      "moment": {
+        "type": "String"
+      }
+    }
+  },
+  "chainEndLinked": "Two return receptions linked",
+  "chainEndTouch": "Possession lost on the first touch",
+  "chainEndIntercepted": "The pass was intercepted",
+  "chainEndCrowded": "The defender closed you down",
+  "chainEndLane": "The return lane was closed",
+  "chainEndSupport": "Your teammate was pressed",
+  "chainReasonLinked": "Your touch prepared the next action, and your run offered a return. Try the same layout with a different touch to compare the lanes it creates.",
+  "chainReasonTouch": "A defender reached the ball during your touch. Compare before and after to see your touch direction, distance and the pressure path.",
+  "chainReasonIntercepted": "A defender reached the passing lane before the ball arrived. Compare positions at release and interception.",
+  "chainReasonCrowded": "Too little separation remained to continue the play. Compare the positions before and after, then try another direction.",
+  "chainReasonLane": "There was no open lane from your teammate to your new position. Try moving beside the defender to create a return angle.",
+  "chainReasonSupport": "Pressure reached the ball holder during your run. Compare a shorter movement that offers a return angle sooner.",
+  "chainReviewTouch": "What the first touch changed",
+  "chainPressureChange": "Nearest defender  {before} m → {after} m",
+  "@chainPressureChange": {
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "chainLanesChange": "Open passing options  {before} → {after}",
+  "@chainLanesChange": {
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "chainNoLane": "none",
+  "chainPlayerNumber": "{number}",
+  "@chainPlayerNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "chainReviewHint": "Compare moments above the pitch. Blue dashed lines are passing options based on the defenders and body direction at that moment.",
+  "chainPlaybackPosition": "Sequence {percent}%",
+  "@chainPlaybackPosition": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "chainReplay": "Replay the whole sequence",
+  "chainRetry": "Same layout · a different first touch"
 }

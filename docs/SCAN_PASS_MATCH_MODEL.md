@@ -1,20 +1,30 @@
-# Scan Pass Spatial Training Model
+# Scan Pass First-Touch Chain Model
 
-Scan Pass opens on a reactive 3v2 space-selection exercise. The learner controls where number 6 receives, when number 4 sends the pass, the first-touch direction, and the point to pass into for moving number 8. Every destination is a ground coordinate chosen on the pitch, not a fixed player-number answer. The previous continuous possession game remains under **Free attack**, including its goals and offside rules.
+Scan Pass opens on a 3v2 sequence in which the learner controls **the same number 6 throughout**. The core is a preplanned first touch, a deliberate next action, and movement without the ball to receive again. A completed pass is an intermediate event; it does not end the exercise or transfer control to the recipient. Two actual return receptions and their chosen touches complete a sequence. The previous goal and offside game remains available through the football button, **Free attack**.
 
-## Spatial practice
+## Continuous choices
 
-The pitch preserves a 30m by 20m model aspect ratio at every screen size. It contains three attackers and two defenders, uses uniform silhouettes and a soccer ball, and marks the learner explicitly. Tap a location or focus the pitch and use arrow keys; Enter performs the current action. A gold marker is a neutral statement of the learner's intention, never an answer hint. Current velocity arrows show movement.
+1. **Plan the first touch before receiving.** Drag from number 6, tap the ground, or use the arrow keys to choose a direction and distance within three model metres. Confirm to request the incoming pass. The selected touch is executed at reception, including its exact direction and length. There is no automatic touch or receive-position/timing question.
+2. **Read the changed situation and choose the next action.** Tap a teammate to prepare a pass to 4 or 8. Drag into space for a carry of up to four metres, or select Protect and choose a short turn of up to 1.5 metres. A separate button commits the choice. Carrying or shielding leads back to this decision with the same live geometry. Facing affects the time needed to turn before releasing a pass, while defenders continue moving.
+3. **Offer a return.** After a successful pass, the teammate holds the ball and the learner personally chooses where number 6 runs, within seven metres. Defenders react to both players. A usable return needs separation and an open passing lane. The next reception is prepared at the reached position, without resetting or teleporting any player. The learner chooses the next first touch before the teammate sends the return.
 
-The first action starts the run. Number 6 moves toward the selected space while finite-speed marking and passing-lane cover react to current player and ball positions. The learner can change the receiving point and explicitly choose when to request the pass. The ball travels to the chosen point and can arrive before its receiver, after pressure arrives, or through an intercepted lane. It never homes on a chosen player. The model integrates in small substeps and uses pitch metres for speed, reach and pressure calculations. These are transparent teaching parameters, not tracked professional-player data.
+The ball travels continuously. Defenders have finite reactive speeds, and committed touches, turns, carries, passes and runs have collision or pressure consequences. The model uses small deterministic substeps on a 30m by 20m pitch. These are instructional approximations rather than measurements of professional players. Nearby viable destinations are tested, so success does not depend on a single correct pixel. Seeded layouts vary the pressure direction and supporting geometry.
 
-Successful receipt pauses the scene so the learner can choose the first touch, limited to four model metres. After the touch the learner chooses the next pass location. Number 8 continues an existing support run rather than teleporting or redirecting magically toward any selected pass target. Neither the first touch nor the next pass is automated. Half-speed playback, pause/resume and step controls allow self-paced inspection, without a countdown or speed bonus. Opening help, opening Free attack or backgrounding pauses active simulation; resuming is explicit.
+## Reading and interaction
 
-Review uses the recorded trajectory of the attempted action. The release and arrival controls and timeline show the actual positions at both moments; replay follows the same recorded simulation timing. Ball and defender trails expose how a space changed. A same-layout retry retains a faint previous destination; a new layout varies starting geometry, support movement and pressure direction reproducibly by seed. Several destinations and timings can be viable. No optimum or safe-space overlay is shown before acting.
+The pitch keeps a stable 3:2 aspect ratio across desktop, phone and landscape layouts. Both teams use human uniform silhouettes, the ball has soccer-ball panels, and number 6 has a persistent learner label and blue halo. The possession ring follows the ball holder. A small triangle shows body direction and motion arrows show current velocity. A neutral gold arrow previews the learner's choice without exposing a safe/unsafe answer.
 
-No XP, numeric skill score, personal gaze inference or persistent progression is recorded. Improved software behavior and passing tests do not establish improvement in real match judgment. This is a pilot exercise for learning the relation between movement, passing destination and arrival time; transfer would need separate unfamiliar-scene and field evaluation.
+Decision stages pause the simulation. Committed movement plays at half speed with pause and single-step controls. Help, Free attack and backgrounding pause the sequence; resumption is explicit. There is no countdown, speed bonus or numeric skill score. Touch, mouse dragging and keyboard input share the same spatial model. The canvas excludes synthesized web semantic tap coordinates, and provides focus/arrow-key control plus accessible teammate buttons.
 
-Tests cover reactive movement, destination and timing changes, manual first touch and release, lead passes versus unreachable passes, bounded simulation, seeded viability, user interaction, lifecycle pauses, recorded comparison and actual ball pixels in flight. Responsive capture checks include desktop, phone, small phone, landscape, dark mode and enlarged text.
+## Causal review
+
+The review preserves actual trajectory frames and moment snapshots. It compares the learner's pressure and immediate passing lanes before and after each first touch, then lets the player inspect the next action and off-ball destination. Movement trails, moment controls and full-sequence replay explain what changed. A same-layout retry invites a different first touch; a new layout changes the situation. Review overlays appear only after the attempt.
+
+No XP, gaze inference or persistent progression is recorded. Test results establish software behavior, not improvement in real match judgment. Transfer to play would require separate unfamiliar-scene and field evaluation.
+
+Coverage includes manual preplanned touches, alternate touches under identical geometry, facing and release delay, pass/carry/protect choices, continued control after passing, return-lane consequences of the learner's own run, continuous return flights, two successive reconnections, nearby viable choices, seeded variation, lifecycle pauses, pointer and keyboard input, responsive controls and review playback. Real web checks include accessibility-enabled spatial input.
+
+The earlier `SpaceTrainingScreen` and its engine remain for regression coverage but are no longer the default entry. Its receive-position/timing exercise is not part of the new chain.
 
 ## Earlier scenario lesson implementation
 
