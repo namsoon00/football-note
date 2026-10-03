@@ -180,6 +180,34 @@ class _DecisionTrainingScreenState extends State<DecisionTrainingScreen>
     return _decisionBaseState;
   }
 
+  ({AttackTransition transition, double progress})? get _decisionMotion {
+    if (_phase == _DecisionPhase.observing) {
+      return (
+        transition: AttackTransition(
+          before: _scenario.initial,
+          after: _scenario.reception,
+          action: const AttackAction.pass(6),
+          duration: _scenario.observationSeconds,
+          ballEnd: _scenario.reception.ball,
+        ),
+        progress: _observationController.value,
+      );
+    }
+    final assessment = _assessmentForDisplay;
+    if (_phase != _DecisionPhase.executing || assessment == null) return null;
+    var remaining = assessment.duration * _assessmentController.value;
+    for (final leg in assessment.transitions) {
+      if (remaining <= leg.duration) {
+        return (
+          transition: leg,
+          progress: (remaining / leg.duration).clamp(0.0, 1.0)
+        );
+      }
+      remaining -= leg.duration;
+    }
+    return null;
+  }
+
   List<AttackTransition> get _decisionTrails {
     if (_phase == _DecisionPhase.executing) {
       final assessment = _assessmentForDisplay;
@@ -192,14 +220,6 @@ class _DecisionTrainingScreenState extends State<DecisionTrainingScreen>
           shown.add(leg);
           elapsed -= leg.duration;
         } else {
-          final frame = leg.frame(elapsed / leg.duration);
-          shown.add(AttackTransition(
-            before: leg.before,
-            after: frame,
-            action: leg.action,
-            duration: elapsed,
-            ballEnd: frame.ball,
-          ));
           break;
         }
       }
@@ -798,6 +818,7 @@ class _DecisionTrainingScreenState extends State<DecisionTrainingScreen>
     final labels = _PitchLabels.from(l10n);
     final assessment = _assessmentForDisplay ?? _learnerAssessment;
     final reviewCue = _phase == _DecisionPhase.review;
+    final motion = _decisionMotion;
     return LayoutBuilder(builder: (context, constraints) {
       final portrait = MediaQuery.sizeOf(context).width < 600 &&
           MediaQuery.sizeOf(context).height > MediaQuery.sizeOf(context).width;
@@ -820,8 +841,8 @@ class _DecisionTrainingScreenState extends State<DecisionTrainingScreen>
                     selectedAction: _selectedAttackAction,
                     selectedTarget: _selectedTarget,
                     previewOffside: null,
-                    activeTransition: null,
-                    activeProgress: _assessmentController.value,
+                    activeTransition: motion?.transition,
+                    activeProgress: motion?.progress ?? 0,
                     history: _decisionTrails,
                     scanOverlay: false,
                     terminalBanner: false,
@@ -3456,6 +3477,18 @@ class _AttackPitchPainter extends CustomPainter {
       math.cos(player.facingRadians),
       math.sin(player.facingRadians),
     );
+    if (learnerNumber != null && !player.goalkeeper) {
+      final side = Offset(-facing.dy, facing.dx);
+      final tip = center + facing * r * 1.64;
+      final base = center + facing * r * 1.22;
+      final direction = Path()
+        ..moveTo(tip.dx, tip.dy)
+        ..lineTo((base + side * r * .25).dx, (base + side * r * .25).dy)
+        ..lineTo((base - side * r * .25).dx, (base - side * r * .25).dy)
+        ..close();
+      canvas.drawPath(
+          direction, Paint()..color = jersey.withValues(alpha: .85));
+    }
     final legPaint = Paint()
       ..color = shorts
       ..strokeWidth = r * .18
