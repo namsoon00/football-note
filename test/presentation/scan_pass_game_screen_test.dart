@@ -32,7 +32,7 @@ void main() {
       theme: ThemeData.light(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),
       themeMode: themeMode,
-      home: ScanPassGameScreen(
+      home: ScanPassFreeAttackScreen(
         optionRepository: optionRepository,
         seed: seed,
         previewDuration: previewDuration,

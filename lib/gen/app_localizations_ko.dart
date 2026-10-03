@@ -18064,6 +18064,252 @@ class AppLocalizationsKo extends AppLocalizations {
       '선택한 방향으로 공과 6번이 움직입니다. 움직임이 끝나면 다음 행동을 고르세요.';
 
   @override
+  String get scanPassFreeAttackAction => '자유 공격';
+
+  @override
+  String get scanPassFreeAttackTooltip => '이어지는 자유 공격 훈련 열기';
+
+  @override
+  String get scanPassDecisionHelpBody =>
+      '6번이 받기 전에 주변을 살펴보세요. 동료나 공간을 눌러 다음 행동을 고르고, 공이 도착한 뒤 실행합니다. 공이 오는 동안 미리 실행을 예약할 수도 있어요.\n\n함께 읽기에서는 움직임 화살표와 짝 상황을 비교합니다. 혼자 읽기는 보조 화살표를 숨기고, 새 연습 세트의 상황 순서를 섞습니다. 움직이는 압박에서는 공을 받은 뒤에도 수비가 움직입니다. 장면이 멈추면 다시 볼 수 있으며, 실행하지 않은 선택은 실패로 기록하지 않습니다.\n\n복기는 공을 받은 순간에 멈춥니다. 내 선택과 다른 선택을 재생해 압박과 다음 연결을 비교하세요.\n\n이 기능은 2D 학습용 시뮬레이션입니다. 시선이나 실제 경기력 향상을 측정하지 않습니다.';
+
+  @override
+  String scanPassDecisionProgress(int step, int total, Object lesson) {
+    return '$step/$total · $lesson';
+  }
+
+  @override
+  String get scanPassDecisionReplayObservationAction => '다시 보기';
+
+  @override
+  String get scanPassDecisionModeGuided => '함께 읽기';
+
+  @override
+  String get scanPassDecisionModeSolo => '혼자 읽기';
+
+  @override
+  String get scanPassDecisionModeLive => '움직이는 압박';
+
+  @override
+  String get scanPassDecisionQueueAction => '받으면 실행';
+
+  @override
+  String get scanPassDecisionViewOwnAction => '내 선택 다시 보기';
+
+  @override
+  String get scanPassDecisionViewOtherAction => '다른 선택 보기';
+
+  @override
+  String get scanPassDecisionChangeCueAction => '단서 바꿔 다시';
+
+  @override
+  String get scanPassDecisionNextLessonAction => '다음 상황';
+
+  @override
+  String get scanPassDecisionSummaryAction => '정리 보기';
+
+  @override
+  String get scanPassDecisionRetryAction => '다시 시도';
+
+  @override
+  String get scanPassDecisionReplaySetAction => '새 배치로 연습';
+
+  @override
+  String get scanPassDecisionSummaryTitle => '내 선택 돌아보기';
+
+  @override
+  String get scanPassDecisionSummaryStatus => '선택의 이유를 확인하고, 새 배치에서 다시 읽어 보세요.';
+
+  @override
+  String get scanPassDecisionClosedStatus => '장면을 멈췄어요. 다음 행동을 준비하며 다시 보세요.';
+
+  @override
+  String get scanPassDecisionExecutingStatus => '선택이 다음 플레이를 어떻게 바꾸는지 보세요.';
+
+  @override
+  String get scanPassDecisionReviewStatus => '같은 경기장에서 결과를 확인하세요.';
+
+  @override
+  String scanPassDecisionReviewStatusWithQuality(Object quality) {
+    return '$quality · 원인을 경기장에서 비교하세요.';
+  }
+
+  @override
+  String get scanPassDecisionQueuedStatus => '선택이 대기 중입니다. 받는 장면을 보세요.';
+
+  @override
+  String get scanPassDecisionReplayObservationStatus => '받기 전 단서를 다시 봅니다.';
+
+  @override
+  String get scanPassDecisionObservePrompt => '6번이 받기 전에 보세요. 미리 선택할 수 있습니다.';
+
+  @override
+  String get scanPassDecisionPreviewStatus => '미리 보기입니다. 받은 뒤 실행하세요.';
+
+  @override
+  String get scanPassDecisionLivePrompt => '압박이 움직입니다. 길이 쓸 만할 때 실행하세요.';
+
+  @override
+  String get scanPassDecisionChoosePrompt => '공을 받은 뒤 다음 행동을 고르세요.';
+
+  @override
+  String get scanPassDecisionWindowClosedNoChoice =>
+      '아직 행동을 고르지 않았어요. 움직임을 다시 보고 연결을 준비해 보세요.';
+
+  @override
+  String get scanPassDecisionWindowClosedWithChoice =>
+      '선택한 행동을 실행하기 전에 장면이 멈췄어요. 다시 보며 연결해 보세요.';
+
+  @override
+  String get scanPassDecisionLessonRearPressure => '뒤 압박';
+
+  @override
+  String get scanPassDecisionLessonPassingLane => '패스 길';
+
+  @override
+  String get scanPassDecisionLessonReceiverSupport => '받는 선수 지원';
+
+  @override
+  String get scanPassDecisionCueCompareRearPressure =>
+      '같은 배치에서도 수비의 접근에 따라 돌아설 여유가 달라져요.';
+
+  @override
+  String get scanPassDecisionCueComparePassingLane =>
+      '수비가 길을 지키는지, 공을 향해 나오는지 비교해 보세요.';
+
+  @override
+  String get scanPassDecisionCueCompareReceiverSupport =>
+      '지원 동료의 위치가 달라지면, 압박받는 선수의 다음 연결도 달라져요.';
+
+  @override
+  String get scanPassDecisionQualityAdvantage => '전진 기회';
+
+  @override
+  String get scanPassDecisionQualitySecure => '소유 유지';
+
+  @override
+  String get scanPassDecisionQualityDifficult => '고립 위험';
+
+  @override
+  String get scanPassDecisionQualityLost => '공을 잃음';
+
+  @override
+  String get scanPassDecisionReasonPressureEscaped =>
+      '압박에 걸리지 않고 다음 플레이를 준비했어요.';
+
+  @override
+  String get scanPassDecisionReasonPressureArriving => '몸을 돌리는 동안 수비가 도착했어요.';
+
+  @override
+  String get scanPassDecisionReasonLaneOpen => '수비가 비운 패스 길로 전진할 수 있었어요.';
+
+  @override
+  String get scanPassDecisionReasonLaneBlocked =>
+      '동료는 보였지만, 수비가 패스 길을 막고 있었어요.';
+
+  @override
+  String get scanPassDecisionReasonReceiverCanTurn =>
+      '받는 선수에게 몸을 돌릴 시간과 공간이 있었어요.';
+
+  @override
+  String get scanPassDecisionReasonReceiverTrapped =>
+      '패스는 도착했지만, 돌아서거나 바로 내줄 길이 없었어요.';
+
+  @override
+  String get scanPassDecisionReasonThirdPlayerAvailable =>
+      '압박을 받아도 바로 내줄 동료가 있었어요.';
+
+  @override
+  String get scanPassDecisionReasonPossessionKept => '공을 지키며 다시 연결할 수 있었어요.';
+
+  @override
+  String get scanPassDecisionReasonWindowClosed => '행동하기 전에 수비의 압박이 도착했어요.';
+
+  @override
+  String get scanPassDecisionReasonOffside => '패스하는 순간, 받는 선수가 오프사이드 위치였어요.';
+
+  @override
+  String get scanPassDecisionIndicatorLaneOpen => '길 열림';
+
+  @override
+  String get scanPassDecisionIndicatorLaneBlocked => '길 닫힘';
+
+  @override
+  String get scanPassDecisionIndicatorReceiverTime => '다음 행동 여유';
+
+  @override
+  String get scanPassDecisionIndicatorReceiverPressure => '다음 행동 압박';
+
+  @override
+  String get scanPassDecisionIndicatorProgressed => '전진';
+
+  @override
+  String get scanPassDecisionIndicatorRetained => '소유 유지';
+
+  @override
+  String get scanPassDecisionIndicatorInWindow => '창 안';
+
+  @override
+  String get scanPassDecisionIndicatorWindowClosed => '창 닫힘';
+
+  @override
+  String scanPassDecisionIndicatorOutlets(Object numbers) {
+    return '다음 연결 $numbers번';
+  }
+
+  @override
+  String scanPassDecisionBranchOwn(Object action) {
+    return '내 선택 · $action';
+  }
+
+  @override
+  String scanPassDecisionBranchAlternative(Object action) {
+    return '다른 선택 · $action';
+  }
+
+  @override
+  String get scanPassDecisionActionForward => '8번';
+
+  @override
+  String get scanPassDecisionActionWide => '7번';
+
+  @override
+  String get scanPassDecisionActionReset => '4번';
+
+  @override
+  String get scanPassDecisionActionCarry => '운반';
+
+  @override
+  String get scanPassDecisionActionForwardLabel => '8번에게 전진 패스';
+
+  @override
+  String get scanPassDecisionActionWideLabel => '7번에게 측면 패스';
+
+  @override
+  String get scanPassDecisionActionResetLabel => '4번에게 되돌리기';
+
+  @override
+  String get scanPassDecisionActionCarryLabel => '공간으로 전진 운반';
+
+  @override
+  String get scanPassDecisionSummaryEmpty => '아직 기록된 결정이 없습니다.';
+
+  @override
+  String scanPassDecisionSummaryQuality(Object quality, int count) {
+    return '$quality 선택이 $count번 나왔습니다.';
+  }
+
+  @override
+  String scanPassDecisionSummaryLessons(int count) {
+    return '$count개 레슨의 단서를 비교했습니다.';
+  }
+
+  @override
+  String scanPassDecisionSummaryReason(Object reason) {
+    return '선택에서 확인한 점: $reason';
+  }
+
+  @override
   String get scanPassAttackHelpBody =>
       '동료 유니폼을 누르면 패스 길이 나타납니다. 방향 화살표로 공을 운반하고, 기다리기로 동료의 움직임을 살펴보세요. 골문 근처에서는 슈팅할 곳을 고를 수 있습니다. 점선은 미리 보기이며 실행을 눌러야 움직입니다.\n\n오프사이드는 공을 차는 순간 판단합니다. 상대 진영에서 공과 두 번째 마지막 상대 선수보다 앞에 있는 동료가 패스를 받으면 반칙입니다. 골키퍼도 상대 선수에 포함되며, 같은 선상이나 자기 진영은 오프사이드 위치가 아닙니다. 선을 넘은 위치에 있기만 해서는 반칙이 아닙니다.\n\n시간 제한은 없습니다. 도움말을 보거나 앱을 벗어나면 진행 중인 동작도 멈춥니다. 되돌리기로 다른 선택을 해 보세요.';
 
@@ -18309,4 +18555,22 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassAttackCarryShort => '운반';
+
+  @override
+  String get scanPassDecisionIndicatorNoOutlet => '바로 내줄 동료 없음';
+
+  @override
+  String get scanPassDecisionIndicatorCarrySpace => '운반할 공간';
+
+  @override
+  String get scanPassDecisionIndicatorCarryPressure => '운반 중 압박';
+
+  @override
+  String scanPassDecisionSummaryLesson(String lesson, String reason) {
+    return '$lesson · $reason';
+  }
+
+  @override
+  String get scanPassDecisionFieldSemantics =>
+      '오른쪽으로 공격하는 축구 경기장입니다. 내 선수는 6번입니다. 파란 유니폼은 동료, 붉은 유니폼은 수비수이며 금색 테두리는 현재 공을 가진 선수입니다. 동료나 공간을 선택해 다음 행동을 준비하세요.';
 }

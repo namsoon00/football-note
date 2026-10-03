@@ -10080,6 +10080,130 @@
   "scanPassFactFacingForward": "攻撃方向を向いている",
   "scanPassTouchChangePressureRemains": "6番がボールを持っていますが、近くの守備のプレッシャーは残っています。",
   "scanPassTouchInMotionBody": "選んだ方向へボールと6番が動きます。動きが終わったら次の行動を選びましょう。",
+  "scanPassFreeAttackAction": "自由攻撃",
+  "scanPassFreeAttackTooltip": "連続する自由攻撃トレーナーを開く",
+  "scanPassDecisionHelpBody": "6番が受ける前に周囲を見ましょう。味方やスペースを選び、受けた後に実行します。ボールが来る間に実行を予約することもできます。\n\n一緒に読むモードでは動きの矢印と対になる場面を比べます。一人で読むモードでは矢印を隠し、新しい練習セットの順序を変えます。動くプレッシャーでは受けた後も守備者が動きます。場面が止まったらもう一度見られ、未実行の選択は失敗として記録されません。\n\n振り返りは受けた瞬間で止まります。自分の選択と別の選択を再生し、圧力と次のパスを比べましょう。\n\nこれは2Dの学習用シミュレーションであり、視線や実際の試合での上達を測定するものではありません。",
+  "scanPassDecisionProgress": "{step}/{total} · {lesson}",
+  "@scanPassDecisionProgress": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "lesson": {}
+    }
+  },
+  "scanPassDecisionReplayObservationAction": "もう一度見る",
+  "scanPassDecisionModeGuided": "いっしょに読む",
+  "scanPassDecisionModeSolo": "ひとりで読む",
+  "scanPassDecisionModeLive": "動く圧力",
+  "scanPassDecisionQueueAction": "受けたら実行",
+  "scanPassDecisionViewOwnAction": "自分の選択を再生",
+  "scanPassDecisionViewOtherAction": "別の選択を見る",
+  "scanPassDecisionChangeCueAction": "手がかりを変えて再挑戦",
+  "scanPassDecisionNextLessonAction": "次の状況",
+  "scanPassDecisionSummaryAction": "まとめへ",
+  "scanPassDecisionRetryAction": "やり直す",
+  "scanPassDecisionReplaySetAction": "新しい配置で練習",
+  "scanPassDecisionSummaryTitle": "選択を振り返る",
+  "scanPassDecisionSummaryStatus": "選択の理由を確認し、新しい配置でもう一度読みましょう。",
+  "scanPassDecisionClosedStatus": "場面を止めました。次の動きを準備してもう一度見ましょう。",
+  "scanPassDecisionExecutingStatus": "選択が次のプレーをどう変えるか見ましょう。",
+  "scanPassDecisionReviewStatus": "同じピッチで結果を確認しましょう。",
+  "scanPassDecisionReviewStatusWithQuality": "{quality} · 原因をピッチで比べましょう。",
+  "@scanPassDecisionReviewStatusWithQuality": {
+    "placeholders": {
+      "quality": {}
+    }
+  },
+  "scanPassDecisionQueuedStatus": "選択を予約しました。受ける場面を見ましょう。",
+  "scanPassDecisionReplayObservationStatus": "受ける前の手がかりを再生します。",
+  "scanPassDecisionObservePrompt": "6番が受ける前に見ましょう。先に選べます。",
+  "scanPassDecisionPreviewStatus": "プレビューのみ。受けたあとに実行します。",
+  "scanPassDecisionLivePrompt": "圧力が動いています。レーンを使える瞬間に実行しましょう。",
+  "scanPassDecisionChoosePrompt": "受けたあと、次の行動を選びましょう。",
+  "scanPassDecisionWindowClosedNoChoice": "まだ選択していません。動きをもう一度見て次のパスを準備しましょう。",
+  "scanPassDecisionWindowClosedWithChoice": "選択を実行する前に場面が止まりました。もう一度見てつなぎましょう。",
+  "scanPassDecisionLessonRearPressure": "背後の圧力",
+  "scanPassDecisionLessonPassingLane": "パスレーン",
+  "scanPassDecisionLessonReceiverSupport": "受け手の支援",
+  "scanPassDecisionCueCompareRearPressure": "同じ配置でも、守備者の接近によって振り向く余裕が変わります。",
+  "scanPassDecisionCueComparePassingLane": "パスコースを守る動きと、ボールへ出てくる動きを比べましょう。",
+  "scanPassDecisionCueCompareReceiverSupport": "サポート役の位置が変わると、受け手の次のパスも変わります。",
+  "scanPassDecisionQualityAdvantage": "前進の機会",
+  "scanPassDecisionQualitySecure": "ボールを保持",
+  "scanPassDecisionQualityDifficult": "孤立の危険",
+  "scanPassDecisionQualityLost": "ボールを失った",
+  "scanPassDecisionReasonPressureEscaped": "プレッシャーを受けずに次のプレーを準備できました。",
+  "scanPassDecisionReasonPressureArriving": "ボールを持って振り向く間に守備者が近づきました。",
+  "scanPassDecisionReasonLaneOpen": "守備者が空けたパスコースから前進できました。",
+  "scanPassDecisionReasonLaneBlocked": "味方は見えていましたが、守備者がパスコースを塞いでいました。",
+  "scanPassDecisionReasonReceiverCanTurn": "受け手に振り向く時間とスペースがありました。",
+  "scanPassDecisionReasonReceiverTrapped": "パスは届きましたが、振り向く余裕もすぐに出す先もありませんでした。",
+  "scanPassDecisionReasonThirdPlayerAvailable": "プレッシャーを受けてもすぐにつなぐ味方がいました。",
+  "scanPassDecisionReasonPossessionKept": "ボールを守り、次のパスにつなげられました。",
+  "scanPassDecisionReasonWindowClosed": "動き出す前に守備のプレッシャーが届きました。",
+  "scanPassDecisionReasonOffside": "パスを出した瞬間、受け手はオフサイドの位置でした。",
+  "scanPassDecisionIndicatorLaneOpen": "レーン開く",
+  "scanPassDecisionIndicatorLaneBlocked": "レーン閉じる",
+  "scanPassDecisionIndicatorReceiverTime": "次の動作に余裕",
+  "scanPassDecisionIndicatorReceiverPressure": "次の動作に圧力",
+  "scanPassDecisionIndicatorProgressed": "前進",
+  "scanPassDecisionIndicatorRetained": "保持",
+  "scanPassDecisionIndicatorInWindow": "窓の中",
+  "scanPassDecisionIndicatorWindowClosed": "窓が閉じる",
+  "scanPassDecisionIndicatorOutlets": "次のパス：{numbers}番",
+  "@scanPassDecisionIndicatorOutlets": {
+    "placeholders": {
+      "numbers": {}
+    }
+  },
+  "scanPassDecisionBranchOwn": "自分の選択 · {action}",
+  "scanPassDecisionBranchAlternative": "別の選択 · {action}",
+  "@scanPassDecisionBranchOwn": {
+    "placeholders": {
+      "action": {}
+    }
+  },
+  "@scanPassDecisionBranchAlternative": {
+    "placeholders": {
+      "action": {}
+    }
+  },
+  "scanPassDecisionActionForward": "8番",
+  "scanPassDecisionActionWide": "7番",
+  "scanPassDecisionActionReset": "4番",
+  "scanPassDecisionActionCarry": "運ぶ",
+  "scanPassDecisionActionForwardLabel": "8番へ前進パス",
+  "scanPassDecisionActionWideLabel": "7番へサイドのパス",
+  "scanPassDecisionActionResetLabel": "4番へリターンパス",
+  "scanPassDecisionActionCarryLabel": "スペースへ前進して運ぶ",
+  "scanPassDecisionSummaryEmpty": "まだ記録された判断はありません。",
+  "scanPassDecisionSummaryQuality": "{quality} が {count} 回ありました。",
+  "@scanPassDecisionSummaryQuality": {
+    "placeholders": {
+      "quality": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassDecisionSummaryLessons": "{count}つのレッスンで手がかりを比べました。",
+  "@scanPassDecisionSummaryLessons": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassDecisionSummaryReason": "選択から分かったこと：{reason}",
+  "@scanPassDecisionSummaryReason": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
   "scanPassAttackHelpBody": "味方のユニフォームをタップするとパスの経路が表示されます。方向の矢印でボールを運び、待機で味方の動きを見ます。ゴール付近ではシュートする場所を選べます。点線はプレビューで、実行を押すと選手が動きます。\n\nオフサイドはボールを蹴る瞬間に判断します。相手陣内でボールと後方から2人目の相手選手の両方より前にいる味方がパスを受けると反則です。ゴールキーパーも相手選手に含みます。同じライン上や自陣内はオフサイドの位置ではありません。その位置にいるだけでは反則になりません。\n\n時間制限はありません。ヘルプやアプリを離れた間は動きも止まります。元に戻して別の選択を試しましょう。",
   "scanPassAttackSequenceTitle": "攻撃の流れ",
   "scanPassAttackNoSequence": "まだプレーしていません。",
@@ -10250,5 +10374,20 @@
   "scanPassAttackOutcomeSaved": "セーブ",
   "scanPassAttackOutcomeWide": "枠外",
   "scanPassAttackOutcomeBlocked": "ブロック",
-  "scanPassAttackCarryShort": "運ぶ"
+  "scanPassAttackCarryShort": "運ぶ",
+  "scanPassDecisionIndicatorNoOutlet": "すぐに出す先なし",
+  "scanPassDecisionIndicatorCarrySpace": "運ぶスペース",
+  "scanPassDecisionIndicatorCarryPressure": "運ぶ間に圧力",
+  "scanPassDecisionSummaryLesson": "{lesson} · {reason}",
+  "@scanPassDecisionSummaryLesson": {
+    "placeholders": {
+      "lesson": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassDecisionFieldSemantics": "右へ攻めるサッカーのピッチです。自分の選手は6番です。青いユニフォームは味方、赤は守備者、金色の輪は現在ボールを持つ選手です。味方やスペースを選び、次の動きを準備してください。"
 }

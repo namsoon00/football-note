@@ -10080,6 +10080,130 @@
   "scanPassFactFacingForward": "공격 방향을 보고 있음",
   "scanPassTouchChangePressureRemains": "6번이 공을 갖고 있지만, 가까운 수비의 압박은 남아 있습니다.",
   "scanPassTouchInMotionBody": "선택한 방향으로 공과 6번이 움직입니다. 움직임이 끝나면 다음 행동을 고르세요.",
+  "scanPassFreeAttackAction": "자유 공격",
+  "scanPassFreeAttackTooltip": "이어지는 자유 공격 훈련 열기",
+  "scanPassDecisionHelpBody": "6번이 받기 전에 주변을 살펴보세요. 동료나 공간을 눌러 다음 행동을 고르고, 공이 도착한 뒤 실행합니다. 공이 오는 동안 미리 실행을 예약할 수도 있어요.\n\n함께 읽기에서는 움직임 화살표와 짝 상황을 비교합니다. 혼자 읽기는 보조 화살표를 숨기고, 새 연습 세트의 상황 순서를 섞습니다. 움직이는 압박에서는 공을 받은 뒤에도 수비가 움직입니다. 장면이 멈추면 다시 볼 수 있으며, 실행하지 않은 선택은 실패로 기록하지 않습니다.\n\n복기는 공을 받은 순간에 멈춥니다. 내 선택과 다른 선택을 재생해 압박과 다음 연결을 비교하세요.\n\n이 기능은 2D 학습용 시뮬레이션입니다. 시선이나 실제 경기력 향상을 측정하지 않습니다.",
+  "scanPassDecisionProgress": "{step}/{total} · {lesson}",
+  "@scanPassDecisionProgress": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "lesson": {}
+    }
+  },
+  "scanPassDecisionReplayObservationAction": "다시 보기",
+  "scanPassDecisionModeGuided": "함께 읽기",
+  "scanPassDecisionModeSolo": "혼자 읽기",
+  "scanPassDecisionModeLive": "움직이는 압박",
+  "scanPassDecisionQueueAction": "받으면 실행",
+  "scanPassDecisionViewOwnAction": "내 선택 다시 보기",
+  "scanPassDecisionViewOtherAction": "다른 선택 보기",
+  "scanPassDecisionChangeCueAction": "단서 바꿔 다시",
+  "scanPassDecisionNextLessonAction": "다음 상황",
+  "scanPassDecisionSummaryAction": "정리 보기",
+  "scanPassDecisionRetryAction": "다시 시도",
+  "scanPassDecisionReplaySetAction": "새 배치로 연습",
+  "scanPassDecisionSummaryTitle": "내 선택 돌아보기",
+  "scanPassDecisionSummaryStatus": "선택의 이유를 확인하고, 새 배치에서 다시 읽어 보세요.",
+  "scanPassDecisionClosedStatus": "장면을 멈췄어요. 다음 행동을 준비하며 다시 보세요.",
+  "scanPassDecisionExecutingStatus": "선택이 다음 플레이를 어떻게 바꾸는지 보세요.",
+  "scanPassDecisionReviewStatus": "같은 경기장에서 결과를 확인하세요.",
+  "scanPassDecisionReviewStatusWithQuality": "{quality} · 원인을 경기장에서 비교하세요.",
+  "@scanPassDecisionReviewStatusWithQuality": {
+    "placeholders": {
+      "quality": {}
+    }
+  },
+  "scanPassDecisionQueuedStatus": "선택이 대기 중입니다. 받는 장면을 보세요.",
+  "scanPassDecisionReplayObservationStatus": "받기 전 단서를 다시 봅니다.",
+  "scanPassDecisionObservePrompt": "6번이 받기 전에 보세요. 미리 선택할 수 있습니다.",
+  "scanPassDecisionPreviewStatus": "미리 보기입니다. 받은 뒤 실행하세요.",
+  "scanPassDecisionLivePrompt": "압박이 움직입니다. 길이 쓸 만할 때 실행하세요.",
+  "scanPassDecisionChoosePrompt": "공을 받은 뒤 다음 행동을 고르세요.",
+  "scanPassDecisionWindowClosedNoChoice": "아직 행동을 고르지 않았어요. 움직임을 다시 보고 연결을 준비해 보세요.",
+  "scanPassDecisionWindowClosedWithChoice": "선택한 행동을 실행하기 전에 장면이 멈췄어요. 다시 보며 연결해 보세요.",
+  "scanPassDecisionLessonRearPressure": "뒤 압박",
+  "scanPassDecisionLessonPassingLane": "패스 길",
+  "scanPassDecisionLessonReceiverSupport": "받는 선수 지원",
+  "scanPassDecisionCueCompareRearPressure": "같은 배치에서도 수비의 접근에 따라 돌아설 여유가 달라져요.",
+  "scanPassDecisionCueComparePassingLane": "수비가 길을 지키는지, 공을 향해 나오는지 비교해 보세요.",
+  "scanPassDecisionCueCompareReceiverSupport": "지원 동료의 위치가 달라지면, 압박받는 선수의 다음 연결도 달라져요.",
+  "scanPassDecisionQualityAdvantage": "전진 기회",
+  "scanPassDecisionQualitySecure": "소유 유지",
+  "scanPassDecisionQualityDifficult": "고립 위험",
+  "scanPassDecisionQualityLost": "공을 잃음",
+  "scanPassDecisionReasonPressureEscaped": "압박에 걸리지 않고 다음 플레이를 준비했어요.",
+  "scanPassDecisionReasonPressureArriving": "몸을 돌리는 동안 수비가 도착했어요.",
+  "scanPassDecisionReasonLaneOpen": "수비가 비운 패스 길로 전진할 수 있었어요.",
+  "scanPassDecisionReasonLaneBlocked": "동료는 보였지만, 수비가 패스 길을 막고 있었어요.",
+  "scanPassDecisionReasonReceiverCanTurn": "받는 선수에게 몸을 돌릴 시간과 공간이 있었어요.",
+  "scanPassDecisionReasonReceiverTrapped": "패스는 도착했지만, 돌아서거나 바로 내줄 길이 없었어요.",
+  "scanPassDecisionReasonThirdPlayerAvailable": "압박을 받아도 바로 내줄 동료가 있었어요.",
+  "scanPassDecisionReasonPossessionKept": "공을 지키며 다시 연결할 수 있었어요.",
+  "scanPassDecisionReasonWindowClosed": "행동하기 전에 수비의 압박이 도착했어요.",
+  "scanPassDecisionReasonOffside": "패스하는 순간, 받는 선수가 오프사이드 위치였어요.",
+  "scanPassDecisionIndicatorLaneOpen": "길 열림",
+  "scanPassDecisionIndicatorLaneBlocked": "길 닫힘",
+  "scanPassDecisionIndicatorReceiverTime": "다음 행동 여유",
+  "scanPassDecisionIndicatorReceiverPressure": "다음 행동 압박",
+  "scanPassDecisionIndicatorProgressed": "전진",
+  "scanPassDecisionIndicatorRetained": "소유 유지",
+  "scanPassDecisionIndicatorInWindow": "창 안",
+  "scanPassDecisionIndicatorWindowClosed": "창 닫힘",
+  "scanPassDecisionIndicatorOutlets": "다음 연결 {numbers}번",
+  "@scanPassDecisionIndicatorOutlets": {
+    "placeholders": {
+      "numbers": {}
+    }
+  },
+  "scanPassDecisionBranchOwn": "내 선택 · {action}",
+  "scanPassDecisionBranchAlternative": "다른 선택 · {action}",
+  "@scanPassDecisionBranchOwn": {
+    "placeholders": {
+      "action": {}
+    }
+  },
+  "@scanPassDecisionBranchAlternative": {
+    "placeholders": {
+      "action": {}
+    }
+  },
+  "scanPassDecisionActionForward": "8번",
+  "scanPassDecisionActionWide": "7번",
+  "scanPassDecisionActionReset": "4번",
+  "scanPassDecisionActionCarry": "운반",
+  "scanPassDecisionActionForwardLabel": "8번에게 전진 패스",
+  "scanPassDecisionActionWideLabel": "7번에게 측면 패스",
+  "scanPassDecisionActionResetLabel": "4번에게 되돌리기",
+  "scanPassDecisionActionCarryLabel": "공간으로 전진 운반",
+  "scanPassDecisionSummaryEmpty": "아직 기록된 결정이 없습니다.",
+  "scanPassDecisionSummaryQuality": "{quality} 선택이 {count}번 나왔습니다.",
+  "@scanPassDecisionSummaryQuality": {
+    "placeholders": {
+      "quality": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassDecisionSummaryLessons": "{count}개 레슨의 단서를 비교했습니다.",
+  "@scanPassDecisionSummaryLessons": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassDecisionSummaryReason": "선택에서 확인한 점: {reason}",
+  "@scanPassDecisionSummaryReason": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
   "scanPassAttackHelpBody": "동료 유니폼을 누르면 패스 길이 나타납니다. 방향 화살표로 공을 운반하고, 기다리기로 동료의 움직임을 살펴보세요. 골문 근처에서는 슈팅할 곳을 고를 수 있습니다. 점선은 미리 보기이며 실행을 눌러야 움직입니다.\n\n오프사이드는 공을 차는 순간 판단합니다. 상대 진영에서 공과 두 번째 마지막 상대 선수보다 앞에 있는 동료가 패스를 받으면 반칙입니다. 골키퍼도 상대 선수에 포함되며, 같은 선상이나 자기 진영은 오프사이드 위치가 아닙니다. 선을 넘은 위치에 있기만 해서는 반칙이 아닙니다.\n\n시간 제한은 없습니다. 도움말을 보거나 앱을 벗어나면 진행 중인 동작도 멈춥니다. 되돌리기로 다른 선택을 해 보세요.",
   "scanPassAttackSequenceTitle": "공격 순서",
   "scanPassAttackNoSequence": "아직 진행한 행동이 없습니다.",
@@ -10250,5 +10374,20 @@
   "scanPassAttackOutcomeSaved": "세이브",
   "scanPassAttackOutcomeWide": "빗나감",
   "scanPassAttackOutcomeBlocked": "블록",
-  "scanPassAttackCarryShort": "운반"
+  "scanPassAttackCarryShort": "운반",
+  "scanPassDecisionIndicatorNoOutlet": "바로 내줄 동료 없음",
+  "scanPassDecisionIndicatorCarrySpace": "운반할 공간",
+  "scanPassDecisionIndicatorCarryPressure": "운반 중 압박",
+  "scanPassDecisionSummaryLesson": "{lesson} · {reason}",
+  "@scanPassDecisionSummaryLesson": {
+    "placeholders": {
+      "lesson": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassDecisionFieldSemantics": "오른쪽으로 공격하는 축구 경기장입니다. 내 선수는 6번입니다. 파란 유니폼은 동료, 붉은 유니폼은 수비수이며 금색 테두리는 현재 공을 가진 선수입니다. 동료나 공간을 선택해 다음 행동을 준비하세요."
 }
