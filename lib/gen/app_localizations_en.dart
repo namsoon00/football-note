@@ -19213,4 +19213,177 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get scanPassDecisionFieldSemantics =>
       'A football pitch attacking to the right. Your player is number 6. Blue uniforms are teammates, red uniforms are defenders, and the gold ring marks the current ball carrier. Select a teammate or space to prepare the next action.';
+
+  @override
+  String get spaceTitle => 'Read the space';
+
+  @override
+  String get spaceHelpTitle => 'Spatial practice guide';
+
+  @override
+  String get spaceHelpBody =>
+      'Play as number 6 in a 3v2 situation.\n\n1. Tap the ground to choose where to receive. Start your run, watch the defenders, then request the pass when you decide. Passing too early can leave the ball out of reach.\n\n2. After receiving, choose your own first touch within the small circle.\n\n3. Aim at the ground where moving number 8 can receive. The ball travels to your chosen point, without homing on a player.\n\nMovement plays at half speed. Pause or step through the movement at any time. Gold marks your intended space, not a recommended answer. Arrows show current player movement.\n\nKeyboard: focus the pitch, move the target with arrow keys and press Enter to act. This exercise does not measure real match ability.';
+
+  @override
+  String get spaceClose => 'Close';
+
+  @override
+  String get spaceStepReceive => 'Receive';
+
+  @override
+  String get spaceStepTouch => 'First touch';
+
+  @override
+  String get spaceStepPass => 'Next pass';
+
+  @override
+  String get spacePickReceive => 'Tap the space where number 6 should receive.';
+
+  @override
+  String get spaceWatchRun =>
+      'Start moving, then choose when to receive the pass.';
+
+  @override
+  String get spaceReadRun =>
+      'Read the defenders. Adjust your space and choose when to pass.';
+
+  @override
+  String get spaceWatchArrival =>
+      'Watch who reaches the space first: the ball or the defender.';
+
+  @override
+  String get spacePickTouch =>
+      'Choose number 6’s first touch inside the small circle.';
+
+  @override
+  String get spaceTouching => 'Taking your chosen first touch.';
+
+  @override
+  String get spacePickPass =>
+      'Aim at the space where moving number 8 can receive.';
+
+  @override
+  String get spaceWatchPass => 'The ball is travelling to your chosen space.';
+
+  @override
+  String get spaceReviewInstruction =>
+      'Compare the space when you chose it and when the ball arrived.';
+
+  @override
+  String get spaceOutcomeOpen => 'Space was available at arrival';
+
+  @override
+  String get spaceOutcomePressured => 'Pressure arrived with the ball';
+
+  @override
+  String get spaceOutcomeIntercepted => 'The defender reached the ball first';
+
+  @override
+  String get spaceOutcomeUnreachable => 'The receiver could not reach the ball';
+
+  @override
+  String get spaceReasonHeld =>
+      'At arrival, your teammate could reach the chosen space with room from the defender.';
+
+  @override
+  String get spaceReasonDefender =>
+      'The defender moved into the space too. Compare a different position or release time.';
+
+  @override
+  String get spaceReasonLate =>
+      'The ball’s destination and the receiver’s movement did not meet. Try less distance or a different release time.';
+
+  @override
+  String get spaceReasonLane =>
+      'The defender entered the passing lane during flight. Compare the ball path with the defender’s movement.';
+
+  @override
+  String get spaceReasonTouch =>
+      'The defender closed down your chosen first touch. Look for a direction away from that pressure.';
+
+  @override
+  String get spacePitchDescription =>
+      '3v2 spatial practice pitch. Blue 6 is you, 4 supplies the ball, and 8 is the next receiver. The two red players defend. Tap the pitch or use arrow keys to choose a space.';
+
+  @override
+  String get spaceContext => '3v2 · Connect through space';
+
+  @override
+  String get spaceReceiveTarget => 'Receiving space';
+
+  @override
+  String get spaceTouchTarget => 'First-touch space';
+
+  @override
+  String get spacePassTarget => 'Pass destination';
+
+  @override
+  String get spaceTapGround => 'Choose a point on the pitch.';
+
+  @override
+  String get spaceTargetNeutral =>
+      'Gold marks your choice. Tap another point to change it.';
+
+  @override
+  String get spaceStartRun => 'Start the run';
+
+  @override
+  String get spaceReceiveNow => 'Receive now';
+
+  @override
+  String get spaceExecuteTouch => 'Take the touch';
+
+  @override
+  String get spacePassNow => 'Pass now';
+
+  @override
+  String get spaceInMotion => 'Watch the space change';
+
+  @override
+  String get spacePause => 'Pause';
+
+  @override
+  String get spaceResume => 'Resume';
+
+  @override
+  String get spaceStepMotion => 'Step forward';
+
+  @override
+  String get spacePausedNote =>
+      'Paused. Read the scene, then resume when ready.';
+
+  @override
+  String get spaceLegend =>
+      'Blue · teammates   Red · defenders\nGold ring · your chosen space';
+
+  @override
+  String get spacePreviousNote => 'The faint ring marks your previous choice.';
+
+  @override
+  String get spaceRestart => 'Observe from the start';
+
+  @override
+  String get spaceReviewLegend =>
+      'Gold trail · ball movement\nRed trails · defender movement';
+
+  @override
+  String get spaceAtChoice => 'At release';
+
+  @override
+  String get spaceAtArrival => 'At arrival';
+
+  @override
+  String get spaceReplay => 'Replay this choice';
+
+  @override
+  String get spaceRetry => 'Try the same layout';
+
+  @override
+  String get spaceNewLayout => 'Read a new layout';
+
+  @override
+  String get spacePitchHeader => '3 : 2  ·  SPACE PRACTICE';
+
+  @override
+  String get spaceLearner => 'YOU · 6';
 }

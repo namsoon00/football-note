@@ -18520,4 +18520,163 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get scanPassDecisionFieldSemantics =>
       '右へ攻めるサッカーのピッチです。自分の選手は6番です。青いユニフォームは味方、赤は守備者、金色の輪は現在ボールを持つ選手です。味方やスペースを選び、次の動きを準備してください。';
+
+  @override
+  String get spaceTitle => 'スペースを読む';
+
+  @override
+  String get spaceHelpTitle => 'スペース練習ガイド';
+
+  @override
+  String get spaceHelpBody =>
+      '6番として3対2をつなぎます。\n\n① ピッチをタップして受ける位置を決めます。走り始めたら守備と自分の位置を見て、パスを受けるタイミングを選びます。早すぎるとボールに届かないことがあります。\n\n② 受けた後は小さな円の中でファーストタッチの方向を選びます。\n\n③ 動く8番が受けられる地点を選んでパスします。ボールは選んだ地点へ進み、選手を自動追尾しません。\n\n動きは半分の速さで再生されます。一時停止やコマ送りができます。金色は選んだスペースで、正解のヒントではありません。矢印は現在の動きです。\n\nキーボード：ピッチを選択し、矢印キーで地点を動かしEnterで実行します。この練習は実際の試合能力を測定しません。';
+
+  @override
+  String get spaceClose => '閉じる';
+
+  @override
+  String get spaceStepReceive => '受ける位置';
+
+  @override
+  String get spaceStepTouch => 'ファーストタッチ';
+
+  @override
+  String get spaceStepPass => '次のパス';
+
+  @override
+  String get spacePickReceive => '6番が受けるスペースをタップ。';
+
+  @override
+  String get spaceWatchRun => '動き始めて、パスを受けるタイミングを選択。';
+
+  @override
+  String get spaceReadRun => '守備の反応を見て、受ける位置とタイミングを選択。';
+
+  @override
+  String get spaceWatchArrival => 'ボールと守備、どちらが先に届くかを見ましょう。';
+
+  @override
+  String get spacePickTouch => '小さな円の中で6番の最初のタッチを選択。';
+
+  @override
+  String get spaceTouching => '選んだ方向へファーストタッチ。';
+
+  @override
+  String get spacePickPass => '動く8番が受けられるスペースをタップ。';
+
+  @override
+  String get spaceWatchPass => '選んだスペースへボールが進みます。';
+
+  @override
+  String get spaceReviewInstruction => '選択した瞬間と到着した瞬間のスペースを比較。';
+
+  @override
+  String get spaceOutcomeOpen => '到着時にスペースが残りました';
+
+  @override
+  String get spaceOutcomePressured => '到着時に守備が近づきました';
+
+  @override
+  String get spaceOutcomeIntercepted => '守備が先にボールに届きました';
+
+  @override
+  String get spaceOutcomeUnreachable => '味方がボールに届きませんでした';
+
+  @override
+  String get spaceReasonHeld => '到着時に味方がそのスペースに届き、守備との距離も残っていました。';
+
+  @override
+  String get spaceReasonDefender =>
+      '空いて見えた場所へ守備も移動しました。位置やパスのタイミングを変えて比較しましょう。';
+
+  @override
+  String get spaceReasonLate => 'ボールの到着点と味方の動きが合いませんでした。距離やタイミングを変えてみましょう。';
+
+  @override
+  String get spaceReasonLane => 'ボールの移動中に守備がパスコースへ入りました。両方の軌道を比較しましょう。';
+
+  @override
+  String get spaceReasonTouch => '選んだタッチの方向へ守備も近づきました。圧力から離れる方向を探しましょう。';
+
+  @override
+  String get spacePitchDescription =>
+      '3対2の練習ピッチ。青の6番が自分、4番がパスの出し手、8番が次の受け手です。赤の2人が守備です。タップか矢印キーでスペースを選択。';
+
+  @override
+  String get spaceContext => '3対2 · スペースでつなぐ';
+
+  @override
+  String get spaceReceiveTarget => '受けるスペース';
+
+  @override
+  String get spaceTouchTarget => '最初に触る方向';
+
+  @override
+  String get spacePassTarget => 'パスの到着点';
+
+  @override
+  String get spaceTapGround => 'ピッチ上の地点を直接選んでください。';
+
+  @override
+  String get spaceTargetNeutral => '金色は選んだ地点です。別の場所をタップして変更できます。';
+
+  @override
+  String get spaceStartRun => '動きを見る';
+
+  @override
+  String get spaceReceiveNow => '今パスを受ける';
+
+  @override
+  String get spaceExecuteTouch => 'タッチを実行';
+
+  @override
+  String get spacePassNow => '今パスする';
+
+  @override
+  String get spaceInMotion => 'スペースの変化を観察中';
+
+  @override
+  String get spacePause => '一時停止';
+
+  @override
+  String get spaceResume => '動きを再開';
+
+  @override
+  String get spaceStepMotion => '少し進める';
+
+  @override
+  String get spacePausedNote => '停止中です。場面を確認してから再開できます。';
+
+  @override
+  String get spaceLegend => '青 · 味方   赤 · 守備\n金色の円 · 選んだスペース';
+
+  @override
+  String get spacePreviousNote => '薄い円は前の試行で選んだ位置です。';
+
+  @override
+  String get spaceRestart => '最初から観察';
+
+  @override
+  String get spaceReviewLegend => '金色の線 · ボールの軌道\n赤い線 · 守備の移動';
+
+  @override
+  String get spaceAtChoice => '選択の瞬間';
+
+  @override
+  String get spaceAtArrival => '到着の瞬間';
+
+  @override
+  String get spaceReplay => 'この選択を再生';
+
+  @override
+  String get spaceRetry => '同じ配置でもう一度';
+
+  @override
+  String get spaceNewLayout => '新しい配置で読む';
+
+  @override
+  String get spacePitchHeader => '3 : 2  ·  スペース練習';
+
+  @override
+  String get spaceLearner => '自分 · 6';
 }

@@ -32773,6 +32773,318 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A football pitch attacking to the right. Your player is number 6. Blue uniforms are teammates, red uniforms are defenders, and the gold ring marks the current ball carrier. Select a teammate or space to prepare the next action.'**
   String get scanPassDecisionFieldSemantics;
+
+  /// No description provided for @spaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the space'**
+  String get spaceTitle;
+
+  /// No description provided for @spaceHelpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spatial practice guide'**
+  String get spaceHelpTitle;
+
+  /// No description provided for @spaceHelpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Play as number 6 in a 3v2 situation.\n\n1. Tap the ground to choose where to receive. Start your run, watch the defenders, then request the pass when you decide. Passing too early can leave the ball out of reach.\n\n2. After receiving, choose your own first touch within the small circle.\n\n3. Aim at the ground where moving number 8 can receive. The ball travels to your chosen point, without homing on a player.\n\nMovement plays at half speed. Pause or step through the movement at any time. Gold marks your intended space, not a recommended answer. Arrows show current player movement.\n\nKeyboard: focus the pitch, move the target with arrow keys and press Enter to act. This exercise does not measure real match ability.'**
+  String get spaceHelpBody;
+
+  /// No description provided for @spaceClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get spaceClose;
+
+  /// No description provided for @spaceStepReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive'**
+  String get spaceStepReceive;
+
+  /// No description provided for @spaceStepTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch'**
+  String get spaceStepTouch;
+
+  /// No description provided for @spaceStepPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Next pass'**
+  String get spaceStepPass;
+
+  /// No description provided for @spacePickReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the space where number 6 should receive.'**
+  String get spacePickReceive;
+
+  /// No description provided for @spaceWatchRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Start moving, then choose when to receive the pass.'**
+  String get spaceWatchRun;
+
+  /// No description provided for @spaceReadRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the defenders. Adjust your space and choose when to pass.'**
+  String get spaceReadRun;
+
+  /// No description provided for @spaceWatchArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch who reaches the space first: the ball or the defender.'**
+  String get spaceWatchArrival;
+
+  /// No description provided for @spacePickTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose number 6’s first touch inside the small circle.'**
+  String get spacePickTouch;
+
+  /// No description provided for @spaceTouching.
+  ///
+  /// In en, this message translates to:
+  /// **'Taking your chosen first touch.'**
+  String get spaceTouching;
+
+  /// No description provided for @spacePickPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Aim at the space where moving number 8 can receive.'**
+  String get spacePickPass;
+
+  /// No description provided for @spaceWatchPass.
+  ///
+  /// In en, this message translates to:
+  /// **'The ball is travelling to your chosen space.'**
+  String get spaceWatchPass;
+
+  /// No description provided for @spaceReviewInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare the space when you chose it and when the ball arrived.'**
+  String get spaceReviewInstruction;
+
+  /// No description provided for @spaceOutcomeOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Space was available at arrival'**
+  String get spaceOutcomeOpen;
+
+  /// No description provided for @spaceOutcomePressured.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure arrived with the ball'**
+  String get spaceOutcomePressured;
+
+  /// No description provided for @spaceOutcomeIntercepted.
+  ///
+  /// In en, this message translates to:
+  /// **'The defender reached the ball first'**
+  String get spaceOutcomeIntercepted;
+
+  /// No description provided for @spaceOutcomeUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'The receiver could not reach the ball'**
+  String get spaceOutcomeUnreachable;
+
+  /// No description provided for @spaceReasonHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'At arrival, your teammate could reach the chosen space with room from the defender.'**
+  String get spaceReasonHeld;
+
+  /// No description provided for @spaceReasonDefender.
+  ///
+  /// In en, this message translates to:
+  /// **'The defender moved into the space too. Compare a different position or release time.'**
+  String get spaceReasonDefender;
+
+  /// No description provided for @spaceReasonLate.
+  ///
+  /// In en, this message translates to:
+  /// **'The ball’s destination and the receiver’s movement did not meet. Try less distance or a different release time.'**
+  String get spaceReasonLate;
+
+  /// No description provided for @spaceReasonLane.
+  ///
+  /// In en, this message translates to:
+  /// **'The defender entered the passing lane during flight. Compare the ball path with the defender’s movement.'**
+  String get spaceReasonLane;
+
+  /// No description provided for @spaceReasonTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'The defender closed down your chosen first touch. Look for a direction away from that pressure.'**
+  String get spaceReasonTouch;
+
+  /// No description provided for @spacePitchDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'3v2 spatial practice pitch. Blue 6 is you, 4 supplies the ball, and 8 is the next receiver. The two red players defend. Tap the pitch or use arrow keys to choose a space.'**
+  String get spacePitchDescription;
+
+  /// No description provided for @spaceContext.
+  ///
+  /// In en, this message translates to:
+  /// **'3v2 · Connect through space'**
+  String get spaceContext;
+
+  /// No description provided for @spaceReceiveTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiving space'**
+  String get spaceReceiveTarget;
+
+  /// No description provided for @spaceTouchTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'First-touch space'**
+  String get spaceTouchTarget;
+
+  /// No description provided for @spacePassTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass destination'**
+  String get spacePassTarget;
+
+  /// No description provided for @spaceTapGround.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a point on the pitch.'**
+  String get spaceTapGround;
+
+  /// No description provided for @spaceTargetNeutral.
+  ///
+  /// In en, this message translates to:
+  /// **'Gold marks your choice. Tap another point to change it.'**
+  String get spaceTargetNeutral;
+
+  /// No description provided for @spaceStartRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the run'**
+  String get spaceStartRun;
+
+  /// No description provided for @spaceReceiveNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive now'**
+  String get spaceReceiveNow;
+
+  /// No description provided for @spaceExecuteTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Take the touch'**
+  String get spaceExecuteTouch;
+
+  /// No description provided for @spacePassNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass now'**
+  String get spacePassNow;
+
+  /// No description provided for @spaceInMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the space change'**
+  String get spaceInMotion;
+
+  /// No description provided for @spacePause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get spacePause;
+
+  /// No description provided for @spaceResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get spaceResume;
+
+  /// No description provided for @spaceStepMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Step forward'**
+  String get spaceStepMotion;
+
+  /// No description provided for @spacePausedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused. Read the scene, then resume when ready.'**
+  String get spacePausedNote;
+
+  /// No description provided for @spaceLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue · teammates   Red · defenders\nGold ring · your chosen space'**
+  String get spaceLegend;
+
+  /// No description provided for @spacePreviousNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The faint ring marks your previous choice.'**
+  String get spacePreviousNote;
+
+  /// No description provided for @spaceRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Observe from the start'**
+  String get spaceRestart;
+
+  /// No description provided for @spaceReviewLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Gold trail · ball movement\nRed trails · defender movement'**
+  String get spaceReviewLegend;
+
+  /// No description provided for @spaceAtChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'At release'**
+  String get spaceAtChoice;
+
+  /// No description provided for @spaceAtArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'At arrival'**
+  String get spaceAtArrival;
+
+  /// No description provided for @spaceReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay this choice'**
+  String get spaceReplay;
+
+  /// No description provided for @spaceRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try the same layout'**
+  String get spaceRetry;
+
+  /// No description provided for @spaceNewLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Read a new layout'**
+  String get spaceNewLayout;
+
+  /// No description provided for @spacePitchHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'3 : 2  ·  SPACE PRACTICE'**
+  String get spacePitchHeader;
+
+  /// No description provided for @spaceLearner.
+  ///
+  /// In en, this message translates to:
+  /// **'YOU · 6'**
+  String get spaceLearner;
 }
 
 class _AppLocalizationsDelegate

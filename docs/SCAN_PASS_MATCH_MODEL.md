@@ -1,6 +1,24 @@
-# Scan Pass Match Decision Model
+# Scan Pass Spatial Training Model
 
-Scan Pass now opens on a decision-learning trainer. The default lesson starts with #4 passing into learner #6 while teammates and defenders move, then asks the learner to choose the next action after reading the cue before reception. The available decisions are forward pass to #8, wide pass to #7, return pass to #4, and forward carry.
+Scan Pass opens on a reactive 3v2 space-selection exercise. The learner controls where number 6 receives, when number 4 sends the pass, the first-touch direction, and the point to pass into for moving number 8. Every destination is a ground coordinate chosen on the pitch, not a fixed player-number answer. The previous continuous possession game remains under **Free attack**, including its goals and offside rules.
+
+## Spatial practice
+
+The pitch preserves a 30m by 20m model aspect ratio at every screen size. It contains three attackers and two defenders, uses uniform silhouettes and a soccer ball, and marks the learner explicitly. Tap a location or focus the pitch and use arrow keys; Enter performs the current action. A gold marker is a neutral statement of the learner's intention, never an answer hint. Current velocity arrows show movement.
+
+The first action starts the run. Number 6 moves toward the selected space while finite-speed marking and passing-lane cover react to current player and ball positions. The learner can change the receiving point and explicitly choose when to request the pass. The ball travels to the chosen point and can arrive before its receiver, after pressure arrives, or through an intercepted lane. It never homes on a chosen player. The model integrates in small substeps and uses pitch metres for speed, reach and pressure calculations. These are transparent teaching parameters, not tracked professional-player data.
+
+Successful receipt pauses the scene so the learner can choose the first touch, limited to four model metres. After the touch the learner chooses the next pass location. Number 8 continues an existing support run rather than teleporting or redirecting magically toward any selected pass target. Neither the first touch nor the next pass is automated. Half-speed playback, pause/resume and step controls allow self-paced inspection, without a countdown or speed bonus. Opening help, opening Free attack or backgrounding pauses active simulation; resuming is explicit.
+
+Review uses the recorded trajectory of the attempted action. The release and arrival controls and timeline show the actual positions at both moments; replay follows the same recorded simulation timing. Ball and defender trails expose how a space changed. A same-layout retry retains a faint previous destination; a new layout varies starting geometry, support movement and pressure direction reproducibly by seed. Several destinations and timings can be viable. No optimum or safe-space overlay is shown before acting.
+
+No XP, numeric skill score, personal gaze inference or persistent progression is recorded. Improved software behavior and passing tests do not establish improvement in real match judgment. This is a pilot exercise for learning the relation between movement, passing destination and arrival time; transfer would need separate unfamiliar-scene and field evaluation.
+
+Tests cover reactive movement, destination and timing changes, manual first touch and release, lead passes versus unreachable passes, bounded simulation, seeded viability, user interaction, lifecycle pauses, recorded comparison and actual ball pixels in flight. Responsive capture checks include desktop, phone, small phone, landscape, dark mode and enlarged text.
+
+## Earlier scenario lesson implementation
+
+The earlier decision-learning widget is retained for regression coverage; it is no longer the default route. Its opening lesson starts with #4 passing into learner #6 while teammates and defenders move, then asks the learner to choose the next action after reading the cue before reception. The available decisions are forward pass to #8, wide pass to #7, return pass to #4, and forward carry.
 
 The trainer uses three lesson families: rear pressure, passing lane, and receiver support. Each guided set contains six paired situations: the original cue and the changed cue for each family. The changed scene keeps unrelated actors in the same opening positions so the learner can compare cause and consequence rather than memorize one route.
 
