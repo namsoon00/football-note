@@ -5670,7 +5670,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassFieldSemantics =>
-      'サッカーピッチです。黄色の6番が操作する選手、青色が味方、赤色が守備で、攻撃は右方向に進みます。';
+      '右側のゴールへ攻めるサッカーのピッチです。青いユニフォームは味方、赤は守備、緑はゴールキーパーです。金色の輪はボールを持つ選手を示し、パスを受けると操作する選手が変わります。';
 
   @override
   String scanPassSecondsValue(Object seconds) {
@@ -18010,4 +18010,250 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get scanPassTouchInMotionBody =>
       '選んだ方向へボールと6番が動きます。動きが終わったら次の行動を選びましょう。';
+
+  @override
+  String get scanPassAttackHelpBody =>
+      '味方のユニフォームをタップするとパスの経路が表示されます。方向の矢印でボールを運び、待機で味方の動きを見ます。ゴール付近ではシュートする場所を選べます。点線はプレビューで、実行を押すと選手が動きます。\n\nオフサイドはボールを蹴る瞬間に判断します。相手陣内でボールと後方から2人目の相手選手の両方より前にいる味方がパスを受けると反則です。ゴールキーパーも相手選手に含みます。同じライン上や自陣内はオフサイドの位置ではありません。その位置にいるだけでは反則になりません。\n\n時間制限はありません。ヘルプやアプリを離れた間は動きも止まります。元に戻して別の選択を試しましょう。';
+
+  @override
+  String get scanPassAttackSequenceTitle => '攻撃の流れ';
+
+  @override
+  String get scanPassAttackNoSequence => 'まだプレーしていません。';
+
+  @override
+  String scanPassAttackPossessionChip(int number) {
+    return '$number番保持';
+  }
+
+  @override
+  String scanPassAttackProgressStatus(int passes, int actions) {
+    return 'パス $passes · 行動 $actions';
+  }
+
+  @override
+  String get scanPassAttackScanAction => '動きを確認';
+
+  @override
+  String get scanPassAttackIntroStatus => 'パスをつなぎ、右側のゴールを目指しましょう。';
+
+  @override
+  String get scanPassAttackStartAction => '受けて開始';
+
+  @override
+  String get scanPassAttackExecuteAction => '実行';
+
+  @override
+  String get scanPassAttackChangeAction => '変更';
+
+  @override
+  String get scanPassAttackReplaying => '攻撃全体を再生中です。';
+
+  @override
+  String get scanPassAttackExecuting => '選んだプレーが進行中です。';
+
+  @override
+  String get scanPassAttackReplayAction => '再生';
+
+  @override
+  String get scanPassAttackUndoAction => '戻す';
+
+  @override
+  String get scanPassAttackNewAction => '新しい攻撃';
+
+  @override
+  String get scanPassAttackChooseStatus => 'ピッチ上で選ぶか、下の行動を使いましょう。';
+
+  @override
+  String get scanPassAttackChooseWithShotStatus => 'シュート可能です。ゴールの狙う場所を選びましょう。';
+
+  @override
+  String get scanPassAttackScanStatus => '矢印は現在の移動方向です。';
+
+  @override
+  String scanPassAttackPossessionStatus(int number) {
+    return '$number番が保持 · 味方をタップしてパス。';
+  }
+
+  @override
+  String scanPassAttackPreviewPass(int number) {
+    return 'プレビュー: $number番へパスします。';
+  }
+
+  @override
+  String get scanPassAttackPreviewCarryUpper => 'プレビュー: 上側レーンへ運びます。';
+
+  @override
+  String get scanPassAttackPreviewCarryForward => 'プレビュー: 前へ運びます。';
+
+  @override
+  String get scanPassAttackPreviewCarryLower => 'プレビュー: 下側レーンへ運びます。';
+
+  @override
+  String get scanPassAttackPreviewHold => 'プレビュー: 少し保持します。';
+
+  @override
+  String get scanPassAttackPreviewShootUpper => 'プレビュー: 上へシュートします。';
+
+  @override
+  String get scanPassAttackPreviewShootCenter => 'プレビュー: 中央へシュートします。';
+
+  @override
+  String get scanPassAttackPreviewShootLower => 'プレビュー: 下へシュートします。';
+
+  @override
+  String get scanPassAttackOutcomeGoalStatus => 'ゴール · 攻撃完了。';
+
+  @override
+  String get scanPassAttackOutcomeInterceptedStatus => 'ターンオーバー。守備者が奪いました。';
+
+  @override
+  String get scanPassAttackOutcomeOffsideStatus => 'オフサイド · キック時の位置を確認しましょう。';
+
+  @override
+  String get scanPassAttackOutcomeSavedStatus => 'セーブ。GKがシュートを止めました。';
+
+  @override
+  String get scanPassAttackOutcomeWideStatus => '枠外。シュートはゴールを外れました。';
+
+  @override
+  String get scanPassAttackOutcomeBlockedStatus => 'ブロック。守備者がシュートを止めました。';
+
+  @override
+  String scanPassAttackSequencePass(int from, int to) {
+    return '$from番から$to番へパス';
+  }
+
+  @override
+  String scanPassAttackSequenceCarryUpper(int number) {
+    return '$number番が上へ運ぶ';
+  }
+
+  @override
+  String scanPassAttackSequenceCarryForward(int number) {
+    return '$number番が前へ運ぶ';
+  }
+
+  @override
+  String scanPassAttackSequenceCarryLower(int number) {
+    return '$number番が下へ運ぶ';
+  }
+
+  @override
+  String scanPassAttackSequenceHold(int number) {
+    return '$number番が保持';
+  }
+
+  @override
+  String scanPassAttackSequenceShoot(int number, Object target) {
+    return '$number番が$targetへシュート';
+  }
+
+  @override
+  String scanPassAttackPassAction(int number) {
+    return '$number番へパス';
+  }
+
+  @override
+  String get scanPassAttackCarryUpperAction => '上へ運ぶ';
+
+  @override
+  String get scanPassAttackCarryForwardAction => '前へ運ぶ';
+
+  @override
+  String get scanPassAttackCarryLowerAction => '下へ運ぶ';
+
+  @override
+  String get scanPassAttackHoldAction => '保持';
+
+  @override
+  String get scanPassAttackShootUpperAction => '上シュート';
+
+  @override
+  String get scanPassAttackShootCenterAction => '中央シュート';
+
+  @override
+  String get scanPassAttackShootLowerAction => '下シュート';
+
+  @override
+  String scanPassAttackPassPlayerLabel(int number) {
+    return '$number番へパス';
+  }
+
+  @override
+  String get scanPassAttackCarryUpperLabel => '上側レーンへボールを運ぶ';
+
+  @override
+  String get scanPassAttackCarryForwardLabel => '前へボールを運ぶ';
+
+  @override
+  String get scanPassAttackCarryLowerLabel => '下側レーンへボールを運ぶ';
+
+  @override
+  String get scanPassAttackHoldLabel => '少しボールを保持';
+
+  @override
+  String get scanPassAttackShootUpperLabel => 'ゴール上側の目標へシュート';
+
+  @override
+  String get scanPassAttackShootCenterLabel => 'ゴール中央の目標へシュート';
+
+  @override
+  String get scanPassAttackShootLowerLabel => 'ゴール下側の目標へシュート';
+
+  @override
+  String get scanPassAttackShotUpperName => '上';
+
+  @override
+  String get scanPassAttackShotCenterName => '中央';
+
+  @override
+  String get scanPassAttackShotLowerName => '下';
+
+  @override
+  String get scanPassAttackOffsideLine => 'オフサイド線';
+
+  @override
+  String get scanPassAttackOffsideWarning => 'オフサイドの位置';
+
+  @override
+  String get scanPassAttackOffsideFreeze => 'パス瞬間';
+
+  @override
+  String get scanPassAttackKickPoint => 'キック地点';
+
+  @override
+  String get scanPassAttackOffsideReceiver => '受け手';
+
+  @override
+  String get scanPassAttackSecondLast => '2人目';
+
+  @override
+  String get scanPassAttackHoldShort => '保持';
+
+  @override
+  String scanPassAttackCurrentPlayerLabel(int number) {
+    return '$number番保持';
+  }
+
+  @override
+  String get scanPassAttackOutcomeGoal => 'ゴール';
+
+  @override
+  String get scanPassAttackOutcomeIntercepted => 'カット';
+
+  @override
+  String get scanPassAttackOutcomeOffside => 'オフサイド';
+
+  @override
+  String get scanPassAttackOutcomeSaved => 'セーブ';
+
+  @override
+  String get scanPassAttackOutcomeWide => '枠外';
+
+  @override
+  String get scanPassAttackOutcomeBlocked => 'ブロック';
+
+  @override
+  String get scanPassAttackCarryShort => '運ぶ';
 }

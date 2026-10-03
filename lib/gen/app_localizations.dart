@@ -10173,7 +10173,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassFieldSemantics.
   ///
   /// In en, this message translates to:
-  /// **'Football pitch. Amber #6 is your player, blue players are teammates, coral players are defenders, and attack moves right.'**
+  /// **'Football pitch attacking the goal on the right. Blue uniforms are teammates, red are defenders and green is the goalkeeper. The gold ring marks the ball carrier. Control follows the player receiving the pass.'**
   String get scanPassFieldSemantics;
 
   /// No description provided for @scanPassSecondsValue.
@@ -31867,6 +31867,444 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Watch the ball and #6 move in your chosen direction. Choose the next action when the movement finishes.'**
   String get scanPassTouchInMotionBody;
+
+  /// No description provided for @scanPassAttackHelpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a teammate’s uniform to preview a pass. Use the direction arrows to carry the ball, or wait to let runs develop. Near the goal, choose where to shoot. Dotted paths are previews; players move only after you press execute.\n\nOffside is judged when the ball is played. In the opponents’ half, a teammate beyond both the ball and the second-last opponent commits an offence when receiving the pass. The goalkeeper counts as an opponent. Being level or in your own half is onside; simply standing in an offside position is not an offence.\n\nThere is no time limit. Help and leaving the app pause any motion. Undo to explore another choice.'**
+  String get scanPassAttackHelpBody;
+
+  /// No description provided for @scanPassAttackSequenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attack sequence'**
+  String get scanPassAttackSequenceTitle;
+
+  /// No description provided for @scanPassAttackNoSequence.
+  ///
+  /// In en, this message translates to:
+  /// **'No actions played yet.'**
+  String get scanPassAttackNoSequence;
+
+  /// No description provided for @scanPassAttackPossessionChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball #{number}'**
+  String scanPassAttackPossessionChip(int number);
+
+  /// No description provided for @scanPassAttackProgressStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'{passes} passes · {actions} actions'**
+  String scanPassAttackProgressStatus(int passes, int actions);
+
+  /// No description provided for @scanPassAttackScanAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan movement'**
+  String get scanPassAttackScanAction;
+
+  /// No description provided for @scanPassAttackIntroStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect your passes and finish at the right-hand goal.'**
+  String get scanPassAttackIntroStatus;
+
+  /// No description provided for @scanPassAttackStartAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive and start'**
+  String get scanPassAttackStartAction;
+
+  /// No description provided for @scanPassAttackExecuteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Execute'**
+  String get scanPassAttackExecuteAction;
+
+  /// No description provided for @scanPassAttackChangeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get scanPassAttackChangeAction;
+
+  /// No description provided for @scanPassAttackReplaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaying the whole possession.'**
+  String get scanPassAttackReplaying;
+
+  /// No description provided for @scanPassAttackExecuting.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the action play out.'**
+  String get scanPassAttackExecuting;
+
+  /// No description provided for @scanPassAttackReplayAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get scanPassAttackReplayAction;
+
+  /// No description provided for @scanPassAttackUndoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get scanPassAttackUndoAction;
+
+  /// No description provided for @scanPassAttackNewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'New attack'**
+  String get scanPassAttackNewAction;
+
+  /// No description provided for @scanPassAttackChooseStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose on the pitch or use the action dock.'**
+  String get scanPassAttackChooseStatus;
+
+  /// No description provided for @scanPassAttackChooseWithShotStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Within shooting range. Choose a target in the goal.'**
+  String get scanPassAttackChooseWithShotStatus;
+
+  /// No description provided for @scanPassAttackScanStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrows show the current direction of movement.'**
+  String get scanPassAttackScanStatus;
+
+  /// No description provided for @scanPassAttackPossessionStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} on the ball · tap a teammate to pass.'**
+  String scanPassAttackPossessionStatus(int number);
+
+  /// No description provided for @scanPassAttackPreviewPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: pass toward #{number}.'**
+  String scanPassAttackPreviewPass(int number);
+
+  /// No description provided for @scanPassAttackPreviewCarryUpper.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: carry into the upper lane.'**
+  String get scanPassAttackPreviewCarryUpper;
+
+  /// No description provided for @scanPassAttackPreviewCarryForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: carry forward.'**
+  String get scanPassAttackPreviewCarryForward;
+
+  /// No description provided for @scanPassAttackPreviewCarryLower.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: carry into the lower lane.'**
+  String get scanPassAttackPreviewCarryLower;
+
+  /// No description provided for @scanPassAttackPreviewHold.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: hold briefly.'**
+  String get scanPassAttackPreviewHold;
+
+  /// No description provided for @scanPassAttackPreviewShootUpper.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: shoot high.'**
+  String get scanPassAttackPreviewShootUpper;
+
+  /// No description provided for @scanPassAttackPreviewShootCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: shoot center.'**
+  String get scanPassAttackPreviewShootCenter;
+
+  /// No description provided for @scanPassAttackPreviewShootLower.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: shoot low.'**
+  String get scanPassAttackPreviewShootLower;
+
+  /// No description provided for @scanPassAttackOutcomeGoalStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal · attack completed.'**
+  String get scanPassAttackOutcomeGoalStatus;
+
+  /// No description provided for @scanPassAttackOutcomeInterceptedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Turnover. A defender took the ball.'**
+  String get scanPassAttackOutcomeInterceptedStatus;
+
+  /// No description provided for @scanPassAttackOutcomeOffsideStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Offside · check the positions at the kick.'**
+  String get scanPassAttackOutcomeOffsideStatus;
+
+  /// No description provided for @scanPassAttackOutcomeSavedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved. The keeper stopped the shot.'**
+  String get scanPassAttackOutcomeSavedStatus;
+
+  /// No description provided for @scanPassAttackOutcomeWideStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Wide. The shot missed the goal.'**
+  String get scanPassAttackOutcomeWideStatus;
+
+  /// No description provided for @scanPassAttackOutcomeBlockedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked. A defender stopped the shot.'**
+  String get scanPassAttackOutcomeBlockedStatus;
+
+  /// No description provided for @scanPassAttackSequencePass.
+  ///
+  /// In en, this message translates to:
+  /// **'#{from} pass to #{to}'**
+  String scanPassAttackSequencePass(int from, int to);
+
+  /// No description provided for @scanPassAttackSequenceCarryUpper.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} carry upper'**
+  String scanPassAttackSequenceCarryUpper(int number);
+
+  /// No description provided for @scanPassAttackSequenceCarryForward.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} carry forward'**
+  String scanPassAttackSequenceCarryForward(int number);
+
+  /// No description provided for @scanPassAttackSequenceCarryLower.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} carry lower'**
+  String scanPassAttackSequenceCarryLower(int number);
+
+  /// No description provided for @scanPassAttackSequenceHold.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} hold'**
+  String scanPassAttackSequenceHold(int number);
+
+  /// No description provided for @scanPassAttackSequenceShoot.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} shoot {target}'**
+  String scanPassAttackSequenceShoot(int number, Object target);
+
+  /// No description provided for @scanPassAttackPassAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass #{number}'**
+  String scanPassAttackPassAction(int number);
+
+  /// No description provided for @scanPassAttackCarryUpperAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry up'**
+  String get scanPassAttackCarryUpperAction;
+
+  /// No description provided for @scanPassAttackCarryForwardAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry on'**
+  String get scanPassAttackCarryForwardAction;
+
+  /// No description provided for @scanPassAttackCarryLowerAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry down'**
+  String get scanPassAttackCarryLowerAction;
+
+  /// No description provided for @scanPassAttackHoldAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold'**
+  String get scanPassAttackHoldAction;
+
+  /// No description provided for @scanPassAttackShootUpperAction.
+  ///
+  /// In en, this message translates to:
+  /// **'High shot'**
+  String get scanPassAttackShootUpperAction;
+
+  /// No description provided for @scanPassAttackShootCenterAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Center shot'**
+  String get scanPassAttackShootCenterAction;
+
+  /// No description provided for @scanPassAttackShootLowerAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Low shot'**
+  String get scanPassAttackShootLowerAction;
+
+  /// No description provided for @scanPassAttackPassPlayerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass to player {number}'**
+  String scanPassAttackPassPlayerLabel(int number);
+
+  /// No description provided for @scanPassAttackCarryUpperLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry into the upper lane'**
+  String get scanPassAttackCarryUpperLabel;
+
+  /// No description provided for @scanPassAttackCarryForwardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry forward'**
+  String get scanPassAttackCarryForwardLabel;
+
+  /// No description provided for @scanPassAttackCarryLowerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry into the lower lane'**
+  String get scanPassAttackCarryLowerLabel;
+
+  /// No description provided for @scanPassAttackHoldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the ball briefly'**
+  String get scanPassAttackHoldLabel;
+
+  /// No description provided for @scanPassAttackShootUpperLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shoot at the upper goal target'**
+  String get scanPassAttackShootUpperLabel;
+
+  /// No description provided for @scanPassAttackShootCenterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shoot at the center goal target'**
+  String get scanPassAttackShootCenterLabel;
+
+  /// No description provided for @scanPassAttackShootLowerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shoot at the lower goal target'**
+  String get scanPassAttackShootLowerLabel;
+
+  /// No description provided for @scanPassAttackShotUpperName.
+  ///
+  /// In en, this message translates to:
+  /// **'upper'**
+  String get scanPassAttackShotUpperName;
+
+  /// No description provided for @scanPassAttackShotCenterName.
+  ///
+  /// In en, this message translates to:
+  /// **'center'**
+  String get scanPassAttackShotCenterName;
+
+  /// No description provided for @scanPassAttackShotLowerName.
+  ///
+  /// In en, this message translates to:
+  /// **'lower'**
+  String get scanPassAttackShotLowerName;
+
+  /// No description provided for @scanPassAttackOffsideLine.
+  ///
+  /// In en, this message translates to:
+  /// **'offside line'**
+  String get scanPassAttackOffsideLine;
+
+  /// No description provided for @scanPassAttackOffsideWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Offside position'**
+  String get scanPassAttackOffsideWarning;
+
+  /// No description provided for @scanPassAttackOffsideFreeze.
+  ///
+  /// In en, this message translates to:
+  /// **'pass moment'**
+  String get scanPassAttackOffsideFreeze;
+
+  /// No description provided for @scanPassAttackKickPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'kick point'**
+  String get scanPassAttackKickPoint;
+
+  /// No description provided for @scanPassAttackOffsideReceiver.
+  ///
+  /// In en, this message translates to:
+  /// **'receiver'**
+  String get scanPassAttackOffsideReceiver;
+
+  /// No description provided for @scanPassAttackSecondLast.
+  ///
+  /// In en, this message translates to:
+  /// **'2nd last'**
+  String get scanPassAttackSecondLast;
+
+  /// No description provided for @scanPassAttackHoldShort.
+  ///
+  /// In en, this message translates to:
+  /// **'hold'**
+  String get scanPassAttackHoldShort;
+
+  /// No description provided for @scanPassAttackCurrentPlayerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} on ball'**
+  String scanPassAttackCurrentPlayerLabel(int number);
+
+  /// No description provided for @scanPassAttackOutcomeGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'GOAL'**
+  String get scanPassAttackOutcomeGoal;
+
+  /// No description provided for @scanPassAttackOutcomeIntercepted.
+  ///
+  /// In en, this message translates to:
+  /// **'INTERCEPTED'**
+  String get scanPassAttackOutcomeIntercepted;
+
+  /// No description provided for @scanPassAttackOutcomeOffside.
+  ///
+  /// In en, this message translates to:
+  /// **'OFFSIDE'**
+  String get scanPassAttackOutcomeOffside;
+
+  /// No description provided for @scanPassAttackOutcomeSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVED'**
+  String get scanPassAttackOutcomeSaved;
+
+  /// No description provided for @scanPassAttackOutcomeWide.
+  ///
+  /// In en, this message translates to:
+  /// **'WIDE'**
+  String get scanPassAttackOutcomeWide;
+
+  /// No description provided for @scanPassAttackOutcomeBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'BLOCKED'**
+  String get scanPassAttackOutcomeBlocked;
+
+  /// No description provided for @scanPassAttackCarryShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry'**
+  String get scanPassAttackCarryShort;
 }
 
 class _AppLocalizationsDelegate

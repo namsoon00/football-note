@@ -11,7 +11,7 @@ void main() {
     (size: const Size(568, 320), scale: 1.0, locale: const Locale('ja')),
   ]) {
     testWidgets(
-      'mobile ${config.size} ${config.locale.languageCode} keeps self-paced controls reachable',
+      'continuous attack ${config.size} ${config.locale.languageCode} keeps pitch and controls reachable',
       (tester) async {
         tester.view.physicalSize = config.size;
         tester.view.devicePixelRatio = 1;
@@ -19,176 +19,139 @@ void main() {
         addTearDown(tester.view.resetDevicePixelRatio);
 
         await tester.pumpWidget(
-          MaterialApp(
+          _buildApp(
             locale: config.locale,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.linear(config.scale),
-              ),
-              child: child!,
-            ),
-            home: ScanPassGameScreen(
-              optionRepository: _MemoryOptions(),
-              seed: 7,
-              previewDuration: Duration.zero,
-              passAnimationDuration: Duration.zero,
-            ),
+            textScale: config.scale,
+            optionRepository: _MemoryOptions(),
           ),
         );
+
+        final pitch = find.byKey(const ValueKey<String>('attack-pitch'));
+        expect(pitch, findsOneWidget);
+        expect(tester.getRect(pitch).height, greaterThan(110));
 
         Future<void> tapReachable(String key) async {
           final finder = find.byKey(ValueKey<String>(key));
           await tester.ensureVisible(finder);
           final bounds = tester.getRect(finder);
           expect(bounds.height, greaterThanOrEqualTo(44), reason: key);
+          expect(bounds.width, greaterThanOrEqualTo(44), reason: key);
           await tester.tap(finder);
           await tester.pumpAndSettle();
         }
 
-        await tapReachable('scan-pass-understand-scene-button');
-        await tapReachable('scan-pass-scan-button');
-        await tapReachable('scan-pass-receive-button');
+        await tapReachable('attack-start');
+        await tapReachable('attack-scan');
 
         for (final key in <String>[
-          'scan-pass-touch-upper',
-          'scan-pass-touch-lower',
-          'scan-pass-touch-turn',
-          'scan-pass-touch-return',
+          'attack-pass-4',
+          'attack-carry-upper',
+          'attack-carry-forward',
+          'attack-carry-lower',
+          'attack-hold',
         ]) {
           final finder = find.byKey(ValueKey<String>(key));
           await tester.ensureVisible(finder);
-          expect(tester.getRect(finder).height, greaterThanOrEqualTo(44));
+          final bounds = tester.getRect(finder);
+          expect(bounds.height, greaterThanOrEqualTo(44), reason: key);
         }
 
-        await tapReachable('scan-pass-touch-upper');
-        await tapReachable('scan-pass-execute-first-touch');
+        await tapReachable('attack-carry-forward');
+        await tapReachable('attack-execute');
 
-        for (final key in <String>[
-          'scan-pass-next-pass-4',
-          'scan-pass-next-pass-8',
-          'scan-pass-next-pass-9',
-          'scan-pass-next-hold-8',
-        ]) {
-          final finder = find.byKey(ValueKey<String>(key));
-          await tester.ensureVisible(finder);
-          expect(tester.getRect(finder).height, greaterThanOrEqualTo(44));
-        }
-
-        await tapReachable('scan-pass-next-pass-8');
-        await tapReachable('scan-pass-execute-next-action');
         expect(
-          find.byKey(const ValueKey<String>('scan-pass-review-panel')),
-          findsOneWidget,
-        );
+            find.byKey(const ValueKey<String>('attack-pitch')), findsOneWidget);
+        await tester.tap(find.byKey(const ValueKey<String>('attack-restart')));
+        await tester.pumpAndSettle();
+        await tapReachable('attack-start');
+        await tapReachable('attack-pass-9');
+        await tapReachable('attack-execute');
+        final shotRects = <Rect>[];
+        for (final target in ['upper', 'center', 'lower']) {
+          final shot = find.byKey(ValueKey<String>('attack-shoot-$target'));
+          expect(shot.hitTestable(), findsOneWidget,
+              reason: 'Every goal target must be visible without scrolling.');
+          final rect = tester.getRect(shot);
+          expect(rect.height, greaterThanOrEqualTo(44));
+          expect(rect.width, greaterThanOrEqualTo(44));
+          for (final previous in shotRects) {
+            expect(previous.overlaps(rect), isFalse,
+                reason: 'Goal target hit areas must not overlap.');
+          }
+          shotRects.add(rect);
+        }
+        await tapReachable('attack-shoot-upper');
+        expect(
+            find.byKey(const ValueKey<String>('attack-execute')).hitTestable(),
+            findsOneWidget);
+        final selectedPitch = tester.getRect(pitch);
+        expect(selectedPitch.height,
+            greaterThan(config.size.width < config.size.height ? 210 : 120));
+        expect(selectedPitch.top, greaterThanOrEqualTo(0));
+        expect(selectedPitch.bottom, lessThanOrEqualTo(config.size.height));
+        await tapReachable('attack-execute');
+        expect(find.byKey(const ValueKey<String>('attack-replay')),
+            findsOneWidget);
+        await tester.tap(find.byKey(const ValueKey<String>('attack-help')));
+        await tester.pumpAndSettle();
+        final l10n = AppLocalizations.of(
+            tester.element(find.byType(ScanPassGameScreen)))!;
+        expect(find.text(l10n.scanPassHelpCloseAction).hitTestable(),
+            findsOneWidget);
+        await tester.tap(find.text(l10n.scanPassHelpCloseAction));
+        await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
-        await tester.pumpWidget(const SizedBox.shrink());
       },
     );
   }
 
   testWidgets(
-      'first touch execution gates next action until animation completes',
+      'desktop pitch takes the board instead of a side explanation panel',
       (tester) async {
-    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.physicalSize = const Size(1280, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
-      MaterialApp(
+      _buildApp(
         locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: ScanPassGameScreen(
-          optionRepository: _MemoryOptions(),
-          seed: 7,
-          previewDuration: Duration.zero,
-          passAnimationDuration: const Duration(seconds: 2),
-        ),
+        optionRepository: _MemoryOptions(),
       ),
     );
 
-    Future<void> tap(String key) async {
-      final finder = find.byKey(ValueKey<String>(key));
-      await tester.ensureVisible(finder);
-      await tester.tap(finder);
-      await tester.pump();
-    }
-
-    await tap('scan-pass-understand-scene-button');
-    await tester.pumpAndSettle();
-    await tap('scan-pass-scan-button');
-    await tester.pumpAndSettle();
-    await tap('scan-pass-receive-button');
-    await tester.pumpAndSettle();
-    await tap('scan-pass-touch-upper');
-    await tester.pumpAndSettle();
-    await tap('scan-pass-execute-first-touch');
-
-    expect(
-      find.byKey(const ValueKey<String>('scan-pass-next-pass-8')),
-      findsNothing,
+    final pitchRect = tester.getRect(
+      find.byKey(const ValueKey<String>('attack-pitch')),
     );
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
-    await tester.pump(const Duration(seconds: 1));
-    expect(
-      find.byKey(const ValueKey<String>('scan-pass-next-pass-8')),
-      findsNothing,
-    );
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 2));
-
-    expect(
-      find.byKey(const ValueKey<String>('scan-pass-next-pass-8')),
-      findsOneWidget,
-    );
+    expect(pitchRect.width, greaterThan(1000));
+    expect(pitchRect.height, greaterThan(450));
+    expect(find.textContaining('Score breakdown'), findsNothing);
     expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox.shrink());
   });
+}
 
-  testWidgets('return to #4 asks for #6 off-ball receiving movement',
-      (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: ScanPassGameScreen(
-          optionRepository: _MemoryOptions(),
-          seed: 7,
-          previewDuration: Duration.zero,
-          passAnimationDuration: Duration.zero,
-        ),
+Widget _buildApp({
+  required Locale locale,
+  required OptionRepository optionRepository,
+  double textScale = 1,
+}) {
+  return MaterialApp(
+    locale: locale,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.linear(textScale),
       ),
-    );
-
-    Future<void> tap(String key) async {
-      final finder = find.byKey(ValueKey<String>(key));
-      await tester.ensureVisible(finder);
-      await tester.tap(finder);
-      await tester.pumpAndSettle();
-    }
-
-    await tap('scan-pass-understand-scene-button');
-    await tap('scan-pass-scan-button');
-    await tap('scan-pass-receive-button');
-    await tap('scan-pass-touch-return');
-    await tap('scan-pass-execute-first-touch');
-
-    expect(find.text('#4 has possession'), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey<String>('scan-pass-next-support-upper')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey<String>('scan-pass-next-pass-9')),
-      findsNothing,
-    );
-    expect(tester.takeException(), isNull);
-  });
+      child: child!,
+    ),
+    home: ScanPassGameScreen(
+      optionRepository: optionRepository,
+      seed: 7,
+      previewDuration: Duration.zero,
+      passAnimationDuration: Duration.zero,
+    ),
+  );
 }
 
 class _MemoryOptions implements OptionRepository {

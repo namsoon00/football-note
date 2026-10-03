@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/scan_pass_history_service.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
+import 'package:football_note/domain/scan_pass/scan_pass_attack.dart';
+import 'package:football_note/domain/scan_pass/scan_pass_game.dart'
+    show ScanPassPoint;
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 
@@ -20,6 +23,7 @@ void main() {
     ThemeMode themeMode = ThemeMode.dark,
     Duration previewDuration = Duration.zero,
     Duration passAnimationDuration = Duration.zero,
+    AttackState? initialAttack,
   }) {
     return MaterialApp(
       locale: locale,
@@ -33,6 +37,7 @@ void main() {
         seed: seed,
         previewDuration: previewDuration,
         passAnimationDuration: passAnimationDuration,
+        initialAttack: initialAttack,
       ),
     );
   }
@@ -44,191 +49,150 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> enterFirstTouch(WidgetTester tester) async {
-    await tapByKey(tester, 'scan-pass-understand-scene-button');
-    await tapByKey(tester, 'scan-pass-scan-button');
-    await tapByKey(tester, 'scan-pass-receive-button');
-  }
-
-  Future<void> playToReview(WidgetTester tester) async {
-    await enterFirstTouch(tester);
-    await tapByKey(tester, 'scan-pass-touch-lower');
-    await tapByKey(tester, 'scan-pass-execute-first-touch');
-    await tapByKey(tester, 'scan-pass-next-pass-8');
-    await tapByKey(tester, 'scan-pass-execute-next-action');
-  }
-
-  testWidgets('opens on a self-paced scene intro without score pressure',
+  testWidgets('opens on a spacious self-paced attack intro without scores',
       (tester) async {
     await tester.pumpWidget(buildScreen());
 
-    expect(
-      find.byKey(const ValueKey<String>('scan-pass-intro-title')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey<String>('scan-pass-understand-scene-button')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey<String>('scan-pass-other-scene-button')),
-      findsOneWidget,
-    );
+    expect(find.byKey(const ValueKey<String>('attack-pitch')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('attack-start')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('attack-scan')), findsOneWidget);
     expect(find.textContaining('/100'), findsNothing);
     expect(find.text('Score breakdown'), findsNothing);
 
     await tester.pump(const Duration(seconds: 30));
 
+    expect(find.byKey(const ValueKey<String>('attack-start')), findsOneWidget);
+    expect(optionRepository.summaryWriteCount, 0);
+  });
+
+  testWidgets('preview does not commit; execute keeps possession continuous',
+      (tester) async {
+    await tester.pumpWidget(buildScreen());
+
+    await tapByKey(tester, 'attack-start');
+    expect(find.byKey(const ValueKey<String>('attack-pass-4')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('attack-start')), findsNothing);
+
+    await tapByKey(tester, 'attack-pass-4');
     expect(
-      find.byKey(const ValueKey<String>('scan-pass-intro-title')),
+        find.byKey(const ValueKey<String>('attack-execute')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('attack-review')), findsNothing);
+
+    await tester.pump(const Duration(seconds: 30));
+    expect(
+        find.byKey(const ValueKey<String>('attack-execute')), findsOneWidget);
+
+    await tapByKey(tester, 'attack-change');
+    expect(find.byKey(const ValueKey<String>('attack-execute')), findsNothing);
+    expect(find.byKey(const ValueKey<String>('attack-pass-4')), findsOneWidget);
+
+    await tapByKey(tester, 'attack-pass-4');
+    await tapByKey(tester, 'attack-execute');
+
+    expect(find.byKey(const ValueKey<String>('attack-pass-6')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('attack-review')), findsNothing);
+    expect(optionRepository.summaryWriteCount, 0);
+  });
+
+  testWidgets('shooting range is explicit and terminal actions replay or undo',
+      (tester) async {
+    await tester.pumpWidget(buildScreen());
+    await tapByKey(tester, 'attack-start');
+    expect(find.byKey(const ValueKey<String>('attack-shoot-center')),
+        findsNothing);
+
+    await tester.pumpWidget(buildScreen(initialAttack: _shootingState()));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey<String>('attack-shoot-center')),
+        findsOneWidget);
+    await tapByKey(tester, 'attack-shoot-center');
+    expect(
+        find.byKey(const ValueKey<String>('attack-execute')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('attack-replay')), findsNothing);
+
+    await tapByKey(tester, 'attack-execute');
+
+    expect(find.byKey(const ValueKey<String>('attack-replay')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('attack-undo')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('attack-new')), findsOneWidget);
+
+    await tapByKey(tester, 'attack-replay');
+    expect(find.byKey(const ValueKey<String>('attack-replay')), findsOneWidget);
+
+    await tapByKey(tester, 'attack-undo');
+    expect(find.byKey(const ValueKey<String>('attack-shoot-center')),
+        findsOneWidget);
+    expect(optionRepository.summaryWriteCount, 0);
+  });
+
+  testWidgets('help and scan overlay do not discard the current attack',
+      (tester) async {
+    await tester.pumpWidget(buildScreen());
+
+    await tapByKey(tester, 'attack-start');
+    await tapByKey(tester, 'attack-scan');
+    expect(
+      find.text('Arrows show the current direction of movement.'),
       findsOneWidget,
     );
-    expect(optionRepository.summaryWriteCount, 0);
-  });
 
-  testWidgets('waiting while reading does not advance or change the result',
-      (tester) async {
-    await tester.pumpWidget(buildScreen());
-
-    await tapByKey(tester, 'scan-pass-understand-scene-button');
-    expect(find.byKey(const ValueKey<String>('scan-pass-scan-button')),
-        findsOneWidget);
-    await tester.pump(const Duration(seconds: 30));
-    expect(find.byKey(const ValueKey<String>('scan-pass-scan-button')),
-        findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('scan-pass-touch-upper')),
-        findsNothing);
-
-    await tapByKey(tester, 'scan-pass-scan-button');
-    expect(find.textContaining('Closest defender'), findsOneWidget);
-    await tester.pump(const Duration(seconds: 30));
-    expect(find.byKey(const ValueKey<String>('scan-pass-receive-button')),
-        findsOneWidget);
-
-    await tapByKey(tester, 'scan-pass-receive-button');
-    expect(find.byKey(const ValueKey<String>('scan-pass-touch-lower')),
-        findsOneWidget);
-    await tester.pump(const Duration(seconds: 30));
-    expect(find.byKey(const ValueKey<String>('scan-pass-touch-lower')),
-        findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('scan-pass-review-panel')),
-        findsNothing);
-  });
-
-  testWidgets('selecting previews only; execute commits and details collapse',
-      (tester) async {
-    await tester.pumpWidget(buildScreen());
-
-    await enterFirstTouch(tester);
-    await tapByKey(tester, 'scan-pass-touch-lower');
-
-    expect(find.byKey(const ValueKey<String>('scan-pass-execute-first-touch')),
-        findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('scan-pass-review-panel')),
-        findsNothing);
-    await tester.pump(const Duration(seconds: 30));
-    expect(find.byKey(const ValueKey<String>('scan-pass-execute-first-touch')),
-        findsOneWidget);
-
-    await tapByKey(tester, 'scan-pass-execute-first-touch');
-    expect(find.textContaining('kept possession'), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('scan-pass-next-pass-8')),
-        findsOneWidget);
-
-    await tapByKey(tester, 'scan-pass-next-pass-8');
-    expect(find.byKey(const ValueKey<String>('scan-pass-execute-next-action')),
-        findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('scan-pass-review-panel')),
-        findsNothing);
-
-    await tapByKey(tester, 'scan-pass-execute-next-action');
-    expect(find.byKey(const ValueKey<String>('scan-pass-review-panel')),
-        findsOneWidget);
-    expect(find.text('Viewing my committed choice'), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('scan-pass-total-score')),
-        findsNothing);
-
-    await tapByKey(tester, 'scan-pass-details-expansion');
-    expect(find.byKey(const ValueKey<String>('scan-pass-total-score')),
-        findsOneWidget);
-    expect(optionRepository.summaryWriteCount, 0);
-  });
-
-  testWidgets('help opens without discarding current scene progress',
-      (tester) async {
-    await tester.pumpWidget(buildScreen());
-
-    await tapByKey(tester, 'scan-pass-understand-scene-button');
-    await tapByKey(tester, 'scan-pass-scan-button');
-    expect(find.byKey(const ValueKey<String>('scan-pass-receive-button')),
-        findsOneWidget);
-
-    await tapByKey(tester, 'scan-pass-help-button');
+    await tapByKey(tester, 'attack-help');
     expect(find.text('How Scan Pass works'), findsOneWidget);
     await tester.tap(find.text('Close'));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey<String>('scan-pass-receive-button')),
-        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('attack-pass-4')), findsOneWidget);
     expect(optionRepository.summaryWriteCount, 0);
   });
 
-  testWidgets('alternative replay keeps committed choice and history unchanged',
-      (tester) async {
-    await tester.pumpWidget(buildScreen(seed: 13));
-
-    await playToReview(tester);
-    expect(find.text('Viewing my committed choice'), findsOneWidget);
-    expect(find.text('My choice'), findsOneWidget);
-
-    await tapByKey(tester, 'scan-pass-review-alternative');
-
-    expect(find.text('Viewing another plausible choice'), findsOneWidget);
-    expect(find.text('My choice'), findsNothing);
-    expect(find.byKey(const ValueKey<String>('scan-pass-review-panel')),
-        findsOneWidget);
-    expect(optionRepository.summaryWriteCount, 0);
-
-    await tapByKey(tester, 'scan-pass-review-mine');
-    expect(find.text('Viewing my committed choice'), findsOneWidget);
-    expect(find.text('My choice'), findsOneWidget);
-  });
-
-  testWidgets('next scene advances to a purposeful different situation',
-      (tester) async {
-    await tester.pumpWidget(buildScreen(seed: 23, themeMode: ThemeMode.light));
-
-    await playToReview(tester);
-    expect(find.text('Scene 1 / 10'), findsOneWidget);
-
-    await tapByKey(tester, 'scan-pass-next-button');
-
-    expect(find.text('Scene 2 / 10'), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('scan-pass-scan-button')),
-        findsOneWidget);
-    expect(optionRepository.summaryWriteCount, 0);
-  });
-
-  testWidgets('Korean desktop review keeps primary text causal, not numeric',
-      (tester) async {
-    tester.view.physicalSize = const Size(1000, 720);
+  testWidgets('app lifecycle pauses opening pass animation', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
-      buildScreen(locale: const Locale('ko'), themeMode: ThemeMode.light),
+      buildScreen(
+        previewDuration: const Duration(seconds: 2),
+        passAnimationDuration: const Duration(seconds: 2),
+      ),
     );
 
-    await playToReview(tester);
+    final start = find.byKey(const ValueKey<String>('attack-start'));
+    await tester.tap(start);
+    await tester.pump();
 
-    expect(find.text('확인한 상황'), findsOneWidget);
-    expect(find.text('내가 한 선택'), findsOneWidget);
-    expect(find.text('달라진 다음 장면'), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('scan-pass-total-score')),
-        findsNothing);
+    expect(find.byKey(const ValueKey<String>('attack-pass-4')), findsNothing);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byKey(const ValueKey<String>('attack-pass-4')), findsNothing);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey<String>('attack-pass-4')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+}
+
+AttackState _shootingState() {
+  final base = const AttackEngine().initial();
+  const point = ScanPassPoint(.72, .50);
+  return base.copyWith(
+    attackers: [
+      for (final player in base.attackers)
+        if (player.number == base.carrierNumber)
+          player.copyWith(position: point, facingRadians: 0)
+        else
+          player,
+    ],
+    ball: point,
+    furthestX: point.x,
+  );
 }
 
 class _MemoryOptionRepository implements OptionRepository {

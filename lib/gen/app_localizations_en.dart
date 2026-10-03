@@ -5848,7 +5848,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassFieldSemantics =>
-      'Football pitch. Amber #6 is your player, blue players are teammates, coral players are defenders, and attack moves right.';
+      'Football pitch attacking the goal on the right. Blue uniforms are teammates, red are defenders and green is the goalkeeper. The gold ring marks the ball carrier. Control follows the player receiving the pass.';
 
   @override
   String scanPassSecondsValue(Object seconds) {
@@ -18673,4 +18673,263 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get scanPassTouchInMotionBody =>
       'Watch the ball and #6 move in your chosen direction. Choose the next action when the movement finishes.';
+
+  @override
+  String get scanPassAttackHelpBody =>
+      'Tap a teammate’s uniform to preview a pass. Use the direction arrows to carry the ball, or wait to let runs develop. Near the goal, choose where to shoot. Dotted paths are previews; players move only after you press execute.\n\nOffside is judged when the ball is played. In the opponents’ half, a teammate beyond both the ball and the second-last opponent commits an offence when receiving the pass. The goalkeeper counts as an opponent. Being level or in your own half is onside; simply standing in an offside position is not an offence.\n\nThere is no time limit. Help and leaving the app pause any motion. Undo to explore another choice.';
+
+  @override
+  String get scanPassAttackSequenceTitle => 'Attack sequence';
+
+  @override
+  String get scanPassAttackNoSequence => 'No actions played yet.';
+
+  @override
+  String scanPassAttackPossessionChip(int number) {
+    return 'Ball #$number';
+  }
+
+  @override
+  String scanPassAttackProgressStatus(int passes, int actions) {
+    return '$passes passes · $actions actions';
+  }
+
+  @override
+  String get scanPassAttackScanAction => 'Scan movement';
+
+  @override
+  String get scanPassAttackIntroStatus =>
+      'Connect your passes and finish at the right-hand goal.';
+
+  @override
+  String get scanPassAttackStartAction => 'Receive and start';
+
+  @override
+  String get scanPassAttackExecuteAction => 'Execute';
+
+  @override
+  String get scanPassAttackChangeAction => 'Change';
+
+  @override
+  String get scanPassAttackReplaying => 'Replaying the whole possession.';
+
+  @override
+  String get scanPassAttackExecuting => 'Watch the action play out.';
+
+  @override
+  String get scanPassAttackReplayAction => 'Replay';
+
+  @override
+  String get scanPassAttackUndoAction => 'Undo';
+
+  @override
+  String get scanPassAttackNewAction => 'New attack';
+
+  @override
+  String get scanPassAttackChooseStatus =>
+      'Choose on the pitch or use the action dock.';
+
+  @override
+  String get scanPassAttackChooseWithShotStatus =>
+      'Within shooting range. Choose a target in the goal.';
+
+  @override
+  String get scanPassAttackScanStatus =>
+      'Arrows show the current direction of movement.';
+
+  @override
+  String scanPassAttackPossessionStatus(int number) {
+    return '#$number on the ball · tap a teammate to pass.';
+  }
+
+  @override
+  String scanPassAttackPreviewPass(int number) {
+    return 'Preview only: pass toward #$number.';
+  }
+
+  @override
+  String get scanPassAttackPreviewCarryUpper =>
+      'Preview only: carry into the upper lane.';
+
+  @override
+  String get scanPassAttackPreviewCarryForward =>
+      'Preview only: carry forward.';
+
+  @override
+  String get scanPassAttackPreviewCarryLower =>
+      'Preview only: carry into the lower lane.';
+
+  @override
+  String get scanPassAttackPreviewHold => 'Preview only: hold briefly.';
+
+  @override
+  String get scanPassAttackPreviewShootUpper => 'Preview only: shoot high.';
+
+  @override
+  String get scanPassAttackPreviewShootCenter => 'Preview only: shoot center.';
+
+  @override
+  String get scanPassAttackPreviewShootLower => 'Preview only: shoot low.';
+
+  @override
+  String get scanPassAttackOutcomeGoalStatus => 'Goal · attack completed.';
+
+  @override
+  String get scanPassAttackOutcomeInterceptedStatus =>
+      'Turnover. A defender took the ball.';
+
+  @override
+  String get scanPassAttackOutcomeOffsideStatus =>
+      'Offside · check the positions at the kick.';
+
+  @override
+  String get scanPassAttackOutcomeSavedStatus =>
+      'Saved. The keeper stopped the shot.';
+
+  @override
+  String get scanPassAttackOutcomeWideStatus =>
+      'Wide. The shot missed the goal.';
+
+  @override
+  String get scanPassAttackOutcomeBlockedStatus =>
+      'Blocked. A defender stopped the shot.';
+
+  @override
+  String scanPassAttackSequencePass(int from, int to) {
+    return '#$from pass to #$to';
+  }
+
+  @override
+  String scanPassAttackSequenceCarryUpper(int number) {
+    return '#$number carry upper';
+  }
+
+  @override
+  String scanPassAttackSequenceCarryForward(int number) {
+    return '#$number carry forward';
+  }
+
+  @override
+  String scanPassAttackSequenceCarryLower(int number) {
+    return '#$number carry lower';
+  }
+
+  @override
+  String scanPassAttackSequenceHold(int number) {
+    return '#$number hold';
+  }
+
+  @override
+  String scanPassAttackSequenceShoot(int number, Object target) {
+    return '#$number shoot $target';
+  }
+
+  @override
+  String scanPassAttackPassAction(int number) {
+    return 'Pass #$number';
+  }
+
+  @override
+  String get scanPassAttackCarryUpperAction => 'Carry up';
+
+  @override
+  String get scanPassAttackCarryForwardAction => 'Carry on';
+
+  @override
+  String get scanPassAttackCarryLowerAction => 'Carry down';
+
+  @override
+  String get scanPassAttackHoldAction => 'Hold';
+
+  @override
+  String get scanPassAttackShootUpperAction => 'High shot';
+
+  @override
+  String get scanPassAttackShootCenterAction => 'Center shot';
+
+  @override
+  String get scanPassAttackShootLowerAction => 'Low shot';
+
+  @override
+  String scanPassAttackPassPlayerLabel(int number) {
+    return 'Pass to player $number';
+  }
+
+  @override
+  String get scanPassAttackCarryUpperLabel => 'Carry into the upper lane';
+
+  @override
+  String get scanPassAttackCarryForwardLabel => 'Carry forward';
+
+  @override
+  String get scanPassAttackCarryLowerLabel => 'Carry into the lower lane';
+
+  @override
+  String get scanPassAttackHoldLabel => 'Hold the ball briefly';
+
+  @override
+  String get scanPassAttackShootUpperLabel => 'Shoot at the upper goal target';
+
+  @override
+  String get scanPassAttackShootCenterLabel =>
+      'Shoot at the center goal target';
+
+  @override
+  String get scanPassAttackShootLowerLabel => 'Shoot at the lower goal target';
+
+  @override
+  String get scanPassAttackShotUpperName => 'upper';
+
+  @override
+  String get scanPassAttackShotCenterName => 'center';
+
+  @override
+  String get scanPassAttackShotLowerName => 'lower';
+
+  @override
+  String get scanPassAttackOffsideLine => 'offside line';
+
+  @override
+  String get scanPassAttackOffsideWarning => 'Offside position';
+
+  @override
+  String get scanPassAttackOffsideFreeze => 'pass moment';
+
+  @override
+  String get scanPassAttackKickPoint => 'kick point';
+
+  @override
+  String get scanPassAttackOffsideReceiver => 'receiver';
+
+  @override
+  String get scanPassAttackSecondLast => '2nd last';
+
+  @override
+  String get scanPassAttackHoldShort => 'hold';
+
+  @override
+  String scanPassAttackCurrentPlayerLabel(int number) {
+    return '#$number on ball';
+  }
+
+  @override
+  String get scanPassAttackOutcomeGoal => 'GOAL';
+
+  @override
+  String get scanPassAttackOutcomeIntercepted => 'INTERCEPTED';
+
+  @override
+  String get scanPassAttackOutcomeOffside => 'OFFSIDE';
+
+  @override
+  String get scanPassAttackOutcomeSaved => 'SAVED';
+
+  @override
+  String get scanPassAttackOutcomeWide => 'WIDE';
+
+  @override
+  String get scanPassAttackOutcomeBlocked => 'BLOCKED';
+
+  @override
+  String get scanPassAttackCarryShort => 'Carry';
 }
