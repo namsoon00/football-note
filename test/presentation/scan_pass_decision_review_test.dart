@@ -1,4 +1,7 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/scan_pass/scan_pass_attack.dart';
@@ -7,6 +10,28 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 
 void main() {
+  testWidgets('incoming and outgoing passes paint the ball in flight',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final boundaryKey = GlobalKey();
+    await tester.pumpWidget(RepaintBoundary(
+      key: boundaryKey,
+      child: _app(observation: const Duration(seconds: 2)),
+    ));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 700));
+    await _expectPaintedBall(tester, boundaryKey);
+    await tester.pumpAndSettle();
+    await _tap(tester, 'decision-action-forward', settle: false);
+    await _tap(tester, 'decision-commit', settle: false);
+    await tester.pump(const Duration(milliseconds: 400));
+    await _expectPaintedBall(tester, boundaryKey);
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('changing a queued plan returns the new choice to preview',
       (tester) async {
     await tester.pumpWidget(MaterialApp(
@@ -173,17 +198,56 @@ Future<void> _tap(WidgetTester tester, String key, {bool settle = true}) async {
   if (settle) await tester.pumpAndSettle();
 }
 
-Widget _app({Duration duration = const Duration(seconds: 3)}) => MaterialApp(
+Widget _app(
+        {Duration duration = const Duration(seconds: 3),
+        Duration observation = Duration.zero}) =>
+    MaterialApp(
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: DecisionTrainingScreen(
         optionRepository: _Options(),
         seed: 0,
-        observationDuration: Duration.zero,
+        observationDuration: observation,
         assessmentDuration: duration,
       ),
     );
+
+Future<void> _expectPaintedBall(WidgetTester tester, GlobalKey key) async {
+  final state = _painter(tester).displayState as AttackState;
+  expect(state.ball.distanceTo(state.carrier.position), greaterThan(.04),
+      reason: 'Inspect a frame where the ball has left the passer.');
+  final pitch = tester.getRect(find.byKey(const ValueKey('decision-pitch')));
+  // Pitch markings establish the coordinate frame independently of the
+  // possession attachment. Inspect actual raster pixels, not painter fields.
+  final center = Offset(
+    pitch.left + pitch.width * (.035 + .93 * state.ball.x / 1.04),
+    pitch.top + pitch.height * (.065 + .86 * state.ball.y),
+  );
+  final boundary =
+      key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+  var white = 0;
+  var black = 0;
+  await tester.runAsync(() async {
+    final image = await boundary.toImage(pixelRatio: 1);
+    final bytes = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
+    for (var y = center.dy.round() - 7; y <= center.dy.round() + 7; y++) {
+      for (var x = center.dx.round() - 7; x <= center.dx.round() + 7; x++) {
+        final offset = (y * image.width + x) * 4;
+        final red = bytes.getUint8(offset);
+        final green = bytes.getUint8(offset + 1);
+        final blue = bytes.getUint8(offset + 2);
+        if (red > 230 && green > 230 && blue > 230) white++;
+        if (red < 60 && green < 60 && blue < 60) black++;
+      }
+    }
+    image.dispose();
+  });
+  expect(white, greaterThan(5),
+      reason: 'The soccer ball must be on its flight path.');
+  expect(black, greaterThan(2),
+      reason: 'Its black panels must travel with it.');
+}
 
 class _Options implements OptionRepository {
   @override

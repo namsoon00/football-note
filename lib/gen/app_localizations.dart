@@ -31883,7 +31883,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassDecisionHelpBody.
   ///
   /// In en, this message translates to:
-  /// **'Read the situation before #6 receives. Tap a teammate or space, then execute after reception. You can also queue execution while the ball is arriving.\n\nRead together shows movement cues and paired scenes. Read alone removes cue arrows and shuffles new practice sets. Moving pressure continues the defenders’ movement after reception. When the scene pauses, watch again; an unexecuted choice is not recorded as a failed decision.\n\nReview freezes at the receiving moment. Replay your choice and alternatives to compare pressure and the next connection.\n\nThis is a 2D instructional simulation. It does not measure gaze or improvement in match performance.'**
+  /// **'The small arrow beside each player shows their body orientation. Read the situation before #6 receives. Tap a teammate or space, then execute after reception. You can also queue execution while the ball is arriving.\n\nRead together shows movement cues and paired scenes. Read alone removes cue arrows and shuffles new practice sets. Moving pressure continues the defenders’ movement after reception. When the scene pauses, watch again; an unexecuted choice is not recorded as a failed decision.\n\nReview freezes at the receiving moment. Replay your choice and alternatives to compare pressure and the next connection.\n\nThis is a 2D instructional simulation. It does not measure gaze or improvement in match performance.'**
   String get scanPassDecisionHelpBody;
 
   /// No description provided for @scanPassDecisionProgress.
