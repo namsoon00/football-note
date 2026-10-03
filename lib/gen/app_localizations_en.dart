@@ -5953,11 +5953,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassNextPassInstruction =>
-      'Choose a clear next action. Only an explicit hold option advances the model before the pass.';
+      'Choose a teammate to pass to. “Hold, then #8” keeps the ball briefly before the pass.';
 
   @override
   String get scanPassNextMoveInstruction =>
-      'The ball went back to #4. Move #6 to create the next receiving angle, or hold the pocket.';
+      'The ball is back with #4. Choose where #6 should receive it again.';
 
   @override
   String get scanPassReviewInstruction =>
@@ -6025,7 +6025,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassPass4Title => 'Pass to #4';
 
   @override
-  String get scanPassPass4Subtitle => 'Recycle through the centerback.';
+  String get scanPassPass4Subtitle => 'Pass back to #4.';
 
   @override
   String get scanPassPass4Short => 'pass to #4';
@@ -6078,13 +6078,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassSupportForwardShort => 'forward support';
 
   @override
-  String get scanPassHoldPocketTitle => 'Hold pocket';
+  String get scanPassHoldPocketTitle => 'Wait in place';
 
   @override
-  String get scanPassHoldPocketSubtitle => 'Stay central for the return pass.';
+  String get scanPassHoldPocketSubtitle =>
+      'Stay where you are and wait for #4’s pass.';
 
   @override
-  String get scanPassHoldPocketShort => 'hold pocket';
+  String get scanPassHoldPocketShort => 'wait in place';
 
   @override
   String get scanPassReviewMineAction => 'Replay my choice';
@@ -6429,8 +6430,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'The return path was reached by a defender, so the play moves straight to review.';
 
   @override
-  String get scanPassPass4Preview =>
-      'Preview only: the route recycles through #4 without changing your committed play.';
+  String get scanPassPass4Preview => 'Preview only: #6 passes back to #4.';
 
   @override
   String get scanPassPass8Preview =>
@@ -6454,7 +6454,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassHoldPocketPreview =>
-      'Preview only: #6 stays in the same pocket and waits for #4.';
+      'Preview only: #6 stays in place and waits for #4’s pass.';
 
   @override
   String get scanPassReviewViewingMine => 'Viewing my committed choice';

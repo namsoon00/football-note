@@ -1573,7 +1573,9 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
         body: l10n.scanPassReviewSituationBody,
       ),
       _ReviewRowData(
-        label: l10n.scanPassReviewChoiceLabel,
+        label: _showAlternative
+            ? l10n.scanPassReviewAlternativeAction
+            : l10n.scanPassReviewChoiceLabel,
         value: _planName(l10n, result),
         body: reason,
       ),

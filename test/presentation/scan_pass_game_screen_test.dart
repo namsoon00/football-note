@@ -179,16 +179,19 @@ void main() {
 
     await playToReview(tester);
     expect(find.text('Viewing my committed choice'), findsOneWidget);
+    expect(find.text('My choice'), findsOneWidget);
 
     await tapByKey(tester, 'scan-pass-review-alternative');
 
     expect(find.text('Viewing another plausible choice'), findsOneWidget);
+    expect(find.text('My choice'), findsNothing);
     expect(find.byKey(const ValueKey<String>('scan-pass-review-panel')),
         findsOneWidget);
     expect(optionRepository.summaryWriteCount, 0);
 
     await tapByKey(tester, 'scan-pass-review-mine');
     expect(find.text('Viewing my committed choice'), findsOneWidget);
+    expect(find.text('My choice'), findsOneWidget);
   });
 
   testWidgets('next scene advances to a purposeful different situation',

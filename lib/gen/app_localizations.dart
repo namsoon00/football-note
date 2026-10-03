@@ -10359,13 +10359,13 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassNextPassInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Choose a clear next action. Only an explicit hold option advances the model before the pass.'**
+  /// **'Choose a teammate to pass to. “Hold, then #8” keeps the ball briefly before the pass.'**
   String get scanPassNextPassInstruction;
 
   /// No description provided for @scanPassNextMoveInstruction.
   ///
   /// In en, this message translates to:
-  /// **'The ball went back to #4. Move #6 to create the next receiving angle, or hold the pocket.'**
+  /// **'The ball is back with #4. Choose where #6 should receive it again.'**
   String get scanPassNextMoveInstruction;
 
   /// No description provided for @scanPassReviewInstruction.
@@ -10485,7 +10485,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPass4Subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Recycle through the centerback.'**
+  /// **'Pass back to #4.'**
   String get scanPassPass4Subtitle;
 
   /// No description provided for @scanPassPass4Short.
@@ -10587,19 +10587,19 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassHoldPocketTitle.
   ///
   /// In en, this message translates to:
-  /// **'Hold pocket'**
+  /// **'Wait in place'**
   String get scanPassHoldPocketTitle;
 
   /// No description provided for @scanPassHoldPocketSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Stay central for the return pass.'**
+  /// **'Stay where you are and wait for #4’s pass.'**
   String get scanPassHoldPocketSubtitle;
 
   /// No description provided for @scanPassHoldPocketShort.
   ///
   /// In en, this message translates to:
-  /// **'hold pocket'**
+  /// **'wait in place'**
   String get scanPassHoldPocketShort;
 
   /// No description provided for @scanPassReviewMineAction.
@@ -11205,7 +11205,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPass4Preview.
   ///
   /// In en, this message translates to:
-  /// **'Preview only: the route recycles through #4 without changing your committed play.'**
+  /// **'Preview only: #6 passes back to #4.'**
   String get scanPassPass4Preview;
 
   /// No description provided for @scanPassPass8Preview.
@@ -11241,7 +11241,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassHoldPocketPreview.
   ///
   /// In en, this message translates to:
-  /// **'Preview only: #6 stays in the same pocket and waits for #4.'**
+  /// **'Preview only: #6 stays in place and waits for #4’s pass.'**
   String get scanPassHoldPocketPreview;
 
   /// No description provided for @scanPassReviewViewingMine.

@@ -5773,11 +5773,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassNextPassInstruction =>
-      '次の行動をはっきり選びましょう。明示的な保持だけがパス前にモデル時間を進めます。';
+      'パスする味方を選びましょう。「待って8番」を選ぶと、少しボールを持ってからパスします。';
 
   @override
-  String get scanPassNextMoveInstruction =>
-      'ボールは4番へ戻りました。6番がもう一度受ける角度を作るか、ポケットに残りましょう。';
+  String get scanPassNextMoveInstruction => 'ボールは4番へ戻りました。6番がもう一度受ける位置を選びましょう。';
 
   @override
   String get scanPassReviewInstruction => '選んだ経路を再生し、同じ開始場面からの別の可能な選択と比べましょう。';
@@ -5841,7 +5840,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassPass4Title => '4番へパス';
 
   @override
-  String get scanPassPass4Subtitle => 'センターバック経由で作り直します。';
+  String get scanPassPass4Subtitle => '後ろの4番へパスします。';
 
   @override
   String get scanPassPass4Short => '4番へパス';
@@ -5892,13 +5891,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassSupportForwardShort => '前方サポート';
 
   @override
-  String get scanPassHoldPocketTitle => 'ポケット維持';
+  String get scanPassHoldPocketTitle => 'その場で待つ';
 
   @override
-  String get scanPassHoldPocketSubtitle => '中央で返しのパスを待ちます。';
+  String get scanPassHoldPocketSubtitle => '動かずに4番からのパスを待ちます。';
 
   @override
-  String get scanPassHoldPocketShort => 'ポケット維持';
+  String get scanPassHoldPocketShort => 'その場で待つ';
 
   @override
   String get scanPassReviewMineAction => '自分の選択を再生';
@@ -6220,7 +6219,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '戻す経路に守備者が先に届いたため、そのまま振り返りへ進みます。';
 
   @override
-  String get scanPassPass4Preview => 'プレビュー: 確定せずに4番経由で作り直す経路を見ます。';
+  String get scanPassPass4Preview => 'プレビュー: 6番が後ろの4番へパスします。';
 
   @override
   String get scanPassPass8Preview => 'プレビュー: 8番への接続と意図したパスレーンを表示します。';
@@ -6239,7 +6238,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassSupportForwardPreview => 'プレビュー: 6番が前方へ動き、リターンレーンを作ります。';
 
   @override
-  String get scanPassHoldPocketPreview => 'プレビュー: 6番が同じポケットに残り、4番からのパスを待ちます。';
+  String get scanPassHoldPocketPreview => 'プレビュー: 6番が今の位置で4番からのパスを待ちます。';
 
   @override
   String get scanPassReviewViewingMine => '確定した自分の選択を表示中';
