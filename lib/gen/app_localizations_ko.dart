@@ -5785,11 +5785,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassNextPassInstruction =>
-      '다음 행동을 분명히 고르세요. 명시적인 보류 선택만 패스 전 모델 시간을 진행합니다.';
+      '패스할 동료를 고르세요. ‘기다린 뒤 8번’을 선택하면 잠시 공을 지킨 뒤 패스합니다.';
 
   @override
   String get scanPassNextMoveInstruction =>
-      '공은 4번에게 돌아갔습니다. 6번이 다시 받을 각도를 만들거나 중앙 포켓에 머무르세요.';
+      '공은 4번에게 돌아갔습니다. 6번이 다시 받을 위치를 고르세요.';
 
   @override
   String get scanPassReviewInstruction =>
@@ -5854,7 +5854,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassPass4Title => '4번에게 패스';
 
   @override
-  String get scanPassPass4Subtitle => '센터백을 통해 재구성합니다.';
+  String get scanPassPass4Subtitle => '뒤쪽의 4번에게 공을 연결합니다.';
 
   @override
   String get scanPassPass4Short => '4번 패스';
@@ -5905,13 +5905,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassSupportForwardShort => '전방 지원';
 
   @override
-  String get scanPassHoldPocketTitle => '포켓 유지';
+  String get scanPassHoldPocketTitle => '현재 위치에서 기다리기';
 
   @override
-  String get scanPassHoldPocketSubtitle => '중앙에서 리턴 패스를 기다립니다.';
+  String get scanPassHoldPocketSubtitle => '움직이지 않고 4번의 패스를 기다립니다.';
 
   @override
-  String get scanPassHoldPocketShort => '포켓 유지';
+  String get scanPassHoldPocketShort => '제자리 대기';
 
   @override
   String get scanPassReviewMineAction => '내 선택 재생';
@@ -6240,8 +6240,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassTouchChangeIntercepted => '리턴 길에 수비가 먼저 도착해 바로 복기로 이동합니다.';
 
   @override
-  String get scanPassPass4Preview =>
-      '미리 보기: 내 선택을 확정하지 않은 채 4번을 통한 재구성 길을 봅니다.';
+  String get scanPassPass4Preview => '미리 보기: 6번이 뒤쪽의 4번에게 패스합니다.';
 
   @override
   String get scanPassPass8Preview => '미리 보기: 8번 연결과 의도한 패스 길을 표시합니다.';
@@ -6260,7 +6259,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassSupportForwardPreview => '미리 보기: 6번이 전방으로 움직여 리턴 길을 만듭니다.';
 
   @override
-  String get scanPassHoldPocketPreview => '미리 보기: 6번이 같은 포켓에 남아 4번의 패스를 기다립니다.';
+  String get scanPassHoldPocketPreview => '미리 보기: 6번이 현재 위치에서 4번의 패스를 기다립니다.';
 
   @override
   String get scanPassReviewViewingMine => '확정한 내 선택을 보는 중';
