@@ -3401,7 +3401,7 @@
       }
     }
   },
-  "scanPassFieldSemantics": "サッカーピッチです。黄色の6番が操作する選手、青色が味方、赤色が守備で、攻撃は右方向に進みます。",
+  "scanPassFieldSemantics": "右側のゴールへ攻めるサッカーのピッチです。青いユニフォームは味方、赤は守備、緑はゴールキーパーです。金色の輪はボールを持つ選手を示し、パスを受けると操作する選手が変わります。",
   "scanPassSecondsValue": "{seconds}秒",
   "@scanPassSecondsValue": {
     "placeholders": {
@@ -10079,5 +10079,176 @@
   "scanPassChangeChoiceAction": "選び直す",
   "scanPassFactFacingForward": "攻撃方向を向いている",
   "scanPassTouchChangePressureRemains": "6番がボールを持っていますが、近くの守備のプレッシャーは残っています。",
-  "scanPassTouchInMotionBody": "選んだ方向へボールと6番が動きます。動きが終わったら次の行動を選びましょう。"
+  "scanPassTouchInMotionBody": "選んだ方向へボールと6番が動きます。動きが終わったら次の行動を選びましょう。",
+  "scanPassAttackHelpBody": "味方のユニフォームをタップするとパスの経路が表示されます。方向の矢印でボールを運び、待機で味方の動きを見ます。ゴール付近ではシュートする場所を選べます。点線はプレビューで、実行を押すと選手が動きます。\n\nオフサイドはボールを蹴る瞬間に判断します。相手陣内でボールと後方から2人目の相手選手の両方より前にいる味方がパスを受けると反則です。ゴールキーパーも相手選手に含みます。同じライン上や自陣内はオフサイドの位置ではありません。その位置にいるだけでは反則になりません。\n\n時間制限はありません。ヘルプやアプリを離れた間は動きも止まります。元に戻して別の選択を試しましょう。",
+  "scanPassAttackSequenceTitle": "攻撃の流れ",
+  "scanPassAttackNoSequence": "まだプレーしていません。",
+  "scanPassAttackPossessionChip": "{number}番保持",
+  "@scanPassAttackPossessionChip": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackProgressStatus": "パス {passes} · 行動 {actions}",
+  "@scanPassAttackProgressStatus": {
+    "placeholders": {
+      "passes": {
+        "type": "int"
+      },
+      "actions": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackScanAction": "動きを確認",
+  "scanPassAttackIntroStatus": "パスをつなぎ、右側のゴールを目指しましょう。",
+  "scanPassAttackStartAction": "受けて開始",
+  "scanPassAttackExecuteAction": "実行",
+  "scanPassAttackChangeAction": "変更",
+  "scanPassAttackReplaying": "攻撃全体を再生中です。",
+  "scanPassAttackExecuting": "選んだプレーが進行中です。",
+  "scanPassAttackReplayAction": "再生",
+  "scanPassAttackUndoAction": "戻す",
+  "scanPassAttackNewAction": "新しい攻撃",
+  "scanPassAttackChooseStatus": "ピッチ上で選ぶか、下の行動を使いましょう。",
+  "scanPassAttackChooseWithShotStatus": "シュート可能です。ゴールの狙う場所を選びましょう。",
+  "scanPassAttackScanStatus": "矢印は現在の移動方向です。",
+  "scanPassAttackPossessionStatus": "{number}番が保持 · 味方をタップしてパス。",
+  "@scanPassAttackPossessionStatus": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackPreviewPass": "プレビュー: {number}番へパスします。",
+  "@scanPassAttackPreviewPass": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackPreviewCarryUpper": "プレビュー: 上側レーンへ運びます。",
+  "scanPassAttackPreviewCarryForward": "プレビュー: 前へ運びます。",
+  "scanPassAttackPreviewCarryLower": "プレビュー: 下側レーンへ運びます。",
+  "scanPassAttackPreviewHold": "プレビュー: 少し保持します。",
+  "scanPassAttackPreviewShootUpper": "プレビュー: 上へシュートします。",
+  "scanPassAttackPreviewShootCenter": "プレビュー: 中央へシュートします。",
+  "scanPassAttackPreviewShootLower": "プレビュー: 下へシュートします。",
+  "scanPassAttackOutcomeGoalStatus": "ゴール · 攻撃完了。",
+  "scanPassAttackOutcomeInterceptedStatus": "ターンオーバー。守備者が奪いました。",
+  "scanPassAttackOutcomeOffsideStatus": "オフサイド · キック時の位置を確認しましょう。",
+  "scanPassAttackOutcomeSavedStatus": "セーブ。GKがシュートを止めました。",
+  "scanPassAttackOutcomeWideStatus": "枠外。シュートはゴールを外れました。",
+  "scanPassAttackOutcomeBlockedStatus": "ブロック。守備者がシュートを止めました。",
+  "scanPassAttackSequencePass": "{from}番から{to}番へパス",
+  "@scanPassAttackSequencePass": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackSequenceCarryUpper": "{number}番が上へ運ぶ",
+  "scanPassAttackSequenceCarryForward": "{number}番が前へ運ぶ",
+  "scanPassAttackSequenceCarryLower": "{number}番が下へ運ぶ",
+  "scanPassAttackSequenceHold": "{number}番が保持",
+  "@scanPassAttackSequenceCarryUpper": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@scanPassAttackSequenceCarryForward": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@scanPassAttackSequenceCarryLower": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@scanPassAttackSequenceHold": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackSequenceShoot": "{number}番が{target}へシュート",
+  "@scanPassAttackSequenceShoot": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "target": {}
+    }
+  },
+  "scanPassAttackPassAction": "{number}番へパス",
+  "@scanPassAttackPassAction": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackCarryUpperAction": "上へ運ぶ",
+  "scanPassAttackCarryForwardAction": "前へ運ぶ",
+  "scanPassAttackCarryLowerAction": "下へ運ぶ",
+  "scanPassAttackHoldAction": "保持",
+  "scanPassAttackShootUpperAction": "上シュート",
+  "scanPassAttackShootCenterAction": "中央シュート",
+  "scanPassAttackShootLowerAction": "下シュート",
+  "scanPassAttackPassPlayerLabel": "{number}番へパス",
+  "@scanPassAttackPassPlayerLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackCarryUpperLabel": "上側レーンへボールを運ぶ",
+  "scanPassAttackCarryForwardLabel": "前へボールを運ぶ",
+  "scanPassAttackCarryLowerLabel": "下側レーンへボールを運ぶ",
+  "scanPassAttackHoldLabel": "少しボールを保持",
+  "scanPassAttackShootUpperLabel": "ゴール上側の目標へシュート",
+  "scanPassAttackShootCenterLabel": "ゴール中央の目標へシュート",
+  "scanPassAttackShootLowerLabel": "ゴール下側の目標へシュート",
+  "scanPassAttackShotUpperName": "上",
+  "scanPassAttackShotCenterName": "中央",
+  "scanPassAttackShotLowerName": "下",
+  "scanPassAttackOffsideLine": "オフサイド線",
+  "scanPassAttackOffsideWarning": "オフサイドの位置",
+  "scanPassAttackOffsideFreeze": "パス瞬間",
+  "scanPassAttackKickPoint": "キック地点",
+  "scanPassAttackOffsideReceiver": "受け手",
+  "scanPassAttackSecondLast": "2人目",
+  "scanPassAttackHoldShort": "保持",
+  "scanPassAttackCurrentPlayerLabel": "{number}番保持",
+  "@scanPassAttackCurrentPlayerLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackOutcomeGoal": "ゴール",
+  "scanPassAttackOutcomeIntercepted": "カット",
+  "scanPassAttackOutcomeOffside": "オフサイド",
+  "scanPassAttackOutcomeSaved": "セーブ",
+  "scanPassAttackOutcomeWide": "枠外",
+  "scanPassAttackOutcomeBlocked": "ブロック",
+  "scanPassAttackCarryShort": "運ぶ"
 }

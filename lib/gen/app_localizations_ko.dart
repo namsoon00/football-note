@@ -5682,7 +5682,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassFieldSemantics =>
-      '축구 경기장입니다. 노란색 6번은 조종하는 선수, 파란색은 동료, 붉은색은 수비이며 공격은 오른쪽으로 진행됩니다.';
+      '오른쪽 골문으로 공격하는 축구 경기장입니다. 파란 유니폼은 동료, 붉은 유니폼은 수비, 초록 유니폼은 골키퍼입니다. 금색 테두리는 공을 가진 선수이며 패스를 받으면 조종 선수가 바뀝니다.';
 
   @override
   String scanPassSecondsValue(Object seconds) {
@@ -18062,4 +18062,251 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get scanPassTouchInMotionBody =>
       '선택한 방향으로 공과 6번이 움직입니다. 움직임이 끝나면 다음 행동을 고르세요.';
+
+  @override
+  String get scanPassAttackHelpBody =>
+      '동료 유니폼을 누르면 패스 길이 나타납니다. 방향 화살표로 공을 운반하고, 기다리기로 동료의 움직임을 살펴보세요. 골문 근처에서는 슈팅할 곳을 고를 수 있습니다. 점선은 미리 보기이며 실행을 눌러야 움직입니다.\n\n오프사이드는 공을 차는 순간 판단합니다. 상대 진영에서 공과 두 번째 마지막 상대 선수보다 앞에 있는 동료가 패스를 받으면 반칙입니다. 골키퍼도 상대 선수에 포함되며, 같은 선상이나 자기 진영은 오프사이드 위치가 아닙니다. 선을 넘은 위치에 있기만 해서는 반칙이 아닙니다.\n\n시간 제한은 없습니다. 도움말을 보거나 앱을 벗어나면 진행 중인 동작도 멈춥니다. 되돌리기로 다른 선택을 해 보세요.';
+
+  @override
+  String get scanPassAttackSequenceTitle => '공격 순서';
+
+  @override
+  String get scanPassAttackNoSequence => '아직 진행한 행동이 없습니다.';
+
+  @override
+  String scanPassAttackPossessionChip(int number) {
+    return '$number번 공';
+  }
+
+  @override
+  String scanPassAttackProgressStatus(int passes, int actions) {
+    return '패스 $passes · 행동 $actions';
+  }
+
+  @override
+  String get scanPassAttackScanAction => '움직임 확인';
+
+  @override
+  String get scanPassAttackIntroStatus => '패스를 이어 오른쪽 골문까지 연결하세요.';
+
+  @override
+  String get scanPassAttackStartAction => '공 받고 시작';
+
+  @override
+  String get scanPassAttackExecuteAction => '실행';
+
+  @override
+  String get scanPassAttackChangeAction => '바꾸기';
+
+  @override
+  String get scanPassAttackReplaying => '전체 공격을 다시 보는 중입니다.';
+
+  @override
+  String get scanPassAttackExecuting => '선택한 플레이가 진행됩니다.';
+
+  @override
+  String get scanPassAttackReplayAction => '다시 보기';
+
+  @override
+  String get scanPassAttackUndoAction => '되돌리기';
+
+  @override
+  String get scanPassAttackNewAction => '새 공격';
+
+  @override
+  String get scanPassAttackChooseStatus => '경기장에서 직접 고르거나 아래 행동을 사용하세요.';
+
+  @override
+  String get scanPassAttackChooseWithShotStatus =>
+      '슛할 수 있습니다. 골문에서 노릴 곳을 고르세요.';
+
+  @override
+  String get scanPassAttackScanStatus => '화살표는 현재 이동 방향입니다.';
+
+  @override
+  String scanPassAttackPossessionStatus(int number) {
+    return '$number번 공 · 동료를 눌러 패스를 고르세요.';
+  }
+
+  @override
+  String scanPassAttackPreviewPass(int number) {
+    return '미리 보기: $number번에게 패스합니다.';
+  }
+
+  @override
+  String get scanPassAttackPreviewCarryUpper => '미리 보기: 위쪽 길로 운반합니다.';
+
+  @override
+  String get scanPassAttackPreviewCarryForward => '미리 보기: 앞으로 운반합니다.';
+
+  @override
+  String get scanPassAttackPreviewCarryLower => '미리 보기: 아래쪽 길로 운반합니다.';
+
+  @override
+  String get scanPassAttackPreviewHold => '미리 보기: 잠깐 공을 지킵니다.';
+
+  @override
+  String get scanPassAttackPreviewShootUpper => '미리 보기: 위쪽으로 슛합니다.';
+
+  @override
+  String get scanPassAttackPreviewShootCenter => '미리 보기: 중앙으로 슛합니다.';
+
+  @override
+  String get scanPassAttackPreviewShootLower => '미리 보기: 아래쪽으로 슛합니다.';
+
+  @override
+  String get scanPassAttackOutcomeGoalStatus => '골 · 공격을 마무리했습니다.';
+
+  @override
+  String get scanPassAttackOutcomeInterceptedStatus => '턴오버입니다. 수비가 공을 가져갔습니다.';
+
+  @override
+  String get scanPassAttackOutcomeOffsideStatus => '오프사이드 · 패스 순간의 위치를 확인하세요.';
+
+  @override
+  String get scanPassAttackOutcomeSavedStatus => '세이브입니다. 골키퍼가 슛을 막았습니다.';
+
+  @override
+  String get scanPassAttackOutcomeWideStatus => '벗어났습니다. 슛이 골대를 빗나갔습니다.';
+
+  @override
+  String get scanPassAttackOutcomeBlockedStatus => '블록입니다. 수비가 슛을 막았습니다.';
+
+  @override
+  String scanPassAttackSequencePass(int from, int to) {
+    return '$from번이 $to번에게 패스';
+  }
+
+  @override
+  String scanPassAttackSequenceCarryUpper(int number) {
+    return '$number번 위쪽 운반';
+  }
+
+  @override
+  String scanPassAttackSequenceCarryForward(int number) {
+    return '$number번 전진 운반';
+  }
+
+  @override
+  String scanPassAttackSequenceCarryLower(int number) {
+    return '$number번 아래쪽 운반';
+  }
+
+  @override
+  String scanPassAttackSequenceHold(int number) {
+    return '$number번 보류';
+  }
+
+  @override
+  String scanPassAttackSequenceShoot(int number, Object target) {
+    return '$number번 $target 슛';
+  }
+
+  @override
+  String scanPassAttackPassAction(int number) {
+    return '$number번 패스';
+  }
+
+  @override
+  String get scanPassAttackCarryUpperAction => '위 운반';
+
+  @override
+  String get scanPassAttackCarryForwardAction => '전진 운반';
+
+  @override
+  String get scanPassAttackCarryLowerAction => '아래 운반';
+
+  @override
+  String get scanPassAttackHoldAction => '보류';
+
+  @override
+  String get scanPassAttackShootUpperAction => '위 슛';
+
+  @override
+  String get scanPassAttackShootCenterAction => '중앙 슛';
+
+  @override
+  String get scanPassAttackShootLowerAction => '아래 슛';
+
+  @override
+  String scanPassAttackPassPlayerLabel(int number) {
+    return '$number번에게 패스';
+  }
+
+  @override
+  String get scanPassAttackCarryUpperLabel => '위쪽 길로 공 운반';
+
+  @override
+  String get scanPassAttackCarryForwardLabel => '앞으로 공 운반';
+
+  @override
+  String get scanPassAttackCarryLowerLabel => '아래쪽 길로 공 운반';
+
+  @override
+  String get scanPassAttackHoldLabel => '잠깐 공 지키기';
+
+  @override
+  String get scanPassAttackShootUpperLabel => '골대 위쪽 목표로 슛';
+
+  @override
+  String get scanPassAttackShootCenterLabel => '골대 중앙 목표로 슛';
+
+  @override
+  String get scanPassAttackShootLowerLabel => '골대 아래쪽 목표로 슛';
+
+  @override
+  String get scanPassAttackShotUpperName => '위쪽';
+
+  @override
+  String get scanPassAttackShotCenterName => '중앙';
+
+  @override
+  String get scanPassAttackShotLowerName => '아래쪽';
+
+  @override
+  String get scanPassAttackOffsideLine => '오프사이드 선';
+
+  @override
+  String get scanPassAttackOffsideWarning => '오프사이드 위치';
+
+  @override
+  String get scanPassAttackOffsideFreeze => '패스 순간';
+
+  @override
+  String get scanPassAttackKickPoint => '킥 지점';
+
+  @override
+  String get scanPassAttackOffsideReceiver => '받는 선수';
+
+  @override
+  String get scanPassAttackSecondLast => '두 번째 수비';
+
+  @override
+  String get scanPassAttackHoldShort => '보류';
+
+  @override
+  String scanPassAttackCurrentPlayerLabel(int number) {
+    return '$number번 공 소유';
+  }
+
+  @override
+  String get scanPassAttackOutcomeGoal => '골';
+
+  @override
+  String get scanPassAttackOutcomeIntercepted => '차단';
+
+  @override
+  String get scanPassAttackOutcomeOffside => '오프사이드';
+
+  @override
+  String get scanPassAttackOutcomeSaved => '세이브';
+
+  @override
+  String get scanPassAttackOutcomeWide => '빗나감';
+
+  @override
+  String get scanPassAttackOutcomeBlocked => '블록';
+
+  @override
+  String get scanPassAttackCarryShort => '운반';
 }

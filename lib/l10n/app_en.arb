@@ -3401,7 +3401,7 @@
       }
     }
   },
-  "scanPassFieldSemantics": "Football pitch. Amber #6 is your player, blue players are teammates, coral players are defenders, and attack moves right.",
+  "scanPassFieldSemantics": "Football pitch attacking the goal on the right. Blue uniforms are teammates, red are defenders and green is the goalkeeper. The gold ring marks the ball carrier. Control follows the player receiving the pass.",
   "scanPassSecondsValue": "{seconds}s",
   "@scanPassSecondsValue": {
     "placeholders": {
@@ -10079,5 +10079,176 @@
   "scanPassChangeChoiceAction": "Change choice",
   "scanPassFactFacingForward": "Facing the attacking direction",
   "scanPassTouchChangePressureRemains": "#6 keeps the ball, but the nearby defender still applies pressure.",
-  "scanPassTouchInMotionBody": "Watch the ball and #6 move in your chosen direction. Choose the next action when the movement finishes."
+  "scanPassTouchInMotionBody": "Watch the ball and #6 move in your chosen direction. Choose the next action when the movement finishes.",
+  "scanPassAttackHelpBody": "Tap a teammate’s uniform to preview a pass. Use the direction arrows to carry the ball, or wait to let runs develop. Near the goal, choose where to shoot. Dotted paths are previews; players move only after you press execute.\n\nOffside is judged when the ball is played. In the opponents’ half, a teammate beyond both the ball and the second-last opponent commits an offence when receiving the pass. The goalkeeper counts as an opponent. Being level or in your own half is onside; simply standing in an offside position is not an offence.\n\nThere is no time limit. Help and leaving the app pause any motion. Undo to explore another choice.",
+  "scanPassAttackSequenceTitle": "Attack sequence",
+  "scanPassAttackNoSequence": "No actions played yet.",
+  "scanPassAttackPossessionChip": "Ball #{number}",
+  "@scanPassAttackPossessionChip": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackProgressStatus": "{passes} passes · {actions} actions",
+  "@scanPassAttackProgressStatus": {
+    "placeholders": {
+      "passes": {
+        "type": "int"
+      },
+      "actions": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackScanAction": "Scan movement",
+  "scanPassAttackIntroStatus": "Connect your passes and finish at the right-hand goal.",
+  "scanPassAttackStartAction": "Receive and start",
+  "scanPassAttackExecuteAction": "Execute",
+  "scanPassAttackChangeAction": "Change",
+  "scanPassAttackReplaying": "Replaying the whole possession.",
+  "scanPassAttackExecuting": "Watch the action play out.",
+  "scanPassAttackReplayAction": "Replay",
+  "scanPassAttackUndoAction": "Undo",
+  "scanPassAttackNewAction": "New attack",
+  "scanPassAttackChooseStatus": "Choose on the pitch or use the action dock.",
+  "scanPassAttackChooseWithShotStatus": "Within shooting range. Choose a target in the goal.",
+  "scanPassAttackScanStatus": "Arrows show the current direction of movement.",
+  "scanPassAttackPossessionStatus": "#{number} on the ball · tap a teammate to pass.",
+  "@scanPassAttackPossessionStatus": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackPreviewPass": "Preview only: pass toward #{number}.",
+  "@scanPassAttackPreviewPass": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackPreviewCarryUpper": "Preview only: carry into the upper lane.",
+  "scanPassAttackPreviewCarryForward": "Preview only: carry forward.",
+  "scanPassAttackPreviewCarryLower": "Preview only: carry into the lower lane.",
+  "scanPassAttackPreviewHold": "Preview only: hold briefly.",
+  "scanPassAttackPreviewShootUpper": "Preview only: shoot high.",
+  "scanPassAttackPreviewShootCenter": "Preview only: shoot center.",
+  "scanPassAttackPreviewShootLower": "Preview only: shoot low.",
+  "scanPassAttackOutcomeGoalStatus": "Goal · attack completed.",
+  "scanPassAttackOutcomeInterceptedStatus": "Turnover. A defender took the ball.",
+  "scanPassAttackOutcomeOffsideStatus": "Offside · check the positions at the kick.",
+  "scanPassAttackOutcomeSavedStatus": "Saved. The keeper stopped the shot.",
+  "scanPassAttackOutcomeWideStatus": "Wide. The shot missed the goal.",
+  "scanPassAttackOutcomeBlockedStatus": "Blocked. A defender stopped the shot.",
+  "scanPassAttackSequencePass": "#{from} pass to #{to}",
+  "@scanPassAttackSequencePass": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackSequenceCarryUpper": "#{number} carry upper",
+  "scanPassAttackSequenceCarryForward": "#{number} carry forward",
+  "scanPassAttackSequenceCarryLower": "#{number} carry lower",
+  "scanPassAttackSequenceHold": "#{number} hold",
+  "@scanPassAttackSequenceCarryUpper": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@scanPassAttackSequenceCarryForward": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@scanPassAttackSequenceCarryLower": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@scanPassAttackSequenceHold": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackSequenceShoot": "#{number} shoot {target}",
+  "@scanPassAttackSequenceShoot": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "target": {}
+    }
+  },
+  "scanPassAttackPassAction": "Pass #{number}",
+  "@scanPassAttackPassAction": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackCarryUpperAction": "Carry up",
+  "scanPassAttackCarryForwardAction": "Carry on",
+  "scanPassAttackCarryLowerAction": "Carry down",
+  "scanPassAttackHoldAction": "Hold",
+  "scanPassAttackShootUpperAction": "High shot",
+  "scanPassAttackShootCenterAction": "Center shot",
+  "scanPassAttackShootLowerAction": "Low shot",
+  "scanPassAttackPassPlayerLabel": "Pass to player {number}",
+  "@scanPassAttackPassPlayerLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackCarryUpperLabel": "Carry into the upper lane",
+  "scanPassAttackCarryForwardLabel": "Carry forward",
+  "scanPassAttackCarryLowerLabel": "Carry into the lower lane",
+  "scanPassAttackHoldLabel": "Hold the ball briefly",
+  "scanPassAttackShootUpperLabel": "Shoot at the upper goal target",
+  "scanPassAttackShootCenterLabel": "Shoot at the center goal target",
+  "scanPassAttackShootLowerLabel": "Shoot at the lower goal target",
+  "scanPassAttackShotUpperName": "upper",
+  "scanPassAttackShotCenterName": "center",
+  "scanPassAttackShotLowerName": "lower",
+  "scanPassAttackOffsideLine": "offside line",
+  "scanPassAttackOffsideWarning": "Offside position",
+  "scanPassAttackOffsideFreeze": "pass moment",
+  "scanPassAttackKickPoint": "kick point",
+  "scanPassAttackOffsideReceiver": "receiver",
+  "scanPassAttackSecondLast": "2nd last",
+  "scanPassAttackHoldShort": "hold",
+  "scanPassAttackCurrentPlayerLabel": "#{number} on ball",
+  "@scanPassAttackCurrentPlayerLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassAttackOutcomeGoal": "GOAL",
+  "scanPassAttackOutcomeIntercepted": "INTERCEPTED",
+  "scanPassAttackOutcomeOffside": "OFFSIDE",
+  "scanPassAttackOutcomeSaved": "SAVED",
+  "scanPassAttackOutcomeWide": "WIDE",
+  "scanPassAttackOutcomeBlocked": "BLOCKED",
+  "scanPassAttackCarryShort": "Carry"
 }
