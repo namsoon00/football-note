@@ -156,10 +156,15 @@ void main() {
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: ScanPassGameScreen(
+      home: DecisionTrainingScreen(
         optionRepository: _Options(),
-        previewDuration: Duration.zero,
-        passAnimationDuration: Duration.zero,
+        observationDuration: Duration.zero,
+        assessmentDuration: Duration.zero,
+        freeAttackBuilder: (_) => ScanPassFreeAttackScreen(
+          optionRepository: _Options(),
+          previewDuration: Duration.zero,
+          passAnimationDuration: Duration.zero,
+        ),
       ),
     ));
     await tester.pumpAndSettle();

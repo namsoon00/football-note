@@ -11,7 +11,7 @@ import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('default entry opens decision trainer and links free attack',
+  testWidgets('default entry opens spatial trainer and links free attack',
       (tester) async {
     await tester.pumpWidget(_app(
       home: ScanPassGameScreen(
@@ -23,14 +23,12 @@ void main() {
     ));
     await tester.pump();
 
-    expect(
-        find.byKey(const ValueKey<String>('decision-pitch')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('space-pitch')), findsOneWidget);
     expect(find.byKey(const ValueKey<String>('decision-action-forward')),
-        findsOneWidget);
+        findsNothing);
     expect(find.byKey(const ValueKey<String>('attack-start')), findsNothing);
 
-    await tester
-        .tap(find.byKey(const ValueKey<String>('decision-free-attack')));
+    await tester.tap(find.byKey(const ValueKey<String>('space-free-attack')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey<String>('attack-pitch')), findsOneWidget);

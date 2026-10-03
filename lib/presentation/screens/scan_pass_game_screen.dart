@@ -9,8 +9,11 @@ import '../../domain/repositories/option_repository.dart';
 import '../../domain/scan_pass/scan_pass_attack.dart';
 import '../../domain/scan_pass/scan_pass_decision.dart';
 import '../../domain/scan_pass/scan_pass_game.dart' show ScanPassPoint;
+import '../../domain/scan_pass/scan_pass_space.dart';
 import '../theme/app_motion.dart';
 import '../widgets/app_bar_action_button.dart';
+
+part 'scan_pass_space_training.dart';
 
 enum _DecisionPhase { observing, choosing, executing, review, closed, summary }
 
@@ -38,11 +41,8 @@ class ScanPassGameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecisionTrainingScreen(
-      optionRepository: optionRepository,
+    return SpaceTrainingScreen(
       seed: seed,
-      observationDuration: previewDuration,
-      assessmentDuration: passAnimationDuration,
       freeAttackBuilder: (context) => ScanPassFreeAttackScreen(
         optionRepository: optionRepository,
         seed: seed,
@@ -3964,16 +3964,18 @@ class _PitchGeometry {
   static const double _maxX = 1.04;
 
   final Size size;
+  final bool space;
   late final Rect fieldRect = Rect.fromLTWH(
-    size.width * .035,
-    size.height * .065,
-    size.width * .93,
-    size.height * .86,
+    size.width * (space ? .06 : .035),
+    size.height * (space ? .06 : .065),
+    size.width * (space ? .88 : .93),
+    size.height * (space ? .88 : .86),
   );
 
-  _PitchGeometry(this.size);
+  _PitchGeometry(this.size, {this.space = false});
 
-  double x(double value) => fieldRect.left + fieldRect.width * value / _maxX;
+  double x(double value) =>
+      fieldRect.left + fieldRect.width * value / (space ? 1 : _maxX);
 
   double y(double value) => fieldRect.top + fieldRect.height * value;
 

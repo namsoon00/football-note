@@ -18573,4 +18573,166 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get scanPassDecisionFieldSemantics =>
       '오른쪽으로 공격하는 축구 경기장입니다. 내 선수는 6번입니다. 파란 유니폼은 동료, 붉은 유니폼은 수비수이며 금색 테두리는 현재 공을 가진 선수입니다. 동료나 공간을 선택해 다음 행동을 준비하세요.';
+
+  @override
+  String get spaceTitle => '공간 읽기';
+
+  @override
+  String get spaceHelpTitle => '공간 훈련 안내';
+
+  @override
+  String get spaceHelpBody =>
+      '6번이 되어 3대2 상황을 연결합니다.\n\n① 경기장의 빈 곳을 찍어 받을 위치를 정하세요. 움직임을 시작한 뒤 수비와 내 위치를 보며 패스 받을 시점을 고릅니다. 너무 이르면 공을 따라잡지 못할 수 있습니다.\n\n② 받은 뒤에는 작은 원 안에서 첫 터치할 방향을 직접 고릅니다.\n\n③ 움직이는 8번이 공을 받을 지점을 찍어 연결하세요. 공은 고른 지점으로 가고, 선수에게 자동으로 붙지 않습니다.\n\n움직임은 느리게 재생됩니다. 잠시 멈추거나 한 걸음씩 볼 수 있습니다. 금색 표시는 내가 고른 공간이며, 좋은 선택이라는 힌트가 아닙니다. 화살표는 선수의 현재 움직임입니다.\n\n키보드: 경기장을 선택한 뒤 방향키로 지점을 옮기고 Enter로 실행합니다. 이 연습은 실제 경기 능력을 측정하지 않습니다.';
+
+  @override
+  String get spaceClose => '닫기';
+
+  @override
+  String get spaceStepReceive => '받을 위치';
+
+  @override
+  String get spaceStepTouch => '첫 터치';
+
+  @override
+  String get spaceStepPass => '다음 연결';
+
+  @override
+  String get spacePickReceive => '6번이 공을 받을 공간을 찍으세요.';
+
+  @override
+  String get spaceWatchRun => '움직임을 시작하고 패스 받을 시점을 고르세요.';
+
+  @override
+  String get spaceReadRun => '수비의 반응을 보며 받을 위치와 시점을 고르세요.';
+
+  @override
+  String get spaceWatchArrival => '공과 수비 중 누가 먼저 도착하는지 보세요.';
+
+  @override
+  String get spacePickTouch => '6번의 첫 터치 방향을 작은 원 안에서 찍으세요.';
+
+  @override
+  String get spaceTouching => '선택한 방향으로 첫 터치합니다.';
+
+  @override
+  String get spacePickPass => '움직이는 8번이 받을 공간을 찍으세요.';
+
+  @override
+  String get spaceWatchPass => '내가 고른 공간으로 공이 이동합니다.';
+
+  @override
+  String get spaceReviewInstruction => '선택한 순간과 도착한 순간의 공간을 비교하세요.';
+
+  @override
+  String get spaceOutcomeOpen => '도착 순간 공간이 남았어요';
+
+  @override
+  String get spaceOutcomePressured => '도착할 때 수비가 가까워졌어요';
+
+  @override
+  String get spaceOutcomeIntercepted => '수비가 먼저 공에 닿았어요';
+
+  @override
+  String get spaceOutcomeUnreachable => '동료가 공에 닿지 못했어요';
+
+  @override
+  String get spaceReasonHeld => '공이 도착할 때 동료가 그 공간에 있었고, 수비와도 거리가 남았어요.';
+
+  @override
+  String get spaceReasonDefender =>
+      '비어 보였던 곳으로 수비도 이동했어요. 위치나 패스 시점을 바꿔 비교해 보세요.';
+
+  @override
+  String get spaceReasonLate =>
+      '공의 도착 지점과 동료의 움직임이 맞지 않았어요. 거리를 줄이거나 패스 시점을 바꿔 보세요.';
+
+  @override
+  String get spaceReasonLane =>
+      '공이 이동하는 동안 수비가 패스 길에 들어왔어요. 공의 길과 수비의 이동을 함께 보세요.';
+
+  @override
+  String get spaceReasonTouch =>
+      '선택한 첫 터치 방향으로 수비도 접근했어요. 수비에서 멀어지는 방향을 찾아보세요.';
+
+  @override
+  String get spacePitchDescription =>
+      '3대2 공간 훈련 경기장. 파란 6번이 내 선수이고, 4번이 공을 주며 8번이 다음 연결입니다. 붉은 두 명은 수비입니다. 경기장을 탭하거나 방향키로 공간을 고르세요.';
+
+  @override
+  String get spaceContext => '3대2 · 공간으로 연결하기';
+
+  @override
+  String get spaceReceiveTarget => '받을 공간';
+
+  @override
+  String get spaceTouchTarget => '첫 터치할 곳';
+
+  @override
+  String get spacePassTarget => '공을 보낼 곳';
+
+  @override
+  String get spaceTapGround => '선수 버튼 대신 경기장의 위치를 직접 찍으세요.';
+
+  @override
+  String get spaceTargetNeutral => '금색 표시는 내 선택입니다. 다른 곳을 찍어 바꿀 수 있어요.';
+
+  @override
+  String get spaceStartRun => '움직임 보기';
+
+  @override
+  String get spaceReceiveNow => '지금 패스 받기';
+
+  @override
+  String get spaceExecuteTouch => '첫 터치 실행';
+
+  @override
+  String get spacePassNow => '지금 연결하기';
+
+  @override
+  String get spaceInMotion => '공간의 변화 관찰 중';
+
+  @override
+  String get spacePause => '잠시 멈춤';
+
+  @override
+  String get spaceResume => '움직임 계속';
+
+  @override
+  String get spaceStepMotion => '조금 움직여 보기';
+
+  @override
+  String get spacePausedNote => '멈춘 상태입니다. 충분히 보고 움직임을 이어가세요.';
+
+  @override
+  String get spaceLegend => '파랑 · 우리 팀   빨강 · 수비\n금색 원 · 내가 고른 공간';
+
+  @override
+  String get spacePreviousNote => '옅은 원은 이전 시도에서 고른 위치입니다.';
+
+  @override
+  String get spaceRestart => '처음부터 관찰';
+
+  @override
+  String get spaceReviewLegend => '금색 선 · 공의 이동\n붉은 선 · 수비가 따라온 길';
+
+  @override
+  String get spaceAtChoice => '선택 순간';
+
+  @override
+  String get spaceAtArrival => '도착 순간';
+
+  @override
+  String get spaceReplay => '이 선택 다시 보기';
+
+  @override
+  String get spaceRetry => '같은 배치 다시';
+
+  @override
+  String get spaceNewLayout => '새 배치에서 읽기';
+
+  @override
+  String get spacePitchHeader => '3 : 2  ·  공간 훈련';
+
+  @override
+  String get spaceLearner => '나 · 6';
 }
