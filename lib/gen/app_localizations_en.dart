@@ -5367,7 +5367,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassTitle => 'Scan Pass';
 
   @override
-  String get scanPassHelpAction => 'Analysis guide';
+  String get scanPassHelpAction => 'Learning guide';
 
   @override
   String get scanPassIntroTitle => '4v3 Scan Pass';
@@ -5380,14 +5380,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassSampleFieldSemantics => 'Sample Scan Pass pitch';
 
   @override
-  String get scanPassPracticeAction => 'Untimed practice';
+  String get scanPassPracticeAction => 'Understand this scene';
 
   @override
-  String get scanPassStartChallengeAction => 'Start 10-round challenge';
+  String get scanPassStartChallengeAction => 'Practice another scene';
 
   @override
   String scanPassRoundStatus(int round, int total) {
-    return 'Round $round / $total';
+    return 'Scene $round / $total';
   }
 
   @override
@@ -5401,10 +5401,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get scanPassPracticeStatus => 'Practice';
+  String get scanPassPracticeStatus => 'Learning';
 
   @override
-  String get scanPassPhaseObserveHeading => '1. Observe before receiving';
+  String get scanPassPhaseObserveHeading => '1. Scan surroundings';
 
   @override
   String get scanPassPhaseChoiceHeading => '2. Select a passing route';
@@ -5413,7 +5413,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassPhaseCompareHeading => '4. Review the decision';
 
   @override
-  String get scanPassPracticeObserveHeading => 'Practice 1. Observe the shape';
+  String get scanPassPracticeObserveHeading => '1. Scan surroundings';
 
   @override
   String get scanPassPracticeChoiceHeading => 'Practice 2. Select a route';
@@ -5423,7 +5423,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Practice 4. Review the decision';
 
   @override
-  String get scanPassLegendBallCarrier => 'You: #6';
+  String get scanPassLegendBallCarrier => 'You · #6';
 
   @override
   String get scanPassLegendTeammate => 'Teammate';
@@ -5756,16 +5756,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassPracticeScoreNote =>
-      'Practice compares route judgment only: max 90 before any bonus, no history save, no reaction bonus.';
+      'Learning scenes compare choices only inside the current review. They do not write score history.';
 
   @override
-  String get scanPassRetryPracticeAction => 'Retry practice';
+  String get scanPassRetryPracticeAction => 'Retry scene';
 
   @override
-  String get scanPassNextRoundAction => 'Next round';
+  String get scanPassNextRoundAction => 'Next scene';
 
   @override
-  String get scanPassSeeResultAction => 'See result';
+  String get scanPassSeeResultAction => 'Finish review';
 
   @override
   String get scanPassResultTitle => 'Scan Pass result';
@@ -5797,7 +5797,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassNoHistoryValue => '-';
 
   @override
-  String get scanPassPlayAgainAction => 'Start 10 rounds again';
+  String get scanPassPlayAgainAction => 'Start learning again';
 
   @override
   String get scanPassResultMethodTitle => 'How to read these numbers';
@@ -5812,7 +5812,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassResultTimeoutNote =>
-      'Incomplete rounds are first-touch or next-action timeouts. Practice never writes history.';
+      'Self-paced learning scenes do not create new saved score history.';
 
   @override
   String get scanPassReasonClearLane => 'lane clearance was the main strength.';
@@ -5881,7 +5881,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassPracticeReviewHeading => 'Practice 4. Review the decision';
 
   @override
-  String get scanPassStageObserve => 'Observe';
+  String get scanPassStageObserve => 'Scan surroundings';
 
   @override
   String get scanPassStageFirstTouch => 'First touch';
@@ -5945,7 +5945,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassObserveInstruction =>
-      'The ball is traveling from #4 to #6. Scan if you want updated remembered pressure; the challenge will advance when the ball arrives.';
+      'The ball is traveling from #4 to #6. First scan the area behind your body; the scene waits while you read it.';
 
   @override
   String get scanPassFirstTouchInstruction =>
@@ -5953,7 +5953,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassNextPassInstruction =>
-      'Now choose the pass. Defenders and teammates keep moving, so holding briefly can help or hurt depending on this scene.';
+      'Choose a clear next action. Only an explicit hold option advances the model before the pass.';
 
   @override
   String get scanPassNextMoveInstruction =>
@@ -5961,7 +5961,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassReviewInstruction =>
-      'Replay the selected path, then compare it with another strong plan from the same initial scene.';
+      'Replay the selected path, then compare it with another plausible choice from the same initial scene.';
 
   @override
   String get scanPassTimeoutFirstTouch =>
@@ -5972,7 +5972,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'No next action was chosen before the window closed. This round records 0 and moves to review.';
 
   @override
-  String get scanPassNoScanStatus => 'Rear pressure is not currently observed.';
+  String get scanPassNoScanStatus => 'Rear pressure has not been checked yet.';
 
   @override
   String scanPassLastScanStatus(Object seconds) {
@@ -5980,22 +5980,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get scanPassScanAction => 'Scan';
+  String get scanPassScanAction => 'Check behind';
 
   @override
-  String get scanPassTouchUpperTitle => 'Upper touch';
+  String get scanPassTouchUpperTitle => 'Touch upward';
 
   @override
-  String get scanPassTouchUpperSubtitle => 'Move #6 toward the upper channel.';
+  String get scanPassTouchUpperSubtitle =>
+      'Take the ball toward the top of the pitch.';
 
   @override
   String get scanPassTouchUpperShort => 'upper touch';
 
   @override
-  String get scanPassTouchLowerTitle => 'Lower touch';
+  String get scanPassTouchLowerTitle => 'Touch downward';
 
   @override
-  String get scanPassTouchLowerSubtitle => 'Move #6 toward the lower channel.';
+  String get scanPassTouchLowerSubtitle =>
+      'Take the ball toward the bottom of the pitch.';
 
   @override
   String get scanPassTouchLowerShort => 'lower touch';
@@ -6005,7 +6007,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassTouchTurnSubtitle =>
-      'Open the body toward #9 with more exposure.';
+      'Turn to face the attack, toward the right.';
 
   @override
   String get scanPassTouchTurnShort => 'turn forward';
@@ -6014,8 +6016,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassTouchReturnTitle => 'Return to #4';
 
   @override
-  String get scanPassTouchReturnSubtitle =>
-      'One-touch return, then move again.';
+  String get scanPassTouchReturnSubtitle => 'Play back to #4, then move again.';
 
   @override
   String get scanPassTouchReturnShort => 'return to #4';
@@ -6086,10 +6087,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassHoldPocketShort => 'hold pocket';
 
   @override
-  String get scanPassReviewMineAction => 'My path';
+  String get scanPassReviewMineAction => 'Replay my choice';
 
   @override
-  String get scanPassReviewAlternativeAction => 'Alternative';
+  String get scanPassReviewAlternativeAction => 'Other choice';
 
   @override
   String get scanPassReviewMineTitle => 'Selected path';
@@ -6214,6 +6215,334 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassOutcomeTimeout => 'timeout';
+
+  @override
+  String get scanPassHelpSheetTitle => 'How Scan Pass works';
+
+  @override
+  String get scanPassHelpSheetBody =>
+      'You are the amber #6, attacking to the right. Check the nearby space behind you first. Select an action to see its intended dotted path, then execute it. Watch what changes and compare another choice. The scene waits while you read or open help.';
+
+  @override
+  String get scanPassHelpCloseAction => 'Close';
+
+  @override
+  String get scanPassIntroPreviewLabel => 'Learning scene';
+
+  @override
+  String get scanPassIntroSceneQuestion =>
+      'Where should you look before receiving?';
+
+  @override
+  String get scanPassIntroSceneTask =>
+      'Before the ball arrives, check the defender behind you.';
+
+  @override
+  String get scanPassUnderstandSceneAction => 'Understand this scene';
+
+  @override
+  String get scanPassOtherSceneAction => 'Practice another scene';
+
+  @override
+  String scanPassIntroHistoryNote(int sessions) {
+    return 'Existing saved challenge history stays unchanged. Saved sessions so far: $sessions.';
+  }
+
+  @override
+  String get scanPassLegendRoute => 'Movement / pass';
+
+  @override
+  String get scanPassAttackDirectionShort => 'Attack right';
+
+  @override
+  String get scanPassUnknownRearArea => 'Behind · unknown';
+
+  @override
+  String get scanPassRearPressureLabel => 'Rear pressure';
+
+  @override
+  String get scanPassSelfPlayerLabel => 'Me · #6';
+
+  @override
+  String get scanPassPasserLabel => '#4 passer';
+
+  @override
+  String get scanPassIntendedRouteLabel => 'Preview route';
+
+  @override
+  String get scanPassSceneRearPressureTitle => 'Escape pressure behind #6';
+
+  @override
+  String get scanPassMatchShape => '4v3 · central midfielder';
+
+  @override
+  String scanPassSessionKicker(int round, Object region) {
+    return 'Scene $round / $region';
+  }
+
+  @override
+  String get scanPassObservePhaseLabel => '01 / Before receiving';
+
+  @override
+  String get scanPassFirstTouchPhaseLabel => '02 / First touch';
+
+  @override
+  String get scanPassNextActionPhaseLabel => '03 / Next action';
+
+  @override
+  String get scanPassReviewPhaseLabel => '04 / Review';
+
+  @override
+  String get scanPassObserveQuestion => 'What is behind #6?';
+
+  @override
+  String get scanPassFirstTouchQuestion =>
+      'How should the first touch move the ball?';
+
+  @override
+  String get scanPassNextPassQuestion => 'Where should the next pass go?';
+
+  @override
+  String get scanPassNextMoveQuestion =>
+      'Where should #6 move to receive again?';
+
+  @override
+  String get scanPassReceiveAction => 'Receive the ball';
+
+  @override
+  String get scanPassFactMyPlayer => 'My player';
+
+  @override
+  String get scanPassFactMyPlayerValue => 'Me · #6';
+
+  @override
+  String get scanPassFactPasser => 'Passer';
+
+  @override
+  String get scanPassFactPasserValue => '#4 sends the ball';
+
+  @override
+  String get scanPassFactAttackDirection => 'Attack';
+
+  @override
+  String get scanPassFactAttackRight => 'To the right';
+
+  @override
+  String get scanPassFactBodyDirection => 'Body shape';
+
+  @override
+  String get scanPassFactFacingPasser => 'Facing #4';
+
+  @override
+  String get scanPassFactVisibleOption => 'Visible option';
+
+  @override
+  String get scanPassFactForwardOption => '#9 ahead';
+
+  @override
+  String get scanPassFactRearPressure => 'Rear pressure';
+
+  @override
+  String get scanPassFactObserved => 'Checked';
+
+  @override
+  String get scanPassFactNotObserved => 'Not checked yet';
+
+  @override
+  String get scanPassFactObservedPressure => 'Observed pressure';
+
+  @override
+  String get scanPassFactCurrentPossession => 'Ball';
+
+  @override
+  String get scanPassFactFirstChoice => 'First choice';
+
+  @override
+  String get scanPassFactPressureNow => 'What changed';
+
+  @override
+  String get scanPassPossession4 => '#4 has possession';
+
+  @override
+  String get scanPassPossession6 => 'Me · #6 has possession';
+
+  @override
+  String get scanPassPressureUpperSide => 'upper side';
+
+  @override
+  String get scanPassPressureLowerSide => 'lower side';
+
+  @override
+  String get scanPassPressureCentralSide => 'central lane';
+
+  @override
+  String get scanPassPressureClosingMotion => 'closing toward #6';
+
+  @override
+  String get scanPassPressureLeavingMotion => 'moving away from #6';
+
+  @override
+  String get scanPassPressureHoldingMotion => 'holding position';
+
+  @override
+  String scanPassPressureCue(Object side, Object motion) {
+    return 'Closest defender: $side, $motion.';
+  }
+
+  @override
+  String get scanPassTouchUpperPreview =>
+      'Preview only: #6 takes the first touch toward the upper side of the displayed field.';
+
+  @override
+  String get scanPassTouchLowerPreview =>
+      'Preview only: #6 takes the first touch toward the lower side of the displayed field.';
+
+  @override
+  String get scanPassTouchTurnPreview =>
+      'Preview only: #6 opens forward, with more body exposure before the next action.';
+
+  @override
+  String get scanPassTouchReturnPreview =>
+      'Preview only: #6 returns the ball to #4, then must move to receive again.';
+
+  @override
+  String get scanPassExecuteChoiceAction => 'Play this choice';
+
+  @override
+  String get scanPassTouchExecutingTitle =>
+      'Watch what the first touch changed';
+
+  @override
+  String get scanPassTouchChangeKept =>
+      '#6 kept possession after the first touch and can choose the next play.';
+
+  @override
+  String get scanPassTouchChangeReturned =>
+      'The ball is back with #4; #6 now needs a new receiving angle.';
+
+  @override
+  String get scanPassTouchChangeContested =>
+      'The ball stayed with #6, but pressure is close enough to affect the next play.';
+
+  @override
+  String get scanPassTouchChangeIntercepted =>
+      'The return path was reached by a defender, so the play moves straight to review.';
+
+  @override
+  String get scanPassPass4Preview =>
+      'Preview only: the route recycles through #4 without changing your committed play.';
+
+  @override
+  String get scanPassPass8Preview =>
+      'Preview only: the route connects to #8 and shows the intended passing lane.';
+
+  @override
+  String get scanPassPass9Preview =>
+      'Preview only: the route tries the forward lane toward #9.';
+
+  @override
+  String get scanPassHold8Preview =>
+      'Preview only: #6 waits briefly before releasing toward #8.';
+
+  @override
+  String get scanPassSupportUpperPreview =>
+      'Preview only: #6 moves above the pressure to ask #4 for the next pass.';
+
+  @override
+  String get scanPassSupportForwardPreview =>
+      'Preview only: #6 moves forward to create a return lane.';
+
+  @override
+  String get scanPassHoldPocketPreview =>
+      'Preview only: #6 stays in the same pocket and waits for #4.';
+
+  @override
+  String get scanPassReviewViewingMine => 'Viewing my committed choice';
+
+  @override
+  String get scanPassReviewViewingAlternative =>
+      'Viewing another plausible choice';
+
+  @override
+  String scanPassReviewOutcomeSummary(Object plan, Object outcome) {
+    return '$plan: $outcome.';
+  }
+
+  @override
+  String get scanPassReviewSituationLabel => 'Checked situation';
+
+  @override
+  String get scanPassReviewChoiceLabel => 'My choice';
+
+  @override
+  String get scanPassReviewNextSceneLabel => 'Changed next scene';
+
+  @override
+  String get scanPassReviewSituationBody =>
+      'This is the information available after scanning, before choosing the first touch.';
+
+  @override
+  String get scanPassReviewReasonFallback =>
+      'The next scene changed because of the chosen touch and route.';
+
+  @override
+  String get scanPassFinalReceiver4 => '#4 has the ball';
+
+  @override
+  String get scanPassFinalReceiver6 => '#6 receives again';
+
+  @override
+  String get scanPassFinalReceiver8 => '#8 receives';
+
+  @override
+  String get scanPassFinalReceiver9 => '#9 receives';
+
+  @override
+  String get scanPassFinalReceiverLoose => 'Defender reaches it';
+
+  @override
+  String get scanPassOutcomeDetailKept =>
+      'Possession stays alive, but the next angle still matters.';
+
+  @override
+  String get scanPassOutcomeDetailProgressed =>
+      'The ball moved forward into a more advanced next action.';
+
+  @override
+  String get scanPassOutcomeDetailRecycled =>
+      'The ball was connected again and the team kept possession.';
+
+  @override
+  String get scanPassOutcomeDetailContested =>
+      'The choice kept the play alive, but pressure arrived close to the ball.';
+
+  @override
+  String get scanPassOutcomeDetailIntercepted =>
+      'A defender reached the passing lane first and took the ball.';
+
+  @override
+  String get scanPassDetailedEvaluationTitle => 'Detailed evaluation';
+
+  @override
+  String get scanPassDetailedEvaluationSubtitle =>
+      'Reference scores for comparing choices in the same situation.';
+
+  @override
+  String get scanPassRetrySceneAction => 'Retry same scene';
+
+  @override
+  String get scanPassNextSceneAction => 'Next scene';
+
+  @override
+  String get scanPassFinishLearningAction => 'Finish review';
+
+  @override
+  String get scanPassLearningResultTitle => 'Scenes reviewed';
+
+  @override
+  String scanPassLearningResultBody(int count) {
+    return 'You reviewed pressure direction and the next passing option in $count scenes.';
+  }
 
   @override
   String get gameGuideTitle => 'Game Guide';
@@ -18330,4 +18659,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calendarNoRecordsForDay => 'No records for this day.';
+
+  @override
+  String get scanPassChangeChoiceAction => 'Change choice';
+
+  @override
+  String get scanPassFactFacingForward => 'Facing the attacking direction';
+
+  @override
+  String get scanPassTouchChangePressureRemains =>
+      '#6 keeps the ball, but the nearby defender still applies pressure.';
+
+  @override
+  String get scanPassTouchInMotionBody =>
+      'Watch the ball and #6 move in your chosen direction. Choose the next action when the movement finishes.';
 }

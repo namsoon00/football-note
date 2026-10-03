@@ -9393,7 +9393,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassHelpAction.
   ///
   /// In en, this message translates to:
-  /// **'Analysis guide'**
+  /// **'Learning guide'**
   String get scanPassHelpAction;
 
   /// No description provided for @scanPassIntroTitle.
@@ -9417,19 +9417,19 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPracticeAction.
   ///
   /// In en, this message translates to:
-  /// **'Untimed practice'**
+  /// **'Understand this scene'**
   String get scanPassPracticeAction;
 
   /// No description provided for @scanPassStartChallengeAction.
   ///
   /// In en, this message translates to:
-  /// **'Start 10-round challenge'**
+  /// **'Practice another scene'**
   String get scanPassStartChallengeAction;
 
   /// No description provided for @scanPassRoundStatus.
   ///
   /// In en, this message translates to:
-  /// **'Round {round} / {total}'**
+  /// **'Scene {round} / {total}'**
   String scanPassRoundStatus(int round, int total);
 
   /// No description provided for @scanPassTimeStatus.
@@ -9447,13 +9447,13 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPracticeStatus.
   ///
   /// In en, this message translates to:
-  /// **'Practice'**
+  /// **'Learning'**
   String get scanPassPracticeStatus;
 
   /// No description provided for @scanPassPhaseObserveHeading.
   ///
   /// In en, this message translates to:
-  /// **'1. Observe before receiving'**
+  /// **'1. Scan surroundings'**
   String get scanPassPhaseObserveHeading;
 
   /// No description provided for @scanPassPhaseChoiceHeading.
@@ -9471,7 +9471,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPracticeObserveHeading.
   ///
   /// In en, this message translates to:
-  /// **'Practice 1. Observe the shape'**
+  /// **'1. Scan surroundings'**
   String get scanPassPracticeObserveHeading;
 
   /// No description provided for @scanPassPracticeChoiceHeading.
@@ -9489,7 +9489,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassLegendBallCarrier.
   ///
   /// In en, this message translates to:
-  /// **'You: #6'**
+  /// **'You · #6'**
   String get scanPassLegendBallCarrier;
 
   /// No description provided for @scanPassLegendTeammate.
@@ -10011,25 +10011,25 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPracticeScoreNote.
   ///
   /// In en, this message translates to:
-  /// **'Practice compares route judgment only: max 90 before any bonus, no history save, no reaction bonus.'**
+  /// **'Learning scenes compare choices only inside the current review. They do not write score history.'**
   String get scanPassPracticeScoreNote;
 
   /// No description provided for @scanPassRetryPracticeAction.
   ///
   /// In en, this message translates to:
-  /// **'Retry practice'**
+  /// **'Retry scene'**
   String get scanPassRetryPracticeAction;
 
   /// No description provided for @scanPassNextRoundAction.
   ///
   /// In en, this message translates to:
-  /// **'Next round'**
+  /// **'Next scene'**
   String get scanPassNextRoundAction;
 
   /// No description provided for @scanPassSeeResultAction.
   ///
   /// In en, this message translates to:
-  /// **'See result'**
+  /// **'Finish review'**
   String get scanPassSeeResultAction;
 
   /// No description provided for @scanPassResultTitle.
@@ -10089,7 +10089,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPlayAgainAction.
   ///
   /// In en, this message translates to:
-  /// **'Start 10 rounds again'**
+  /// **'Start learning again'**
   String get scanPassPlayAgainAction;
 
   /// No description provided for @scanPassResultMethodTitle.
@@ -10113,7 +10113,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassResultTimeoutNote.
   ///
   /// In en, this message translates to:
-  /// **'Incomplete rounds are first-touch or next-action timeouts. Practice never writes history.'**
+  /// **'Self-paced learning scenes do not create new saved score history.'**
   String get scanPassResultTimeoutNote;
 
   /// No description provided for @scanPassReasonClearLane.
@@ -10227,7 +10227,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassStageObserve.
   ///
   /// In en, this message translates to:
-  /// **'Observe'**
+  /// **'Scan surroundings'**
   String get scanPassStageObserve;
 
   /// No description provided for @scanPassStageFirstTouch.
@@ -10347,7 +10347,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassObserveInstruction.
   ///
   /// In en, this message translates to:
-  /// **'The ball is traveling from #4 to #6. Scan if you want updated remembered pressure; the challenge will advance when the ball arrives.'**
+  /// **'The ball is traveling from #4 to #6. First scan the area behind your body; the scene waits while you read it.'**
   String get scanPassObserveInstruction;
 
   /// No description provided for @scanPassFirstTouchInstruction.
@@ -10359,7 +10359,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassNextPassInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Now choose the pass. Defenders and teammates keep moving, so holding briefly can help or hurt depending on this scene.'**
+  /// **'Choose a clear next action. Only an explicit hold option advances the model before the pass.'**
   String get scanPassNextPassInstruction;
 
   /// No description provided for @scanPassNextMoveInstruction.
@@ -10371,7 +10371,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassReviewInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Replay the selected path, then compare it with another strong plan from the same initial scene.'**
+  /// **'Replay the selected path, then compare it with another plausible choice from the same initial scene.'**
   String get scanPassReviewInstruction;
 
   /// No description provided for @scanPassTimeoutFirstTouch.
@@ -10389,7 +10389,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassNoScanStatus.
   ///
   /// In en, this message translates to:
-  /// **'Rear pressure is not currently observed.'**
+  /// **'Rear pressure has not been checked yet.'**
   String get scanPassNoScanStatus;
 
   /// No description provided for @scanPassLastScanStatus.
@@ -10401,19 +10401,19 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassScanAction.
   ///
   /// In en, this message translates to:
-  /// **'Scan'**
+  /// **'Check behind'**
   String get scanPassScanAction;
 
   /// No description provided for @scanPassTouchUpperTitle.
   ///
   /// In en, this message translates to:
-  /// **'Upper touch'**
+  /// **'Touch upward'**
   String get scanPassTouchUpperTitle;
 
   /// No description provided for @scanPassTouchUpperSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Move #6 toward the upper channel.'**
+  /// **'Take the ball toward the top of the pitch.'**
   String get scanPassTouchUpperSubtitle;
 
   /// No description provided for @scanPassTouchUpperShort.
@@ -10425,13 +10425,13 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassTouchLowerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Lower touch'**
+  /// **'Touch downward'**
   String get scanPassTouchLowerTitle;
 
   /// No description provided for @scanPassTouchLowerSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Move #6 toward the lower channel.'**
+  /// **'Take the ball toward the bottom of the pitch.'**
   String get scanPassTouchLowerSubtitle;
 
   /// No description provided for @scanPassTouchLowerShort.
@@ -10449,7 +10449,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassTouchTurnSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Open the body toward #9 with more exposure.'**
+  /// **'Turn to face the attack, toward the right.'**
   String get scanPassTouchTurnSubtitle;
 
   /// No description provided for @scanPassTouchTurnShort.
@@ -10467,7 +10467,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassTouchReturnSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'One-touch return, then move again.'**
+  /// **'Play back to #4, then move again.'**
   String get scanPassTouchReturnSubtitle;
 
   /// No description provided for @scanPassTouchReturnShort.
@@ -10605,13 +10605,13 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassReviewMineAction.
   ///
   /// In en, this message translates to:
-  /// **'My path'**
+  /// **'Replay my choice'**
   String get scanPassReviewMineAction;
 
   /// No description provided for @scanPassReviewAlternativeAction.
   ///
   /// In en, this message translates to:
-  /// **'Alternative'**
+  /// **'Other choice'**
   String get scanPassReviewAlternativeAction;
 
   /// No description provided for @scanPassReviewMineTitle.
@@ -10817,6 +10817,582 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'timeout'**
   String get scanPassOutcomeTimeout;
+
+  /// No description provided for @scanPassHelpSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How Scan Pass works'**
+  String get scanPassHelpSheetTitle;
+
+  /// No description provided for @scanPassHelpSheetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You are the amber #6, attacking to the right. Check the nearby space behind you first. Select an action to see its intended dotted path, then execute it. Watch what changes and compare another choice. The scene waits while you read or open help.'**
+  String get scanPassHelpSheetBody;
+
+  /// No description provided for @scanPassHelpCloseAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get scanPassHelpCloseAction;
+
+  /// No description provided for @scanPassIntroPreviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning scene'**
+  String get scanPassIntroPreviewLabel;
+
+  /// No description provided for @scanPassIntroSceneQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Where should you look before receiving?'**
+  String get scanPassIntroSceneQuestion;
+
+  /// No description provided for @scanPassIntroSceneTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Before the ball arrives, check the defender behind you.'**
+  String get scanPassIntroSceneTask;
+
+  /// No description provided for @scanPassUnderstandSceneAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Understand this scene'**
+  String get scanPassUnderstandSceneAction;
+
+  /// No description provided for @scanPassOtherSceneAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice another scene'**
+  String get scanPassOtherSceneAction;
+
+  /// No description provided for @scanPassIntroHistoryNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing saved challenge history stays unchanged. Saved sessions so far: {sessions}.'**
+  String scanPassIntroHistoryNote(int sessions);
+
+  /// No description provided for @scanPassLegendRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement / pass'**
+  String get scanPassLegendRoute;
+
+  /// No description provided for @scanPassAttackDirectionShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Attack right'**
+  String get scanPassAttackDirectionShort;
+
+  /// No description provided for @scanPassUnknownRearArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Behind · unknown'**
+  String get scanPassUnknownRearArea;
+
+  /// No description provided for @scanPassRearPressureLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rear pressure'**
+  String get scanPassRearPressureLabel;
+
+  /// No description provided for @scanPassSelfPlayerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Me · #6'**
+  String get scanPassSelfPlayerLabel;
+
+  /// No description provided for @scanPassPasserLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'#4 passer'**
+  String get scanPassPasserLabel;
+
+  /// No description provided for @scanPassIntendedRouteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview route'**
+  String get scanPassIntendedRouteLabel;
+
+  /// No description provided for @scanPassSceneRearPressureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Escape pressure behind #6'**
+  String get scanPassSceneRearPressureTitle;
+
+  /// No description provided for @scanPassMatchShape.
+  ///
+  /// In en, this message translates to:
+  /// **'4v3 · central midfielder'**
+  String get scanPassMatchShape;
+
+  /// No description provided for @scanPassSessionKicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Scene {round} / {region}'**
+  String scanPassSessionKicker(int round, Object region);
+
+  /// No description provided for @scanPassObservePhaseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'01 / Before receiving'**
+  String get scanPassObservePhaseLabel;
+
+  /// No description provided for @scanPassFirstTouchPhaseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'02 / First touch'**
+  String get scanPassFirstTouchPhaseLabel;
+
+  /// No description provided for @scanPassNextActionPhaseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'03 / Next action'**
+  String get scanPassNextActionPhaseLabel;
+
+  /// No description provided for @scanPassReviewPhaseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'04 / Review'**
+  String get scanPassReviewPhaseLabel;
+
+  /// No description provided for @scanPassObserveQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What is behind #6?'**
+  String get scanPassObserveQuestion;
+
+  /// No description provided for @scanPassFirstTouchQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'How should the first touch move the ball?'**
+  String get scanPassFirstTouchQuestion;
+
+  /// No description provided for @scanPassNextPassQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Where should the next pass go?'**
+  String get scanPassNextPassQuestion;
+
+  /// No description provided for @scanPassNextMoveQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Where should #6 move to receive again?'**
+  String get scanPassNextMoveQuestion;
+
+  /// No description provided for @scanPassReceiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive the ball'**
+  String get scanPassReceiveAction;
+
+  /// No description provided for @scanPassFactMyPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'My player'**
+  String get scanPassFactMyPlayer;
+
+  /// No description provided for @scanPassFactMyPlayerValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Me · #6'**
+  String get scanPassFactMyPlayerValue;
+
+  /// No description provided for @scanPassFactPasser.
+  ///
+  /// In en, this message translates to:
+  /// **'Passer'**
+  String get scanPassFactPasser;
+
+  /// No description provided for @scanPassFactPasserValue.
+  ///
+  /// In en, this message translates to:
+  /// **'#4 sends the ball'**
+  String get scanPassFactPasserValue;
+
+  /// No description provided for @scanPassFactAttackDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Attack'**
+  String get scanPassFactAttackDirection;
+
+  /// No description provided for @scanPassFactAttackRight.
+  ///
+  /// In en, this message translates to:
+  /// **'To the right'**
+  String get scanPassFactAttackRight;
+
+  /// No description provided for @scanPassFactBodyDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Body shape'**
+  String get scanPassFactBodyDirection;
+
+  /// No description provided for @scanPassFactFacingPasser.
+  ///
+  /// In en, this message translates to:
+  /// **'Facing #4'**
+  String get scanPassFactFacingPasser;
+
+  /// No description provided for @scanPassFactVisibleOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible option'**
+  String get scanPassFactVisibleOption;
+
+  /// No description provided for @scanPassFactForwardOption.
+  ///
+  /// In en, this message translates to:
+  /// **'#9 ahead'**
+  String get scanPassFactForwardOption;
+
+  /// No description provided for @scanPassFactRearPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Rear pressure'**
+  String get scanPassFactRearPressure;
+
+  /// No description provided for @scanPassFactObserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked'**
+  String get scanPassFactObserved;
+
+  /// No description provided for @scanPassFactNotObserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Not checked yet'**
+  String get scanPassFactNotObserved;
+
+  /// No description provided for @scanPassFactObservedPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed pressure'**
+  String get scanPassFactObservedPressure;
+
+  /// No description provided for @scanPassFactCurrentPossession.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball'**
+  String get scanPassFactCurrentPossession;
+
+  /// No description provided for @scanPassFactFirstChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'First choice'**
+  String get scanPassFactFirstChoice;
+
+  /// No description provided for @scanPassFactPressureNow.
+  ///
+  /// In en, this message translates to:
+  /// **'What changed'**
+  String get scanPassFactPressureNow;
+
+  /// No description provided for @scanPassPossession4.
+  ///
+  /// In en, this message translates to:
+  /// **'#4 has possession'**
+  String get scanPassPossession4;
+
+  /// No description provided for @scanPassPossession6.
+  ///
+  /// In en, this message translates to:
+  /// **'Me · #6 has possession'**
+  String get scanPassPossession6;
+
+  /// No description provided for @scanPassPressureUpperSide.
+  ///
+  /// In en, this message translates to:
+  /// **'upper side'**
+  String get scanPassPressureUpperSide;
+
+  /// No description provided for @scanPassPressureLowerSide.
+  ///
+  /// In en, this message translates to:
+  /// **'lower side'**
+  String get scanPassPressureLowerSide;
+
+  /// No description provided for @scanPassPressureCentralSide.
+  ///
+  /// In en, this message translates to:
+  /// **'central lane'**
+  String get scanPassPressureCentralSide;
+
+  /// No description provided for @scanPassPressureClosingMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'closing toward #6'**
+  String get scanPassPressureClosingMotion;
+
+  /// No description provided for @scanPassPressureLeavingMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'moving away from #6'**
+  String get scanPassPressureLeavingMotion;
+
+  /// No description provided for @scanPassPressureHoldingMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'holding position'**
+  String get scanPassPressureHoldingMotion;
+
+  /// No description provided for @scanPassPressureCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Closest defender: {side}, {motion}.'**
+  String scanPassPressureCue(Object side, Object motion);
+
+  /// No description provided for @scanPassTouchUpperPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: #6 takes the first touch toward the upper side of the displayed field.'**
+  String get scanPassTouchUpperPreview;
+
+  /// No description provided for @scanPassTouchLowerPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: #6 takes the first touch toward the lower side of the displayed field.'**
+  String get scanPassTouchLowerPreview;
+
+  /// No description provided for @scanPassTouchTurnPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: #6 opens forward, with more body exposure before the next action.'**
+  String get scanPassTouchTurnPreview;
+
+  /// No description provided for @scanPassTouchReturnPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: #6 returns the ball to #4, then must move to receive again.'**
+  String get scanPassTouchReturnPreview;
+
+  /// No description provided for @scanPassExecuteChoiceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Play this choice'**
+  String get scanPassExecuteChoiceAction;
+
+  /// No description provided for @scanPassTouchExecutingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch what the first touch changed'**
+  String get scanPassTouchExecutingTitle;
+
+  /// No description provided for @scanPassTouchChangeKept.
+  ///
+  /// In en, this message translates to:
+  /// **'#6 kept possession after the first touch and can choose the next play.'**
+  String get scanPassTouchChangeKept;
+
+  /// No description provided for @scanPassTouchChangeReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'The ball is back with #4; #6 now needs a new receiving angle.'**
+  String get scanPassTouchChangeReturned;
+
+  /// No description provided for @scanPassTouchChangeContested.
+  ///
+  /// In en, this message translates to:
+  /// **'The ball stayed with #6, but pressure is close enough to affect the next play.'**
+  String get scanPassTouchChangeContested;
+
+  /// No description provided for @scanPassTouchChangeIntercepted.
+  ///
+  /// In en, this message translates to:
+  /// **'The return path was reached by a defender, so the play moves straight to review.'**
+  String get scanPassTouchChangeIntercepted;
+
+  /// No description provided for @scanPassPass4Preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: the route recycles through #4 without changing your committed play.'**
+  String get scanPassPass4Preview;
+
+  /// No description provided for @scanPassPass8Preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: the route connects to #8 and shows the intended passing lane.'**
+  String get scanPassPass8Preview;
+
+  /// No description provided for @scanPassPass9Preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: the route tries the forward lane toward #9.'**
+  String get scanPassPass9Preview;
+
+  /// No description provided for @scanPassHold8Preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: #6 waits briefly before releasing toward #8.'**
+  String get scanPassHold8Preview;
+
+  /// No description provided for @scanPassSupportUpperPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: #6 moves above the pressure to ask #4 for the next pass.'**
+  String get scanPassSupportUpperPreview;
+
+  /// No description provided for @scanPassSupportForwardPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: #6 moves forward to create a return lane.'**
+  String get scanPassSupportForwardPreview;
+
+  /// No description provided for @scanPassHoldPocketPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only: #6 stays in the same pocket and waits for #4.'**
+  String get scanPassHoldPocketPreview;
+
+  /// No description provided for @scanPassReviewViewingMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Viewing my committed choice'**
+  String get scanPassReviewViewingMine;
+
+  /// No description provided for @scanPassReviewViewingAlternative.
+  ///
+  /// In en, this message translates to:
+  /// **'Viewing another plausible choice'**
+  String get scanPassReviewViewingAlternative;
+
+  /// No description provided for @scanPassReviewOutcomeSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{plan}: {outcome}.'**
+  String scanPassReviewOutcomeSummary(Object plan, Object outcome);
+
+  /// No description provided for @scanPassReviewSituationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked situation'**
+  String get scanPassReviewSituationLabel;
+
+  /// No description provided for @scanPassReviewChoiceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'My choice'**
+  String get scanPassReviewChoiceLabel;
+
+  /// No description provided for @scanPassReviewNextSceneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed next scene'**
+  String get scanPassReviewNextSceneLabel;
+
+  /// No description provided for @scanPassReviewSituationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the information available after scanning, before choosing the first touch.'**
+  String get scanPassReviewSituationBody;
+
+  /// No description provided for @scanPassReviewReasonFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'The next scene changed because of the chosen touch and route.'**
+  String get scanPassReviewReasonFallback;
+
+  /// No description provided for @scanPassFinalReceiver4.
+  ///
+  /// In en, this message translates to:
+  /// **'#4 has the ball'**
+  String get scanPassFinalReceiver4;
+
+  /// No description provided for @scanPassFinalReceiver6.
+  ///
+  /// In en, this message translates to:
+  /// **'#6 receives again'**
+  String get scanPassFinalReceiver6;
+
+  /// No description provided for @scanPassFinalReceiver8.
+  ///
+  /// In en, this message translates to:
+  /// **'#8 receives'**
+  String get scanPassFinalReceiver8;
+
+  /// No description provided for @scanPassFinalReceiver9.
+  ///
+  /// In en, this message translates to:
+  /// **'#9 receives'**
+  String get scanPassFinalReceiver9;
+
+  /// No description provided for @scanPassFinalReceiverLoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Defender reaches it'**
+  String get scanPassFinalReceiverLoose;
+
+  /// No description provided for @scanPassOutcomeDetailKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Possession stays alive, but the next angle still matters.'**
+  String get scanPassOutcomeDetailKept;
+
+  /// No description provided for @scanPassOutcomeDetailProgressed.
+  ///
+  /// In en, this message translates to:
+  /// **'The ball moved forward into a more advanced next action.'**
+  String get scanPassOutcomeDetailProgressed;
+
+  /// No description provided for @scanPassOutcomeDetailRecycled.
+  ///
+  /// In en, this message translates to:
+  /// **'The ball was connected again and the team kept possession.'**
+  String get scanPassOutcomeDetailRecycled;
+
+  /// No description provided for @scanPassOutcomeDetailContested.
+  ///
+  /// In en, this message translates to:
+  /// **'The choice kept the play alive, but pressure arrived close to the ball.'**
+  String get scanPassOutcomeDetailContested;
+
+  /// No description provided for @scanPassOutcomeDetailIntercepted.
+  ///
+  /// In en, this message translates to:
+  /// **'A defender reached the passing lane first and took the ball.'**
+  String get scanPassOutcomeDetailIntercepted;
+
+  /// No description provided for @scanPassDetailedEvaluationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed evaluation'**
+  String get scanPassDetailedEvaluationTitle;
+
+  /// No description provided for @scanPassDetailedEvaluationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference scores for comparing choices in the same situation.'**
+  String get scanPassDetailedEvaluationSubtitle;
+
+  /// No description provided for @scanPassRetrySceneAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry same scene'**
+  String get scanPassRetrySceneAction;
+
+  /// No description provided for @scanPassNextSceneAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Next scene'**
+  String get scanPassNextSceneAction;
+
+  /// No description provided for @scanPassFinishLearningAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish review'**
+  String get scanPassFinishLearningAction;
+
+  /// No description provided for @scanPassLearningResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenes reviewed'**
+  String get scanPassLearningResultTitle;
+
+  /// No description provided for @scanPassLearningResultBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You reviewed pressure direction and the next passing option in {count} scenes.'**
+  String scanPassLearningResultBody(int count);
 
   /// No description provided for @gameGuideTitle.
   ///
@@ -31267,6 +31843,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No records for this day.'**
   String get calendarNoRecordsForDay;
+
+  /// No description provided for @scanPassChangeChoiceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change choice'**
+  String get scanPassChangeChoiceAction;
+
+  /// No description provided for @scanPassFactFacingForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Facing the attacking direction'**
+  String get scanPassFactFacingForward;
+
+  /// No description provided for @scanPassTouchChangePressureRemains.
+  ///
+  /// In en, this message translates to:
+  /// **'#6 keeps the ball, but the nearby defender still applies pressure.'**
+  String get scanPassTouchChangePressureRemains;
+
+  /// No description provided for @scanPassTouchInMotionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the ball and #6 move in your chosen direction. Choose the next action when the movement finishes.'**
+  String get scanPassTouchInMotionBody;
 }
 
 class _AppLocalizationsDelegate

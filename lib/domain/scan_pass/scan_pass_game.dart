@@ -1311,7 +1311,7 @@ class ScanPassMatchEngine {
     );
 
     if (firstState.returned) {
-      final move = _supportMove(firstState.receiverPosition, nextAction);
+      final move = supportPosition(firstState.receiverPosition, nextAction);
       final moveDuration = switch (nextAction) {
         ScanPassNextAction.supportUpper => 0.62,
         ScanPassNextAction.supportForward => 0.70,
@@ -1687,7 +1687,8 @@ class ScanPassMatchEngine {
     );
   }
 
-  static ScanPassPoint _supportMove(
+  /// The requested off-ball destination, before a return pass is evaluated.
+  static ScanPassPoint supportPosition(
       ScanPassPoint from, ScanPassNextAction action) {
     return switch (action) {
       ScanPassNextAction.supportUpper =>
