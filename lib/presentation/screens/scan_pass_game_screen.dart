@@ -7,6 +7,7 @@ import 'package:football_note/gen/app_localizations.dart';
 
 import '../../domain/repositories/option_repository.dart';
 import '../../domain/scan_pass/scan_pass_attack.dart';
+import '../../domain/scan_pass/scan_pass_chain.dart';
 import '../../domain/scan_pass/scan_pass_decision.dart';
 import '../../domain/scan_pass/scan_pass_game.dart' show ScanPassPoint;
 import '../../domain/scan_pass/scan_pass_space.dart';
@@ -14,6 +15,7 @@ import '../theme/app_motion.dart';
 import '../widgets/app_bar_action_button.dart';
 
 part 'scan_pass_space_training.dart';
+part 'scan_pass_chain_training.dart';
 
 enum _DecisionPhase { observing, choosing, executing, review, closed, summary }
 
@@ -41,7 +43,7 @@ class ScanPassGameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SpaceTrainingScreen(
+    return TouchChainTrainingScreen(
       seed: seed,
       freeAttackBuilder: (context) => ScanPassFreeAttackScreen(
         optionRepository: optionRepository,

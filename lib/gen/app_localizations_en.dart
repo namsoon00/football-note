@@ -19386,4 +19386,236 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spaceLearner => 'YOU · 6';
+
+  @override
+  String get chainTitle => 'First touch & next space';
+
+  @override
+  String get chainHelpTitle => 'About this practice';
+
+  @override
+  String get chainHelpBody =>
+      'Keep control of the same number 6 throughout.\n\n1. Before the pass arrives, drag from 6 to plan the direction and length of your first touch. You can also tap the ground. Keep it close or take it into space within 3 m.\n\n2. Read the defenders and your body direction after the touch. Tap a teammate to pass, or drag into space to carry. Choose Protect for a short shielding turn. Confirm your choice with the action button.\n\n3. After the pass you still control 6. While your teammate holds the ball, choose where to move to receive again. Separation and a clear return lane let you plan your next touch. Review the sequence after two return receptions.\n\nDecisions pause the action. Movement plays at half speed and can be paused or stepped. Gold arrows show your choice, not the correct answer.\n\nKeyboard: focus the pitch, use arrows to aim and Enter to act. In the next-action stage, press 4 or 8 to choose a pass. The football button opens Free attack for goals and offside.';
+
+  @override
+  String get chainStepTouch => 'First touch';
+
+  @override
+  String get chainStepAction => 'Next action';
+
+  @override
+  String get chainStepRun => 'Space to receive again';
+
+  @override
+  String get chainPickTouch =>
+      'Drag from 6 to plan the direction and length of your first touch.';
+
+  @override
+  String get chainPickReturnTouch =>
+      'You are available again. Plan your next first touch.';
+
+  @override
+  String get chainWatchIncoming =>
+      'Watch how the defenders approach as the ball arrives.';
+
+  @override
+  String get chainWatchTouch =>
+      'Your touch changes your body direction and the next passing lanes.';
+
+  @override
+  String get chainPickAction =>
+      'Tap a teammate to pass, or drag into space to carry.';
+
+  @override
+  String get chainPickCarry => 'Choose where and how far to carry the ball.';
+
+  @override
+  String get chainPickTurn => 'Use a short drag to choose a shielding turn.';
+
+  @override
+  String get chainWatchAction =>
+      'Watch the ball and the defenders respond together.';
+
+  @override
+  String get chainPickRun =>
+      'You still control 6. Choose space to receive again.';
+
+  @override
+  String get chainWatchRun =>
+      'Watch whether your run opens a return passing lane.';
+
+  @override
+  String get chainReviewInstruction =>
+      'Trace your first touch through to the space for your return.';
+
+  @override
+  String get chainPitchDescription =>
+      '3 versus 2 practice pitch. You always control blue 6. Blue 4 and 8 are teammates; the two red players defend. Drag or tap to choose a location, or use arrow keys.';
+
+  @override
+  String get chainPitchHeader => '3 : 2 · CONNECTED PLAY';
+
+  @override
+  String get chainYourPlayer => 'Your player · 6';
+
+  @override
+  String chainReturns(int count) {
+    return 'Returns $count / 2';
+  }
+
+  @override
+  String get chainReturnTouch => 'Next first touch';
+
+  @override
+  String get chainNoSelection => 'No choice yet';
+
+  @override
+  String chainSelectedDistance(String metres) {
+    return 'Chosen distance · $metres m';
+  }
+
+  @override
+  String get chainWatchRelation => 'The situation is changing with your choice';
+
+  @override
+  String chainOffBallNote(int number) {
+    return '$number has the ball. Move your 6 to offer a return.';
+  }
+
+  @override
+  String get chainNeutralSelection =>
+      'The gold arrow is your choice. You can change it before acting.';
+
+  @override
+  String get chainDragHint =>
+      'Drag from 6 or tap the ground. Adjust before you act.';
+
+  @override
+  String get chainReceive => 'Receive with this touch';
+
+  @override
+  String get chainRun => 'Move into space';
+
+  @override
+  String get chainPass => 'Pass to this teammate';
+
+  @override
+  String get chainCarry => 'Carry to this space';
+
+  @override
+  String get chainTurn => 'Turn and protect';
+
+  @override
+  String get chainModePass => 'Pass';
+
+  @override
+  String get chainModeCarry => 'Carry';
+
+  @override
+  String get chainModeTurn => 'Protect';
+
+  @override
+  String get chainSlowMotion => 'Watch the movement at half speed.';
+
+  @override
+  String get chainLegend =>
+      'Blue · our team   Red · defenders\nSmall triangle · body direction';
+
+  @override
+  String get chainBeforeTouch => 'Before touch';
+
+  @override
+  String get chainAfterTouch => 'After touch';
+
+  @override
+  String get chainAfterAction => 'After action';
+
+  @override
+  String get chainAfterRun => 'After run';
+
+  @override
+  String get chainReturnReady => 'Return ready';
+
+  @override
+  String chainMomentLabel(int cycle, String moment) {
+    return '$cycle · $moment';
+  }
+
+  @override
+  String get chainEndLinked => 'Two return receptions linked';
+
+  @override
+  String get chainEndTouch => 'Possession lost on the first touch';
+
+  @override
+  String get chainEndIntercepted => 'The pass was intercepted';
+
+  @override
+  String get chainEndCrowded => 'The defender closed you down';
+
+  @override
+  String get chainEndLane => 'The return lane was closed';
+
+  @override
+  String get chainEndSupport => 'Your teammate was pressed';
+
+  @override
+  String get chainReasonLinked =>
+      'Your touch prepared the next action, and your run offered a return. Try the same layout with a different touch to compare the lanes it creates.';
+
+  @override
+  String get chainReasonTouch =>
+      'A defender reached the ball during your touch. Compare before and after to see your touch direction, distance and the pressure path.';
+
+  @override
+  String get chainReasonIntercepted =>
+      'A defender reached the passing lane before the ball arrived. Compare positions at release and interception.';
+
+  @override
+  String get chainReasonCrowded =>
+      'Too little separation remained to continue the play. Compare the positions before and after, then try another direction.';
+
+  @override
+  String get chainReasonLane =>
+      'There was no open lane from your teammate to your new position. Try moving beside the defender to create a return angle.';
+
+  @override
+  String get chainReasonSupport =>
+      'Pressure reached the ball holder during your run. Compare a shorter movement that offers a return angle sooner.';
+
+  @override
+  String get chainReviewTouch => 'What the first touch changed';
+
+  @override
+  String chainPressureChange(String before, String after) {
+    return 'Nearest defender  $before m → $after m';
+  }
+
+  @override
+  String chainLanesChange(String before, String after) {
+    return 'Open passing options  $before → $after';
+  }
+
+  @override
+  String get chainNoLane => 'none';
+
+  @override
+  String chainPlayerNumber(int number) {
+    return '$number';
+  }
+
+  @override
+  String get chainReviewHint =>
+      'Compare moments above the pitch. Blue dashed lines are passing options based on the defenders and body direction at that moment.';
+
+  @override
+  String chainPlaybackPosition(int percent) {
+    return 'Sequence $percent%';
+  }
+
+  @override
+  String get chainReplay => 'Replay the whole sequence';
+
+  @override
+  String get chainRetry => 'Same layout · a different first touch';
 }

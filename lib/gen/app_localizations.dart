@@ -33085,6 +33085,396 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'YOU · 6'**
   String get spaceLearner;
+
+  /// No description provided for @chainTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch & next space'**
+  String get chainTitle;
+
+  /// No description provided for @chainHelpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About this practice'**
+  String get chainHelpTitle;
+
+  /// No description provided for @chainHelpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep control of the same number 6 throughout.\n\n1. Before the pass arrives, drag from 6 to plan the direction and length of your first touch. You can also tap the ground. Keep it close or take it into space within 3 m.\n\n2. Read the defenders and your body direction after the touch. Tap a teammate to pass, or drag into space to carry. Choose Protect for a short shielding turn. Confirm your choice with the action button.\n\n3. After the pass you still control 6. While your teammate holds the ball, choose where to move to receive again. Separation and a clear return lane let you plan your next touch. Review the sequence after two return receptions.\n\nDecisions pause the action. Movement plays at half speed and can be paused or stepped. Gold arrows show your choice, not the correct answer.\n\nKeyboard: focus the pitch, use arrows to aim and Enter to act. In the next-action stage, press 4 or 8 to choose a pass. The football button opens Free attack for goals and offside.'**
+  String get chainHelpBody;
+
+  /// No description provided for @chainStepTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch'**
+  String get chainStepTouch;
+
+  /// No description provided for @chainStepAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Next action'**
+  String get chainStepAction;
+
+  /// No description provided for @chainStepRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Space to receive again'**
+  String get chainStepRun;
+
+  /// No description provided for @chainPickTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag from 6 to plan the direction and length of your first touch.'**
+  String get chainPickTouch;
+
+  /// No description provided for @chainPickReturnTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'You are available again. Plan your next first touch.'**
+  String get chainPickReturnTouch;
+
+  /// No description provided for @chainWatchIncoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch how the defenders approach as the ball arrives.'**
+  String get chainWatchIncoming;
+
+  /// No description provided for @chainWatchTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Your touch changes your body direction and the next passing lanes.'**
+  String get chainWatchTouch;
+
+  /// No description provided for @chainPickAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a teammate to pass, or drag into space to carry.'**
+  String get chainPickAction;
+
+  /// No description provided for @chainPickCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where and how far to carry the ball.'**
+  String get chainPickCarry;
+
+  /// No description provided for @chainPickTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a short drag to choose a shielding turn.'**
+  String get chainPickTurn;
+
+  /// No description provided for @chainWatchAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the ball and the defenders respond together.'**
+  String get chainWatchAction;
+
+  /// No description provided for @chainPickRun.
+  ///
+  /// In en, this message translates to:
+  /// **'You still control 6. Choose space to receive again.'**
+  String get chainPickRun;
+
+  /// No description provided for @chainWatchRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch whether your run opens a return passing lane.'**
+  String get chainWatchRun;
+
+  /// No description provided for @chainReviewInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Trace your first touch through to the space for your return.'**
+  String get chainReviewInstruction;
+
+  /// No description provided for @chainPitchDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'3 versus 2 practice pitch. You always control blue 6. Blue 4 and 8 are teammates; the two red players defend. Drag or tap to choose a location, or use arrow keys.'**
+  String get chainPitchDescription;
+
+  /// No description provided for @chainPitchHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'3 : 2 · CONNECTED PLAY'**
+  String get chainPitchHeader;
+
+  /// No description provided for @chainYourPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Your player · 6'**
+  String get chainYourPlayer;
+
+  /// No description provided for @chainReturns.
+  ///
+  /// In en, this message translates to:
+  /// **'Returns {count} / 2'**
+  String chainReturns(int count);
+
+  /// No description provided for @chainReturnTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Next first touch'**
+  String get chainReturnTouch;
+
+  /// No description provided for @chainNoSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'No choice yet'**
+  String get chainNoSelection;
+
+  /// No description provided for @chainSelectedDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Chosen distance · {metres} m'**
+  String chainSelectedDistance(String metres);
+
+  /// No description provided for @chainWatchRelation.
+  ///
+  /// In en, this message translates to:
+  /// **'The situation is changing with your choice'**
+  String get chainWatchRelation;
+
+  /// No description provided for @chainOffBallNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{number} has the ball. Move your 6 to offer a return.'**
+  String chainOffBallNote(int number);
+
+  /// No description provided for @chainNeutralSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'The gold arrow is your choice. You can change it before acting.'**
+  String get chainNeutralSelection;
+
+  /// No description provided for @chainDragHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag from 6 or tap the ground. Adjust before you act.'**
+  String get chainDragHint;
+
+  /// No description provided for @chainReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive with this touch'**
+  String get chainReceive;
+
+  /// No description provided for @chainRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Move into space'**
+  String get chainRun;
+
+  /// No description provided for @chainPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass to this teammate'**
+  String get chainPass;
+
+  /// No description provided for @chainCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry to this space'**
+  String get chainCarry;
+
+  /// No description provided for @chainTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn and protect'**
+  String get chainTurn;
+
+  /// No description provided for @chainModePass.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass'**
+  String get chainModePass;
+
+  /// No description provided for @chainModeCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry'**
+  String get chainModeCarry;
+
+  /// No description provided for @chainModeTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Protect'**
+  String get chainModeTurn;
+
+  /// No description provided for @chainSlowMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the movement at half speed.'**
+  String get chainSlowMotion;
+
+  /// No description provided for @chainLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue · our team   Red · defenders\nSmall triangle · body direction'**
+  String get chainLegend;
+
+  /// No description provided for @chainBeforeTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Before touch'**
+  String get chainBeforeTouch;
+
+  /// No description provided for @chainAfterTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'After touch'**
+  String get chainAfterTouch;
+
+  /// No description provided for @chainAfterAction.
+  ///
+  /// In en, this message translates to:
+  /// **'After action'**
+  String get chainAfterAction;
+
+  /// No description provided for @chainAfterRun.
+  ///
+  /// In en, this message translates to:
+  /// **'After run'**
+  String get chainAfterRun;
+
+  /// No description provided for @chainReturnReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Return ready'**
+  String get chainReturnReady;
+
+  /// No description provided for @chainMomentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{cycle} · {moment}'**
+  String chainMomentLabel(int cycle, String moment);
+
+  /// No description provided for @chainEndLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Two return receptions linked'**
+  String get chainEndLinked;
+
+  /// No description provided for @chainEndTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Possession lost on the first touch'**
+  String get chainEndTouch;
+
+  /// No description provided for @chainEndIntercepted.
+  ///
+  /// In en, this message translates to:
+  /// **'The pass was intercepted'**
+  String get chainEndIntercepted;
+
+  /// No description provided for @chainEndCrowded.
+  ///
+  /// In en, this message translates to:
+  /// **'The defender closed you down'**
+  String get chainEndCrowded;
+
+  /// No description provided for @chainEndLane.
+  ///
+  /// In en, this message translates to:
+  /// **'The return lane was closed'**
+  String get chainEndLane;
+
+  /// No description provided for @chainEndSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Your teammate was pressed'**
+  String get chainEndSupport;
+
+  /// No description provided for @chainReasonLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your touch prepared the next action, and your run offered a return. Try the same layout with a different touch to compare the lanes it creates.'**
+  String get chainReasonLinked;
+
+  /// No description provided for @chainReasonTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'A defender reached the ball during your touch. Compare before and after to see your touch direction, distance and the pressure path.'**
+  String get chainReasonTouch;
+
+  /// No description provided for @chainReasonIntercepted.
+  ///
+  /// In en, this message translates to:
+  /// **'A defender reached the passing lane before the ball arrived. Compare positions at release and interception.'**
+  String get chainReasonIntercepted;
+
+  /// No description provided for @chainReasonCrowded.
+  ///
+  /// In en, this message translates to:
+  /// **'Too little separation remained to continue the play. Compare the positions before and after, then try another direction.'**
+  String get chainReasonCrowded;
+
+  /// No description provided for @chainReasonLane.
+  ///
+  /// In en, this message translates to:
+  /// **'There was no open lane from your teammate to your new position. Try moving beside the defender to create a return angle.'**
+  String get chainReasonLane;
+
+  /// No description provided for @chainReasonSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure reached the ball holder during your run. Compare a shorter movement that offers a return angle sooner.'**
+  String get chainReasonSupport;
+
+  /// No description provided for @chainReviewTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'What the first touch changed'**
+  String get chainReviewTouch;
+
+  /// No description provided for @chainPressureChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest defender  {before} m → {after} m'**
+  String chainPressureChange(String before, String after);
+
+  /// No description provided for @chainLanesChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Open passing options  {before} → {after}'**
+  String chainLanesChange(String before, String after);
+
+  /// No description provided for @chainNoLane.
+  ///
+  /// In en, this message translates to:
+  /// **'none'**
+  String get chainNoLane;
+
+  /// No description provided for @chainPlayerNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'{number}'**
+  String chainPlayerNumber(int number);
+
+  /// No description provided for @chainReviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare moments above the pitch. Blue dashed lines are passing options based on the defenders and body direction at that moment.'**
+  String get chainReviewHint;
+
+  /// No description provided for @chainPlaybackPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Sequence {percent}%'**
+  String chainPlaybackPosition(int percent);
+
+  /// No description provided for @chainReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay the whole sequence'**
+  String get chainReplay;
+
+  /// No description provided for @chainRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Same layout · a different first touch'**
+  String get chainRetry;
 }
 
 class _AppLocalizationsDelegate

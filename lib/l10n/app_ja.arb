@@ -10441,5 +10441,135 @@
   "spaceRetry": "同じ配置でもう一度",
   "spaceNewLayout": "新しい配置で読む",
   "spacePitchHeader": "3 : 2  ·  スペース練習",
-  "spaceLearner": "自分 · 6"
+  "spaceLearner": "自分 · 6",
+  "chainTitle": "ファーストタッチと次の空間",
+  "chainHelpTitle": "連係トレーニングの遊び方",
+  "chainHelpBody": "最後まで同じ6番を操作します。\n\n① ボールを受ける前に6番からドラッグして、最初のタッチの方向と距離を決めます。地面をタップすることもできます。3m以内で足元に収めるか、空間へ運びます。\n\n② タッチ後の守備と体の向きを見て次の行動を選びます。味方をタップするとパス、空間へドラッグすると運ぶ操作です。「キープ」では短くターンして守ります。ボタンで実行します。\n\n③ パス後も操作するのは6番です。味方がボールを持つ間に、再び受ける場所を選びます。守備との距離と返しのパスコースがあれば次のタッチを準備できます。2回受け直したら流れを振り返ります。\n\n選択中は時間が止まります。動きは半分の速さで、一時停止やコマ送りもできます。金色の矢印は自分の選択で、正解表示ではありません。\n\nキーボード：ピッチにフォーカスして矢印で位置、Enterで実行。次の行動では4・8キーでパス相手を選べます。上部のボールボタンからフリー攻撃でゴールとオフサイドを練習できます。",
+  "chainStepTouch": "最初のタッチ",
+  "chainStepAction": "次の行動",
+  "chainStepRun": "受け直す空間",
+  "chainPickTouch": "6番からドラッグして、最初のタッチの方向と距離を決めましょう。",
+  "chainPickReturnTouch": "受け直す準備ができました。次のタッチを決めましょう。",
+  "chainWatchIncoming": "ボールが来る間の守備の動きを見ましょう。",
+  "chainWatchTouch": "タッチで体の向きと次のパスコースが変わります。",
+  "chainPickAction": "味方をタップしてパス、空間へドラッグして運びましょう。",
+  "chainPickCarry": "ボールを運ぶ方向と距離を決めましょう。",
+  "chainPickTurn": "短くドラッグして、守備からボールを守るターンを選びましょう。",
+  "chainWatchAction": "ボールの移動と守備の反応を一緒に見ましょう。",
+  "chainPickRun": "操作するのは引き続き6番です。受け直す空間を選びましょう。",
+  "chainWatchRun": "6番の動きで返しのパスコースが開くか見ましょう。",
+  "chainReviewInstruction": "最初のタッチから受け直す位置まで、つなげて振り返りましょう。",
+  "chainPitchDescription": "3対2のピッチ。自分は常に青の6番です。青の4番と8番は味方、赤の2人は守備です。ドラッグ、タップ、矢印キーで場所を選べます。",
+  "chainPitchHeader": "3 : 2 · 連係トレーニング",
+  "chainYourPlayer": "自分の選手 · 6番",
+  "chainReturns": "受け直し {count} / 2",
+  "@chainReturns": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chainReturnTouch": "次のファーストタッチ",
+  "chainNoSelection": "まだ選んでいません",
+  "chainSelectedDistance": "選んだ移動距離 · {metres}m",
+  "@chainSelectedDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "chainWatchRelation": "選択に合わせて状況が変わります",
+  "chainOffBallNote": "{number}番がボールを持っています。6番を動かして返しのコースを作りましょう。",
+  "@chainOffBallNote": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "chainNeutralSelection": "金色の矢印は自分の選択です。実行前に変更できます。",
+  "chainDragHint": "6番からドラッグ、または地面をタップ。実行前に調整できます。",
+  "chainReceive": "このタッチで受ける",
+  "chainRun": "空間へ移動",
+  "chainPass": "選んだ味方へパス",
+  "chainCarry": "選んだ空間へ運ぶ",
+  "chainTurn": "ターンして守る",
+  "chainModePass": "パス",
+  "chainModeCarry": "運ぶ",
+  "chainModeTurn": "キープ",
+  "chainSlowMotion": "半分の速さで動きを観察します。",
+  "chainLegend": "青 · 味方   赤 · 守備\n小さな三角 · 体の向き",
+  "chainBeforeTouch": "タッチ前",
+  "chainAfterTouch": "タッチ後",
+  "chainAfterAction": "行動後",
+  "chainAfterRun": "移動後",
+  "chainReturnReady": "受け直す準備",
+  "chainMomentLabel": "{cycle} · {moment}",
+  "@chainMomentLabel": {
+    "placeholders": {
+      "cycle": {
+        "type": "int"
+      },
+      "moment": {
+        "type": "String"
+      }
+    }
+  },
+  "chainEndLinked": "2回受け直して連係できました",
+  "chainEndTouch": "最初のタッチでボールを失いました",
+  "chainEndIntercepted": "パスをカットされました",
+  "chainEndCrowded": "守備に詰められました",
+  "chainEndLane": "返しのパスコースが閉じました",
+  "chainEndSupport": "味方がプレッシャーを受けました",
+  "chainReasonLinked": "タッチで次の行動を準備し、パス後の受け直しにつながりました。同じ配置で別のタッチが作るコースを比べましょう。",
+  "chainReasonTouch": "タッチ中に守備がボールへ届きました。前後を切り替えて方向・距離と守備の経路を比べましょう。",
+  "chainReasonIntercepted": "到着前に守備がパスコースへ入りました。パスを出した瞬間とカットされた瞬間の位置を比べましょう。",
+  "chainReasonCrowded": "次の行動を続けるための守備との間隔が足りませんでした。動きの前後を比べて、別の方向を試しましょう。",
+  "chainReasonLane": "移動先とボールを持つ味方の間にコースがありませんでした。守備の横へ動いて返しの角度を作りましょう。",
+  "chainReasonSupport": "6番の移動中に味方へ守備が届きました。より短い動きで受ける角度を作れるか比べましょう。",
+  "chainReviewTouch": "タッチで変わった状況",
+  "chainPressureChange": "近い守備との距離  {before}m → {after}m",
+  "@chainPressureChange": {
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "chainLanesChange": "開いたパス候補  {before} → {after}",
+  "@chainLanesChange": {
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "chainNoLane": "なし",
+  "chainPlayerNumber": "{number}番",
+  "@chainPlayerNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "chainReviewHint": "ピッチ上の場面を選んで比較しましょう。青い点線は、その瞬間の守備と体の向きから見たパス候補です。",
+  "chainPlaybackPosition": "プレーの流れ {percent}%",
+  "@chainPlaybackPosition": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "chainReplay": "流れ全体を再生",
+  "chainRetry": "同じ配置で別のタッチ"
 }
