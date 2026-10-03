@@ -7,13 +7,18 @@ import 'package:football_note/gen/app_localizations.dart';
 
 import '../../domain/repositories/option_repository.dart';
 import '../../domain/scan_pass/scan_pass_attack.dart';
+import '../../domain/scan_pass/scan_pass_decision.dart';
 import '../../domain/scan_pass/scan_pass_game.dart' show ScanPassPoint;
 import '../theme/app_motion.dart';
 import '../widgets/app_bar_action_button.dart';
 
+enum _DecisionPhase { observing, choosing, executing, review, closed, summary }
+
+enum _DecisionReadMode { guided, solo, live }
+
 enum _AttackMode { intro, choosing, executing, terminal, replaying }
 
-class ScanPassGameScreen extends StatefulWidget {
+class ScanPassGameScreen extends StatelessWidget {
   final OptionRepository optionRepository;
   final int? seed;
   final Duration previewDuration;
@@ -25,6 +30,1569 @@ class ScanPassGameScreen extends StatefulWidget {
     super.key,
     required this.optionRepository,
     this.seed,
+    this.previewDuration = const Duration(milliseconds: 2400),
+    this.choiceDuration = const Duration(seconds: 12),
+    this.passAnimationDuration = const Duration(milliseconds: 3600),
+    this.initialAttack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecisionTrainingScreen(
+      optionRepository: optionRepository,
+      seed: seed,
+      observationDuration: previewDuration,
+      assessmentDuration: passAnimationDuration,
+      freeAttackBuilder: (context) => ScanPassFreeAttackScreen(
+        optionRepository: optionRepository,
+        seed: seed,
+        previewDuration: previewDuration,
+        choiceDuration: choiceDuration,
+        passAnimationDuration: passAnimationDuration,
+        initialAttack: initialAttack,
+      ),
+    );
+  }
+}
+
+class DecisionTrainingScreen extends StatefulWidget {
+  final OptionRepository optionRepository;
+  final int? seed;
+  final Duration observationDuration;
+  final Duration assessmentDuration;
+  final WidgetBuilder? freeAttackBuilder;
+
+  const DecisionTrainingScreen({
+    super.key,
+    required this.optionRepository,
+    this.seed,
+    this.observationDuration = const Duration(milliseconds: 2400),
+    this.assessmentDuration = const Duration(milliseconds: 3600),
+    this.freeAttackBuilder,
+  });
+
+  @override
+  State<DecisionTrainingScreen> createState() => _DecisionTrainingScreenState();
+}
+
+class _DecisionTrainingScreenState extends State<DecisionTrainingScreen>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
+  static const List<_DecisionStep> _guidedSteps = <_DecisionStep>[
+    _DecisionStep(DecisionLesson.rearPressure, changed: false),
+    _DecisionStep(DecisionLesson.rearPressure, changed: true),
+    _DecisionStep(DecisionLesson.passingLane, changed: false),
+    _DecisionStep(DecisionLesson.passingLane, changed: true),
+    _DecisionStep(DecisionLesson.receiverSupport, changed: false),
+    _DecisionStep(DecisionLesson.receiverSupport, changed: true),
+  ];
+
+  final DecisionEngine _engine = const DecisionEngine();
+  List<_DecisionStep> _steps = List.of(_guidedSteps);
+  int _practiceSet = 0;
+
+  late final AnimationController _observationController;
+  late final AnimationController _assessmentController;
+  late DecisionScenario _scenario;
+
+  _DecisionReadMode _readMode = _DecisionReadMode.guided;
+  _DecisionPhase _phase = _DecisionPhase.observing;
+  int _stepIndex = 0;
+  int _variation = 0;
+  int _sceneToken = 0;
+  bool _foreground = true;
+  bool _helpOpen = false;
+  bool _queuedCommit = false;
+  bool _expiredWithChoice = false;
+  bool _observationReplay = false;
+  DecisionAction? _selectedAction;
+  DecisionAssessment? _learnerAssessment;
+  DecisionAssessment? _viewAssessment;
+  List<DecisionAssessment> _alternatives = const <DecisionAssessment>[];
+  int _alternativeIndex = -1;
+  final List<_DecisionRecord> _records = <_DecisionRecord>[];
+  Timer? _liveTimer;
+  double _liveElapsed = 0;
+
+  bool get _liveActive =>
+      _readMode == _DecisionReadMode.live && _phase == _DecisionPhase.choosing;
+
+  bool get _canChoose =>
+      _phase == _DecisionPhase.observing || _phase == _DecisionPhase.choosing;
+
+  bool get _showGuidedCues =>
+      _readMode == _DecisionReadMode.guided &&
+      (_phase == _DecisionPhase.observing || _phase == _DecisionPhase.choosing);
+
+  DecisionAssessment? get _assessmentForDisplay => _viewAssessment;
+
+  DecisionAction? get _selectedPreviewAction =>
+      _canChoose ? _selectedAction : null;
+
+  AttackAction? get _selectedAttackAction {
+    final action = _selectedPreviewAction;
+    if (action == null) return null;
+    return _attackActionFor(action);
+  }
+
+  ScanPassPoint? get _selectedTarget {
+    final action = _selectedPreviewAction;
+    if (action == null) return null;
+    final state = _decisionBaseState;
+    return _engine.target(state, action);
+  }
+
+  AttackState get _decisionBaseState {
+    if (_readMode == _DecisionReadMode.live &&
+        (_phase == _DecisionPhase.choosing ||
+            _phase == _DecisionPhase.closed)) {
+      return _scenario.decisionState(_liveElapsed);
+    }
+    return _scenario.reception;
+  }
+
+  AttackState get _displayState {
+    if (_phase == _DecisionPhase.observing) {
+      return _scenario.observationFrame(_observationController.value);
+    }
+    if (_phase == _DecisionPhase.executing) {
+      final assessment = _assessmentForDisplay;
+      if (assessment != null) {
+        return assessment.frame(_assessmentController.value);
+      }
+    }
+    if (_phase == _DecisionPhase.review) {
+      return _assessmentForDisplay?.received ?? _scenario.reception;
+    }
+    if (_phase == _DecisionPhase.closed || _phase == _DecisionPhase.summary) {
+      return _decisionBaseState;
+    }
+    return _decisionBaseState;
+  }
+
+  AttackState get _painterBaseState {
+    final assessment = _assessmentForDisplay ?? _learnerAssessment;
+    if (_phase == _DecisionPhase.executing && assessment != null) {
+      return assessment.before;
+    }
+    if (_phase == _DecisionPhase.review && assessment != null) {
+      return assessment.before;
+    }
+    return _decisionBaseState;
+  }
+
+  List<AttackTransition> get _decisionTrails {
+    if (_phase == _DecisionPhase.executing) {
+      final assessment = _assessmentForDisplay;
+      if (assessment == null) return const [];
+      var elapsed = assessment.duration * _assessmentController.value;
+      final shown = <AttackTransition>[];
+      for (final leg in assessment.transitions) {
+        if (elapsed <= 0) break;
+        if (elapsed >= leg.duration) {
+          shown.add(leg);
+          elapsed -= leg.duration;
+        } else {
+          final frame = leg.frame(elapsed / leg.duration);
+          shown.add(AttackTransition(
+            before: leg.before,
+            after: frame,
+            action: leg.action,
+            duration: elapsed,
+            ballEnd: frame.ball,
+          ));
+          break;
+        }
+      }
+      return shown;
+    }
+    if (_phase == _DecisionPhase.review) {
+      final assessment = _assessmentForDisplay;
+      return assessment == null ? const [] : [assessment.transitions.first];
+    }
+    return const <AttackTransition>[];
+  }
+
+  bool get _viewingAlternative {
+    final learner = _learnerAssessment;
+    final view = _viewAssessment;
+    return learner != null && view != null && view.action != learner.action;
+  }
+
+  List<ScanPassPoint> get _reviewOutletPoints {
+    final assessment = _assessmentForDisplay;
+    if (_phase != _DecisionPhase.review || assessment == null) {
+      return const <ScanPassPoint>[];
+    }
+    final points = <ScanPassPoint>[];
+    for (final number in assessment.availableOutlets.take(3)) {
+      final player = _playerByNumber(assessment.received.attackers, number);
+      if (player != null) points.add(player.position);
+    }
+    return points;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _variation = widget.seed ?? 0;
+    _observationController = AnimationController(vsync: this)
+      ..addStatusListener(_handleObservationStatus);
+    _assessmentController = AnimationController(vsync: this)
+      ..addStatusListener(_handleAssessmentStatus);
+    _loadStep();
+  }
+
+  @override
+  void didUpdateWidget(covariant DecisionTrainingScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.seed != widget.seed) {
+      _variation = widget.seed ?? 0;
+      _stepIndex = 0;
+      _records.clear();
+      _loadStep();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _liveTimer?.cancel();
+    _observationController.dispose();
+    _assessmentController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      _foreground = false;
+      _observationController.stop();
+      _assessmentController.stop();
+      return;
+    }
+    if (state != AppLifecycleState.resumed || !mounted) return;
+    _foreground = true;
+    if (_helpOpen) return;
+    _resumeActiveMotion();
+  }
+
+  void _loadStep({bool replayObservation = false}) {
+    _sceneToken += 1;
+    final token = _sceneToken;
+    _liveTimer?.cancel();
+    final step = _steps[_stepIndex];
+    _scenario = _engine.scenario(
+      step.lesson,
+      changed: step.changed,
+      variation: _variation,
+    );
+    _phase = _DecisionPhase.observing;
+    _selectedAction = null;
+    _learnerAssessment = null;
+    _viewAssessment = null;
+    _alternatives = const <DecisionAssessment>[];
+    _alternativeIndex = -1;
+    _queuedCommit = false;
+    _expiredWithChoice = false;
+    _observationReplay = replayObservation;
+    _liveElapsed = 0;
+    _assessmentController
+      ..stop()
+      ..value = 0;
+    _observationController
+      ..stop()
+      ..value = 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          token != _sceneToken ||
+          _phase != _DecisionPhase.observing) {
+        return;
+      }
+      _runObservation();
+    });
+  }
+
+  void _runObservation() {
+    _observationController.stop();
+    final reduced = AppMotion.reduceMotion(context);
+    if (reduced || widget.observationDuration == Duration.zero) {
+      _observationController.value = 1;
+      _finishObservation();
+      return;
+    }
+    _observationController.duration = widget.observationDuration;
+    unawaited(_observationController.forward(from: 0));
+  }
+
+  void _handleObservationStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed && mounted) {
+      _finishObservation();
+    }
+  }
+
+  void _finishObservation() {
+    if (!mounted || _phase != _DecisionPhase.observing) return;
+    setState(() {
+      _phase = _DecisionPhase.choosing;
+      _observationReplay = false;
+    });
+    if (_readMode == _DecisionReadMode.live) {
+      _startLiveWindow();
+    }
+    if (_queuedCommit && _selectedAction != null) {
+      _queuedCommit = false;
+      _commitSelected();
+    }
+  }
+
+  void _handleAssessmentStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed || !mounted) return;
+    if (_phase != _DecisionPhase.executing) return;
+    setState(() {
+      _phase = _DecisionPhase.review;
+      _assessmentController.value = 0;
+    });
+  }
+
+  void _startLiveWindow() {
+    _liveTimer?.cancel();
+    _liveElapsed = 0;
+    final token = _sceneToken;
+    const tick = Duration(milliseconds: 80);
+    _liveTimer = Timer.periodic(const Duration(milliseconds: 80), (_) {
+      if (!mounted || token != _sceneToken) {
+        _liveTimer?.cancel();
+        return;
+      }
+      if (!_liveActive || !_foreground || _helpOpen) {
+        return;
+      }
+      final next = (_liveElapsed + tick.inMilliseconds / 1000).clamp(
+        0.0,
+        _scenario.liveWindowSeconds,
+      );
+      if (next == _liveElapsed) return;
+      setState(() => _liveElapsed = next);
+      if (_liveElapsed >= _scenario.liveWindowSeconds) {
+        _liveTimer?.cancel();
+        if (!mounted || _phase != _DecisionPhase.choosing) return;
+        setState(() {
+          _phase = _DecisionPhase.closed;
+          _expiredWithChoice = _selectedAction != null;
+          _selectedAction = null;
+        });
+      }
+    });
+  }
+
+  void _resumeActiveMotion() {
+    if (_phase == _DecisionPhase.observing &&
+        !_observationController.isCompleted) {
+      unawaited(_observationController.forward());
+    }
+    if (_phase == _DecisionPhase.executing &&
+        !_assessmentController.isCompleted) {
+      unawaited(_assessmentController.forward());
+    }
+  }
+
+  Future<void> _pauseForModal(Future<void> Function() open) async {
+    if (_helpOpen) return;
+    _helpOpen = true;
+    final observationWasAnimating = _observationController.isAnimating;
+    final assessmentWasAnimating = _assessmentController.isAnimating;
+    _observationController.stop();
+    _assessmentController.stop();
+    await open();
+    if (!mounted) return;
+    _helpOpen = false;
+    if (!_foreground) return;
+    if (observationWasAnimating && _phase == _DecisionPhase.observing) {
+      unawaited(_observationController.forward());
+    }
+    if (assessmentWasAnimating && _phase == _DecisionPhase.executing) {
+      unawaited(_assessmentController.forward());
+    }
+  }
+
+  void _selectAction(DecisionAction action) {
+    if (!_canChoose) return;
+    setState(() {
+      _selectedAction = action;
+      _queuedCommit = false;
+    });
+    HapticFeedback.selectionClick();
+  }
+
+  void _commitSelected() {
+    final action = _selectedAction;
+    if (action == null || !_canChoose) return;
+    if (_phase == _DecisionPhase.observing) {
+      setState(() => _queuedCommit = true);
+      return;
+    }
+    final delay = _readMode == _DecisionReadMode.live ? _liveElapsed : 0.0;
+    final assessment = _engine.assess(_scenario, action, delaySeconds: delay);
+    final alternatives = _engine
+        .alternatives(_scenario, delaySeconds: delay)
+        .where((item) => item.action != action)
+        .toList(growable: false)
+      ..sort((a, b) => a.quality.index.compareTo(b.quality.index));
+    _liveTimer?.cancel();
+    setState(() {
+      _learnerAssessment = assessment;
+      _viewAssessment = assessment;
+      _alternatives = alternatives;
+      _alternativeIndex = -1;
+      _phase = _DecisionPhase.executing;
+      _selectedAction = null;
+      _queuedCommit = false;
+      _records.add(_DecisionRecord(
+        lesson: _scenario.lesson,
+        changed: _scenario.changed,
+        action: action,
+        quality: assessment.quality,
+        reason: assessment.reason,
+      ));
+    });
+    HapticFeedback.mediumImpact();
+    _runAssessment(assessment);
+  }
+
+  void _runAssessment(DecisionAssessment assessment) {
+    final reduced = AppMotion.reduceMotion(context);
+    _assessmentController
+      ..stop()
+      ..value = 0;
+    if (reduced || widget.assessmentDuration == Duration.zero) {
+      _assessmentController.value = 1;
+      _handleAssessmentStatus(AnimationStatus.completed);
+      return;
+    }
+    final maxMilliseconds =
+        math.max(1, widget.assessmentDuration.inMilliseconds);
+    final modelMilliseconds = (assessment.duration * 1600).round();
+    final duration = Duration(
+      milliseconds: modelMilliseconds.clamp(
+          math.min(900, maxMilliseconds), maxMilliseconds),
+    );
+    _assessmentController.duration = duration;
+    unawaited(_assessmentController.forward(from: 0));
+  }
+
+  void _replayObservation() {
+    if (_phase != _DecisionPhase.choosing && _phase != _DecisionPhase.closed) {
+      return;
+    }
+    _liveTimer?.cancel();
+    setState(() {
+      _phase = _DecisionPhase.observing;
+      _queuedCommit = false;
+      _observationReplay = true;
+      _liveElapsed = 0;
+      _observationController.value = 0;
+    });
+    _runObservation();
+  }
+
+  void _retryCurrentScene() {
+    if (_phase == _DecisionPhase.summary) return;
+    setState(() {
+      _records.removeWhere((record) =>
+          record.lesson == _scenario.lesson &&
+          record.changed == _scenario.changed);
+      _loadStep(replayObservation: true);
+    });
+  }
+
+  void _viewLearnerChoice() {
+    final assessment = _learnerAssessment;
+    if (_phase != _DecisionPhase.review || assessment == null) return;
+    setState(() {
+      _viewAssessment = assessment;
+      _phase = _DecisionPhase.executing;
+    });
+    _runAssessment(assessment);
+  }
+
+  void _viewAlternative() {
+    if (_phase != _DecisionPhase.review || _alternatives.isEmpty) return;
+    setState(() {
+      _alternativeIndex = (_alternativeIndex + 1) % _alternatives.length;
+      _viewAssessment = _alternatives[_alternativeIndex];
+      _phase = _DecisionPhase.executing;
+    });
+    _runAssessment(_viewAssessment!);
+  }
+
+  void _advanceStep() {
+    if (_phase != _DecisionPhase.review) return;
+    if (_stepIndex + 1 >= _steps.length) {
+      _liveTimer?.cancel();
+      setState(() {
+        _phase = _DecisionPhase.summary;
+        _selectedAction = null;
+        _learnerAssessment = null;
+        _viewAssessment = null;
+        _alternatives = const <DecisionAssessment>[];
+      });
+      return;
+    }
+    setState(() {
+      _stepIndex += 1;
+      _loadStep(replayObservation: true);
+    });
+  }
+
+  void _restartSet() {
+    setState(() {
+      _variation += 1;
+      _stepIndex = 0;
+      _records.clear();
+      _resetStepOrder();
+      _loadStep(replayObservation: true);
+    });
+  }
+
+  void _changeReadMode(_DecisionReadMode mode) {
+    if (_readMode == mode) return;
+    setState(() {
+      _readMode = mode;
+      if (_records.isEmpty) {
+        _stepIndex = 0;
+        _resetStepOrder();
+      }
+      _loadStep(replayObservation: true);
+    });
+  }
+
+  void _resetStepOrder() {
+    _steps = List.of(_guidedSteps);
+    if (_readMode != _DecisionReadMode.guided) {
+      // Pair comparisons teach the relation first. Independent practice must
+      // not expose a fixed six-answer sequence through the round number.
+      _steps.shuffle(math.Random(_variation * 31 + ++_practiceSet * 17));
+    }
+  }
+
+  void _openFreeAttack() {
+    final builder = widget.freeAttackBuilder;
+    if (builder == null) return;
+    unawaited(_pauseForModal(() async {
+      await Navigator.of(context)
+          .push(MaterialPageRoute<void>(builder: builder));
+    }));
+  }
+
+  void _showHelp() {
+    final l10n = AppLocalizations.of(context)!;
+    unawaited(_pauseForModal(() => showModalBottomSheet<void>(
+          context: context,
+          showDragHandle: true,
+          isScrollControlled: true,
+          useSafeArea: true,
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * .85,
+          ),
+          builder: (context) {
+            final colors = _ScanPassColors.of(context);
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(children: [
+                      Expanded(
+                        child: Text(
+                          l10n.scanPassHelpSheetTitle,
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: colors.text,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(l10n.scanPassHelpCloseAction),
+                      ),
+                    ]),
+                    const SizedBox(height: 10),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: Text(
+                          l10n.scanPassDecisionHelpBody,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: colors.muted, height: 1.45),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        )));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = _ScanPassColors.of(context);
+    return Theme(
+      data: Theme.of(context).copyWith(
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: colors.text,
+            foregroundColor: colors.background,
+          ),
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: colors.background,
+        appBar: AppBar(
+          title: Text(l10n.scanPassTitle),
+          backgroundColor: colors.surface,
+          foregroundColor: colors.text,
+          iconTheme: IconThemeData(color: colors.text),
+          surfaceTintColor: Colors.transparent,
+          actions: [
+            if (widget.freeAttackBuilder != null)
+              AppBarActionButton.label(
+                key: const ValueKey<String>('decision-free-attack'),
+                tooltip: l10n.scanPassFreeAttackTooltip,
+                onPressed: _openFreeAttack,
+                icon: const Icon(Icons.sports_soccer_outlined),
+                label: l10n.scanPassFreeAttackAction,
+                maxLabelWidth: 92,
+              ),
+            AppBarActionButton(
+              key: const ValueKey<String>('decision-help'),
+              tooltip: l10n.scanPassHelpAction,
+              onPressed: _showHelp,
+              icon: const Icon(Icons.help_outline),
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: AnimatedBuilder(
+            animation: Listenable.merge(
+              [_observationController, _assessmentController],
+            ),
+            builder: (context, _) => _buildDecisionBoard(l10n),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDecisionBoard(AppLocalizations l10n) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final landscape = constraints.maxWidth > constraints.maxHeight &&
+            constraints.maxHeight < 430;
+        final pitch = Padding(
+          padding: EdgeInsets.fromLTRB(
+            landscape ? 10 : 14,
+            landscape ? 8 : 10,
+            landscape ? 8 : 14,
+            landscape ? 8 : 10,
+          ),
+          child: _buildDecisionPitch(l10n),
+        );
+        final strip = Padding(
+          padding: EdgeInsets.fromLTRB(
+            landscape ? 10 : 14,
+            landscape ? 8 : 10,
+            landscape ? 8 : 14,
+            0,
+          ),
+          child: _buildDecisionStrip(l10n),
+        );
+        final dock = _buildDecisionDock(l10n, landscape: landscape);
+        if (landscape) {
+          final dockWidth = math.min(230.0, constraints.maxWidth * .36);
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    strip,
+                    Expanded(child: pitch),
+                  ],
+                ),
+              ),
+              SizedBox(width: dockWidth, child: dock),
+            ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            strip,
+            Expanded(child: pitch),
+            dock,
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDecisionStrip(AppLocalizations l10n) {
+    final colors = _ScanPassColors.of(context);
+    final status = _decisionStatus(l10n);
+    return SizedBox(
+        height: math.max(
+            40, MediaQuery.textScalerOf(context).scale(14) * 1.12 * 2 + 12),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.surface,
+            border: Border.all(color: colors.line),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            child: Row(
+              children: [
+                Icon(Icons.visibility_outlined, color: colors.accent, size: 18),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    status,
+                    key: const ValueKey<String>('decision-status'),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: colors.text,
+                          fontWeight: FontWeight.w600,
+                          height: 1.12,
+                        ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (MediaQuery.sizeOf(context).width >= 360)
+                  _MiniChip(
+                    text: l10n.scanPassDecisionProgress(
+                      _stepIndex + 1,
+                      _steps.length,
+                      _lessonLabel(l10n, _scenario.lesson),
+                    ),
+                    color: colors.background,
+                  ),
+              ],
+            ),
+          ),
+        ));
+  }
+
+  Widget _buildDecisionPitch(AppLocalizations l10n) {
+    final labels = _PitchLabels.from(l10n);
+    final assessment = _assessmentForDisplay ?? _learnerAssessment;
+    final reviewCue = _phase == _DecisionPhase.review;
+    return LayoutBuilder(builder: (context, constraints) {
+      final portrait = MediaQuery.sizeOf(context).width < 600 &&
+          MediaQuery.sizeOf(context).height > MediaQuery.sizeOf(context).width;
+      final aspect = (constraints.maxWidth / constraints.maxHeight)
+          .clamp(portrait ? .95 : 1.55, portrait ? 1.35 : 2.6);
+      return Center(
+        child: AspectRatio(
+          aspectRatio: aspect,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Semantics(
+                label: l10n.scanPassDecisionFieldSemantics,
+                image: true,
+                child: CustomPaint(
+                  key: const ValueKey<String>('decision-pitch'),
+                  painter: _AttackPitchPainter(
+                    displayState: _displayState,
+                    baseState: _painterBaseState,
+                    selectedAction: _selectedAttackAction,
+                    selectedTarget: _selectedTarget,
+                    previewOffside: null,
+                    activeTransition: null,
+                    activeProgress: _assessmentController.value,
+                    history: _decisionTrails,
+                    scanOverlay: false,
+                    terminalBanner: false,
+                    labels: labels,
+                    brightness: Theme.of(context).brightness,
+                    fontFamily:
+                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    learnerNumber: 6,
+                    decisionCueFrom: (_showGuidedCues || reviewCue)
+                        ? _scenario.cueFrom
+                        : null,
+                    decisionCueTo:
+                        (_showGuidedCues || reviewCue) ? _scenario.cueTo : null,
+                    decisionCueIsOpponent: _scenario.cueIsOpponent,
+                    decisionPressurePoint: reviewCue &&
+                            assessment != null &&
+                            !assessment.receiverHasTime
+                        ? assessment.pressurePoint
+                        : null,
+                    decisionOutletPoints: reviewCue
+                        ? _reviewOutletPoints
+                        : const <ScanPassPoint>[],
+                    decisionBranchLabel: _branchLabel(l10n),
+                  ),
+                ),
+              ),
+              if (_canChoose) _buildDecisionPitchTargets(l10n),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildDecisionPitchTargets(AppLocalizations l10n) {
+    final colors = _ScanPassColors.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = Size(constraints.maxWidth, constraints.maxHeight);
+        final geometry = _PitchGeometry(size);
+        return Stack(
+          children: [
+            for (final action in DecisionAction.values)
+              _PitchButton(
+                key: ValueKey<String>(_decisionActionKey(action)),
+                center: geometry
+                    .toOffset(_engine.target(_decisionBaseState, action)),
+                label: _decisionActionSemantics(l10n, action),
+                selected: _selectedAction == action,
+                color: action == DecisionAction.carry
+                    ? colors.accent
+                    : colors.team,
+                onPressed: () => _selectAction(action),
+                child: action == DecisionAction.carry
+                    ? Icon(
+                        Icons.arrow_forward_outlined,
+                        size: 18,
+                        color: _selectedAction == action
+                            ? colors.background
+                            : colors.text,
+                      )
+                    : const SizedBox.shrink(),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDecisionDock(
+    AppLocalizations l10n, {
+    required bool landscape,
+  }) {
+    final colors = _ScanPassColors.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(
+          top: landscape ? BorderSide.none : BorderSide(color: colors.line),
+          left: landscape ? BorderSide(color: colors.line) : BorderSide.none,
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        left: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            landscape ? 10 : 14,
+            10,
+            landscape ? 10 : 14,
+            10,
+          ),
+          child: SizedBox(
+            height: landscape
+                ? null
+                : MediaQuery.sizeOf(context).width < 1000
+                    ? 196
+                    : 174,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: _buildDecisionDockContent(l10n, landscape: landscape),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDecisionDockContent(
+    AppLocalizations l10n, {
+    required bool landscape,
+  }) {
+    if (_phase == _DecisionPhase.summary) {
+      return _buildSummaryDock(l10n, landscape: landscape);
+    }
+    if (_phase == _DecisionPhase.executing) {
+      return _buildDecisionBusyDock();
+    }
+    if (_phase == _DecisionPhase.review) {
+      return _buildReviewDock(l10n, landscape: landscape);
+    }
+    if (_phase == _DecisionPhase.closed) {
+      return _buildClosedDock(l10n);
+    }
+    return _buildChoiceDock(l10n, landscape: landscape);
+  }
+
+  Widget _buildChoiceDock(AppLocalizations l10n, {required bool landscape}) {
+    final colors = _ScanPassColors.of(context);
+    final compact = landscape || MediaQuery.sizeOf(context).width < 1000;
+    final actionButtons = [
+      for (final action in DecisionAction.values)
+        _DockActionButton(
+          key: ValueKey<String>('decision-dock-${action.name}'),
+          selected: _selectedAction == action,
+          icon: _decisionActionIcon(action),
+          label: _decisionActionLabel(l10n, action),
+          semanticsLabel: _decisionActionSemantics(l10n, action),
+          compact: compact,
+          onPressed: () => _selectAction(action),
+        ),
+    ];
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildModeSelector(l10n, compact: landscape),
+          const SizedBox(height: 8),
+          if (landscape)
+            LayoutBuilder(
+                builder: (context, constraints) =>
+                    Wrap(spacing: 6, runSpacing: 6, children: [
+                      for (final button in actionButtons)
+                        SizedBox(
+                            width: (constraints.maxWidth - 6) / 2,
+                            child: button),
+                    ]))
+          else
+            Row(children: [
+              for (final button in actionButtons)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: button,
+                  ),
+                ),
+            ]),
+          const SizedBox(height: 8),
+          Row(children: [
+            OutlinedButton.icon(
+              key: const ValueKey<String>('decision-replay-observation'),
+              onPressed: _replayObservation,
+              icon: const Icon(Icons.replay),
+              label: Text(l10n.scanPassDecisionReplayObservationAction),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: colors.text,
+                side: BorderSide(color: colors.line),
+                minimumSize: const Size(44, 44),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: FilledButton.icon(
+                key: const ValueKey<String>('decision-commit'),
+                onPressed: _selectedAction == null ? null : _commitSelected,
+                icon: const Icon(Icons.play_arrow_outlined),
+                label: Text(_phase == _DecisionPhase.observing
+                    ? l10n.scanPassDecisionQueueAction
+                    : l10n.scanPassAttackExecuteAction),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(44),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ),
+            ),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeSelector(AppLocalizations l10n, {bool compact = false}) {
+    final colors = _ScanPassColors.of(context);
+    if (compact || MediaQuery.textScalerOf(context).scale(1) > 1.2) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        constraints: const BoxConstraints(minHeight: 44),
+        decoration: BoxDecoration(
+          border: Border.all(color: colors.line),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: DropdownButtonHideUnderline(
+            child: DropdownButton<_DecisionReadMode>(
+          key: const ValueKey<String>('decision-mode-selector'),
+          value: _readMode,
+          isExpanded: true,
+          items: [
+            DropdownMenuItem(
+                value: _DecisionReadMode.guided,
+                child: Text(l10n.scanPassDecisionModeGuided)),
+            DropdownMenuItem(
+                value: _DecisionReadMode.solo,
+                child: Text(l10n.scanPassDecisionModeSolo)),
+            DropdownMenuItem(
+                value: _DecisionReadMode.live,
+                child: Text(l10n.scanPassDecisionModeLive)),
+          ],
+          onChanged: (mode) {
+            if (mode != null) _changeReadMode(mode);
+          },
+        )),
+      );
+    }
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minWidth: constraints.maxWidth),
+          child: SegmentedButton<_DecisionReadMode>(
+            key: const ValueKey<String>('decision-mode-selector'),
+            segments: [
+              ButtonSegment<_DecisionReadMode>(
+                value: _DecisionReadMode.guided,
+                label: Text(l10n.scanPassDecisionModeGuided),
+                icon: const Icon(Icons.route_outlined),
+              ),
+              ButtonSegment<_DecisionReadMode>(
+                value: _DecisionReadMode.solo,
+                label: Text(l10n.scanPassDecisionModeSolo),
+                icon: const Icon(Icons.visibility_outlined),
+              ),
+              ButtonSegment<_DecisionReadMode>(
+                value: _DecisionReadMode.live,
+                label: Text(l10n.scanPassDecisionModeLive),
+                icon: const Icon(Icons.directions_run_outlined),
+              ),
+            ],
+            selected: {_readMode},
+            onSelectionChanged: (values) => _changeReadMode(values.single),
+            style: ButtonStyle(
+              minimumSize: WidgetStateProperty.all(const Size(44, 44)),
+              foregroundColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.selected)
+                    ? colors.background
+                    : colors.text,
+              ),
+              backgroundColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.selected)
+                    ? colors.text
+                    : colors.surface,
+              ),
+              side: WidgetStateProperty.all(BorderSide(color: colors.line)),
+              shape: WidgetStateProperty.all(
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDecisionBusyDock() {
+    final colors = _ScanPassColors.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(2),
+          child: LinearProgressIndicator(
+            minHeight: 4,
+            value: _assessmentController.value.clamp(0.0, 1.0),
+            backgroundColor: colors.line,
+            valueColor: AlwaysStoppedAnimation<Color>(colors.accent),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReviewDock(
+    AppLocalizations l10n, {
+    required bool landscape,
+  }) {
+    final colors = _ScanPassColors.of(context);
+    final assessment = _assessmentForDisplay;
+    final details = assessment == null
+        ? const <String>[]
+        : _indicatorLabels(l10n, assessment).take(3).toList(growable: false);
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (assessment != null)
+            Semantics(
+              key: const ValueKey<String>('decision-review-result'),
+              liveRegion: true,
+              child: _ReviewSummary(
+                quality: _qualityLabel(l10n, assessment.quality),
+                reason: _reasonLabel(l10n, assessment.reason),
+                details: details,
+                alternative: _viewingAlternative,
+              ),
+            ),
+          if (_scenario.changed && _readMode == _DecisionReadMode.guided) ...[
+            const SizedBox(height: 6),
+            Text(
+              _cueComparison(l10n, _scenario.lesson),
+              key: const ValueKey<String>('decision-cue-comparison'),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.muted,
+                    height: 1.18,
+                  ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.end,
+            children: [
+              OutlinedButton.icon(
+                key: const ValueKey<String>('decision-view-own'),
+                onPressed: _viewLearnerChoice,
+                icon: const Icon(Icons.person_outline),
+                label: Text(l10n.scanPassDecisionViewOwnAction),
+                style: _decisionOutlinedStyle(colors),
+              ),
+              OutlinedButton.icon(
+                key: const ValueKey<String>('decision-view-alternative'),
+                onPressed: _alternatives.isEmpty ? null : _viewAlternative,
+                icon: const Icon(Icons.compare_arrows_outlined),
+                label: Text(l10n.scanPassDecisionViewOtherAction),
+                style: _decisionOutlinedStyle(colors),
+              ),
+              FilledButton.icon(
+                key: const ValueKey<String>('decision-next'),
+                onPressed: _advanceStep,
+                icon: Icon(_scenario.changed
+                    ? Icons.arrow_forward_outlined
+                    : Icons.change_circle_outlined),
+                label: Text(_nextActionLabel(l10n)),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, 44),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClosedDock(AppLocalizations l10n) {
+    final colors = _ScanPassColors.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          _expiredWithChoice
+              ? l10n.scanPassDecisionWindowClosedWithChoice
+              : l10n.scanPassDecisionWindowClosedNoChoice,
+          key: const ValueKey<String>('decision-window-closed'),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colors.text,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Row(children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              key: const ValueKey<String>('decision-retry'),
+              onPressed: _retryCurrentScene,
+              icon: const Icon(Icons.replay),
+              label: Text(l10n.scanPassDecisionRetryAction),
+              style: _decisionOutlinedStyle(colors),
+            ),
+          ),
+        ]),
+      ],
+    );
+  }
+
+  Widget _buildSummaryDock(
+    AppLocalizations l10n, {
+    required bool landscape,
+  }) {
+    final colors = _ScanPassColors.of(context);
+    final lines = _summaryLines(l10n);
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.scanPassDecisionSummaryTitle,
+            key: const ValueKey<String>('decision-summary-title'),
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: colors.text,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 5),
+          for (final line in lines.take(3))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 3),
+              child: Text(
+                line,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.muted,
+                      height: 1.16,
+                    ),
+              ),
+            ),
+          const SizedBox(height: 8),
+          FilledButton.icon(
+            key: const ValueKey<String>('decision-replay-set'),
+            onPressed: _restartSet,
+            icon: const Icon(Icons.replay_circle_filled_outlined),
+            label: Text(l10n.scanPassDecisionReplaySetAction),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(44),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  ButtonStyle _decisionOutlinedStyle(_ScanPassColors colors) {
+    return OutlinedButton.styleFrom(
+      foregroundColor: colors.text,
+      side: BorderSide(color: colors.line),
+      minimumSize: const Size(0, 44),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+    );
+  }
+
+  String _decisionStatus(AppLocalizations l10n) {
+    if (_phase == _DecisionPhase.summary) {
+      return l10n.scanPassDecisionSummaryStatus;
+    }
+    if (_phase == _DecisionPhase.closed) {
+      return l10n.scanPassDecisionClosedStatus;
+    }
+    if (_phase == _DecisionPhase.executing) {
+      return l10n.scanPassDecisionExecutingStatus;
+    }
+    if (_phase == _DecisionPhase.review) {
+      final assessment = _assessmentForDisplay;
+      if (assessment == null) return l10n.scanPassDecisionReviewStatus;
+      return l10n.scanPassDecisionReviewStatusWithQuality(
+        _qualityLabel(l10n, assessment.quality),
+      );
+    }
+    if (_queuedCommit) return l10n.scanPassDecisionQueuedStatus;
+    if (_phase == _DecisionPhase.observing) {
+      return _observationReplay
+          ? l10n.scanPassDecisionReplayObservationStatus
+          : l10n.scanPassDecisionObservePrompt;
+    }
+    if (_selectedAction != null) {
+      return l10n.scanPassDecisionPreviewStatus;
+    }
+    return _readMode == _DecisionReadMode.live
+        ? l10n.scanPassDecisionLivePrompt
+        : l10n.scanPassDecisionChoosePrompt;
+  }
+
+  String? _branchLabel(AppLocalizations l10n) {
+    if (_phase != _DecisionPhase.review && _phase != _DecisionPhase.executing) {
+      return null;
+    }
+    final assessment = _assessmentForDisplay;
+    if (assessment == null) return null;
+    final action = _decisionActionLabel(l10n, assessment.action);
+    return _viewingAlternative
+        ? l10n.scanPassDecisionBranchAlternative(action)
+        : l10n.scanPassDecisionBranchOwn(action);
+  }
+
+  String _nextActionLabel(AppLocalizations l10n) {
+    if (_stepIndex + 1 >= _steps.length) {
+      return l10n.scanPassDecisionSummaryAction;
+    }
+    return _scenario.changed || _readMode != _DecisionReadMode.guided
+        ? l10n.scanPassDecisionNextLessonAction
+        : l10n.scanPassDecisionChangeCueAction;
+  }
+
+  String _lessonLabel(AppLocalizations l10n, DecisionLesson lesson) {
+    return switch (lesson) {
+      DecisionLesson.rearPressure => l10n.scanPassDecisionLessonRearPressure,
+      DecisionLesson.passingLane => l10n.scanPassDecisionLessonPassingLane,
+      DecisionLesson.receiverSupport =>
+        l10n.scanPassDecisionLessonReceiverSupport,
+    };
+  }
+
+  String _cueComparison(AppLocalizations l10n, DecisionLesson lesson) {
+    return switch (lesson) {
+      DecisionLesson.rearPressure =>
+        l10n.scanPassDecisionCueCompareRearPressure,
+      DecisionLesson.passingLane => l10n.scanPassDecisionCueComparePassingLane,
+      DecisionLesson.receiverSupport =>
+        l10n.scanPassDecisionCueCompareReceiverSupport,
+    };
+  }
+
+  String _qualityLabel(AppLocalizations l10n, DecisionQuality quality) {
+    return switch (quality) {
+      DecisionQuality.advantage => l10n.scanPassDecisionQualityAdvantage,
+      DecisionQuality.secure => l10n.scanPassDecisionQualitySecure,
+      DecisionQuality.difficult => l10n.scanPassDecisionQualityDifficult,
+      DecisionQuality.lost => l10n.scanPassDecisionQualityLost,
+    };
+  }
+
+  String _reasonLabel(AppLocalizations l10n, DecisionReason reason) {
+    return switch (reason) {
+      DecisionReason.pressureEscaped =>
+        l10n.scanPassDecisionReasonPressureEscaped,
+      DecisionReason.pressureArriving =>
+        l10n.scanPassDecisionReasonPressureArriving,
+      DecisionReason.laneOpen => l10n.scanPassDecisionReasonLaneOpen,
+      DecisionReason.laneBlocked => l10n.scanPassDecisionReasonLaneBlocked,
+      DecisionReason.receiverCanTurn =>
+        l10n.scanPassDecisionReasonReceiverCanTurn,
+      DecisionReason.receiverTrapped =>
+        l10n.scanPassDecisionReasonReceiverTrapped,
+      DecisionReason.thirdPlayerAvailable =>
+        l10n.scanPassDecisionReasonThirdPlayerAvailable,
+      DecisionReason.possessionKept =>
+        l10n.scanPassDecisionReasonPossessionKept,
+      DecisionReason.windowClosed => l10n.scanPassDecisionReasonWindowClosed,
+      DecisionReason.offside => l10n.scanPassDecisionReasonOffside,
+    };
+  }
+
+  List<String> _indicatorLabels(
+    AppLocalizations l10n,
+    DecisionAssessment assessment,
+  ) {
+    final carrying = assessment.action == DecisionAction.carry;
+    if (assessment.quality == DecisionQuality.lost) {
+      return [
+        carrying
+            ? l10n.scanPassDecisionIndicatorCarryPressure
+            : l10n.scanPassDecisionIndicatorLaneBlocked,
+      ];
+    }
+    return [
+      carrying
+          ? l10n.scanPassDecisionIndicatorCarrySpace
+          : l10n.scanPassDecisionIndicatorLaneOpen,
+      assessment.receiverHasTime
+          ? l10n.scanPassDecisionIndicatorReceiverTime
+          : l10n.scanPassDecisionIndicatorReceiverPressure,
+      if (assessment.availableOutlets.isNotEmpty)
+        l10n.scanPassDecisionIndicatorOutlets(
+          assessment.availableOutlets.take(3).join(', '),
+        )
+      else
+        l10n.scanPassDecisionIndicatorNoOutlet,
+    ];
+  }
+
+  List<String> _summaryLines(AppLocalizations l10n) {
+    if (_records.isEmpty) {
+      return [l10n.scanPassDecisionSummaryEmpty];
+    }
+    final lines = <String>[];
+    for (final lesson in DecisionLesson.values) {
+      final records = _records
+          .where((record) => record.lesson == lesson)
+          .toList()
+        ..sort((a, b) => b.quality.index.compareTo(a.quality.index));
+      if (records.isEmpty) continue;
+      lines.add(l10n.scanPassDecisionSummaryLesson(_lessonLabel(l10n, lesson),
+          _reasonLabel(l10n, records.first.reason)));
+    }
+    return lines;
+  }
+
+  IconData _decisionActionIcon(DecisionAction action) {
+    return switch (action) {
+      DecisionAction.forward => Icons.north_east_outlined,
+      DecisionAction.wide => Icons.open_in_full_outlined,
+      DecisionAction.reset => Icons.keyboard_return_outlined,
+      DecisionAction.carry => Icons.arrow_forward_outlined,
+    };
+  }
+
+  String _decisionActionKey(DecisionAction action) =>
+      'decision-action-${action.name}';
+
+  String _decisionActionLabel(AppLocalizations l10n, DecisionAction action) {
+    return switch (action) {
+      DecisionAction.forward => l10n.scanPassDecisionActionForward,
+      DecisionAction.wide => l10n.scanPassDecisionActionWide,
+      DecisionAction.reset => l10n.scanPassDecisionActionReset,
+      DecisionAction.carry => l10n.scanPassDecisionActionCarry,
+    };
+  }
+
+  String _decisionActionSemantics(
+    AppLocalizations l10n,
+    DecisionAction action,
+  ) {
+    return switch (action) {
+      DecisionAction.forward => l10n.scanPassDecisionActionForwardLabel,
+      DecisionAction.wide => l10n.scanPassDecisionActionWideLabel,
+      DecisionAction.reset => l10n.scanPassDecisionActionResetLabel,
+      DecisionAction.carry => l10n.scanPassDecisionActionCarryLabel,
+    };
+  }
+
+  AttackAction _attackActionFor(DecisionAction action) {
+    return switch (action) {
+      DecisionAction.forward => const AttackAction.pass(8),
+      DecisionAction.wide => const AttackAction.pass(7),
+      DecisionAction.reset => const AttackAction.pass(4),
+      DecisionAction.carry =>
+        const AttackAction.carry(AttackCarryDirection.forward),
+    };
+  }
+}
+
+class _DecisionStep {
+  final DecisionLesson lesson;
+  final bool changed;
+
+  const _DecisionStep(this.lesson, {required this.changed});
+}
+
+class _DecisionRecord {
+  final DecisionLesson lesson;
+  final bool changed;
+  final DecisionAction action;
+  final DecisionQuality quality;
+  final DecisionReason reason;
+
+  const _DecisionRecord({
+    required this.lesson,
+    required this.changed,
+    required this.action,
+    required this.quality,
+    required this.reason,
+  });
+}
+
+class _ReviewSummary extends StatelessWidget {
+  final String quality;
+  final String reason;
+  final List<String> details;
+  final bool alternative;
+
+  const _ReviewSummary({
+    required this.quality,
+    required this.reason,
+    required this.details,
+    required this.alternative,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = _ScanPassColors.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: alternative ? colors.active : colors.background,
+        border: Border.all(color: colors.line),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              quality,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: colors.text,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              reason,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.muted,
+                    height: 1.15,
+                  ),
+            ),
+            if (details.isNotEmpty) ...[
+              const SizedBox(height: 5),
+              Wrap(
+                spacing: 5,
+                runSpacing: 5,
+                children: [
+                  for (final detail in details)
+                    _MiniChip(text: detail, color: colors.surface),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ScanPassFreeAttackScreen extends StatefulWidget {
+  final OptionRepository optionRepository;
+  final int? seed;
+  final Duration previewDuration;
+  final Duration choiceDuration;
+  final Duration passAnimationDuration;
+  final AttackState? initialAttack;
+
+  const ScanPassFreeAttackScreen({
+    super.key,
+    required this.optionRepository,
+    this.seed,
     this.previewDuration = const Duration(milliseconds: 1250),
     this.choiceDuration = const Duration(seconds: 12),
     this.passAnimationDuration = const Duration(milliseconds: 1600),
@@ -32,10 +1600,11 @@ class ScanPassGameScreen extends StatefulWidget {
   });
 
   @override
-  State<ScanPassGameScreen> createState() => _ScanPassGameScreenState();
+  State<ScanPassFreeAttackScreen> createState() =>
+      _ScanPassFreeAttackScreenState();
 }
 
-class _ScanPassGameScreenState extends State<ScanPassGameScreen>
+class _ScanPassFreeAttackScreenState extends State<ScanPassFreeAttackScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final AttackEngine _engine = const AttackEngine();
 
@@ -106,7 +1675,7 @@ class _ScanPassGameScreenState extends State<ScanPassGameScreen>
   }
 
   @override
-  void didUpdateWidget(covariant ScanPassGameScreen oldWidget) {
+  void didUpdateWidget(covariant ScanPassFreeAttackScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.seed != widget.seed ||
         oldWidget.initialAttack != widget.initialAttack) {
@@ -1223,6 +2792,7 @@ class _DockActionButton extends StatelessWidget {
           button: true,
           selected: selected,
           label: semanticsLabel,
+          onTap: onPressed,
           child: OutlinedButton(
             onPressed: onPressed,
             style: OutlinedButton.styleFrom(
@@ -1284,6 +2854,7 @@ class _PitchButton extends StatelessWidget {
           button: true,
           selected: selected,
           label: label,
+          onTap: onPressed,
           child: OutlinedButton(
             onPressed: onPressed,
             style: OutlinedButton.styleFrom(
@@ -1324,6 +2895,13 @@ class _AttackPitchPainter extends CustomPainter {
   final _PitchLabels labels;
   final Brightness brightness;
   final String? fontFamily;
+  final int? learnerNumber;
+  final ScanPassPoint? decisionCueFrom;
+  final ScanPassPoint? decisionCueTo;
+  final bool decisionCueIsOpponent;
+  final ScanPassPoint? decisionPressurePoint;
+  final List<ScanPassPoint> decisionOutletPoints;
+  final String? decisionBranchLabel;
 
   const _AttackPitchPainter({
     required this.displayState,
@@ -1339,6 +2917,13 @@ class _AttackPitchPainter extends CustomPainter {
     required this.labels,
     required this.brightness,
     required this.fontFamily,
+    this.learnerNumber,
+    this.decisionCueFrom,
+    this.decisionCueTo,
+    this.decisionCueIsOpponent = false,
+    this.decisionPressurePoint,
+    this.decisionOutletPoints = const <ScanPassPoint>[],
+    this.decisionBranchLabel,
   });
 
   bool get _isDark => brightness == Brightness.dark;
@@ -1378,6 +2963,7 @@ class _AttackPitchPainter extends CustomPainter {
     _drawPitch(canvas, geometry);
     _drawOffside(canvas, geometry);
     _drawHistory(canvas, geometry);
+    _drawDecisionCue(canvas, geometry);
     _drawPreview(canvas, geometry);
     _drawActivePath(canvas, geometry);
     if (scanOverlay) _drawMovementGhosts(canvas, geometry);
@@ -1408,6 +2994,7 @@ class _AttackPitchPainter extends CustomPainter {
       );
     }
     _drawBall(canvas, geometry);
+    _drawDecisionReview(canvas, geometry);
     _drawAttackArrow(canvas, geometry);
     _drawTerminalBanner(canvas, geometry);
   }
@@ -1627,6 +3214,111 @@ class _AttackPitchPainter extends CustomPainter {
         arrow: true,
       );
     }
+  }
+
+  void _drawDecisionCue(Canvas canvas, _PitchGeometry geometry) {
+    final from = decisionCueFrom;
+    final to = decisionCueTo;
+    if (from == null || to == null) return;
+    final paint = Paint()
+      ..color =
+          (decisionCueIsOpponent ? _defender : _team).withValues(alpha: .54)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round;
+    _drawRoute(
+      canvas,
+      geometry,
+      from,
+      to,
+      paint,
+      dashed: true,
+      arrow: true,
+    );
+    canvas.drawCircle(
+      geometry.toOffset(to),
+      math.max(13.0, geometry.size.shortestSide * .043),
+      Paint()
+        ..color =
+            (decisionCueIsOpponent ? _defender : _team).withValues(alpha: .10),
+    );
+  }
+
+  void _drawDecisionReview(Canvas canvas, _PitchGeometry geometry) {
+    final pressure = decisionPressurePoint;
+    if (pressure != null) {
+      final center = geometry.toOffset(pressure);
+      final radius = math.max(18.0, geometry.size.shortestSide * .063);
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..color = _defender.withValues(alpha: .14)
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..color = _defender.withValues(alpha: .62)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.7,
+      );
+    }
+
+    final carrier =
+        _playerByNumber(displayState.attackers, displayState.carrierNumber);
+    if (carrier != null) {
+      final outletPaint = Paint()
+        ..color = _team.withValues(alpha: .50)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..strokeCap = StrokeCap.round;
+      for (final outlet in decisionOutletPoints) {
+        _drawRoute(
+          canvas,
+          geometry,
+          carrier.position,
+          outlet,
+          outletPaint,
+          dashed: true,
+          arrow: true,
+        );
+      }
+    }
+
+    final label = decisionBranchLabel;
+    if (label == null || label.isEmpty) return;
+    final painter = _textPainter(
+      label,
+      color: _text,
+      fontSize: math.max(11, geometry.size.shortestSide * .030),
+      fontWeight: FontWeight.w800,
+      align: TextAlign.center,
+    )..layout(maxWidth: geometry.size.width * .48);
+    final rect = Rect.fromLTWH(
+      geometry.fieldRect.left + 8,
+      geometry.fieldRect.top + 8,
+      painter.width + 18,
+      painter.height + 10,
+    );
+    canvas.drawRRect(
+      BorderRadius.circular(6).toRRect(rect),
+      Paint()
+        ..color = (_isDark ? const Color(0xFF111A1E) : Colors.white)
+            .withValues(alpha: .88),
+    );
+    canvas.drawRRect(
+      BorderRadius.circular(6).toRRect(rect),
+      Paint()
+        ..color = _accent.withValues(alpha: .82)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
+    painter.paint(
+      canvas,
+      Offset(rect.left + 9, rect.top + 5),
+    );
   }
 
   void _drawPreview(Canvas canvas, _PitchGeometry geometry) {
@@ -2176,7 +3868,14 @@ class _AttackPitchPainter extends CustomPainter {
         oldDelegate.scanOverlay != scanOverlay ||
         oldDelegate.terminalBanner != terminalBanner ||
         oldDelegate.brightness != brightness ||
-        oldDelegate.fontFamily != fontFamily;
+        oldDelegate.fontFamily != fontFamily ||
+        oldDelegate.learnerNumber != learnerNumber ||
+        oldDelegate.decisionCueFrom != decisionCueFrom ||
+        oldDelegate.decisionCueTo != decisionCueTo ||
+        oldDelegate.decisionCueIsOpponent != decisionCueIsOpponent ||
+        oldDelegate.decisionPressurePoint != decisionPressurePoint ||
+        oldDelegate.decisionOutletPoints != decisionOutletPoints ||
+        oldDelegate.decisionBranchLabel != decisionBranchLabel;
   }
 }
 

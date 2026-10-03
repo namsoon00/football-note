@@ -95,7 +95,7 @@ void main() {
         await tester.tap(find.byKey(const ValueKey<String>('attack-help')));
         await tester.pumpAndSettle();
         final l10n = AppLocalizations.of(
-            tester.element(find.byType(ScanPassGameScreen)))!;
+            tester.element(find.byType(ScanPassFreeAttackScreen)))!;
         expect(find.text(l10n.scanPassHelpCloseAction).hitTestable(),
             findsOneWidget);
         await tester.tap(find.text(l10n.scanPassHelpCloseAction));
@@ -145,7 +145,7 @@ Widget _buildApp({
       ),
       child: child!,
     ),
-    home: ScanPassGameScreen(
+    home: ScanPassFreeAttackScreen(
       optionRepository: optionRepository,
       seed: 7,
       previewDuration: Duration.zero,

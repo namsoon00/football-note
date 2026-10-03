@@ -18012,6 +18012,252 @@ class AppLocalizationsJa extends AppLocalizations {
       '選んだ方向へボールと6番が動きます。動きが終わったら次の行動を選びましょう。';
 
   @override
+  String get scanPassFreeAttackAction => '自由攻撃';
+
+  @override
+  String get scanPassFreeAttackTooltip => '連続する自由攻撃トレーナーを開く';
+
+  @override
+  String get scanPassDecisionHelpBody =>
+      '6番が受ける前に周囲を見ましょう。味方やスペースを選び、受けた後に実行します。ボールが来る間に実行を予約することもできます。\n\n一緒に読むモードでは動きの矢印と対になる場面を比べます。一人で読むモードでは矢印を隠し、新しい練習セットの順序を変えます。動くプレッシャーでは受けた後も守備者が動きます。場面が止まったらもう一度見られ、未実行の選択は失敗として記録されません。\n\n振り返りは受けた瞬間で止まります。自分の選択と別の選択を再生し、圧力と次のパスを比べましょう。\n\nこれは2Dの学習用シミュレーションであり、視線や実際の試合での上達を測定するものではありません。';
+
+  @override
+  String scanPassDecisionProgress(int step, int total, Object lesson) {
+    return '$step/$total · $lesson';
+  }
+
+  @override
+  String get scanPassDecisionReplayObservationAction => 'もう一度見る';
+
+  @override
+  String get scanPassDecisionModeGuided => 'いっしょに読む';
+
+  @override
+  String get scanPassDecisionModeSolo => 'ひとりで読む';
+
+  @override
+  String get scanPassDecisionModeLive => '動く圧力';
+
+  @override
+  String get scanPassDecisionQueueAction => '受けたら実行';
+
+  @override
+  String get scanPassDecisionViewOwnAction => '自分の選択を再生';
+
+  @override
+  String get scanPassDecisionViewOtherAction => '別の選択を見る';
+
+  @override
+  String get scanPassDecisionChangeCueAction => '手がかりを変えて再挑戦';
+
+  @override
+  String get scanPassDecisionNextLessonAction => '次の状況';
+
+  @override
+  String get scanPassDecisionSummaryAction => 'まとめへ';
+
+  @override
+  String get scanPassDecisionRetryAction => 'やり直す';
+
+  @override
+  String get scanPassDecisionReplaySetAction => '新しい配置で練習';
+
+  @override
+  String get scanPassDecisionSummaryTitle => '選択を振り返る';
+
+  @override
+  String get scanPassDecisionSummaryStatus => '選択の理由を確認し、新しい配置でもう一度読みましょう。';
+
+  @override
+  String get scanPassDecisionClosedStatus => '場面を止めました。次の動きを準備してもう一度見ましょう。';
+
+  @override
+  String get scanPassDecisionExecutingStatus => '選択が次のプレーをどう変えるか見ましょう。';
+
+  @override
+  String get scanPassDecisionReviewStatus => '同じピッチで結果を確認しましょう。';
+
+  @override
+  String scanPassDecisionReviewStatusWithQuality(Object quality) {
+    return '$quality · 原因をピッチで比べましょう。';
+  }
+
+  @override
+  String get scanPassDecisionQueuedStatus => '選択を予約しました。受ける場面を見ましょう。';
+
+  @override
+  String get scanPassDecisionReplayObservationStatus => '受ける前の手がかりを再生します。';
+
+  @override
+  String get scanPassDecisionObservePrompt => '6番が受ける前に見ましょう。先に選べます。';
+
+  @override
+  String get scanPassDecisionPreviewStatus => 'プレビューのみ。受けたあとに実行します。';
+
+  @override
+  String get scanPassDecisionLivePrompt => '圧力が動いています。レーンを使える瞬間に実行しましょう。';
+
+  @override
+  String get scanPassDecisionChoosePrompt => '受けたあと、次の行動を選びましょう。';
+
+  @override
+  String get scanPassDecisionWindowClosedNoChoice =>
+      'まだ選択していません。動きをもう一度見て次のパスを準備しましょう。';
+
+  @override
+  String get scanPassDecisionWindowClosedWithChoice =>
+      '選択を実行する前に場面が止まりました。もう一度見てつなぎましょう。';
+
+  @override
+  String get scanPassDecisionLessonRearPressure => '背後の圧力';
+
+  @override
+  String get scanPassDecisionLessonPassingLane => 'パスレーン';
+
+  @override
+  String get scanPassDecisionLessonReceiverSupport => '受け手の支援';
+
+  @override
+  String get scanPassDecisionCueCompareRearPressure =>
+      '同じ配置でも、守備者の接近によって振り向く余裕が変わります。';
+
+  @override
+  String get scanPassDecisionCueComparePassingLane =>
+      'パスコースを守る動きと、ボールへ出てくる動きを比べましょう。';
+
+  @override
+  String get scanPassDecisionCueCompareReceiverSupport =>
+      'サポート役の位置が変わると、受け手の次のパスも変わります。';
+
+  @override
+  String get scanPassDecisionQualityAdvantage => '前進の機会';
+
+  @override
+  String get scanPassDecisionQualitySecure => 'ボールを保持';
+
+  @override
+  String get scanPassDecisionQualityDifficult => '孤立の危険';
+
+  @override
+  String get scanPassDecisionQualityLost => 'ボールを失った';
+
+  @override
+  String get scanPassDecisionReasonPressureEscaped =>
+      'プレッシャーを受けずに次のプレーを準備できました。';
+
+  @override
+  String get scanPassDecisionReasonPressureArriving =>
+      'ボールを持って振り向く間に守備者が近づきました。';
+
+  @override
+  String get scanPassDecisionReasonLaneOpen => '守備者が空けたパスコースから前進できました。';
+
+  @override
+  String get scanPassDecisionReasonLaneBlocked =>
+      '味方は見えていましたが、守備者がパスコースを塞いでいました。';
+
+  @override
+  String get scanPassDecisionReasonReceiverCanTurn => '受け手に振り向く時間とスペースがありました。';
+
+  @override
+  String get scanPassDecisionReasonReceiverTrapped =>
+      'パスは届きましたが、振り向く余裕もすぐに出す先もありませんでした。';
+
+  @override
+  String get scanPassDecisionReasonThirdPlayerAvailable =>
+      'プレッシャーを受けてもすぐにつなぐ味方がいました。';
+
+  @override
+  String get scanPassDecisionReasonPossessionKept => 'ボールを守り、次のパスにつなげられました。';
+
+  @override
+  String get scanPassDecisionReasonWindowClosed => '動き出す前に守備のプレッシャーが届きました。';
+
+  @override
+  String get scanPassDecisionReasonOffside => 'パスを出した瞬間、受け手はオフサイドの位置でした。';
+
+  @override
+  String get scanPassDecisionIndicatorLaneOpen => 'レーン開く';
+
+  @override
+  String get scanPassDecisionIndicatorLaneBlocked => 'レーン閉じる';
+
+  @override
+  String get scanPassDecisionIndicatorReceiverTime => '次の動作に余裕';
+
+  @override
+  String get scanPassDecisionIndicatorReceiverPressure => '次の動作に圧力';
+
+  @override
+  String get scanPassDecisionIndicatorProgressed => '前進';
+
+  @override
+  String get scanPassDecisionIndicatorRetained => '保持';
+
+  @override
+  String get scanPassDecisionIndicatorInWindow => '窓の中';
+
+  @override
+  String get scanPassDecisionIndicatorWindowClosed => '窓が閉じる';
+
+  @override
+  String scanPassDecisionIndicatorOutlets(Object numbers) {
+    return '次のパス：$numbers番';
+  }
+
+  @override
+  String scanPassDecisionBranchOwn(Object action) {
+    return '自分の選択 · $action';
+  }
+
+  @override
+  String scanPassDecisionBranchAlternative(Object action) {
+    return '別の選択 · $action';
+  }
+
+  @override
+  String get scanPassDecisionActionForward => '8番';
+
+  @override
+  String get scanPassDecisionActionWide => '7番';
+
+  @override
+  String get scanPassDecisionActionReset => '4番';
+
+  @override
+  String get scanPassDecisionActionCarry => '運ぶ';
+
+  @override
+  String get scanPassDecisionActionForwardLabel => '8番へ前進パス';
+
+  @override
+  String get scanPassDecisionActionWideLabel => '7番へサイドのパス';
+
+  @override
+  String get scanPassDecisionActionResetLabel => '4番へリターンパス';
+
+  @override
+  String get scanPassDecisionActionCarryLabel => 'スペースへ前進して運ぶ';
+
+  @override
+  String get scanPassDecisionSummaryEmpty => 'まだ記録された判断はありません。';
+
+  @override
+  String scanPassDecisionSummaryQuality(Object quality, int count) {
+    return '$quality が $count 回ありました。';
+  }
+
+  @override
+  String scanPassDecisionSummaryLessons(int count) {
+    return '$countつのレッスンで手がかりを比べました。';
+  }
+
+  @override
+  String scanPassDecisionSummaryReason(Object reason) {
+    return '選択から分かったこと：$reason';
+  }
+
+  @override
   String get scanPassAttackHelpBody =>
       '味方のユニフォームをタップするとパスの経路が表示されます。方向の矢印でボールを運び、待機で味方の動きを見ます。ゴール付近ではシュートする場所を選べます。点線はプレビューで、実行を押すと選手が動きます。\n\nオフサイドはボールを蹴る瞬間に判断します。相手陣内でボールと後方から2人目の相手選手の両方より前にいる味方がパスを受けると反則です。ゴールキーパーも相手選手に含みます。同じライン上や自陣内はオフサイドの位置ではありません。その位置にいるだけでは反則になりません。\n\n時間制限はありません。ヘルプやアプリを離れた間は動きも止まります。元に戻して別の選択を試しましょう。';
 
@@ -18256,4 +18502,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassAttackCarryShort => '運ぶ';
+
+  @override
+  String get scanPassDecisionIndicatorNoOutlet => 'すぐに出す先なし';
+
+  @override
+  String get scanPassDecisionIndicatorCarrySpace => '運ぶスペース';
+
+  @override
+  String get scanPassDecisionIndicatorCarryPressure => '運ぶ間に圧力';
+
+  @override
+  String scanPassDecisionSummaryLesson(String lesson, String reason) {
+    return '$lesson · $reason';
+  }
+
+  @override
+  String get scanPassDecisionFieldSemantics =>
+      '右へ攻めるサッカーのピッチです。自分の選手は6番です。青いユニフォームは味方、赤は守備者、金色の輪は現在ボールを持つ選手です。味方やスペースを選び、次の動きを準備してください。';
 }

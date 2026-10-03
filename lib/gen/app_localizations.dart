@@ -31868,6 +31868,444 @@ abstract class AppLocalizations {
   /// **'Watch the ball and #6 move in your chosen direction. Choose the next action when the movement finishes.'**
   String get scanPassTouchInMotionBody;
 
+  /// No description provided for @scanPassFreeAttackAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Free attack'**
+  String get scanPassFreeAttackAction;
+
+  /// No description provided for @scanPassFreeAttackTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the continuous free-attack trainer'**
+  String get scanPassFreeAttackTooltip;
+
+  /// No description provided for @scanPassDecisionHelpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the situation before #6 receives. Tap a teammate or space, then execute after reception. You can also queue execution while the ball is arriving.\n\nRead together shows movement cues and paired scenes. Read alone removes cue arrows and shuffles new practice sets. Moving pressure continues the defenders’ movement after reception. When the scene pauses, watch again; an unexecuted choice is not recorded as a failed decision.\n\nReview freezes at the receiving moment. Replay your choice and alternatives to compare pressure and the next connection.\n\nThis is a 2D instructional simulation. It does not measure gaze or improvement in match performance.'**
+  String get scanPassDecisionHelpBody;
+
+  /// No description provided for @scanPassDecisionProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{step}/{total} · {lesson}'**
+  String scanPassDecisionProgress(int step, int total, Object lesson);
+
+  /// No description provided for @scanPassDecisionReplayObservationAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay cue'**
+  String get scanPassDecisionReplayObservationAction;
+
+  /// No description provided for @scanPassDecisionModeGuided.
+  ///
+  /// In en, this message translates to:
+  /// **'Read together'**
+  String get scanPassDecisionModeGuided;
+
+  /// No description provided for @scanPassDecisionModeSolo.
+  ///
+  /// In en, this message translates to:
+  /// **'Read alone'**
+  String get scanPassDecisionModeSolo;
+
+  /// No description provided for @scanPassDecisionModeLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Moving pressure'**
+  String get scanPassDecisionModeLive;
+
+  /// No description provided for @scanPassDecisionQueueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Play on receipt'**
+  String get scanPassDecisionQueueAction;
+
+  /// No description provided for @scanPassDecisionViewOwnAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay my choice'**
+  String get scanPassDecisionViewOwnAction;
+
+  /// No description provided for @scanPassDecisionViewOtherAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View another choice'**
+  String get scanPassDecisionViewOtherAction;
+
+  /// No description provided for @scanPassDecisionChangeCueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change cue and retry'**
+  String get scanPassDecisionChangeCueAction;
+
+  /// No description provided for @scanPassDecisionNextLessonAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Next situation'**
+  String get scanPassDecisionNextLessonAction;
+
+  /// No description provided for @scanPassDecisionSummaryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set summary'**
+  String get scanPassDecisionSummaryAction;
+
+  /// No description provided for @scanPassDecisionRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get scanPassDecisionRetryAction;
+
+  /// No description provided for @scanPassDecisionReplaySetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a new layout'**
+  String get scanPassDecisionReplaySetAction;
+
+  /// No description provided for @scanPassDecisionSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review your choices'**
+  String get scanPassDecisionSummaryTitle;
+
+  /// No description provided for @scanPassDecisionSummaryStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the reasons, then read a new layout.'**
+  String get scanPassDecisionSummaryStatus;
+
+  /// No description provided for @scanPassDecisionClosedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Scene paused. Watch again and prepare the next action.'**
+  String get scanPassDecisionClosedStatus;
+
+  /// No description provided for @scanPassDecisionExecutingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch how the choice changes the next action.'**
+  String get scanPassDecisionExecutingStatus;
+
+  /// No description provided for @scanPassDecisionReviewStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the outcome on the same pitch.'**
+  String get scanPassDecisionReviewStatus;
+
+  /// No description provided for @scanPassDecisionReviewStatusWithQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'{quality} · compare the cause on the pitch.'**
+  String scanPassDecisionReviewStatusWithQuality(Object quality);
+
+  /// No description provided for @scanPassDecisionQueuedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Choice queued. Watch the reception.'**
+  String get scanPassDecisionQueuedStatus;
+
+  /// No description provided for @scanPassDecisionReplayObservationStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay the pre-reception cue.'**
+  String get scanPassDecisionReplayObservationStatus;
+
+  /// No description provided for @scanPassDecisionObservePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch before #6 receives; you can choose early.'**
+  String get scanPassDecisionObservePrompt;
+
+  /// No description provided for @scanPassDecisionPreviewStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview only. Execute after the reception.'**
+  String get scanPassDecisionPreviewStatus;
+
+  /// No description provided for @scanPassDecisionLivePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure is moving; execute when the lane feels usable.'**
+  String get scanPassDecisionLivePrompt;
+
+  /// No description provided for @scanPassDecisionChoosePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the next action after the reception.'**
+  String get scanPassDecisionChoosePrompt;
+
+  /// No description provided for @scanPassDecisionWindowClosedNoChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'No action chosen yet. Watch the movement again and prepare your next connection.'**
+  String get scanPassDecisionWindowClosedNoChoice;
+
+  /// No description provided for @scanPassDecisionWindowClosedWithChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'The scene paused before you executed your selection. Watch again and connect.'**
+  String get scanPassDecisionWindowClosedWithChoice;
+
+  /// No description provided for @scanPassDecisionLessonRearPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Rear pressure'**
+  String get scanPassDecisionLessonRearPressure;
+
+  /// No description provided for @scanPassDecisionLessonPassingLane.
+  ///
+  /// In en, this message translates to:
+  /// **'Passing lane'**
+  String get scanPassDecisionLessonPassingLane;
+
+  /// No description provided for @scanPassDecisionLessonReceiverSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiver support'**
+  String get scanPassDecisionLessonReceiverSupport;
+
+  /// No description provided for @scanPassDecisionCueCompareRearPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'The same layout offers different turning space when the defender approaches.'**
+  String get scanPassDecisionCueCompareRearPressure;
+
+  /// No description provided for @scanPassDecisionCueComparePassingLane.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare a defender holding the passing lane with one moving toward the ball.'**
+  String get scanPassDecisionCueComparePassingLane;
+
+  /// No description provided for @scanPassDecisionCueCompareReceiverSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'A supporting teammate’s position changes the pressured receiver’s next pass.'**
+  String get scanPassDecisionCueCompareReceiverSupport;
+
+  /// No description provided for @scanPassDecisionQualityAdvantage.
+  ///
+  /// In en, this message translates to:
+  /// **'Progression created'**
+  String get scanPassDecisionQualityAdvantage;
+
+  /// No description provided for @scanPassDecisionQualitySecure.
+  ///
+  /// In en, this message translates to:
+  /// **'Possession kept'**
+  String get scanPassDecisionQualitySecure;
+
+  /// No description provided for @scanPassDecisionQualityDifficult.
+  ///
+  /// In en, this message translates to:
+  /// **'Risk of isolation'**
+  String get scanPassDecisionQualityDifficult;
+
+  /// No description provided for @scanPassDecisionQualityLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Lost possession'**
+  String get scanPassDecisionQualityLost;
+
+  /// No description provided for @scanPassDecisionReasonPressureEscaped.
+  ///
+  /// In en, this message translates to:
+  /// **'The action kept the ball clear of pressure for the next play.'**
+  String get scanPassDecisionReasonPressureEscaped;
+
+  /// No description provided for @scanPassDecisionReasonPressureArriving.
+  ///
+  /// In en, this message translates to:
+  /// **'The defender arrived while you turned with the ball.'**
+  String get scanPassDecisionReasonPressureArriving;
+
+  /// No description provided for @scanPassDecisionReasonLaneOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'The defender left a passing lane to progress through.'**
+  String get scanPassDecisionReasonLaneOpen;
+
+  /// No description provided for @scanPassDecisionReasonLaneBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'The teammate was visible, but a defender blocked the passing lane.'**
+  String get scanPassDecisionReasonLaneBlocked;
+
+  /// No description provided for @scanPassDecisionReasonReceiverCanTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'The receiver had time and space to turn.'**
+  String get scanPassDecisionReasonReceiverCanTurn;
+
+  /// No description provided for @scanPassDecisionReasonReceiverTrapped.
+  ///
+  /// In en, this message translates to:
+  /// **'The pass arrived, but the receiver had no turn or quick outlet.'**
+  String get scanPassDecisionReasonReceiverTrapped;
+
+  /// No description provided for @scanPassDecisionReasonThirdPlayerAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The pressured receiver had a teammate to play to immediately.'**
+  String get scanPassDecisionReasonThirdPlayerAvailable;
+
+  /// No description provided for @scanPassDecisionReasonPossessionKept.
+  ///
+  /// In en, this message translates to:
+  /// **'You kept the ball with another connection available.'**
+  String get scanPassDecisionReasonPossessionKept;
+
+  /// No description provided for @scanPassDecisionReasonWindowClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Defensive pressure arrived before the action.'**
+  String get scanPassDecisionReasonWindowClosed;
+
+  /// No description provided for @scanPassDecisionReasonOffside.
+  ///
+  /// In en, this message translates to:
+  /// **'The receiver was in an offside position at the pass release.'**
+  String get scanPassDecisionReasonOffside;
+
+  /// No description provided for @scanPassDecisionIndicatorLaneOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Lane open'**
+  String get scanPassDecisionIndicatorLaneOpen;
+
+  /// No description provided for @scanPassDecisionIndicatorLaneBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Lane blocked'**
+  String get scanPassDecisionIndicatorLaneBlocked;
+
+  /// No description provided for @scanPassDecisionIndicatorReceiverTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time for next action'**
+  String get scanPassDecisionIndicatorReceiverTime;
+
+  /// No description provided for @scanPassDecisionIndicatorReceiverPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure on next action'**
+  String get scanPassDecisionIndicatorReceiverPressure;
+
+  /// No description provided for @scanPassDecisionIndicatorProgressed.
+  ///
+  /// In en, this message translates to:
+  /// **'Play advanced'**
+  String get scanPassDecisionIndicatorProgressed;
+
+  /// No description provided for @scanPassDecisionIndicatorRetained.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball retained'**
+  String get scanPassDecisionIndicatorRetained;
+
+  /// No description provided for @scanPassDecisionIndicatorInWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'In window'**
+  String get scanPassDecisionIndicatorInWindow;
+
+  /// No description provided for @scanPassDecisionIndicatorWindowClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Window closed'**
+  String get scanPassDecisionIndicatorWindowClosed;
+
+  /// No description provided for @scanPassDecisionIndicatorOutlets.
+  ///
+  /// In en, this message translates to:
+  /// **'Next pass: #{numbers}'**
+  String scanPassDecisionIndicatorOutlets(Object numbers);
+
+  /// No description provided for @scanPassDecisionBranchOwn.
+  ///
+  /// In en, this message translates to:
+  /// **'My choice · {action}'**
+  String scanPassDecisionBranchOwn(Object action);
+
+  /// No description provided for @scanPassDecisionBranchAlternative.
+  ///
+  /// In en, this message translates to:
+  /// **'Other choice · {action}'**
+  String scanPassDecisionBranchAlternative(Object action);
+
+  /// No description provided for @scanPassDecisionActionForward.
+  ///
+  /// In en, this message translates to:
+  /// **'#8'**
+  String get scanPassDecisionActionForward;
+
+  /// No description provided for @scanPassDecisionActionWide.
+  ///
+  /// In en, this message translates to:
+  /// **'#7'**
+  String get scanPassDecisionActionWide;
+
+  /// No description provided for @scanPassDecisionActionReset.
+  ///
+  /// In en, this message translates to:
+  /// **'#4'**
+  String get scanPassDecisionActionReset;
+
+  /// No description provided for @scanPassDecisionActionCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry'**
+  String get scanPassDecisionActionCarry;
+
+  /// No description provided for @scanPassDecisionActionForwardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward pass to #8'**
+  String get scanPassDecisionActionForwardLabel;
+
+  /// No description provided for @scanPassDecisionActionWideLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wide pass to #7'**
+  String get scanPassDecisionActionWideLabel;
+
+  /// No description provided for @scanPassDecisionActionResetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Return pass to #4'**
+  String get scanPassDecisionActionResetLabel;
+
+  /// No description provided for @scanPassDecisionActionCarryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry forward into space'**
+  String get scanPassDecisionActionCarryLabel;
+
+  /// No description provided for @scanPassDecisionSummaryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No decisions recorded yet.'**
+  String get scanPassDecisionSummaryEmpty;
+
+  /// No description provided for @scanPassDecisionSummaryQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'{quality} appeared in {count} choices.'**
+  String scanPassDecisionSummaryQuality(Object quality, int count);
+
+  /// No description provided for @scanPassDecisionSummaryLessons.
+  ///
+  /// In en, this message translates to:
+  /// **'You compared cues across {count} lesson families.'**
+  String scanPassDecisionSummaryLessons(int count);
+
+  /// No description provided for @scanPassDecisionSummaryReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Your choice showed: {reason}'**
+  String scanPassDecisionSummaryReason(Object reason);
+
   /// No description provided for @scanPassAttackHelpBody.
   ///
   /// In en, this message translates to:
@@ -32305,6 +32743,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Carry'**
   String get scanPassAttackCarryShort;
+
+  /// No description provided for @scanPassDecisionIndicatorNoOutlet.
+  ///
+  /// In en, this message translates to:
+  /// **'No quick outlet'**
+  String get scanPassDecisionIndicatorNoOutlet;
+
+  /// No description provided for @scanPassDecisionIndicatorCarrySpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Space to carry'**
+  String get scanPassDecisionIndicatorCarrySpace;
+
+  /// No description provided for @scanPassDecisionIndicatorCarryPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure on the carry'**
+  String get scanPassDecisionIndicatorCarryPressure;
+
+  /// No description provided for @scanPassDecisionSummaryLesson.
+  ///
+  /// In en, this message translates to:
+  /// **'{lesson} · {reason}'**
+  String scanPassDecisionSummaryLesson(String lesson, String reason);
+
+  /// No description provided for @scanPassDecisionFieldSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'A football pitch attacking to the right. Your player is number 6. Blue uniforms are teammates, red uniforms are defenders, and the gold ring marks the current ball carrier. Select a teammate or space to prepare the next action.'**
+  String get scanPassDecisionFieldSemantics;
 }
 
 class _AppLocalizationsDelegate

@@ -10080,6 +10080,130 @@
   "scanPassFactFacingForward": "Facing the attacking direction",
   "scanPassTouchChangePressureRemains": "#6 keeps the ball, but the nearby defender still applies pressure.",
   "scanPassTouchInMotionBody": "Watch the ball and #6 move in your chosen direction. Choose the next action when the movement finishes.",
+  "scanPassFreeAttackAction": "Free attack",
+  "scanPassFreeAttackTooltip": "Open the continuous free-attack trainer",
+  "scanPassDecisionHelpBody": "Read the situation before #6 receives. Tap a teammate or space, then execute after reception. You can also queue execution while the ball is arriving.\n\nRead together shows movement cues and paired scenes. Read alone removes cue arrows and shuffles new practice sets. Moving pressure continues the defenders’ movement after reception. When the scene pauses, watch again; an unexecuted choice is not recorded as a failed decision.\n\nReview freezes at the receiving moment. Replay your choice and alternatives to compare pressure and the next connection.\n\nThis is a 2D instructional simulation. It does not measure gaze or improvement in match performance.",
+  "scanPassDecisionProgress": "{step}/{total} · {lesson}",
+  "@scanPassDecisionProgress": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "lesson": {}
+    }
+  },
+  "scanPassDecisionReplayObservationAction": "Replay cue",
+  "scanPassDecisionModeGuided": "Read together",
+  "scanPassDecisionModeSolo": "Read alone",
+  "scanPassDecisionModeLive": "Moving pressure",
+  "scanPassDecisionQueueAction": "Play on receipt",
+  "scanPassDecisionViewOwnAction": "Replay my choice",
+  "scanPassDecisionViewOtherAction": "View another choice",
+  "scanPassDecisionChangeCueAction": "Change cue and retry",
+  "scanPassDecisionNextLessonAction": "Next situation",
+  "scanPassDecisionSummaryAction": "Set summary",
+  "scanPassDecisionRetryAction": "Try again",
+  "scanPassDecisionReplaySetAction": "Try a new layout",
+  "scanPassDecisionSummaryTitle": "Review your choices",
+  "scanPassDecisionSummaryStatus": "Review the reasons, then read a new layout.",
+  "scanPassDecisionClosedStatus": "Scene paused. Watch again and prepare the next action.",
+  "scanPassDecisionExecutingStatus": "Watch how the choice changes the next action.",
+  "scanPassDecisionReviewStatus": "Review the outcome on the same pitch.",
+  "scanPassDecisionReviewStatusWithQuality": "{quality} · compare the cause on the pitch.",
+  "@scanPassDecisionReviewStatusWithQuality": {
+    "placeholders": {
+      "quality": {}
+    }
+  },
+  "scanPassDecisionQueuedStatus": "Choice queued. Watch the reception.",
+  "scanPassDecisionReplayObservationStatus": "Replay the pre-reception cue.",
+  "scanPassDecisionObservePrompt": "Watch before #6 receives; you can choose early.",
+  "scanPassDecisionPreviewStatus": "Preview only. Execute after the reception.",
+  "scanPassDecisionLivePrompt": "Pressure is moving; execute when the lane feels usable.",
+  "scanPassDecisionChoosePrompt": "Choose the next action after the reception.",
+  "scanPassDecisionWindowClosedNoChoice": "No action chosen yet. Watch the movement again and prepare your next connection.",
+  "scanPassDecisionWindowClosedWithChoice": "The scene paused before you executed your selection. Watch again and connect.",
+  "scanPassDecisionLessonRearPressure": "Rear pressure",
+  "scanPassDecisionLessonPassingLane": "Passing lane",
+  "scanPassDecisionLessonReceiverSupport": "Receiver support",
+  "scanPassDecisionCueCompareRearPressure": "The same layout offers different turning space when the defender approaches.",
+  "scanPassDecisionCueComparePassingLane": "Compare a defender holding the passing lane with one moving toward the ball.",
+  "scanPassDecisionCueCompareReceiverSupport": "A supporting teammate’s position changes the pressured receiver’s next pass.",
+  "scanPassDecisionQualityAdvantage": "Progression created",
+  "scanPassDecisionQualitySecure": "Possession kept",
+  "scanPassDecisionQualityDifficult": "Risk of isolation",
+  "scanPassDecisionQualityLost": "Lost possession",
+  "scanPassDecisionReasonPressureEscaped": "The action kept the ball clear of pressure for the next play.",
+  "scanPassDecisionReasonPressureArriving": "The defender arrived while you turned with the ball.",
+  "scanPassDecisionReasonLaneOpen": "The defender left a passing lane to progress through.",
+  "scanPassDecisionReasonLaneBlocked": "The teammate was visible, but a defender blocked the passing lane.",
+  "scanPassDecisionReasonReceiverCanTurn": "The receiver had time and space to turn.",
+  "scanPassDecisionReasonReceiverTrapped": "The pass arrived, but the receiver had no turn or quick outlet.",
+  "scanPassDecisionReasonThirdPlayerAvailable": "The pressured receiver had a teammate to play to immediately.",
+  "scanPassDecisionReasonPossessionKept": "You kept the ball with another connection available.",
+  "scanPassDecisionReasonWindowClosed": "Defensive pressure arrived before the action.",
+  "scanPassDecisionReasonOffside": "The receiver was in an offside position at the pass release.",
+  "scanPassDecisionIndicatorLaneOpen": "Lane open",
+  "scanPassDecisionIndicatorLaneBlocked": "Lane blocked",
+  "scanPassDecisionIndicatorReceiverTime": "Time for next action",
+  "scanPassDecisionIndicatorReceiverPressure": "Pressure on next action",
+  "scanPassDecisionIndicatorProgressed": "Play advanced",
+  "scanPassDecisionIndicatorRetained": "Ball retained",
+  "scanPassDecisionIndicatorInWindow": "In window",
+  "scanPassDecisionIndicatorWindowClosed": "Window closed",
+  "scanPassDecisionIndicatorOutlets": "Next pass: #{numbers}",
+  "@scanPassDecisionIndicatorOutlets": {
+    "placeholders": {
+      "numbers": {}
+    }
+  },
+  "scanPassDecisionBranchOwn": "My choice · {action}",
+  "scanPassDecisionBranchAlternative": "Other choice · {action}",
+  "@scanPassDecisionBranchOwn": {
+    "placeholders": {
+      "action": {}
+    }
+  },
+  "@scanPassDecisionBranchAlternative": {
+    "placeholders": {
+      "action": {}
+    }
+  },
+  "scanPassDecisionActionForward": "#8",
+  "scanPassDecisionActionWide": "#7",
+  "scanPassDecisionActionReset": "#4",
+  "scanPassDecisionActionCarry": "Carry",
+  "scanPassDecisionActionForwardLabel": "Forward pass to #8",
+  "scanPassDecisionActionWideLabel": "Wide pass to #7",
+  "scanPassDecisionActionResetLabel": "Return pass to #4",
+  "scanPassDecisionActionCarryLabel": "Carry forward into space",
+  "scanPassDecisionSummaryEmpty": "No decisions recorded yet.",
+  "scanPassDecisionSummaryQuality": "{quality} appeared in {count} choices.",
+  "@scanPassDecisionSummaryQuality": {
+    "placeholders": {
+      "quality": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassDecisionSummaryLessons": "You compared cues across {count} lesson families.",
+  "@scanPassDecisionSummaryLessons": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassDecisionSummaryReason": "Your choice showed: {reason}",
+  "@scanPassDecisionSummaryReason": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
   "scanPassAttackHelpBody": "Tap a teammate’s uniform to preview a pass. Use the direction arrows to carry the ball, or wait to let runs develop. Near the goal, choose where to shoot. Dotted paths are previews; players move only after you press execute.\n\nOffside is judged when the ball is played. In the opponents’ half, a teammate beyond both the ball and the second-last opponent commits an offence when receiving the pass. The goalkeeper counts as an opponent. Being level or in your own half is onside; simply standing in an offside position is not an offence.\n\nThere is no time limit. Help and leaving the app pause any motion. Undo to explore another choice.",
   "scanPassAttackSequenceTitle": "Attack sequence",
   "scanPassAttackNoSequence": "No actions played yet.",
@@ -10250,5 +10374,20 @@
   "scanPassAttackOutcomeSaved": "SAVED",
   "scanPassAttackOutcomeWide": "WIDE",
   "scanPassAttackOutcomeBlocked": "BLOCKED",
-  "scanPassAttackCarryShort": "Carry"
+  "scanPassAttackCarryShort": "Carry",
+  "scanPassDecisionIndicatorNoOutlet": "No quick outlet",
+  "scanPassDecisionIndicatorCarrySpace": "Space to carry",
+  "scanPassDecisionIndicatorCarryPressure": "Pressure on the carry",
+  "scanPassDecisionSummaryLesson": "{lesson} · {reason}",
+  "@scanPassDecisionSummaryLesson": {
+    "placeholders": {
+      "lesson": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassDecisionFieldSemantics": "A football pitch attacking to the right. Your player is number 6. Blue uniforms are teammates, red uniforms are defenders, and the gold ring marks the current ball carrier. Select a teammate or space to prepare the next action."
 }

@@ -144,7 +144,7 @@ Widget _app(
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: ScanPassGameScreen(
+      home: ScanPassFreeAttackScreen(
         optionRepository: _Options(),
         seed: 7,
         previewDuration: duration,

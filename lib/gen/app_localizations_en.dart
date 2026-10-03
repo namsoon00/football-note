@@ -18675,6 +18675,269 @@ class AppLocalizationsEn extends AppLocalizations {
       'Watch the ball and #6 move in your chosen direction. Choose the next action when the movement finishes.';
 
   @override
+  String get scanPassFreeAttackAction => 'Free attack';
+
+  @override
+  String get scanPassFreeAttackTooltip =>
+      'Open the continuous free-attack trainer';
+
+  @override
+  String get scanPassDecisionHelpBody =>
+      'Read the situation before #6 receives. Tap a teammate or space, then execute after reception. You can also queue execution while the ball is arriving.\n\nRead together shows movement cues and paired scenes. Read alone removes cue arrows and shuffles new practice sets. Moving pressure continues the defenders’ movement after reception. When the scene pauses, watch again; an unexecuted choice is not recorded as a failed decision.\n\nReview freezes at the receiving moment. Replay your choice and alternatives to compare pressure and the next connection.\n\nThis is a 2D instructional simulation. It does not measure gaze or improvement in match performance.';
+
+  @override
+  String scanPassDecisionProgress(int step, int total, Object lesson) {
+    return '$step/$total · $lesson';
+  }
+
+  @override
+  String get scanPassDecisionReplayObservationAction => 'Replay cue';
+
+  @override
+  String get scanPassDecisionModeGuided => 'Read together';
+
+  @override
+  String get scanPassDecisionModeSolo => 'Read alone';
+
+  @override
+  String get scanPassDecisionModeLive => 'Moving pressure';
+
+  @override
+  String get scanPassDecisionQueueAction => 'Play on receipt';
+
+  @override
+  String get scanPassDecisionViewOwnAction => 'Replay my choice';
+
+  @override
+  String get scanPassDecisionViewOtherAction => 'View another choice';
+
+  @override
+  String get scanPassDecisionChangeCueAction => 'Change cue and retry';
+
+  @override
+  String get scanPassDecisionNextLessonAction => 'Next situation';
+
+  @override
+  String get scanPassDecisionSummaryAction => 'Set summary';
+
+  @override
+  String get scanPassDecisionRetryAction => 'Try again';
+
+  @override
+  String get scanPassDecisionReplaySetAction => 'Try a new layout';
+
+  @override
+  String get scanPassDecisionSummaryTitle => 'Review your choices';
+
+  @override
+  String get scanPassDecisionSummaryStatus =>
+      'Review the reasons, then read a new layout.';
+
+  @override
+  String get scanPassDecisionClosedStatus =>
+      'Scene paused. Watch again and prepare the next action.';
+
+  @override
+  String get scanPassDecisionExecutingStatus =>
+      'Watch how the choice changes the next action.';
+
+  @override
+  String get scanPassDecisionReviewStatus =>
+      'Review the outcome on the same pitch.';
+
+  @override
+  String scanPassDecisionReviewStatusWithQuality(Object quality) {
+    return '$quality · compare the cause on the pitch.';
+  }
+
+  @override
+  String get scanPassDecisionQueuedStatus =>
+      'Choice queued. Watch the reception.';
+
+  @override
+  String get scanPassDecisionReplayObservationStatus =>
+      'Replay the pre-reception cue.';
+
+  @override
+  String get scanPassDecisionObservePrompt =>
+      'Watch before #6 receives; you can choose early.';
+
+  @override
+  String get scanPassDecisionPreviewStatus =>
+      'Preview only. Execute after the reception.';
+
+  @override
+  String get scanPassDecisionLivePrompt =>
+      'Pressure is moving; execute when the lane feels usable.';
+
+  @override
+  String get scanPassDecisionChoosePrompt =>
+      'Choose the next action after the reception.';
+
+  @override
+  String get scanPassDecisionWindowClosedNoChoice =>
+      'No action chosen yet. Watch the movement again and prepare your next connection.';
+
+  @override
+  String get scanPassDecisionWindowClosedWithChoice =>
+      'The scene paused before you executed your selection. Watch again and connect.';
+
+  @override
+  String get scanPassDecisionLessonRearPressure => 'Rear pressure';
+
+  @override
+  String get scanPassDecisionLessonPassingLane => 'Passing lane';
+
+  @override
+  String get scanPassDecisionLessonReceiverSupport => 'Receiver support';
+
+  @override
+  String get scanPassDecisionCueCompareRearPressure =>
+      'The same layout offers different turning space when the defender approaches.';
+
+  @override
+  String get scanPassDecisionCueComparePassingLane =>
+      'Compare a defender holding the passing lane with one moving toward the ball.';
+
+  @override
+  String get scanPassDecisionCueCompareReceiverSupport =>
+      'A supporting teammate’s position changes the pressured receiver’s next pass.';
+
+  @override
+  String get scanPassDecisionQualityAdvantage => 'Progression created';
+
+  @override
+  String get scanPassDecisionQualitySecure => 'Possession kept';
+
+  @override
+  String get scanPassDecisionQualityDifficult => 'Risk of isolation';
+
+  @override
+  String get scanPassDecisionQualityLost => 'Lost possession';
+
+  @override
+  String get scanPassDecisionReasonPressureEscaped =>
+      'The action kept the ball clear of pressure for the next play.';
+
+  @override
+  String get scanPassDecisionReasonPressureArriving =>
+      'The defender arrived while you turned with the ball.';
+
+  @override
+  String get scanPassDecisionReasonLaneOpen =>
+      'The defender left a passing lane to progress through.';
+
+  @override
+  String get scanPassDecisionReasonLaneBlocked =>
+      'The teammate was visible, but a defender blocked the passing lane.';
+
+  @override
+  String get scanPassDecisionReasonReceiverCanTurn =>
+      'The receiver had time and space to turn.';
+
+  @override
+  String get scanPassDecisionReasonReceiverTrapped =>
+      'The pass arrived, but the receiver had no turn or quick outlet.';
+
+  @override
+  String get scanPassDecisionReasonThirdPlayerAvailable =>
+      'The pressured receiver had a teammate to play to immediately.';
+
+  @override
+  String get scanPassDecisionReasonPossessionKept =>
+      'You kept the ball with another connection available.';
+
+  @override
+  String get scanPassDecisionReasonWindowClosed =>
+      'Defensive pressure arrived before the action.';
+
+  @override
+  String get scanPassDecisionReasonOffside =>
+      'The receiver was in an offside position at the pass release.';
+
+  @override
+  String get scanPassDecisionIndicatorLaneOpen => 'Lane open';
+
+  @override
+  String get scanPassDecisionIndicatorLaneBlocked => 'Lane blocked';
+
+  @override
+  String get scanPassDecisionIndicatorReceiverTime => 'Time for next action';
+
+  @override
+  String get scanPassDecisionIndicatorReceiverPressure =>
+      'Pressure on next action';
+
+  @override
+  String get scanPassDecisionIndicatorProgressed => 'Play advanced';
+
+  @override
+  String get scanPassDecisionIndicatorRetained => 'Ball retained';
+
+  @override
+  String get scanPassDecisionIndicatorInWindow => 'In window';
+
+  @override
+  String get scanPassDecisionIndicatorWindowClosed => 'Window closed';
+
+  @override
+  String scanPassDecisionIndicatorOutlets(Object numbers) {
+    return 'Next pass: #$numbers';
+  }
+
+  @override
+  String scanPassDecisionBranchOwn(Object action) {
+    return 'My choice · $action';
+  }
+
+  @override
+  String scanPassDecisionBranchAlternative(Object action) {
+    return 'Other choice · $action';
+  }
+
+  @override
+  String get scanPassDecisionActionForward => '#8';
+
+  @override
+  String get scanPassDecisionActionWide => '#7';
+
+  @override
+  String get scanPassDecisionActionReset => '#4';
+
+  @override
+  String get scanPassDecisionActionCarry => 'Carry';
+
+  @override
+  String get scanPassDecisionActionForwardLabel => 'Forward pass to #8';
+
+  @override
+  String get scanPassDecisionActionWideLabel => 'Wide pass to #7';
+
+  @override
+  String get scanPassDecisionActionResetLabel => 'Return pass to #4';
+
+  @override
+  String get scanPassDecisionActionCarryLabel => 'Carry forward into space';
+
+  @override
+  String get scanPassDecisionSummaryEmpty => 'No decisions recorded yet.';
+
+  @override
+  String scanPassDecisionSummaryQuality(Object quality, int count) {
+    return '$quality appeared in $count choices.';
+  }
+
+  @override
+  String scanPassDecisionSummaryLessons(int count) {
+    return 'You compared cues across $count lesson families.';
+  }
+
+  @override
+  String scanPassDecisionSummaryReason(Object reason) {
+    return 'Your choice showed: $reason';
+  }
+
+  @override
   String get scanPassAttackHelpBody =>
       'Tap a teammate’s uniform to preview a pass. Use the direction arrows to carry the ball, or wait to let runs develop. Near the goal, choose where to shoot. Dotted paths are previews; players move only after you press execute.\n\nOffside is judged when the ball is played. In the opponents’ half, a teammate beyond both the ball and the second-last opponent commits an offence when receiving the pass. The goalkeeper counts as an opponent. Being level or in your own half is onside; simply standing in an offside position is not an offence.\n\nThere is no time limit. Help and leaving the app pause any motion. Undo to explore another choice.';
 
@@ -18932,4 +19195,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassAttackCarryShort => 'Carry';
+
+  @override
+  String get scanPassDecisionIndicatorNoOutlet => 'No quick outlet';
+
+  @override
+  String get scanPassDecisionIndicatorCarrySpace => 'Space to carry';
+
+  @override
+  String get scanPassDecisionIndicatorCarryPressure => 'Pressure on the carry';
+
+  @override
+  String scanPassDecisionSummaryLesson(String lesson, String reason) {
+    return '$lesson · $reason';
+  }
+
+  @override
+  String get scanPassDecisionFieldSemantics =>
+      'A football pitch attacking to the right. Your player is number 6. Blue uniforms are teammates, red uniforms are defenders, and the gold ring marks the current ball carrier. Select a teammate or space to prepare the next action.';
 }
