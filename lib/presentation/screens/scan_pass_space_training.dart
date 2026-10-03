@@ -433,11 +433,13 @@ class _SpaceTrainingScreenState extends State<SpaceTrainingScreen>
           label: l10n.spacePitchDescription,
           value: _instruction(l10n),
           focusable: true,
-          onTap: _canAim
-              ? () => _setAim(_aim ?? const ScanPassPoint(.5, .5))
-              : null,
+          onDidGainAccessibilityFocus: _pitchFocus.requestFocus,
           child: GestureDetector(
             key: const ValueKey('space-pitch'),
+            // A semantic tap has no ground coordinate and is synthesized at
+            // the node's centre on web. Keep pointer geometry on the canvas;
+            // the enclosing focus node provides keyboard access.
+            excludeFromSemantics: true,
             behavior: HitTestBehavior.opaque,
             onTapDown: !_canAim
                 ? null
