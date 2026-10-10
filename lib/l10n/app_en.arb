@@ -10925,7 +10925,7 @@
   "scanPassPossessionSpeedNormal": "1x",
   "scanPassPossessionSpeedSlow": "0.65x",
   "scanPassPossessionSlowMotionTooltip": "Toggle slower viewing speed",
-  "scanPassPossessionLegendPassPath": "Pass",
+  "scanPassPossessionLegendPassPath": "Ball movement",
   "scanPassPossessionLegendRunPath": "#6 run",
   "scanPassPossessionScenarioTitle": "{situation} · {setup}",
   "@scanPassPossessionScenarioTitle": {
@@ -10965,7 +10965,7 @@
   "scanPassPossessionSituationThirdPlayerDescription": "#8 and #9 move so the next pass can unlock a return lane.",
   "scanPassPossessionSituationTransition": "Transition receive",
   "scanPassPossessionSituationTransitionDescription": "#6 receives while both teams are still recovering into shape.",
-  "scanPassPossessionHelpBody": "Choose a situation, read the pressure before number 6 receives, then choose a first touch, pass and supporting run. Solid lines show the ball; dashed lines show your run and arrival. Compare the full attack with the coach, or use pause and slow playback to look again.",
+  "scanPassPossessionHelpBody": "Tap a direction arrow for your first touch, then tap a teammate to pass. Without the ball, tap open space to move number 6, or choose Hold position. Tap another space during your run to change destination. Solid lines show ball travel; dashed lines show player movement. Teammates can continue forward without returning the ball. Watch the attack finish and compare it with the coach route.",
   "scanPassPossessionGuidedStatus": "Play as #6 · Escape pressure and connect the attack.",
   "scanPassPossessionObserveStatus": "Watch number 6 receive before choosing.",
   "scanPassPossessionChangedObserveStatus": "Different defensive setup: read the first defender and the space around #8 again.",
@@ -10987,9 +10987,9 @@
   "scanPassPossessionCoachBranch": "Coach’s suggested attack",
   "scanPassPossessionMineShort": "Mine",
   "scanPassPossessionCoachShort": "Coach",
-  "scanPassPossessionPromptFirstTouch": "First touch: where does number 6 create the next action?",
-  "scanPassPossessionPromptNextAction": "Next action: which teammate can keep the attack moving?",
-  "scanPassPossessionPromptSupport": "Support: where should number 6 move to connect again?",
+  "scanPassPossessionPromptFirstTouch": "First touch · tap a direction arrow.",
+  "scanPassPossessionPromptNextAction": "Pass · tap the receiving teammate.",
+  "scanPassPossessionPromptSupport": "Move · tap open space, or hold your position.",
   "scanPassPossessionChoiceTouchAway": "Outside touch",
   "scanPassPossessionChoiceTurnForward": "Turn forward",
   "scanPassPossessionChoiceLayoff": "Layoff",
@@ -10999,15 +10999,19 @@
   "scanPassPossessionChoiceSupportInside": "Inside",
   "scanPassPossessionChoiceSupportWide": "Wide",
   "scanPassPossessionChoiceSupportBehind": "Behind",
-  "scanPassPossessionChoiceTouchAwayLabel": "Take the first touch into the lower outside space",
+  "scanPassPossessionChoiceSupportHold": "Hold position",
+  "scanPassPossessionChoiceSupportCustom": "Move",
+  "scanPassPossessionChoiceTouchAwayLabel": "Take the first touch away from pressure",
   "scanPassPossessionChoiceTurnForwardLabel": "Turn forward with the first touch",
   "scanPassPossessionChoiceLayoffLabel": "Play a one-touch layoff to number 4",
   "scanPassPossessionChoicePass8Label": "Pass to number 8",
   "scanPassPossessionChoicePass9Label": "Pass to number 9",
   "scanPassPossessionChoiceRecycle4Label": "Recycle possession through number 4",
-  "scanPassPossessionChoiceSupportInsideLabel": "Move number 6 into the inside return angle",
-  "scanPassPossessionChoiceSupportWideLabel": "Move number 6 into the wide return angle",
+  "scanPassPossessionChoiceSupportInsideLabel": "Move number 6 into an inside support position",
+  "scanPassPossessionChoiceSupportWideLabel": "Move number 6 into a wide support position",
   "scanPassPossessionChoiceSupportBehindLabel": "Move number 6 behind the ball",
+  "scanPassPossessionChoiceSupportHoldLabel": "Hold number 6 in the current support position",
+  "scanPassPossessionChoiceSupportCustomLabel": "Move number 6 to the selected pitch point",
   "scanPassPossessionNumberedChoice": "{number}. {choice} · {metres}m",
   "@scanPassPossessionNumberedChoice": {
     "placeholders": {
@@ -11032,6 +11036,17 @@
         "type": "String"
       },
       "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionChoiceDirectLabel": "{choice}. {distance}.",
+  "@scanPassPossessionChoiceDirectLabel": {
+    "placeholders": {
+      "choice": {
+        "type": "String"
+      },
+      "distance": {
         "type": "String"
       }
     }
@@ -11063,6 +11078,31 @@
       }
     }
   },
+  "scanPassPossessionFirstTouchDistance": "First touch {metres} m",
+  "@scanPassPossessionFirstTouchDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionMovementDistance": "Player movement {metres} m",
+  "@scanPassPossessionMovementDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionPassDistance": "Pass {metres} m",
+  "@scanPassPossessionPassDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionOpenPitchSupportLabel": "Tap open space to move number 6 there. Use the direction buttons or hold position with a keyboard.",
   "scanPassPossessionMomentReceive": "Receive",
   "scanPassPossessionMomentTouch": "Touch",
   "scanPassPossessionMomentLink": "Link",
@@ -11094,7 +11134,7 @@
       }
     }
   },
-  "scanPassPossessionFieldSemantics": "A coached football possession attacking to the right. Number 6 is the learner, the ball and players continue through the full route, and separate buttons choose the next decision.",
+  "scanPassPossessionFieldSemantics": "A coached football possession attacking to the right. Number 6 is the learner, and on-pitch controls choose the next touch, pass or support movement.",
   "scanPassPossessionPause": "Pause",
   "scanPassPossessionResume": "Resume",
   "scanPassPossessionMotionPass": "#{passer} → #{receiver} · Watch the receiver’s next connection.",
@@ -11199,7 +11239,15 @@
       }
     }
   },
-  "scanPassPossessionReturnClosed": "The return lane to #6 was closed, so the teammate chose another connection. Read the cover defender when supporting.",
+  "scanPassPossessionSupportForward": "After your movement, number {player} continued forward without a return to number 6.",
+  "@scanPassPossessionSupportForward": {
+    "placeholders": {
+      "player": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionReturnClosed": "The team chose a reset instead of a return to number 6. Compare the passing lanes in the replay.",
   "scanPassPossessionShotResult": "The attack reached a shot by #{player}. {result}",
   "@scanPassPossessionShotResult": {
     "placeholders": {
@@ -11211,5 +11259,31 @@
       }
     }
   },
-  "scanPassPossessionLearnerLabel": "You · #6"
+  "scanPassPossessionLearnerLabel": "You · #6",
+  "scanPassPossessionRetargetHint": "Moving · tap another space to change destination.",
+  "scanPassPossessionSupportEvidence": "Moved {metres}m · nearest defender: {before}m → {after}m. {continuation}",
+  "@scanPassPossessionSupportEvidence": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      },
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      },
+      "continuation": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionShotDistance": "Shot {metres}m",
+  "@scanPassPossessionShotDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  }
 }

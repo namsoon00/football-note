@@ -34,6 +34,8 @@ enum ScanPassPossessionChoice {
   supportInside,
   supportWide,
   supportBehind,
+  supportHold,
+  supportCustom,
 }
 
 enum ScanPassPossessionOutcomeKind { chanceCreated, recycled, turnover }
@@ -102,6 +104,7 @@ class ScanPassPossessionDecisionPoint {
   final int activeNumber;
   final List<ScanPassPossessionChoice> choices;
   final List<ScanPassPossessionChoice> decisions;
+  final List<ScanPassPoint?> decisionTargets;
   final List<AttackTransition> history;
 
   ScanPassPossessionDecisionPoint({
@@ -111,9 +114,11 @@ class ScanPassPossessionDecisionPoint {
     required this.activeNumber,
     required List<ScanPassPossessionChoice> choices,
     required List<ScanPassPossessionChoice> decisions,
+    List<ScanPassPoint?> decisionTargets = const <ScanPassPoint?>[],
     required List<AttackTransition> history,
   })  : choices = List.unmodifiable(choices),
         decisions = List.unmodifiable(decisions),
+        decisionTargets = List.unmodifiable(decisionTargets),
         history = List.unmodifiable(history);
 
   ScanPassPossessionChoice? get firstTouch =>
@@ -126,6 +131,7 @@ class ScanPassPossessionDecisionPoint {
 class ScanPassPossessionStepResult {
   final ScanPassPossessionDecisionPoint point;
   final ScanPassPossessionChoice choice;
+  final ScanPassPoint? decisionTarget;
   final List<AttackTransition> transitions;
   final ScanPassPossessionDecisionPoint? nextPoint;
   final ScanPassPossessionBranch? branch;
@@ -133,6 +139,7 @@ class ScanPassPossessionStepResult {
   ScanPassPossessionStepResult({
     required this.point,
     required this.choice,
+    this.decisionTarget,
     required List<AttackTransition> transitions,
     this.nextPoint,
     this.branch,
@@ -147,6 +154,7 @@ class ScanPassPossessionStepResult {
 class ScanPassPossessionBranch {
   final ScanPassPossessionScene scene;
   final List<ScanPassPossessionChoice> decisions;
+  final List<ScanPassPoint?> decisionTargets;
   final List<AttackTransition> transitions;
   final ScanPassPossessionOutcomeKind outcome;
   final List<ScanPassPossessionEvidence> evidence;
@@ -155,11 +163,13 @@ class ScanPassPossessionBranch {
   ScanPassPossessionBranch({
     required this.scene,
     required List<ScanPassPossessionChoice> decisions,
+    List<ScanPassPoint?> decisionTargets = const <ScanPassPoint?>[],
     required List<AttackTransition> transitions,
     required this.outcome,
     required List<ScanPassPossessionEvidence> evidence,
     this.recommended = false,
   })  : decisions = List.unmodifiable(decisions),
+        decisionTargets = List.unmodifiable(decisionTargets),
         transitions = List.unmodifiable(transitions),
         evidence = List.unmodifiable(evidence);
 
@@ -173,6 +183,7 @@ class ScanPassPossessionBranch {
       ScanPassPossessionBranch(
         scene: scene,
         decisions: decisions,
+        decisionTargets: decisionTargets,
         transitions: transitions,
         outcome: outcome,
         evidence: evidence,
@@ -208,11 +219,34 @@ class ScanPassPossessionBranch {
   }
 }
 
+class _PossessionContinuation {
+  final List<AttackTransition> transitions;
+  final bool returnedToLearner;
+
+  _PossessionContinuation({
+    required List<AttackTransition> transitions,
+    this.returnedToLearner = false,
+  }) : transitions = List.unmodifiable(transitions);
+}
+
+class _PossessionContinuationCandidate {
+  final List<AttackTransition> transitions;
+  final double value;
+  final bool returnedToLearner;
+
+  _PossessionContinuationCandidate({
+    required List<AttackTransition> transitions,
+    required this.value,
+    this.returnedToLearner = false,
+  }) : transitions = List.unmodifiable(transitions);
+}
+
 class ScanPassPossessionLessonEngine {
   const ScanPassPossessionLessonEngine();
 
   static const double pitchLengthMetres = 105;
   static const double pitchWidthMetres = 68;
+  static const int _maxLearnerDecisions = 5;
   static double distanceMetres(ScanPassPoint a, ScanPassPoint b) =>
       _metres(b - a).distance;
   static ScanPassPoint _metres(ScanPassPoint p) =>
@@ -429,8 +463,11 @@ class ScanPassPossessionLessonEngine {
           ScanPassPossessionChoice.oneTouchLayoff,
         ],
         decisions: const <ScanPassPossessionChoice>[],
+        decisionTargets: const <ScanPassPoint?>[],
         history: const <AttackTransition>[],
       );
+
+  ScanPassPoint boundedSupportTarget(ScanPassPoint target) => _field(target);
 
   ScanPassPoint targetFor(
     ScanPassPossessionDecisionPoint point,
@@ -442,15 +479,18 @@ class ScanPassPossessionLessonEngine {
       ScanPassPossessionChoice.turnForward => _turnForwardTarget(point.scene),
       ScanPassPossessionChoice.oneTouchLayoff ||
       ScanPassPossessionChoice.recycle4 =>
-        _attacker(state, 4).position,
-      ScanPassPossessionChoice.passTo8 => _attacker(state, 8).position,
-      ScanPassPossessionChoice.passTo9 => _attacker(state, 9).position,
+        _passTarget(state, 4),
+      ScanPassPossessionChoice.passTo8 => _passTarget(state, 8),
+      ScanPassPossessionChoice.passTo9 => _passTarget(state, 9),
       ScanPassPossessionChoice.supportInside =>
         _supportTarget(point.state, ScanPassPossessionChoice.supportInside),
       ScanPassPossessionChoice.supportWide =>
         _supportTarget(point.state, ScanPassPossessionChoice.supportWide),
       ScanPassPossessionChoice.supportBehind =>
         _supportTarget(point.state, ScanPassPossessionChoice.supportBehind),
+      ScanPassPossessionChoice.supportHold ||
+      ScanPassPossessionChoice.supportCustom =>
+        _attacker(state, 6).position,
     };
   }
 
@@ -468,6 +508,33 @@ class ScanPassPossessionLessonEngine {
         _chooseNextAction(point, choice),
       ScanPassPossessionDecisionKind.support => _chooseSupport(point, choice),
     };
+  }
+
+  ScanPassPossessionStepResult chooseSupportTarget(
+    ScanPassPossessionDecisionPoint point,
+    ScanPassPoint target,
+  ) {
+    if (point.kind != ScanPassPossessionDecisionKind.support) {
+      throw ArgumentError.value(point.kind, 'kind', 'Support point expected');
+    }
+    return _chooseSupport(
+      point,
+      ScanPassPossessionChoice.supportCustom,
+      target: boundedSupportTarget(target),
+    );
+  }
+
+  ScanPassPossessionStepResult chooseSupportHold(
+    ScanPassPossessionDecisionPoint point,
+  ) {
+    if (point.kind != ScanPassPossessionDecisionKind.support) {
+      throw ArgumentError.value(point.kind, 'kind', 'Support point expected');
+    }
+    return _chooseSupport(
+      point,
+      ScanPassPossessionChoice.supportHold,
+      target: _attacker(point.state, 6).position,
+    );
   }
 
   ScanPassPossessionChoice recommendedChoice(
@@ -523,14 +590,18 @@ class ScanPassPossessionLessonEngine {
     ScanPassPossessionDecisionPoint point,
     ScanPassPossessionChoice choice,
   ) {
+    final target = targetFor(point, choice);
     final transition = choice == ScanPassPossessionChoice.oneTouchLayoff
         ? _passTransition(point.scene, point.state, 4, duration: .48)
-        : _touchTransition(point.scene, point.state, targetFor(point, choice));
-    if (transition.after.finished) return _ended(point, choice, [transition]);
+        : _touchTransition(point.scene, point.state, target);
+    if (transition.after.finished) {
+      return _ended(point, choice, [transition], decisionTarget: target);
+    }
     final layoff = choice == ScanPassPossessionChoice.oneTouchLayoff;
     return ScanPassPossessionStepResult(
       point: point,
       choice: choice,
+      decisionTarget: target,
       transitions: [transition],
       nextPoint: ScanPassPossessionDecisionPoint(
         scene: point.scene,
@@ -547,6 +618,7 @@ class ScanPassPossessionLessonEngine {
                 ScanPassPossessionChoice.recycle4
               ],
         decisions: [...point.decisions, choice],
+        decisionTargets: [...point.decisionTargets, target],
         history: [...point.history, transition],
       ),
     );
@@ -556,6 +628,7 @@ class ScanPassPossessionLessonEngine {
     ScanPassPossessionDecisionPoint point,
     ScanPassPossessionChoice choice,
   ) {
+    final target = targetFor(point, choice);
     final receiver = switch (choice) {
       ScanPassPossessionChoice.passTo8 => 8,
       ScanPassPossessionChoice.passTo9 => 9,
@@ -564,11 +637,20 @@ class ScanPassPossessionLessonEngine {
     final transition =
         _passTransition(point.scene, point.state, receiver, duration: .7);
     if (transition.after.finished || receiver == 4) {
-      return _ended(point, choice, [transition]);
+      return _ended(point, choice, [transition], decisionTarget: target);
+    }
+    if (point.decisions.length + 1 >= _maxLearnerDecisions) {
+      return _ended(
+        point,
+        choice,
+        [transition, ..._automaticFinish(point.scene, transition.after)],
+        decisionTarget: target,
+      );
     }
     return ScanPassPossessionStepResult(
       point: point,
       choice: choice,
+      decisionTarget: target,
       transitions: [transition],
       nextPoint: ScanPassPossessionDecisionPoint(
         scene: point.scene,
@@ -577,69 +659,63 @@ class ScanPassPossessionLessonEngine {
         activeNumber: 6,
         choices: _supportChoices,
         decisions: [...point.decisions, choice],
+        decisionTargets: [...point.decisionTargets, target],
         history: [...point.history, transition],
       ),
     );
   }
 
   ScanPassPossessionStepResult _chooseSupport(
-    ScanPassPossessionDecisionPoint point,
-    ScanPassPossessionChoice choice,
-  ) {
+      ScanPassPossessionDecisionPoint point, ScanPassPossessionChoice choice,
+      {ScanPassPoint? target}) {
+    final decisionTarget = target ?? targetFor(point, choice);
     final transitions = <AttackTransition>[
-      _supportRun(point.scene, point.state, choice)
+      _supportRun(point.scene, point.state, decisionTarget)
     ];
     var state = transitions.last.after;
-    if (state.finished) return _ended(point, choice, transitions);
-    final back = _passTransition(point.scene, state, 6, duration: .5);
-    // Teammates can refuse a blocked return and reset. The same geometry and
-    // teammate policy apply to learner and coach continuations.
-    if (back.after.finished) {
-      final reset = _passTransition(point.scene, state, 4, duration: .7);
-      transitions.add(reset.after.finished ? back : reset);
-      return _ended(point, choice, transitions);
+    if (state.finished) {
+      return _ended(point, choice, transitions, decisionTarget: decisionTarget);
     }
-    transitions.add(back);
-    state = back.after;
-    // Use the support position to find a forward receiver with a useful next
-    // action. Evaluate real pass flights and shots, not choice-name recipes.
-    List<AttackTransition>? best;
-    var bestValue = -1e9;
-    for (final number in [8, 9]) {
-      final pass = _passTransition(point.scene, state, number, duration: .7);
-      if (pass.after.finished || pass.after.ball.x < state.ball.x + .015) {
-        continue;
-      }
-      final path = <AttackTransition>[pass];
-      var receiving = pass.after;
-      if (receiving.ball.x < .69) {
-        final carry = _carryTransition(
-            receiving, _field(receiving.ball + const ScanPassPoint(.045, 0)),
-            duration: .8);
-        path.add(carry);
-        receiving = carry.after;
-      }
-      if (receiving.finished || receiving.ball.x < .66) continue;
-      final shot = _shotTransition(point.scene, receiving);
-      path.add(shot);
-      final value = receiving.ball.x * 20 +
-          _pressureGap(receiving).clamp(0, 8) * .8 +
-          (shot.after.end == AttackEnd.goal ? 2 : 0);
-      if (value > bestValue) {
-        bestValue = value;
-        best = path;
-      }
+    final continuation = _teammateContinuation(
+      point.scene,
+      state,
+      allowReturn: point.decisions.length + 1 < _maxLearnerDecisions,
+    );
+    transitions.addAll(continuation.transitions);
+    state = transitions.last.after;
+    if (continuation.returnedToLearner &&
+        !state.finished &&
+        point.decisions.length + 1 < _maxLearnerDecisions) {
+      return ScanPassPossessionStepResult(
+        point: point,
+        choice: choice,
+        decisionTarget: decisionTarget,
+        transitions: transitions,
+        nextPoint: ScanPassPossessionDecisionPoint(
+          scene: point.scene,
+          kind: ScanPassPossessionDecisionKind.nextAction,
+          state: state,
+          activeNumber: 6,
+          choices: const [
+            ScanPassPossessionChoice.passTo8,
+            ScanPassPossessionChoice.passTo9,
+            ScanPassPossessionChoice.recycle4
+          ],
+          decisions: [...point.decisions, choice],
+          decisionTargets: [...point.decisionTargets, decisionTarget],
+          history: [...point.history, ...transitions],
+        ),
+      );
     }
-    if (best != null) {
-      transitions.addAll(best);
-    } else {
-      transitions.add(_passTransition(point.scene, state, 4, duration: .7));
-    }
-    return _ended(point, choice, transitions);
+    return _ended(point, choice, transitions, decisionTarget: decisionTarget);
   }
 
-  ScanPassPossessionStepResult _ended(ScanPassPossessionDecisionPoint point,
-      ScanPassPossessionChoice choice, List<AttackTransition> transitions) {
+  ScanPassPossessionStepResult _ended(
+    ScanPassPossessionDecisionPoint point,
+    ScanPassPossessionChoice choice,
+    List<AttackTransition> transitions, {
+    ScanPassPoint? decisionTarget,
+  }) {
     final all = [...point.history, ...transitions];
     final finalState = all.last.after;
     final hasShot = all.any((t) => t.action.kind == AttackActionKind.shoot);
@@ -670,10 +746,14 @@ class ScanPassPossessionLessonEngine {
     final runIndex =
         all.indexWhere((t) => t.action.kind == AttackActionKind.hold);
     if (runIndex >= 0 &&
-        all.skip(runIndex + 1).any((t) =>
-            t.action.kind == AttackActionKind.pass &&
-            t.action.targetNumber == 6 &&
-            !t.after.finished)) {
+        all.skip(runIndex + 1).any((t) {
+          if (t.after.finished) return false;
+          if (t.action.kind == AttackActionKind.pass) {
+            return t.action.targetNumber == 6 || t.action.targetNumber != 4;
+          }
+          return t.action.kind == AttackActionKind.carry ||
+              t.action.kind == AttackActionKind.shoot;
+        })) {
       evidence.add(ScanPassPossessionEvidence.supportConnected);
     }
     evidence.add(switch (outcome) {
@@ -687,8 +767,10 @@ class ScanPassPossessionLessonEngine {
     return ScanPassPossessionStepResult(
         point: point,
         choice: choice,
+        decisionTarget: decisionTarget,
         transitions: transitions,
-        branch: _branch(point, choice, transitions, outcome, evidence));
+        branch: _branch(point, choice, transitions, outcome, evidence,
+            decisionTarget: decisionTarget));
   }
 
   List<int> availableConnections(
@@ -709,16 +791,153 @@ class ScanPassPossessionLessonEngine {
       .map((p) => distanceMetres(p.position, state.ball))
       .reduce(math.min);
 
+  List<AttackTransition> _automaticFinish(
+    ScanPassPossessionScene scene,
+    AttackState state,
+  ) =>
+      _teammateContinuation(scene, state, allowReturn: false).transitions;
+
+  _PossessionContinuation _teammateContinuation(
+    ScanPassPossessionScene scene,
+    AttackState state, {
+    required bool allowReturn,
+  }) {
+    if (state.finished) {
+      return _PossessionContinuation(transitions: const <AttackTransition>[]);
+    }
+    final candidates = <_PossessionContinuationCandidate>[];
+
+    for (final number in const [8, 9]) {
+      if (number == state.carrierNumber) continue;
+      final pass = _passTransition(scene, state, number, duration: .7);
+      if (pass.after.finished || pass.after.ball.x < state.ball.x + .012) {
+        continue;
+      }
+      final path = <AttackTransition>[pass];
+      path.addAll(_finishAdvantage(scene, pass.after));
+      candidates.add(_PossessionContinuationCandidate(
+        transitions: path,
+        value: _candidateValue(scene, path, base: 88),
+      ));
+    }
+
+    final carry = _carryTransition(
+      state,
+      _field(state.ball + const ScanPassPoint(.052, 0)),
+      duration: .8,
+    );
+    if (!carry.after.finished && carry.after.ball.x > state.ball.x + .018) {
+      final path = <AttackTransition>[carry];
+      path.addAll(_finishAdvantage(scene, carry.after));
+      candidates.add(_PossessionContinuationCandidate(
+        transitions: path,
+        value: _candidateValue(scene, path, base: 76),
+      ));
+    }
+
+    if (allowReturn && state.carrierNumber != 6) {
+      final back = _passTransition(scene, state, 6, duration: .5);
+      if (!back.after.finished && _returnIsUseful(scene, state, back.after)) {
+        candidates.add(_PossessionContinuationCandidate(
+          transitions: <AttackTransition>[back],
+          value: _candidateValue(scene, <AttackTransition>[back], base: 58),
+          returnedToLearner: true,
+        ));
+      }
+    }
+
+    final reset = _passTransition(scene, state, 4, duration: .7);
+    candidates.add(_PossessionContinuationCandidate(
+      transitions: <AttackTransition>[reset],
+      value: reset.after.finished
+          ? -20
+          : _candidateValue(scene, <AttackTransition>[reset], base: 34),
+    ));
+
+    candidates.sort((a, b) => b.value.compareTo(a.value));
+    final best = candidates.first;
+    return _PossessionContinuation(
+      transitions: best.transitions,
+      returnedToLearner: best.returnedToLearner,
+    );
+  }
+
+  List<AttackTransition> _finishAdvantage(
+    ScanPassPossessionScene scene,
+    AttackState state,
+  ) {
+    if (state.finished) return const <AttackTransition>[];
+    final path = <AttackTransition>[];
+    var current = state;
+    if (current.ball.x < .69) {
+      final carry = _carryTransition(
+        current,
+        _field(current.ball + const ScanPassPoint(.045, 0)),
+        duration: .8,
+      );
+      path.add(carry);
+      current = carry.after;
+    }
+    if (!current.finished && current.ball.x >= .66) {
+      path.add(_shotTransition(scene, current));
+    }
+    return path;
+  }
+
+  double _candidateValue(
+    ScanPassPossessionScene scene,
+    List<AttackTransition> path, {
+    required double base,
+  }) {
+    if (path.isEmpty) return base;
+    final state = path.last.after;
+    final endValue = switch (state.end) {
+      AttackEnd.goal => 30,
+      AttackEnd.saved || AttackEnd.blocked => 22,
+      AttackEnd.wide => 14,
+      AttackEnd.intercepted || AttackEnd.offside => -60,
+      null => 0,
+    };
+    final connections =
+        state.finished ? 0 : availableConnections(scene, state).length;
+    return base +
+        endValue +
+        state.ball.x * 24 +
+        (state.finished ? 0 : _pressureGap(state).clamp(0, 8) * 1.6) +
+        connections * 3;
+  }
+
+  bool _returnIsUseful(
+    ScanPassPossessionScene scene,
+    AttackState before,
+    AttackState after,
+  ) {
+    final beforeGap = _pressureGap(before);
+    final afterGap = _pressureGap(after);
+    final next = availableConnections(scene, after)
+        .where((number) => number != before.carrierNumber)
+        .length;
+    return after.carrierNumber == 6 &&
+        next > 0 &&
+        afterGap > 1.7 &&
+        (afterGap > beforeGap + .45 || after.ball.x >= before.ball.x - .015);
+  }
+
   ScanPassPossessionBranch _branch(
     ScanPassPossessionDecisionPoint point,
     ScanPassPossessionChoice choice,
     List<AttackTransition> newTransitions,
     ScanPassPossessionOutcomeKind outcome,
-    List<ScanPassPossessionEvidence> evidence,
-  ) =>
+    List<ScanPassPossessionEvidence> evidence, {
+    ScanPassPoint? decisionTarget,
+  }) =>
       ScanPassPossessionBranch(
         scene: point.scene,
         decisions: <ScanPassPossessionChoice>[...point.decisions, choice],
+        decisionTargets: <ScanPassPoint?>[
+          ...point.decisionTargets,
+          decisionTarget
+        ],
         transitions: <AttackTransition>[...point.history, ...newTransitions],
         outcome: outcome,
         evidence: evidence,
@@ -729,6 +948,7 @@ class ScanPassPossessionLessonEngine {
     ScanPassPossessionChoice.supportInside,
     ScanPassPossessionChoice.supportWide,
     ScanPassPossessionChoice.supportBehind,
+    ScanPassPossessionChoice.supportHold,
   ];
 
   AttackTransition _touchTransition(ScanPassPossessionScene scene,
@@ -748,6 +968,17 @@ class ScanPassPossessionLessonEngine {
   AttackTransition _passTransition(
       ScanPassPossessionScene scene, AttackState before, int targetNumber,
       {required double duration}) {
+    final plan = _passPlan(before, targetNumber);
+    return _simulate(before, AttackAction.pass(targetNumber), plan.flight,
+        plan.target, targetNumber,
+        receiverTarget: plan.target);
+  }
+
+  ScanPassPoint _passTarget(AttackState before, int targetNumber) =>
+      _passPlan(before, targetNumber).target;
+
+  ({ScanPassPoint target, double flight}) _passPlan(
+      AttackState before, int targetNumber) {
     final receiver = _attacker(before, targetNumber);
     var flight = distanceMetres(before.ball, receiver.position) / 19;
     var target = receiver.position;
@@ -758,18 +989,15 @@ class ScanPassPossessionLessonEngine {
           receiving: true, releasing: before.carrierNumber);
       target = _towardMetres(receiver.position, aim,
           math.min(4.8 * flight, distanceMetres(receiver.position, aim)));
-      flight = (distanceMetres(before.ball, target) / 19).clamp(.18, 2.7);
+      flight = (distanceMetres(before.ball, target) / 19).clamp(.18, 4.0);
     }
-    return _simulate(
-        before, AttackAction.pass(targetNumber), flight, target, targetNumber,
-        receiverTarget: target);
+    return (target: target, flight: flight);
   }
 
-  AttackTransition _supportRun(ScanPassPossessionScene scene,
-      AttackState before, ScanPassPossessionChoice support) {
-    final target = _supportTarget(before, support);
-    final duration =
-        distanceMetres(_attacker(before, 6).position, target) / 4.8 + .25;
+  AttackTransition _supportRun(
+      ScanPassPossessionScene scene, AttackState before, ScanPassPoint target) {
+    final duration = math.max(
+        .75, distanceMetres(_attacker(before, 6).position, target) / 4.8 + .25);
     return _simulate(before, const AttackAction.hold(), duration, before.ball,
         before.carrierNumber,
         learnerTarget: target);
@@ -971,10 +1199,6 @@ class ScanPassPossessionLessonEngine {
         return _field(
             player.position + _normalized(ScanPassPoint(1.2, -side * 1.2)));
       }
-      if (releasing == 6) {
-        return _field(
-            player.position + _normalized(ScanPassPoint(3, -side * 2)));
-      }
       return player.position;
     }
     if (player.number == 8) {
@@ -1051,7 +1275,13 @@ class ScanPassPossessionLessonEngine {
             : change * (acceleration * dt / change.distance));
     final bounded = velocity;
     final pos = _field(p.position + _normalized(bounded * dt));
-    return _moved(p, pos, dt);
+    return p.copyWith(
+      position: pos,
+      velocity: _normalized(bounded),
+      facingRadians: bounded.distance < .001
+          ? p.facingRadians
+          : math.atan2(bounded.y, bounded.x),
+    );
   }
 
   ScanPassPoint _plannedPosition(
@@ -1131,6 +1361,9 @@ class ScanPassPossessionLessonEngine {
       ScanPassPossessionChoice.supportInside => ScanPassPoint(7, -side * 4),
       ScanPassPossessionChoice.supportWide => ScanPassPoint(5, side * 6),
       ScanPassPossessionChoice.supportBehind => ScanPassPoint(-4, -side * 4),
+      ScanPassPossessionChoice.supportHold ||
+      ScanPassPossessionChoice.supportCustom =>
+        const ScanPassPoint(0, 0),
       _ => throw StateError('Not a support choice: $choice')
     };
     return _field(origin + _normalized(delta));

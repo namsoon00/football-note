@@ -7,6 +7,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 
 void main() {
+  WidgetController.hitTestWarningShouldBeFatal = true;
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('default entry opens the continuous situation catalog',
@@ -102,15 +103,15 @@ void main() {
     await tester.pump();
     await _openScenario(tester, 'centralReceive-pressure');
 
-    expect(find.textContaining('m'), findsWidgets);
     final choiceOverlay = _routeOverlay(tester);
     expect(choiceOverlay.routes, hasLength(3));
     for (final dynamic route in choiceOverlay.routes as List<dynamic>) {
       expect(route.distanceMetres as double, greaterThan(0));
+      expect(route.label as String, contains('m'));
     }
 
     await tester
-        .tap(find.byKey(const ValueKey<String>('possession-dock-touchAway')));
+        .tap(find.byKey(const ValueKey<String>('possession-action-touchAway')));
     await tester.pump();
     final executingOverlay = _routeOverlay(tester);
     expect(executingOverlay.routes, isNotEmpty);
@@ -141,17 +142,18 @@ void main() {
     for (final choice in path) {
       await _tapChoiceAndFinish(tester, choice);
     }
-    expect(find.byKey(const ValueKey<String>('possession-dock-supportInside')),
+    expect(
+        find.byKey(const ValueKey<String>('possession-action-supportInside')),
         findsOneWidget);
     final supportOverlay = _routeOverlay(tester);
-    expect(supportOverlay.routes, hasLength(3));
+    expect(supportOverlay.routes, hasLength(4));
     for (final dynamic route in supportOverlay.routes as List<dynamic>) {
       expect(route.ballPath as bool, isFalse);
-      expect(route.distanceMetres as double, greaterThan(0));
+      expect(route.label as String, contains('Player movement'));
     }
 
     await tester.tap(find.byKey(ValueKey<String>(
-        'possession-dock-${_supportChoiceForCurrentScene().name}')));
+        'possession-action-${_supportChoiceForCurrentScene().name}')));
     await tester.pump();
     final selectedOverlay = _routeOverlay(tester);
     expect(selectedOverlay.routes, isNotEmpty);
@@ -161,6 +163,74 @@ void main() {
       isFalse,
     );
   });
+
+  testWidgets('open pitch support tap commits a custom movement destination',
+      (tester) async {
+    await tester.pumpWidget(_app(
+      disableAnimations: false,
+      home: const ScanPassPossessionLessonScreen(
+        observationDuration: Duration.zero,
+        executionDuration: Duration(milliseconds: 80),
+      ),
+    ));
+    await tester.pump();
+    await _openScenario(tester, 'centralReceive-pressure');
+
+    for (final choice in _pathToSupportDecision()) {
+      await _tapChoiceAndFinish(tester, choice);
+    }
+
+    final pitch = find.byKey(const ValueKey<String>('possession-pitch'));
+    await tester.tapAt(tester.getCenter(pitch) + const Offset(34, 28));
+    await tester.pump();
+
+    final selectedOverlay = _routeOverlay(tester);
+    expect(selectedOverlay.routes, isNotEmpty);
+    expect(
+      (selectedOverlay.routes as List<dynamic>)
+          .any((dynamic route) => route.ballPath as bool),
+      isFalse,
+    );
+  });
+
+  for (final size in const [Size(320, 568), Size(568, 320)]) {
+    testWidgets('pitch hitboxes execute decisions at $size', (tester) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(_app(
+        disableAnimations: false,
+        home: const ScanPassPossessionLessonScreen(
+          observationDuration: Duration.zero,
+          executionDuration: Duration(milliseconds: 80),
+        ),
+      ));
+      await tester.pump();
+      await _openScenario(tester, 'centralReceive-pressure');
+
+      final touch = find.byKey(
+        const ValueKey<String>('possession-action-touchAway'),
+      );
+      expect(touch, findsOneWidget);
+      expect(tester.getSize(touch), const Size(48, 48));
+      await tester.tap(touch);
+      await tester.pumpAndSettle(const Duration(milliseconds: 40));
+
+      final pass = find.byKey(
+        const ValueKey<String>('possession-action-passTo8'),
+      );
+      expect(pass, findsOneWidget);
+      expect(tester.getSize(pass), const Size(48, 48));
+      await tester.tap(pass);
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey<String>('possession-pause')),
+        findsOneWidget,
+      );
+    });
+  }
 
   testWidgets('speed toggle is readable and changes state', (tester) async {
     await tester.pumpWidget(_lessonApp());
@@ -196,13 +266,19 @@ void main() {
       for (final key in [
         'possession-coach-demo',
         'possession-return-catalog',
-        'possession-dock-touchAway',
+        'possession-action-touchAway',
       ]) {
         final finder = find.byKey(ValueKey<String>(key));
         expect(finder.hitTestable(), findsOneWidget, reason: key);
         expect(tester.getRect(finder).bottom,
             lessThanOrEqualTo(config.size.height));
       }
+      expect(
+        tester.getSize(
+          find.byKey(const ValueKey<String>('possession-action-touchAway')),
+        ),
+        const Size(48, 48),
+      );
       expect(tester.takeException(), isNull);
     });
   }
@@ -326,7 +402,7 @@ Future<void> _tapChoiceAndFinish(
   ScanPassPossessionChoice choice,
 ) async {
   await tester
-      .tap(find.byKey(ValueKey<String>('possession-dock-${choice.name}')));
+      .tap(find.byKey(ValueKey<String>('possession-action-${choice.name}')));
   await tester.pumpAndSettle(const Duration(milliseconds: 40));
 }
 
