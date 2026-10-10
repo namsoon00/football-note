@@ -10412,6 +10412,121 @@
   "scanPassJudgmentContinueAction": "계속",
   "scanPassJudgmentSummaryAction": "세트 정리",
   "scanPassJudgmentFreshSessionAction": "새 세션",
+  "scanPassJudgmentOverviewAction": "전체 경기장",
+  "scanPassJudgmentFocusAction": "주변 집중",
+  "scanPassJudgmentPairCueAction": "단서 변화",
+  "scanPassJudgmentCoachDetailAction": "코칭 자세히",
+  "scanPassJudgmentCoachDetailTitle": "코칭 자세히",
+  "scanPassJudgmentCoachObservedLabel": "확인할 움직임",
+  "scanPassJudgmentCoachConsequenceLabel": "선택 결과",
+  "scanPassJudgmentCoachNextLabel": "다음 관찰",
+  "scanPassJudgmentCoachAlternativeLabel": "같은 순간 비교",
+  "scanPassJudgmentCoachOpponentNumber": "상대 {number}번",
+  "@scanPassJudgmentCoachOpponentNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassJudgmentCoachTeammateNumber": "동료 {number}번",
+  "@scanPassJudgmentCoachTeammateNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassJudgmentCoachCompact": "{actor}: {cue}. {reason} 다음은 {habit}",
+  "@scanPassJudgmentCoachCompact": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "cue": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      },
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachObserved": "{actor}: {cue}.",
+  "@scanPassJudgmentCoachObserved": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "cue": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachConsequence": "{quality}: {reason}",
+  "@scanPassJudgmentCoachConsequence": {
+    "placeholders": {
+      "quality": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachPassArrivedIsolated": "패스는 연결됐지만, 받는 선수가 압박을 받거나 다음 패스 길이 부족했습니다. {reason}",
+  "@scanPassJudgmentCoachPassArrivedIsolated": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachPassArrivedSupported": "패스가 연결됐고, 받는 선수가 이어 갈 패스 길도 남았습니다. {reason}",
+  "@scanPassJudgmentCoachPassArrivedSupported": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachNext": "반복할 습관: {habit}",
+  "@scanPassJudgmentCoachNext": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachAlternative": "같은 순간에서 {action}도 실행해 보니 {quality}로 이어졌습니다: {reason}",
+  "@scanPassJudgmentCoachAlternative": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "quality": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachNoAlternative": "같은 판단 시점에서 비교할 다른 선택이 없습니다.",
+  "scanPassJudgmentCuePressure": "공 쪽으로 압박을 좁혔습니다",
+  "scanPassJudgmentCueCoverLane": "패스 길을 덮었습니다",
+  "scanPassJudgmentCueSupportRun": "리턴 각도를 바꿨습니다",
+  "scanPassJudgmentCueReceiverMovement": "공을 받을 위치를 잡았습니다",
+  "scanPassJudgmentCueRecoveryRun": "뒤 공간으로 회복했습니다",
+  "scanPassJudgmentCueOffsideLine": "패스 순간 오프사이드 라인 너머에 있었습니다",
+  "scanPassJudgmentHabitFirstTouchAway": "공이 오기 전에 압박 방향과 다음 패스 길을 함께 확인합니다",
+  "scanPassJudgmentHabitScanCover": "패스 전에 받는 동료와 패스 길을 막는 수비를 함께 확인합니다",
+  "scanPassJudgmentHabitSupportReceiver": "받는 선수의 두 번째 행동을 돕도록 일찍 움직입니다",
+  "scanPassJudgmentHabitUseSparePlayer": "압박이 회복되기 전에 남는 선수를 찾습니다",
+  "scanPassJudgmentHabitSecureBehindBall": "전환 때 공 뒤 지원을 하나 남깁니다",
+  "scanPassJudgmentHabitAdjustReturnAngle": "리턴 패스 길이 생기는 각도로 도착합니다",
   "scanPassJudgmentObserveStatus": "받는 판단 전 움직임을 보세요.",
   "scanPassJudgmentReplayObservationStatus": "같은 상황을 선택 전부터 다시 봅니다.",
   "scanPassJudgmentChooseStatus": "한 번 탭하면 다음 판단이 바로 실행됩니다.",
@@ -10443,15 +10558,15 @@
   "scanPassJudgmentQualityOptionsPreserved": "다음 선택 유지",
   "scanPassJudgmentQualityLost": "소유 상실",
   "scanPassJudgmentReasonRearPressureEscaped": "첫 터치가 뒤 압박에서 벗어났어요.",
-  "scanPassJudgmentReasonRearPressureArrived": "공이 빠지기 전에 뒤 압박이 도착했어요.",
-  "scanPassJudgmentReasonSidePressureUsed": "압박 반대쪽을 사용했어요.",
-  "scanPassJudgmentReasonSidePressureTrap": "터치가 옆 압박의 덫으로 향했어요.",
+  "scanPassJudgmentReasonRearPressureArrived": "첫 터치 후에도 뒤쪽 수비의 압박이 가까이 남아 있습니다.",
+  "scanPassJudgmentReasonSidePressureUsed": "첫 터치로 측면 압박과 거리를 벌렸습니다.",
+  "scanPassJudgmentReasonSidePressureTrap": "첫 터치 후에도 측면 수비가 가까워 다음 동작이 제한됩니다.",
   "scanPassJudgmentReasonSecondDefenderContained": "두 번째 수비수를 다음 길 밖에 묶어 두었어요.",
   "scanPassJudgmentReasonSecondDefenderStepped": "두 번째 수비수가 앞 공간으로 들어왔어요.",
   "scanPassJudgmentReasonLaneOpened": "수비가 패스 길을 비웠어요.",
   "scanPassJudgmentReasonLaneScreened": "동료는 보였지만 길은 가려져 있었어요.",
   "scanPassJudgmentReasonReceiverSupported": "받는 선수에게 바로 연결할 지원이 있었어요.",
-  "scanPassJudgmentReasonReceiverIsolated": "패스 뒤 받는 선수가 고립되었어요.",
+  "scanPassJudgmentReasonReceiverIsolated": "받은 동료가 지원을 기다리는 동안 수비 압박에 공을 잃었습니다.",
   "scanPassJudgmentReasonOverloadUsed": "수적 우위의 남는 선수가 계속 살아 있었어요.",
   "scanPassJudgmentReasonSparePlayerMissed": "남는 선수를 쓰지 못해 압박이 회복됐어요.",
   "scanPassJudgmentReasonSupportAngleOpened": "지원 움직임이 되돌려 받을 각도를 열었어요.",
@@ -10715,5 +10830,38 @@
   "scanPassJudgmentReasonOptionsReduced": "공은 지켰지만 바로 연결할 수 있는 동료가 줄었어요.",
   "scanPassJudgmentChooseTouch": "어디로 받아야 다음 행동을 이어갈 수 있을까요?",
   "scanPassJudgmentChooseAction": "달라진 압박을 보고 다음 행동을 고르세요.",
-  "scanPassJudgmentChooseSupport": "6번이 다시 받을 위치를 고르세요."
+  "scanPassJudgmentChooseSupport": "6번이 다시 받을 위치를 고르세요.",
+  "scanPassJudgmentCuePressureRetreating": "공을 받을 공간에서 멀어졌습니다",
+  "scanPassJudgmentCuePressureHolding": "공을 받을 공간 근처에서 위치를 유지했습니다",
+  "scanPassJudgmentCoachConnectionsLabel": "다음 연결의 근거",
+  "scanPassJudgmentCoachConnections": "공을 가진 선수는 {player}, 가장 가까운 수비는 {opponent}입니다. 다음으로 연결 가능한 동료: {options}.",
+  "scanPassJudgmentCoachNoConnections": "없음",
+  "scanPassJudgmentCoachConnectionChange": "선택 전 연결: {before}. 선택 후 연결: {after}.",
+  "scanPassJudgmentCoachLostConnection": "여기서 소유권이 끝나 다음 연결은 남지 않았습니다.",
+  "scanPassJudgmentReplayShort": "재생",
+  "scanPassJudgmentCompareShort": "비교",
+  "@scanPassJudgmentCoachConnections": {
+    "placeholders": {
+      "player": {
+        "type": "String"
+      },
+      "opponent": {
+        "type": "String"
+      },
+      "options": {
+        "type": "String"
+      }
+    }
+  },
+  "@scanPassJudgmentCoachConnectionChange": {
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachShort": "코칭"
 }

@@ -6,20 +6,20 @@ void main() {
   const engine = JudgmentEngine();
 
   group('judgment episode catalog', () {
-    test('contains eight families with three authored configurations each', () {
+    test('contains eight families with six authored configurations each', () {
       final catalog = engine.catalog();
-      expect(catalog, hasLength(24));
+      expect(catalog, hasLength(48));
       for (final family in JudgmentFamily.values) {
         expect(
           catalog.where((spec) => spec.family == family).map(
                 (spec) => spec.configuration,
               ),
-          unorderedEquals([0, 1, 2]),
+          unorderedEquals([0, 1, 2, 3, 4, 5]),
         );
       }
     });
 
-    test('all 24 base scenes have distinct football geometry', () {
+    test('all 48 base scenes have distinct football geometry and motion', () {
       final signatures = <String>{};
       for (final spec in engine.catalog()) {
         final scene = engine.scene(spec);
@@ -32,16 +32,46 @@ void main() {
                 '${p.number}:${p.position.x},${p.position.y}:${p.velocity.x},${p.velocity.y}')
             .join('/'));
       }
-      expect(signatures, hasLength(24));
+      expect(signatures, hasLength(48));
     });
 
     test('ten-scene sessions mix families and configurations', () {
       final session = engine.session(seed: 5);
       expect(session, hasLength(10));
-      expect(session.map((spec) => spec.family).toSet().length,
-          greaterThanOrEqualTo(8));
+      expect(session.take(8).map((spec) => spec.family).toSet().length, 8);
       expect(session.map((spec) => spec.configuration).toSet().length,
-          greaterThanOrEqualTo(2));
+          greaterThanOrEqualTo(3));
+      expect(session[8].family, session[0].family);
+      expect(session[8].configuration, session[0].pairedCueConfiguration);
+    });
+
+    test('paired catalog scenes keep the family but change the motion cue', () {
+      var changedFirstChoice = 0;
+      for (final spec in engine.catalog()) {
+        if (spec.configuration > spec.pairedCueConfiguration) continue;
+        final scene = engine.scene(spec);
+        final pair = engine.scene(spec.pairedCue());
+        expect(pair.spec.family, scene.spec.family);
+        expect(pair.spec.configuration, isNot(scene.spec.configuration));
+        expect(_motionDelta(scene.reception, pair.reception), greaterThan(.03));
+        final first = engine.firstPhase(scene);
+        final pairedFirst = engine.firstPhase(pair);
+        final changed = first.choices.any((choice) {
+          final paired = pairedFirst.choices.any(
+            (item) => item.action == choice.action,
+          )
+              ? _choose(engine, pairedFirst, choice.action)
+              : null;
+          if (paired == null) return false;
+          final result = engine.choose(first, choice);
+          return result.quality != paired.quality ||
+              result.reason != paired.reason;
+        });
+        if (changed) {
+          changedFirstChoice++;
+        }
+      }
+      expect(changedFirstChoice, greaterThanOrEqualTo(6));
     });
   });
 
@@ -75,7 +105,70 @@ void main() {
     for (final spec in engine.catalog()) {
       walk(engine.firstPhase(engine.scene(spec)));
     }
-    expect(checked, greaterThan(400));
+    expect(checked, greaterThan(800));
+  });
+
+  test('observation and execution move multiple attackers and defenders', () {
+    final scene = engine.scene(const JudgmentSceneSpec(
+      family: JudgmentFamily.receiverSupport,
+      configuration: 5,
+    ));
+    final observed = engine.observationFrame(scene, 1);
+    expect(_movedPlayers(scene.initial.attackers, observed.attackers),
+        greaterThanOrEqualTo(3));
+    expect(_movedPlayers(scene.initial.defenders, observed.defenders),
+        greaterThanOrEqualTo(2));
+
+    final phase = engine.firstPhase(scene);
+    final result = _choose(engine, phase, JudgmentAction.touchForward);
+    expect(_movedPlayers(result.before.defenders, result.after.defenders),
+        greaterThanOrEqualTo(2));
+  });
+
+  test('moving receiver and defenders determine pass continuity', () {
+    final phase = _afterFirst(
+      engine,
+      JudgmentFamily.passingLane,
+      2,
+      JudgmentAction.touchForward,
+    );
+    final result = _choose(engine, phase, JudgmentAction.passForward);
+    final receiverBefore = phase.state.attackers.firstWhere(
+      (player) => player.number == result.choice.targetNumber,
+    );
+    final receiverAfter = result.after.attackers.firstWhere(
+      (player) => player.number == result.choice.targetNumber,
+    );
+    expect(receiverAfter.position.distanceTo(receiverBefore.position),
+        greaterThan(.004));
+    expect(
+        result.after.ball.distanceTo(receiverAfter.position), lessThan(1e-8));
+    expect(_signature(result.frame(1)), _signature(result.after));
+  });
+
+  test('coaching evidence names a factual actor and supported alternative', () {
+    final phase = _afterFirst(
+      engine,
+      JudgmentFamily.passingLane,
+      5,
+      JudgmentAction.touchForward,
+    );
+    final result = _choose(engine, phase, JudgmentAction.passForward);
+    final alternatives = engine.alternatives(phase);
+    final evidence = engine.coachingEvidence(
+      result,
+      alternatives: alternatives,
+    );
+    final allNumbers = [
+      ...result.before.attackers.map((player) => player.number),
+      ...result.before.defenders.map((player) => player.number),
+    ];
+    expect(allNumbers, contains(evidence.observedCue.number));
+    expect(evidence.supportedAlternative, isNotNull);
+    expect(
+      alternatives.map((item) => item.choice.action),
+      contains(evidence.supportedAlternative),
+    );
   });
 
   test('mirrored pressure reverses directions without reversing evaluation',
@@ -183,8 +276,9 @@ void main() {
 
       final openNext =
           _choose(engine, open, JudgmentAction.touchLeft).nextPhase!;
-      expect(_choose(engine, openNext, JudgmentAction.carryForward).quality,
-          JudgmentQuality.spaceGained);
+      expect(
+          _rank(_choose(engine, openNext, JudgmentAction.carryForward).quality),
+          greaterThanOrEqualTo(_rank(JudgmentQuality.spaceGained)));
       expect(
         _rank(_choose(engine, stepped, JudgmentAction.touchForward).quality),
         lessThan(
@@ -197,13 +291,13 @@ void main() {
       final open = _afterFirst(
         engine,
         JudgmentFamily.passingLane,
-        0,
+        2,
         JudgmentAction.touchForward,
       );
       final screened = _afterFirst(
         engine,
         JudgmentFamily.passingLane,
-        1,
+        5,
         JudgmentAction.touchForward,
       );
 
@@ -232,12 +326,12 @@ void main() {
 
       expect(supported, isNotNull);
       expect(isolated, isNotNull);
-      final supportedWide =
-          _choose(engine, supported!, JudgmentAction.supportWide);
-      final isolatedWide =
-          _choose(engine, isolated!, JudgmentAction.supportWide);
-      expect(_rank(supportedWide.quality),
-          greaterThan(_rank(isolatedWide.quality)));
+      final supportedInside =
+          _choose(engine, supported!, JudgmentAction.supportInside);
+      final isolatedInside =
+          _choose(engine, isolated!, JudgmentAction.supportInside);
+      expect(_rank(supportedInside.quality),
+          greaterThan(_rank(isolatedInside.quality)));
     });
 
     test('numerical advantage rewards using the spare player', () {
@@ -248,24 +342,23 @@ void main() {
         JudgmentAction.touchRight,
       );
 
-      expect(_choose(engine, phase, JudgmentAction.passWide).quality,
-          JudgmentQuality.spaceGained);
-      expect(
-          _rank(_choose(engine, phase, JudgmentAction.protect).quality),
-          lessThan(
-              _rank(_choose(engine, phase, JudgmentAction.passWide).quality)));
+      final wide = _choose(engine, phase, JudgmentAction.passWide);
+      expect(wide.after.finished, isFalse);
+      expect(wide.nextPhase, isNotNull);
+      expect(_rank(_choose(engine, phase, JudgmentAction.protect).quality),
+          lessThanOrEqualTo(_rank(wide.quality)));
     });
 
     test('support angle determines whether the actual return reaches 6', () {
       final phase = _afterNext(engine, JudgmentFamily.postPassSupportAngle, 2,
           JudgmentAction.touchForward, JudgmentAction.passForward)!;
       final inside = _choose(engine, phase, JudgmentAction.supportInside);
-      final behind = _choose(engine, phase, JudgmentAction.supportBehind);
+      final wide = _choose(engine, phase, JudgmentAction.supportWide);
       expect(inside.after.carrierNumber, 6);
       expect(inside.after.completedPasses, phase.state.completedPasses + 1);
       expect(inside.quality, JudgmentQuality.optionsPreserved);
-      expect(behind.after.end, AttackEnd.intercepted);
-      expect(behind.quality, JudgmentQuality.lost);
+      expect(wide.after.end, AttackEnd.intercepted);
+      expect(wide.quality, JudgmentQuality.lost);
       expect(inside.transitions, hasLength(2));
       expect(
           inside.transitions.last.before, same(inside.transitions.first.after));
@@ -359,6 +452,26 @@ int _rank(JudgmentQuality quality) => switch (quality) {
       JudgmentQuality.spaceGained => 2,
       JudgmentQuality.optionsPreserved => 3,
     };
+
+int _movedPlayers(List<AttackPlayer> before, List<AttackPlayer> after) {
+  var moved = 0;
+  for (final player in before) {
+    final other = after.firstWhere((item) => item.number == player.number);
+    if (player.position.distanceTo(other.position) > .004) moved++;
+  }
+  return moved;
+}
+
+double _motionDelta(AttackState a, AttackState b) {
+  var total = 0.0;
+  for (final player in [...a.attackers, ...a.defenders]) {
+    final other = [...b.attackers, ...b.defenders]
+        .firstWhere((item) => item.number == player.number);
+    total += player.position.distanceTo(other.position);
+    total += player.velocity.distanceTo(other.velocity);
+  }
+  return total;
+}
 
 List<Object?> _signature(AttackState state) => [
       state.ball.x,

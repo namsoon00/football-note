@@ -10412,6 +10412,121 @@
   "scanPassJudgmentContinueAction": "Continue",
   "scanPassJudgmentSummaryAction": "Set summary",
   "scanPassJudgmentFreshSessionAction": "Fresh session",
+  "scanPassJudgmentOverviewAction": "Full pitch",
+  "scanPassJudgmentFocusAction": "Focus area",
+  "scanPassJudgmentPairCueAction": "Cue change",
+  "scanPassJudgmentCoachDetailAction": "Coach detail",
+  "scanPassJudgmentCoachDetailTitle": "Coaching detail",
+  "scanPassJudgmentCoachObservedLabel": "Movement to notice",
+  "scanPassJudgmentCoachConsequenceLabel": "Choice consequence",
+  "scanPassJudgmentCoachNextLabel": "Next read",
+  "scanPassJudgmentCoachAlternativeLabel": "Same-snapshot comparison",
+  "scanPassJudgmentCoachOpponentNumber": "Opponent {number}",
+  "@scanPassJudgmentCoachOpponentNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassJudgmentCoachTeammateNumber": "Teammate {number}",
+  "@scanPassJudgmentCoachTeammateNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassJudgmentCoachCompact": "{actor} {cue}. {reason} Next: {habit}",
+  "@scanPassJudgmentCoachCompact": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "cue": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      },
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachObserved": "{actor} {cue}.",
+  "@scanPassJudgmentCoachObserved": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "cue": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachConsequence": "{quality}: {reason}",
+  "@scanPassJudgmentCoachConsequence": {
+    "placeholders": {
+      "quality": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachPassArrivedIsolated": "The pass was technically completed, but the receiver's next support was not useful yet: {reason}",
+  "@scanPassJudgmentCoachPassArrivedIsolated": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachPassArrivedSupported": "The pass arrived and the receiver still had a usable next connection: {reason}",
+  "@scanPassJudgmentCoachPassArrivedSupported": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachNext": "Repeat the habit: {habit}",
+  "@scanPassJudgmentCoachNext": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachAlternative": "{action} also ran from this same snapshot and led to {quality}: {reason}",
+  "@scanPassJudgmentCoachAlternative": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "quality": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachNoAlternative": "No alternative from this exact decision state is available to compare.",
+  "scanPassJudgmentCuePressure": "closed pressure toward the ball",
+  "scanPassJudgmentCueCoverLane": "covered the passing lane",
+  "scanPassJudgmentCueSupportRun": "changed the return angle",
+  "scanPassJudgmentCueReceiverMovement": "took up the receiving position",
+  "scanPassJudgmentCueRecoveryRun": "recovered toward the back-space",
+  "scanPassJudgmentCueOffsideLine": "was beyond the offside line at release",
+  "scanPassJudgmentHabitFirstTouchAway": "Before receiving, check the pressure direction and your next passing lane",
+  "scanPassJudgmentHabitScanCover": "Before passing, check the receiver and the defender covering the lane",
+  "scanPassJudgmentHabitSupportReceiver": "move early enough to help the receiver's second action",
+  "scanPassJudgmentHabitUseSparePlayer": "find the spare player before pressure recovers",
+  "scanPassJudgmentHabitSecureBehindBall": "keep one support behind the ball in transition",
+  "scanPassJudgmentHabitAdjustReturnAngle": "arrive on an angle that gives the return pass a lane",
   "scanPassJudgmentObserveStatus": "Watch the movement before the receiving decision.",
   "scanPassJudgmentReplayObservationStatus": "Replay the same situation before choosing.",
   "scanPassJudgmentChooseStatus": "One tap chooses and plays the next decision.",
@@ -10443,15 +10558,15 @@
   "scanPassJudgmentQualityOptionsPreserved": "Next options preserved",
   "scanPassJudgmentQualityLost": "Possession lost",
   "scanPassJudgmentReasonRearPressureEscaped": "The touch moved away from rear pressure.",
-  "scanPassJudgmentReasonRearPressureArrived": "Rear pressure arrived before the ball was clear.",
-  "scanPassJudgmentReasonSidePressureUsed": "The touch used the side away from pressure.",
-  "scanPassJudgmentReasonSidePressureTrap": "The touch went into the side trap.",
+  "scanPassJudgmentReasonRearPressureArrived": "Pressure from behind remains close after the first touch.",
+  "scanPassJudgmentReasonSidePressureUsed": "The first touch increased the distance from side pressure.",
+  "scanPassJudgmentReasonSidePressureTrap": "The side defender remains close after the touch, limiting the next action.",
   "scanPassJudgmentReasonSecondDefenderContained": "The second defender was held outside the next lane.",
   "scanPassJudgmentReasonSecondDefenderStepped": "The second defender stepped into the front space.",
   "scanPassJudgmentReasonLaneOpened": "The defender moved off the passing lane.",
   "scanPassJudgmentReasonLaneScreened": "The teammate was visible, but the lane was screened.",
   "scanPassJudgmentReasonReceiverSupported": "The receiver had a quick supporting option.",
-  "scanPassJudgmentReasonReceiverIsolated": "The receiver was left isolated after the pass.",
+  "scanPassJudgmentReasonReceiverIsolated": "The receiver lost the ball to pressure while waiting for support.",
   "scanPassJudgmentReasonOverloadUsed": "The spare player in the overload stayed available.",
   "scanPassJudgmentReasonSparePlayerMissed": "The overload was missed and pressure recovered.",
   "scanPassJudgmentReasonSupportAngleOpened": "The support run opened a return angle.",
@@ -10715,5 +10830,38 @@
   "scanPassJudgmentReasonOptionsReduced": "You kept the ball, but fewer teammates can receive the next pass.",
   "scanPassJudgmentChooseTouch": "Where can your first touch leave a next action?",
   "scanPassJudgmentChooseAction": "Read the changed pressure and choose your next action.",
-  "scanPassJudgmentChooseSupport": "Where should number 6 move to receive again?"
+  "scanPassJudgmentChooseSupport": "Where should number 6 move to receive again?",
+  "scanPassJudgmentCuePressureRetreating": "moved away from the receiving space",
+  "scanPassJudgmentCuePressureHolding": "held position near the receiving space",
+  "scanPassJudgmentCoachConnectionsLabel": "Next connection",
+  "scanPassJudgmentCoachConnections": "The ball is with {player}; the nearest defender is {opponent}. Reachable teammates: {options}.",
+  "scanPassJudgmentCoachNoConnections": "none",
+  "scanPassJudgmentCoachConnectionChange": "Connections before: {before}. Connections after: {after}.",
+  "scanPassJudgmentCoachLostConnection": "Possession ended here, so no next connection remains.",
+  "scanPassJudgmentReplayShort": "Replay",
+  "scanPassJudgmentCompareShort": "Compare",
+  "@scanPassJudgmentCoachConnections": {
+    "placeholders": {
+      "player": {
+        "type": "String"
+      },
+      "opponent": {
+        "type": "String"
+      },
+      "options": {
+        "type": "String"
+      }
+    }
+  },
+  "@scanPassJudgmentCoachConnectionChange": {
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentCoachShort": "Coach"
 }

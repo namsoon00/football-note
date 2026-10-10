@@ -32828,6 +32828,194 @@ abstract class AppLocalizations {
   /// **'Fresh session'**
   String get scanPassJudgmentFreshSessionAction;
 
+  /// No description provided for @scanPassJudgmentOverviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Full pitch'**
+  String get scanPassJudgmentOverviewAction;
+
+  /// No description provided for @scanPassJudgmentFocusAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus area'**
+  String get scanPassJudgmentFocusAction;
+
+  /// No description provided for @scanPassJudgmentPairCueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cue change'**
+  String get scanPassJudgmentPairCueAction;
+
+  /// No description provided for @scanPassJudgmentCoachDetailAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach detail'**
+  String get scanPassJudgmentCoachDetailAction;
+
+  /// No description provided for @scanPassJudgmentCoachDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coaching detail'**
+  String get scanPassJudgmentCoachDetailTitle;
+
+  /// No description provided for @scanPassJudgmentCoachObservedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement to notice'**
+  String get scanPassJudgmentCoachObservedLabel;
+
+  /// No description provided for @scanPassJudgmentCoachConsequenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Choice consequence'**
+  String get scanPassJudgmentCoachConsequenceLabel;
+
+  /// No description provided for @scanPassJudgmentCoachNextLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next read'**
+  String get scanPassJudgmentCoachNextLabel;
+
+  /// No description provided for @scanPassJudgmentCoachAlternativeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Same-snapshot comparison'**
+  String get scanPassJudgmentCoachAlternativeLabel;
+
+  /// No description provided for @scanPassJudgmentCoachOpponentNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponent {number}'**
+  String scanPassJudgmentCoachOpponentNumber(int number);
+
+  /// No description provided for @scanPassJudgmentCoachTeammateNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Teammate {number}'**
+  String scanPassJudgmentCoachTeammateNumber(int number);
+
+  /// No description provided for @scanPassJudgmentCoachCompact.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} {cue}. {reason} Next: {habit}'**
+  String scanPassJudgmentCoachCompact(
+      String actor, String cue, String reason, String habit);
+
+  /// No description provided for @scanPassJudgmentCoachObserved.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} {cue}.'**
+  String scanPassJudgmentCoachObserved(String actor, String cue);
+
+  /// No description provided for @scanPassJudgmentCoachConsequence.
+  ///
+  /// In en, this message translates to:
+  /// **'{quality}: {reason}'**
+  String scanPassJudgmentCoachConsequence(String quality, String reason);
+
+  /// No description provided for @scanPassJudgmentCoachPassArrivedIsolated.
+  ///
+  /// In en, this message translates to:
+  /// **'The pass was technically completed, but the receiver\'s next support was not useful yet: {reason}'**
+  String scanPassJudgmentCoachPassArrivedIsolated(String reason);
+
+  /// No description provided for @scanPassJudgmentCoachPassArrivedSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'The pass arrived and the receiver still had a usable next connection: {reason}'**
+  String scanPassJudgmentCoachPassArrivedSupported(String reason);
+
+  /// No description provided for @scanPassJudgmentCoachNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat the habit: {habit}'**
+  String scanPassJudgmentCoachNext(String habit);
+
+  /// No description provided for @scanPassJudgmentCoachAlternative.
+  ///
+  /// In en, this message translates to:
+  /// **'{action} also ran from this same snapshot and led to {quality}: {reason}'**
+  String scanPassJudgmentCoachAlternative(
+      String action, String quality, String reason);
+
+  /// No description provided for @scanPassJudgmentCoachNoAlternative.
+  ///
+  /// In en, this message translates to:
+  /// **'No alternative from this exact decision state is available to compare.'**
+  String get scanPassJudgmentCoachNoAlternative;
+
+  /// No description provided for @scanPassJudgmentCuePressure.
+  ///
+  /// In en, this message translates to:
+  /// **'closed pressure toward the ball'**
+  String get scanPassJudgmentCuePressure;
+
+  /// No description provided for @scanPassJudgmentCueCoverLane.
+  ///
+  /// In en, this message translates to:
+  /// **'covered the passing lane'**
+  String get scanPassJudgmentCueCoverLane;
+
+  /// No description provided for @scanPassJudgmentCueSupportRun.
+  ///
+  /// In en, this message translates to:
+  /// **'changed the return angle'**
+  String get scanPassJudgmentCueSupportRun;
+
+  /// No description provided for @scanPassJudgmentCueReceiverMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'took up the receiving position'**
+  String get scanPassJudgmentCueReceiverMovement;
+
+  /// No description provided for @scanPassJudgmentCueRecoveryRun.
+  ///
+  /// In en, this message translates to:
+  /// **'recovered toward the back-space'**
+  String get scanPassJudgmentCueRecoveryRun;
+
+  /// No description provided for @scanPassJudgmentCueOffsideLine.
+  ///
+  /// In en, this message translates to:
+  /// **'was beyond the offside line at release'**
+  String get scanPassJudgmentCueOffsideLine;
+
+  /// No description provided for @scanPassJudgmentHabitFirstTouchAway.
+  ///
+  /// In en, this message translates to:
+  /// **'Before receiving, check the pressure direction and your next passing lane'**
+  String get scanPassJudgmentHabitFirstTouchAway;
+
+  /// No description provided for @scanPassJudgmentHabitScanCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Before passing, check the receiver and the defender covering the lane'**
+  String get scanPassJudgmentHabitScanCover;
+
+  /// No description provided for @scanPassJudgmentHabitSupportReceiver.
+  ///
+  /// In en, this message translates to:
+  /// **'move early enough to help the receiver\'s second action'**
+  String get scanPassJudgmentHabitSupportReceiver;
+
+  /// No description provided for @scanPassJudgmentHabitUseSparePlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'find the spare player before pressure recovers'**
+  String get scanPassJudgmentHabitUseSparePlayer;
+
+  /// No description provided for @scanPassJudgmentHabitSecureBehindBall.
+  ///
+  /// In en, this message translates to:
+  /// **'keep one support behind the ball in transition'**
+  String get scanPassJudgmentHabitSecureBehindBall;
+
+  /// No description provided for @scanPassJudgmentHabitAdjustReturnAngle.
+  ///
+  /// In en, this message translates to:
+  /// **'arrive on an angle that gives the return pass a lane'**
+  String get scanPassJudgmentHabitAdjustReturnAngle;
+
   /// No description provided for @scanPassJudgmentObserveStatus.
   ///
   /// In en, this message translates to:
@@ -32975,19 +33163,19 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassJudgmentReasonRearPressureArrived.
   ///
   /// In en, this message translates to:
-  /// **'Rear pressure arrived before the ball was clear.'**
+  /// **'Pressure from behind remains close after the first touch.'**
   String get scanPassJudgmentReasonRearPressureArrived;
 
   /// No description provided for @scanPassJudgmentReasonSidePressureUsed.
   ///
   /// In en, this message translates to:
-  /// **'The touch used the side away from pressure.'**
+  /// **'The first touch increased the distance from side pressure.'**
   String get scanPassJudgmentReasonSidePressureUsed;
 
   /// No description provided for @scanPassJudgmentReasonSidePressureTrap.
   ///
   /// In en, this message translates to:
-  /// **'The touch went into the side trap.'**
+  /// **'The side defender remains close after the touch, limiting the next action.'**
   String get scanPassJudgmentReasonSidePressureTrap;
 
   /// No description provided for @scanPassJudgmentReasonSecondDefenderContained.
@@ -33023,7 +33211,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassJudgmentReasonReceiverIsolated.
   ///
   /// In en, this message translates to:
-  /// **'The receiver was left isolated after the pass.'**
+  /// **'The receiver lost the ball to pressure while waiting for support.'**
   String get scanPassJudgmentReasonReceiverIsolated;
 
   /// No description provided for @scanPassJudgmentReasonOverloadUsed.
@@ -34015,6 +34203,67 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Where should number 6 move to receive again?'**
   String get scanPassJudgmentChooseSupport;
+
+  /// No description provided for @scanPassJudgmentCuePressureRetreating.
+  ///
+  /// In en, this message translates to:
+  /// **'moved away from the receiving space'**
+  String get scanPassJudgmentCuePressureRetreating;
+
+  /// No description provided for @scanPassJudgmentCuePressureHolding.
+  ///
+  /// In en, this message translates to:
+  /// **'held position near the receiving space'**
+  String get scanPassJudgmentCuePressureHolding;
+
+  /// No description provided for @scanPassJudgmentCoachConnectionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next connection'**
+  String get scanPassJudgmentCoachConnectionsLabel;
+
+  /// No description provided for @scanPassJudgmentCoachConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'The ball is with {player}; the nearest defender is {opponent}. Reachable teammates: {options}.'**
+  String scanPassJudgmentCoachConnections(
+      String player, String opponent, String options);
+
+  /// No description provided for @scanPassJudgmentCoachNoConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'none'**
+  String get scanPassJudgmentCoachNoConnections;
+
+  /// No description provided for @scanPassJudgmentCoachConnectionChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections before: {before}. Connections after: {after}.'**
+  String scanPassJudgmentCoachConnectionChange(String before, String after);
+
+  /// No description provided for @scanPassJudgmentCoachLostConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Possession ended here, so no next connection remains.'**
+  String get scanPassJudgmentCoachLostConnection;
+
+  /// No description provided for @scanPassJudgmentReplayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get scanPassJudgmentReplayShort;
+
+  /// No description provided for @scanPassJudgmentCompareShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get scanPassJudgmentCompareShort;
+
+  /// No description provided for @scanPassJudgmentCoachShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach'**
+  String get scanPassJudgmentCoachShort;
 }
 
 class _AppLocalizationsDelegate
