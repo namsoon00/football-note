@@ -10863,5 +10863,204 @@
       }
     }
   },
-  "scanPassJudgmentCoachShort": "Coach"
+  "scanPassJudgmentCoachShort": "Coach",
+  "scanPassPossessionModeGuided": "Guided",
+  "scanPassPossessionModeIndependent": "Independent",
+  "scanPassPossessionModeChangedCue": "Changed cue",
+  "scanPassPossessionPracticeAction": "Practice",
+  "scanPassPossessionPracticeTooltip": "Open Scan Pass practice options",
+  "scanPassPossessionPracticeTitle": "Practice options",
+  "scanPassPossessionJudgmentPracticeAction": "48-scene judgment practice",
+  "scanPassPossessionHelpBody": "Read the pressure before number 6 receives, choose the first touch, connect the next player, then move number 6 again to support the attack. The model shows the full possession outcome and compares your route with a coach route from the same start.",
+  "scanPassPossessionGuidedStatus": "Play as #6 · Escape pressure and connect the attack.",
+  "scanPassPossessionObserveStatus": "Watch number 6 receive before choosing.",
+  "scanPassPossessionChangedObserveStatus": "The movement has changed. Read the first defender and the space around #8 again.",
+  "scanPassPossessionChooseStatus": "Goal: escape pressure and give the next receiver room to advance.",
+  "scanPassPossessionExecutingStatus": "Watch the possession continue from that choice.",
+  "scanPassPossessionReviewStatus": "Compare the full possession and inspect the turning point.",
+  "scanPassPossessionGuidedObjective": "Objective: break first pressure and give the next receiver time to advance.",
+  "scanPassPossessionCuePressure": "Defender #2 approaches #6. Watch which side is closing.",
+  "scanPassPossessionCuePressureRetreats": "#2 retreats while #3 covers the space near #8.",
+  "scanPassPossessionCueSupport": "Read #8’s movement together with the nearby defender.",
+  "scanPassPossessionCueFutureSpace": "Number 6 can move again after the pass to reconnect.",
+  "scanPassPossessionNextCueAction": "Next cue",
+  "scanPassPossessionPlayCoachRouteAction": "Play route",
+  "scanPassPossessionTryIndependentAction": "Try it",
+  "scanPassPossessionChangedCueAction": "Changed cue",
+  "scanPassPossessionReplayAction": "Replay selected possession",
+  "scanPassPossessionGuidedBranch": "Guided read",
+  "scanPassPossessionMineBranch": "My attack",
+  "scanPassPossessionCoachBranch": "Coach’s suggested attack",
+  "scanPassPossessionMineShort": "Mine",
+  "scanPassPossessionCoachShort": "Coach",
+  "scanPassPossessionPromptFirstTouch": "First touch: where does number 6 create the next action?",
+  "scanPassPossessionPromptNextAction": "Next action: which teammate can keep the attack moving?",
+  "scanPassPossessionPromptSupport": "Support: where should number 6 move to connect again?",
+  "scanPassPossessionChoiceTouchAway": "Outside touch",
+  "scanPassPossessionChoiceTurnForward": "Turn forward",
+  "scanPassPossessionChoiceLayoff": "Layoff",
+  "scanPassPossessionChoicePass8": "Pass #8",
+  "scanPassPossessionChoicePass9": "Pass #9",
+  "scanPassPossessionChoiceRecycle4": "Recycle #4",
+  "scanPassPossessionChoiceSupportInside": "Inside",
+  "scanPassPossessionChoiceSupportWide": "Wide",
+  "scanPassPossessionChoiceSupportBehind": "Behind",
+  "scanPassPossessionChoiceTouchAwayLabel": "Take the first touch into the lower outside space",
+  "scanPassPossessionChoiceTurnForwardLabel": "Turn forward with the first touch",
+  "scanPassPossessionChoiceLayoffLabel": "Play a one-touch layoff to number 4",
+  "scanPassPossessionChoicePass8Label": "Pass to number 8",
+  "scanPassPossessionChoicePass9Label": "Pass to number 9",
+  "scanPassPossessionChoiceRecycle4Label": "Recycle possession through number 4",
+  "scanPassPossessionChoiceSupportInsideLabel": "Move number 6 into the inside return angle",
+  "scanPassPossessionChoiceSupportWideLabel": "Move number 6 into the wide return angle",
+  "scanPassPossessionChoiceSupportBehindLabel": "Move number 6 behind the ball",
+  "scanPassPossessionMomentReceive": "Receive",
+  "scanPassPossessionMomentTouch": "Touch",
+  "scanPassPossessionMomentLink": "Link",
+  "scanPassPossessionMomentSupport": "Support",
+  "scanPassPossessionMomentFinish": "Finish",
+  "scanPassPossessionReviewReceive": "The key cue is the defender closing the receiving space before number 6's first touch.",
+  "scanPassPossessionReviewReceiveChanged": "#2 retreated, leaving space in front of #6, while #3 covers the route toward #8.",
+  "scanPassPossessionReviewTouchEscaped": "The first touch solved the immediate pressure and preserved the next pass.",
+  "scanPassPossessionReviewTouchTrapped": "The first touch kept pressure close, so later options had less time.",
+  "scanPassPossessionReviewReceiverConnected": "The receiver had a usable next connection, not just a completed pass.",
+  "scanPassPossessionReviewReceiverIsolated": "The pass arrived, but the receiver was isolated and had to recycle.",
+  "scanPassPossessionReviewSupportConnected": "Number 6's support run created the return angle that kept the attack alive.",
+  "scanPassPossessionReviewSupportLate": "The support angle arrived too late or behind the play, so the attack stalled.",
+  "scanPassPossessionReviewChance": "The route created a real final chance; the shot outcome is still not guaranteed.",
+  "scanPassPossessionReviewRecycle": "Possession stayed alive, but the attack recycled instead of reaching a chance.",
+  "scanPassPossessionReviewTurnover": "Pressure or cover reached the lane first and ended the possession.",
+  "scanPassPossessionOutcomeChance": "Chance created",
+  "scanPassPossessionOutcomeRecycle": "Recycled possession",
+  "scanPassPossessionOutcomeTurnover": "Possession lost",
+  "scanPassPossessionDetailTitle": "What this decision changed",
+  "scanPassPossessionDetailBody": "{outcome}\n{reason}\n\nThe suggested attack starts from the same situation and also includes the coach’s later choices.",
+  "@scanPassPossessionDetailBody": {
+    "placeholders": {
+      "outcome": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionFieldSemantics": "A coached football possession attacking to the right. Number 6 is the learner, the ball and players continue through the full route, and separate buttons choose the next decision.",
+  "scanPassPossessionPause": "Pause",
+  "scanPassPossessionResume": "Resume",
+  "scanPassPossessionMotionPass": "#{passer} → #{receiver} · Watch the receiver’s next connection.",
+  "@scanPassPossessionMotionPass": {
+    "placeholders": {
+      "passer": {
+        "type": "int"
+      },
+      "receiver": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionMotionCarry": "#{player}’s touch · Watch the distance to the defender.",
+  "@scanPassPossessionMotionCarry": {
+    "placeholders": {
+      "player": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionMotionSupport": "#6 moves to support · Watch the return passing lane.",
+  "scanPassPossessionMotionShot": "#{player} shoots · Watch how the attack ends.",
+  "@scanPassPossessionMotionShot": {
+    "placeholders": {
+      "player": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionTouchLost": "#{opponent} reached the first-touch path. Read the defender’s approach before receiving.",
+  "@scanPassPossessionTouchLost": {
+    "placeholders": {
+      "opponent": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionTouchSpace": "There is space from #{opponent} for the next action.",
+  "@scanPassPossessionTouchSpace": {
+    "placeholders": {
+      "opponent": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionTouchPressed": "#{opponent} is close, leaving little room for the next action.",
+  "@scanPassPossessionTouchPressed": {
+    "placeholders": {
+      "opponent": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionTouchLayoff": "You connected directly with #4. Now move #6 to receive again.",
+  "scanPassPossessionPassStopped": "#{opponent} reached the passing lane to #{receiver} first.",
+  "@scanPassPossessionPassStopped": {
+    "placeholders": {
+      "opponent": {
+        "type": "int"
+      },
+      "receiver": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionPassConnected": "Connected to #{receiver}. Next available receivers: {options}.",
+  "@scanPassPossessionPassConnected": {
+    "placeholders": {
+      "receiver": {
+        "type": "int"
+      },
+      "options": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionPassIsolated": "The pass reached #{receiver}, but no next passing lane remains. Read the receiver’s surroundings too.",
+  "@scanPassPossessionPassIsolated": {
+    "placeholders": {
+      "receiver": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionSupportPressed": "While #6 moved, #{opponent} reached ball carrier #{player}.",
+  "@scanPassPossessionSupportPressed": {
+    "placeholders": {
+      "opponent": {
+        "type": "int"
+      },
+      "player": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionReturnConnected": "#{player} → #6 connected. The support position became the starting point for the next attack.",
+  "@scanPassPossessionReturnConnected": {
+    "placeholders": {
+      "player": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionReturnClosed": "The return lane to #6 was closed, so the teammate chose another connection. Read the cover defender when supporting.",
+  "scanPassPossessionShotResult": "The attack reached a shot by #{player}. {result}",
+  "@scanPassPossessionShotResult": {
+    "placeholders": {
+      "player": {
+        "type": "int"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionLearnerLabel": "You · #6"
 }

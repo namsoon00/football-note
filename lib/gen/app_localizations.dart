@@ -34264,6 +34264,546 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Coach'**
   String get scanPassJudgmentCoachShort;
+
+  /// No description provided for @scanPassPossessionModeGuided.
+  ///
+  /// In en, this message translates to:
+  /// **'Guided'**
+  String get scanPassPossessionModeGuided;
+
+  /// No description provided for @scanPassPossessionModeIndependent.
+  ///
+  /// In en, this message translates to:
+  /// **'Independent'**
+  String get scanPassPossessionModeIndependent;
+
+  /// No description provided for @scanPassPossessionModeChangedCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed cue'**
+  String get scanPassPossessionModeChangedCue;
+
+  /// No description provided for @scanPassPossessionPracticeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice'**
+  String get scanPassPossessionPracticeAction;
+
+  /// No description provided for @scanPassPossessionPracticeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Scan Pass practice options'**
+  String get scanPassPossessionPracticeTooltip;
+
+  /// No description provided for @scanPassPossessionPracticeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice options'**
+  String get scanPassPossessionPracticeTitle;
+
+  /// No description provided for @scanPassPossessionJudgmentPracticeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'48-scene judgment practice'**
+  String get scanPassPossessionJudgmentPracticeAction;
+
+  /// No description provided for @scanPassPossessionHelpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the pressure before number 6 receives, choose the first touch, connect the next player, then move number 6 again to support the attack. The model shows the full possession outcome and compares your route with a coach route from the same start.'**
+  String get scanPassPossessionHelpBody;
+
+  /// No description provided for @scanPassPossessionGuidedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Play as #6 · Escape pressure and connect the attack.'**
+  String get scanPassPossessionGuidedStatus;
+
+  /// No description provided for @scanPassPossessionObserveStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch number 6 receive before choosing.'**
+  String get scanPassPossessionObserveStatus;
+
+  /// No description provided for @scanPassPossessionChangedObserveStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'The movement has changed. Read the first defender and the space around #8 again.'**
+  String get scanPassPossessionChangedObserveStatus;
+
+  /// No description provided for @scanPassPossessionChooseStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal: escape pressure and give the next receiver room to advance.'**
+  String get scanPassPossessionChooseStatus;
+
+  /// No description provided for @scanPassPossessionExecutingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the possession continue from that choice.'**
+  String get scanPassPossessionExecutingStatus;
+
+  /// No description provided for @scanPassPossessionReviewStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare the full possession and inspect the turning point.'**
+  String get scanPassPossessionReviewStatus;
+
+  /// No description provided for @scanPassPossessionGuidedObjective.
+  ///
+  /// In en, this message translates to:
+  /// **'Objective: break first pressure and give the next receiver time to advance.'**
+  String get scanPassPossessionGuidedObjective;
+
+  /// No description provided for @scanPassPossessionCuePressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Defender #2 approaches #6. Watch which side is closing.'**
+  String get scanPassPossessionCuePressure;
+
+  /// No description provided for @scanPassPossessionCuePressureRetreats.
+  ///
+  /// In en, this message translates to:
+  /// **'#2 retreats while #3 covers the space near #8.'**
+  String get scanPassPossessionCuePressureRetreats;
+
+  /// No description provided for @scanPassPossessionCueSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Read #8’s movement together with the nearby defender.'**
+  String get scanPassPossessionCueSupport;
+
+  /// No description provided for @scanPassPossessionCueFutureSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Number 6 can move again after the pass to reconnect.'**
+  String get scanPassPossessionCueFutureSpace;
+
+  /// No description provided for @scanPassPossessionNextCueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Next cue'**
+  String get scanPassPossessionNextCueAction;
+
+  /// No description provided for @scanPassPossessionPlayCoachRouteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Play route'**
+  String get scanPassPossessionPlayCoachRouteAction;
+
+  /// No description provided for @scanPassPossessionTryIndependentAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Try it'**
+  String get scanPassPossessionTryIndependentAction;
+
+  /// No description provided for @scanPassPossessionChangedCueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed cue'**
+  String get scanPassPossessionChangedCueAction;
+
+  /// No description provided for @scanPassPossessionReplayAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay selected possession'**
+  String get scanPassPossessionReplayAction;
+
+  /// No description provided for @scanPassPossessionGuidedBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Guided read'**
+  String get scanPassPossessionGuidedBranch;
+
+  /// No description provided for @scanPassPossessionMineBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'My attack'**
+  String get scanPassPossessionMineBranch;
+
+  /// No description provided for @scanPassPossessionCoachBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach’s suggested attack'**
+  String get scanPassPossessionCoachBranch;
+
+  /// No description provided for @scanPassPossessionMineShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get scanPassPossessionMineShort;
+
+  /// No description provided for @scanPassPossessionCoachShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach'**
+  String get scanPassPossessionCoachShort;
+
+  /// No description provided for @scanPassPossessionPromptFirstTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch: where does number 6 create the next action?'**
+  String get scanPassPossessionPromptFirstTouch;
+
+  /// No description provided for @scanPassPossessionPromptNextAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Next action: which teammate can keep the attack moving?'**
+  String get scanPassPossessionPromptNextAction;
+
+  /// No description provided for @scanPassPossessionPromptSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support: where should number 6 move to connect again?'**
+  String get scanPassPossessionPromptSupport;
+
+  /// No description provided for @scanPassPossessionChoiceTouchAway.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside touch'**
+  String get scanPassPossessionChoiceTouchAway;
+
+  /// No description provided for @scanPassPossessionChoiceTurnForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn forward'**
+  String get scanPassPossessionChoiceTurnForward;
+
+  /// No description provided for @scanPassPossessionChoiceLayoff.
+  ///
+  /// In en, this message translates to:
+  /// **'Layoff'**
+  String get scanPassPossessionChoiceLayoff;
+
+  /// No description provided for @scanPassPossessionChoicePass8.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass #8'**
+  String get scanPassPossessionChoicePass8;
+
+  /// No description provided for @scanPassPossessionChoicePass9.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass #9'**
+  String get scanPassPossessionChoicePass9;
+
+  /// No description provided for @scanPassPossessionChoiceRecycle4.
+  ///
+  /// In en, this message translates to:
+  /// **'Recycle #4'**
+  String get scanPassPossessionChoiceRecycle4;
+
+  /// No description provided for @scanPassPossessionChoiceSupportInside.
+  ///
+  /// In en, this message translates to:
+  /// **'Inside'**
+  String get scanPassPossessionChoiceSupportInside;
+
+  /// No description provided for @scanPassPossessionChoiceSupportWide.
+  ///
+  /// In en, this message translates to:
+  /// **'Wide'**
+  String get scanPassPossessionChoiceSupportWide;
+
+  /// No description provided for @scanPassPossessionChoiceSupportBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'Behind'**
+  String get scanPassPossessionChoiceSupportBehind;
+
+  /// No description provided for @scanPassPossessionChoiceTouchAwayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Take the first touch into the lower outside space'**
+  String get scanPassPossessionChoiceTouchAwayLabel;
+
+  /// No description provided for @scanPassPossessionChoiceTurnForwardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn forward with the first touch'**
+  String get scanPassPossessionChoiceTurnForwardLabel;
+
+  /// No description provided for @scanPassPossessionChoiceLayoffLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Play a one-touch layoff to number 4'**
+  String get scanPassPossessionChoiceLayoffLabel;
+
+  /// No description provided for @scanPassPossessionChoicePass8Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass to number 8'**
+  String get scanPassPossessionChoicePass8Label;
+
+  /// No description provided for @scanPassPossessionChoicePass9Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass to number 9'**
+  String get scanPassPossessionChoicePass9Label;
+
+  /// No description provided for @scanPassPossessionChoiceRecycle4Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Recycle possession through number 4'**
+  String get scanPassPossessionChoiceRecycle4Label;
+
+  /// No description provided for @scanPassPossessionChoiceSupportInsideLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Move number 6 into the inside return angle'**
+  String get scanPassPossessionChoiceSupportInsideLabel;
+
+  /// No description provided for @scanPassPossessionChoiceSupportWideLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Move number 6 into the wide return angle'**
+  String get scanPassPossessionChoiceSupportWideLabel;
+
+  /// No description provided for @scanPassPossessionChoiceSupportBehindLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Move number 6 behind the ball'**
+  String get scanPassPossessionChoiceSupportBehindLabel;
+
+  /// No description provided for @scanPassPossessionMomentReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive'**
+  String get scanPassPossessionMomentReceive;
+
+  /// No description provided for @scanPassPossessionMomentTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch'**
+  String get scanPassPossessionMomentTouch;
+
+  /// No description provided for @scanPassPossessionMomentLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get scanPassPossessionMomentLink;
+
+  /// No description provided for @scanPassPossessionMomentSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get scanPassPossessionMomentSupport;
+
+  /// No description provided for @scanPassPossessionMomentFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get scanPassPossessionMomentFinish;
+
+  /// No description provided for @scanPassPossessionReviewReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'The key cue is the defender closing the receiving space before number 6\'s first touch.'**
+  String get scanPassPossessionReviewReceive;
+
+  /// No description provided for @scanPassPossessionReviewReceiveChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'#2 retreated, leaving space in front of #6, while #3 covers the route toward #8.'**
+  String get scanPassPossessionReviewReceiveChanged;
+
+  /// No description provided for @scanPassPossessionReviewTouchEscaped.
+  ///
+  /// In en, this message translates to:
+  /// **'The first touch solved the immediate pressure and preserved the next pass.'**
+  String get scanPassPossessionReviewTouchEscaped;
+
+  /// No description provided for @scanPassPossessionReviewTouchTrapped.
+  ///
+  /// In en, this message translates to:
+  /// **'The first touch kept pressure close, so later options had less time.'**
+  String get scanPassPossessionReviewTouchTrapped;
+
+  /// No description provided for @scanPassPossessionReviewReceiverConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'The receiver had a usable next connection, not just a completed pass.'**
+  String get scanPassPossessionReviewReceiverConnected;
+
+  /// No description provided for @scanPassPossessionReviewReceiverIsolated.
+  ///
+  /// In en, this message translates to:
+  /// **'The pass arrived, but the receiver was isolated and had to recycle.'**
+  String get scanPassPossessionReviewReceiverIsolated;
+
+  /// No description provided for @scanPassPossessionReviewSupportConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Number 6\'s support run created the return angle that kept the attack alive.'**
+  String get scanPassPossessionReviewSupportConnected;
+
+  /// No description provided for @scanPassPossessionReviewSupportLate.
+  ///
+  /// In en, this message translates to:
+  /// **'The support angle arrived too late or behind the play, so the attack stalled.'**
+  String get scanPassPossessionReviewSupportLate;
+
+  /// No description provided for @scanPassPossessionReviewChance.
+  ///
+  /// In en, this message translates to:
+  /// **'The route created a real final chance; the shot outcome is still not guaranteed.'**
+  String get scanPassPossessionReviewChance;
+
+  /// No description provided for @scanPassPossessionReviewRecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Possession stayed alive, but the attack recycled instead of reaching a chance.'**
+  String get scanPassPossessionReviewRecycle;
+
+  /// No description provided for @scanPassPossessionReviewTurnover.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure or cover reached the lane first and ended the possession.'**
+  String get scanPassPossessionReviewTurnover;
+
+  /// No description provided for @scanPassPossessionOutcomeChance.
+  ///
+  /// In en, this message translates to:
+  /// **'Chance created'**
+  String get scanPassPossessionOutcomeChance;
+
+  /// No description provided for @scanPassPossessionOutcomeRecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recycled possession'**
+  String get scanPassPossessionOutcomeRecycle;
+
+  /// No description provided for @scanPassPossessionOutcomeTurnover.
+  ///
+  /// In en, this message translates to:
+  /// **'Possession lost'**
+  String get scanPassPossessionOutcomeTurnover;
+
+  /// No description provided for @scanPassPossessionDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What this decision changed'**
+  String get scanPassPossessionDetailTitle;
+
+  /// No description provided for @scanPassPossessionDetailBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{outcome}\n{reason}\n\nThe suggested attack starts from the same situation and also includes the coach’s later choices.'**
+  String scanPassPossessionDetailBody(String outcome, String reason);
+
+  /// No description provided for @scanPassPossessionFieldSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'A coached football possession attacking to the right. Number 6 is the learner, the ball and players continue through the full route, and separate buttons choose the next decision.'**
+  String get scanPassPossessionFieldSemantics;
+
+  /// No description provided for @scanPassPossessionPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get scanPassPossessionPause;
+
+  /// No description provided for @scanPassPossessionResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get scanPassPossessionResume;
+
+  /// No description provided for @scanPassPossessionMotionPass.
+  ///
+  /// In en, this message translates to:
+  /// **'#{passer} → #{receiver} · Watch the receiver’s next connection.'**
+  String scanPassPossessionMotionPass(int passer, int receiver);
+
+  /// No description provided for @scanPassPossessionMotionCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'#{player}’s touch · Watch the distance to the defender.'**
+  String scanPassPossessionMotionCarry(int player);
+
+  /// No description provided for @scanPassPossessionMotionSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'#6 moves to support · Watch the return passing lane.'**
+  String get scanPassPossessionMotionSupport;
+
+  /// No description provided for @scanPassPossessionMotionShot.
+  ///
+  /// In en, this message translates to:
+  /// **'#{player} shoots · Watch how the attack ends.'**
+  String scanPassPossessionMotionShot(int player);
+
+  /// No description provided for @scanPassPossessionTouchLost.
+  ///
+  /// In en, this message translates to:
+  /// **'#{opponent} reached the first-touch path. Read the defender’s approach before receiving.'**
+  String scanPassPossessionTouchLost(int opponent);
+
+  /// No description provided for @scanPassPossessionTouchSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'There is space from #{opponent} for the next action.'**
+  String scanPassPossessionTouchSpace(int opponent);
+
+  /// No description provided for @scanPassPossessionTouchPressed.
+  ///
+  /// In en, this message translates to:
+  /// **'#{opponent} is close, leaving little room for the next action.'**
+  String scanPassPossessionTouchPressed(int opponent);
+
+  /// No description provided for @scanPassPossessionTouchLayoff.
+  ///
+  /// In en, this message translates to:
+  /// **'You connected directly with #4. Now move #6 to receive again.'**
+  String get scanPassPossessionTouchLayoff;
+
+  /// No description provided for @scanPassPossessionPassStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'#{opponent} reached the passing lane to #{receiver} first.'**
+  String scanPassPossessionPassStopped(int opponent, int receiver);
+
+  /// No description provided for @scanPassPossessionPassConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected to #{receiver}. Next available receivers: {options}.'**
+  String scanPassPossessionPassConnected(int receiver, String options);
+
+  /// No description provided for @scanPassPossessionPassIsolated.
+  ///
+  /// In en, this message translates to:
+  /// **'The pass reached #{receiver}, but no next passing lane remains. Read the receiver’s surroundings too.'**
+  String scanPassPossessionPassIsolated(int receiver);
+
+  /// No description provided for @scanPassPossessionSupportPressed.
+  ///
+  /// In en, this message translates to:
+  /// **'While #6 moved, #{opponent} reached ball carrier #{player}.'**
+  String scanPassPossessionSupportPressed(int opponent, int player);
+
+  /// No description provided for @scanPassPossessionReturnConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'#{player} → #6 connected. The support position became the starting point for the next attack.'**
+  String scanPassPossessionReturnConnected(int player);
+
+  /// No description provided for @scanPassPossessionReturnClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'The return lane to #6 was closed, so the teammate chose another connection. Read the cover defender when supporting.'**
+  String get scanPassPossessionReturnClosed;
+
+  /// No description provided for @scanPassPossessionShotResult.
+  ///
+  /// In en, this message translates to:
+  /// **'The attack reached a shot by #{player}. {result}'**
+  String scanPassPossessionShotResult(int player, String result);
+
+  /// No description provided for @scanPassPossessionLearnerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'You · #6'**
+  String get scanPassPossessionLearnerLabel;
 }
 
 class _AppLocalizationsDelegate
