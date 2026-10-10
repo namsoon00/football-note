@@ -18552,6 +18552,120 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassJudgmentFreshSessionAction => '新しいセッション';
 
   @override
+  String get scanPassJudgmentOverviewAction => 'ピッチ全体';
+
+  @override
+  String get scanPassJudgmentFocusAction => '周辺に集中';
+
+  @override
+  String get scanPassJudgmentPairCueAction => '手がかり変化';
+
+  @override
+  String get scanPassJudgmentCoachDetailAction => 'コーチング詳細';
+
+  @override
+  String get scanPassJudgmentCoachDetailTitle => 'コーチング詳細';
+
+  @override
+  String get scanPassJudgmentCoachObservedLabel => '注目する動き';
+
+  @override
+  String get scanPassJudgmentCoachConsequenceLabel => '選択の結果';
+
+  @override
+  String get scanPassJudgmentCoachNextLabel => '次に見ること';
+
+  @override
+  String get scanPassJudgmentCoachAlternativeLabel => '同じ瞬間で比較';
+
+  @override
+  String scanPassJudgmentCoachOpponentNumber(int number) {
+    return '相手$number番';
+  }
+
+  @override
+  String scanPassJudgmentCoachTeammateNumber(int number) {
+    return '味方$number番';
+  }
+
+  @override
+  String scanPassJudgmentCoachCompact(
+      String actor, String cue, String reason, String habit) {
+    return '$actorが$cue。$reason 次は$habit';
+  }
+
+  @override
+  String scanPassJudgmentCoachObserved(String actor, String cue) {
+    return '$actorが$cue。';
+  }
+
+  @override
+  String scanPassJudgmentCoachConsequence(String quality, String reason) {
+    return '$quality: $reason';
+  }
+
+  @override
+  String scanPassJudgmentCoachPassArrivedIsolated(String reason) {
+    return 'パス自体は届きましたが、受け手の次の支援はまだ有効ではありませんでした: $reason';
+  }
+
+  @override
+  String scanPassJudgmentCoachPassArrivedSupported(String reason) {
+    return 'パスは届き、受け手に次のつながりも残りました: $reason';
+  }
+
+  @override
+  String scanPassJudgmentCoachNext(String habit) {
+    return '繰り返す習慣: $habit';
+  }
+
+  @override
+  String scanPassJudgmentCoachAlternative(
+      String action, String quality, String reason) {
+    return '同じ瞬間から$actionも実行し、$qualityになりました: $reason';
+  }
+
+  @override
+  String get scanPassJudgmentCoachNoAlternative => '同じ判断時点から比較できる別の選択がありません。';
+
+  @override
+  String get scanPassJudgmentCuePressure => 'ボールへ圧力を狭めました';
+
+  @override
+  String get scanPassJudgmentCueCoverLane => 'パスレーンを消しました';
+
+  @override
+  String get scanPassJudgmentCueSupportRun => 'リターン角度を変えました';
+
+  @override
+  String get scanPassJudgmentCueReceiverMovement => 'ボールを受ける位置を取りました';
+
+  @override
+  String get scanPassJudgmentCueRecoveryRun => '背後のスペースへ戻りました';
+
+  @override
+  String get scanPassJudgmentCueOffsideLine => 'リリース時にオフサイドラインを越えていました';
+
+  @override
+  String get scanPassJudgmentHabitFirstTouchAway =>
+      '受ける前に、プレッシャーの方向と次のパスコースを確認します';
+
+  @override
+  String get scanPassJudgmentHabitScanCover => 'パスの前に、受け手とコースをふさぐ守備者を確認します';
+
+  @override
+  String get scanPassJudgmentHabitSupportReceiver => '受け手の2つ目の行動を助けるため早く動く';
+
+  @override
+  String get scanPassJudgmentHabitUseSparePlayer => '圧力が戻る前に余った選手を見つける';
+
+  @override
+  String get scanPassJudgmentHabitSecureBehindBall => '切り替えではボール後方の支援を1つ残す';
+
+  @override
+  String get scanPassJudgmentHabitAdjustReturnAngle => 'リターンパスの道ができる角度に入る';
+
+  @override
   String get scanPassJudgmentObserveStatus => '受ける判断の前の動きを見ましょう。';
 
   @override
@@ -18627,13 +18741,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassJudgmentReasonRearPressureArrived =>
-      'ボールが離れる前に背後の圧力が届きました。';
+      'ファーストタッチ後も背後のプレッシャーが近くに残っています。';
 
   @override
-  String get scanPassJudgmentReasonSidePressureUsed => '圧力と反対側を使いました。';
+  String get scanPassJudgmentReasonSidePressureUsed =>
+      'ファーストタッチで横からのプレッシャーとの距離を広げました。';
 
   @override
-  String get scanPassJudgmentReasonSidePressureTrap => 'タッチが横の罠へ向かいました。';
+  String get scanPassJudgmentReasonSidePressureTrap =>
+      'タッチ後も横の守備者が近く、次の動きが制限されています。';
 
   @override
   String get scanPassJudgmentReasonSecondDefenderContained =>
@@ -18653,7 +18769,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassJudgmentReasonReceiverSupported => '受け手にすぐ使える支援がありました。';
 
   @override
-  String get scanPassJudgmentReasonReceiverIsolated => 'パス後に受け手が孤立しました。';
+  String get scanPassJudgmentReasonReceiverIsolated =>
+      '受け手はサポートを待つ間にプレッシャーでボールを失いました。';
 
   @override
   String get scanPassJudgmentReasonOverloadUsed => '数的優位の余った選手が使えるままでした。';
@@ -19191,4 +19308,39 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassJudgmentChooseSupport => '6番が再び受ける位置を選びましょう。';
+
+  @override
+  String get scanPassJudgmentCuePressureRetreating => '受けるスペースから離れました';
+
+  @override
+  String get scanPassJudgmentCuePressureHolding => '受けるスペースの近くで位置を保ちました';
+
+  @override
+  String get scanPassJudgmentCoachConnectionsLabel => '次のつながりの根拠';
+
+  @override
+  String scanPassJudgmentCoachConnections(
+      String player, String opponent, String options) {
+    return 'ボールを持つ選手は$player、最も近い守備者は$opponentです。つながる味方：$options。';
+  }
+
+  @override
+  String get scanPassJudgmentCoachNoConnections => 'なし';
+
+  @override
+  String scanPassJudgmentCoachConnectionChange(String before, String after) {
+    return '選択前のつながり：$before。選択後：$after。';
+  }
+
+  @override
+  String get scanPassJudgmentCoachLostConnection => 'ここでボールを失い、次のつながりがなくなりました。';
+
+  @override
+  String get scanPassJudgmentReplayShort => '再生';
+
+  @override
+  String get scanPassJudgmentCompareShort => '比較';
+
+  @override
+  String get scanPassJudgmentCoachShort => 'コーチ';
 }

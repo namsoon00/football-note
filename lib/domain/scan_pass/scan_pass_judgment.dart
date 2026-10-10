@@ -68,15 +68,88 @@ class JudgmentSceneSpec {
     required this.family,
     required this.configuration,
     this.variation = 0,
-  }) : assert(configuration >= 0 && configuration < 3);
+  }) : assert(configuration >= 0 && configuration < 6);
 
   JudgmentSceneSpec nextConfiguration() => JudgmentSceneSpec(
         family: family,
-        configuration: (configuration + 1) % 3,
+        configuration: pairedCueConfiguration,
         variation: variation + 1,
       );
 
+  int get pairedCueConfiguration => switch (configuration) {
+        0 => 3,
+        3 => 0,
+        1 => 4,
+        4 => 1,
+        2 => 5,
+        _ => 2,
+      };
+
+  JudgmentSceneSpec pairedCue() => JudgmentSceneSpec(
+        family: family,
+        configuration: pairedCueConfiguration,
+        variation: variation,
+      );
+
   String get id => '${family.name}-$configuration';
+}
+
+enum JudgmentCueKind {
+  pressure,
+  coverLane,
+  supportRun,
+  receiverMovement,
+  recoveryRun,
+  offsideLine,
+  pressureRetreating,
+  pressureHolding,
+}
+
+enum JudgmentHabit {
+  firstTouchAway,
+  scanCover,
+  supportReceiver,
+  useSparePlayer,
+  secureBehindBall,
+  adjustReturnAngle,
+}
+
+class JudgmentActorCue {
+  final int number;
+  final bool opponent;
+  final JudgmentCueKind kind;
+  final ScanPassPoint from;
+  final ScanPassPoint to;
+
+  const JudgmentActorCue({
+    required this.number,
+    required this.opponent,
+    required this.kind,
+    required this.from,
+    required this.to,
+  });
+}
+
+class JudgmentCoachingEvidence {
+  final JudgmentActorCue observedCue;
+  final JudgmentHabit nextHabit;
+  final bool technicalPassCompleted;
+  final bool receiverSupportUseful;
+  final JudgmentAction? supportedAlternative;
+  final JudgmentQuality? supportedAlternativeQuality;
+  final JudgmentReason? supportedAlternativeReason;
+
+  const JudgmentCoachingEvidence({
+    required this.observedCue,
+    required this.nextHabit,
+    required this.technicalPassCompleted,
+    required this.receiverSupportUseful,
+    this.supportedAlternative,
+    this.supportedAlternativeQuality,
+    this.supportedAlternativeReason,
+  });
+
+  bool get hasSupportedAlternative => supportedAlternative != null;
 }
 
 class JudgmentScene {
@@ -187,9 +260,19 @@ class JudgmentResult {
 class JudgmentEngine {
   const JudgmentEngine();
 
+  List<int> availableConnections(AttackState state) {
+    final points = _outletPoints(state, state.carrierNumber);
+    return List.unmodifiable([
+      for (final player in state.attackers)
+        if (player.number != state.carrierNumber &&
+            points.any((point) => point.distanceTo(player.position) < 1e-8))
+          player.number,
+    ]);
+  }
+
   List<JudgmentSceneSpec> catalog({int variation = 0}) => [
         for (final family in JudgmentFamily.values)
-          for (var configuration = 0; configuration < 3; configuration += 1)
+          for (var configuration = 0; configuration < 6; configuration += 1)
             JudgmentSceneSpec(
               family: family,
               configuration: configuration,
@@ -200,13 +283,29 @@ class JudgmentEngine {
   List<JudgmentSceneSpec> session({int seed = 0, int length = 10}) {
     const families = JudgmentFamily.values;
     final start = seed.abs() % families.length;
-    return [
-      for (var index = 0; index < length; index += 1)
+    final firstEight = [
+      for (var index = 0; index < math.min(8, length); index += 1)
         JudgmentSceneSpec(
           family: families[(start + index) % families.length],
-          configuration: (seed + index * 2).abs() % 3,
+          configuration: (seed + index * 2).abs() % 6,
           variation: seed + index,
         ),
+    ];
+    if (length <= firstEight.length) return firstEight;
+    final delayed = <JudgmentSceneSpec>[
+      for (var index = 0;
+          index < firstEight.length && firstEight.length + index < length;
+          index += 1)
+        JudgmentSceneSpec(
+          family: firstEight[index].family,
+          configuration: firstEight[index].pairedCueConfiguration,
+          variation: seed + 31 + index,
+        ),
+    ];
+    return [
+      ...firstEight,
+      for (var index = 0; firstEight.length + index < length; index += 1)
+        delayed[index % delayed.length],
     ];
   }
 
@@ -246,14 +345,28 @@ class JudgmentEngine {
       player(9, .82, .50),
       player(10, .70, .76),
     ];
-    var receivedAttackers = attackers;
+    var receivedAttackers = <AttackPlayer>[
+      player(4, .18, .55, vx: .010, vy: -.004),
+      player(6, .38, .52, facing: math.pi),
+      player(7, .505, .205, vx: .026, vy: -.018),
+      player(8, .655, .435, facing: math.pi, vx: .018, vy: .006),
+      player(9, .835, .50, vx: .018),
+      player(10, .715, .735, vx: .016, vy: -.024),
+    ];
     var defenders = <AttackPlayer>[
       player(2, .51, .65, opponent: true, facing: math.pi),
       player(3, .68, .34, opponent: true, facing: math.pi),
       player(5, .76, .72, opponent: true, facing: math.pi),
       player(1, .96, .50, opponent: true, keeper: true, facing: math.pi),
     ];
-    var receivedDefenders = defenders;
+    var receivedDefenders = <AttackPlayer>[
+      player(2, .50, .61,
+          opponent: true, facing: math.pi, vx: -.026, vy: -.030),
+      player(3, .67, .35, opponent: true, facing: math.pi, vx: -.020, vy: .015),
+      player(5, .75, .69,
+          opponent: true, facing: math.pi, vx: -.022, vy: -.016),
+      player(1, .955, .50, opponent: true, keeper: true, facing: math.pi),
+    ];
     var cueFrom = defenders.first.position;
     var cueTo = defenders.first.position;
     var cueIsOpponent = true;
@@ -268,27 +381,32 @@ class JudgmentEngine {
     var supportWide = false;
     var supportBack = false;
 
-    void replaceDefender(AttackPlayer defender) {
+    void replaceDefender(AttackPlayer defender, {bool cue = true}) {
       receivedDefenders = [
         defender,
-        ...defenders.where((item) => item.number != defender.number),
+        ...receivedDefenders.where((item) => item.number != defender.number),
       ]..sort((a, b) => a.number.compareTo(b.number));
-      cueFrom = defenders
-          .firstWhere((item) => item.number == defender.number)
-          .position;
-      cueTo = defender.position;
+      if (cue) {
+        cueFrom = defenders
+            .firstWhere((item) => item.number == defender.number)
+            .position;
+        cueTo = defender.position;
+        cueIsOpponent = true;
+      }
     }
 
-    void replaceAttacker(AttackPlayer attacker) {
+    void replaceAttacker(AttackPlayer attacker, {bool cue = true}) {
       receivedAttackers = [
         attacker,
-        ...attackers.where((item) => item.number != attacker.number),
+        ...receivedAttackers.where((item) => item.number != attacker.number),
       ]..sort((a, b) => a.number.compareTo(b.number));
-      cueFrom = attackers
-          .firstWhere((item) => item.number == attacker.number)
-          .position;
-      cueTo = attacker.position;
-      cueIsOpponent = false;
+      if (cue) {
+        cueFrom = attackers
+            .firstWhere((item) => item.number == attacker.number)
+            .position;
+        cueTo = attacker.position;
+        cueIsOpponent = false;
+      }
     }
 
     switch (spec.family) {
@@ -304,42 +422,140 @@ class JudgmentEngine {
           case 0:
             replaceDefender(player(2, .423, .52,
                 opponent: true, facing: math.pi, vx: -.050));
+            replaceDefender(
+                player(3, .64, .43, opponent: true, vx: -.020, vy: .010),
+                cue: false);
 
           case 1:
             replaceDefender(
                 player(2, .56, .52, opponent: true, facing: math.pi, vx: .018));
+            replaceAttacker(
+                player(8, .61, .44, facing: math.pi, vx: -.032, vy: .004),
+                cue: false);
 
           case 2:
             replaceDefender(player(2, .43, .44,
                 opponent: true, facing: 2.45, vx: -.030, vy: .055));
+            replaceDefender(
+                player(5, .69, .60, opponent: true, vx: -.030, vy: -.018),
+                cue: false);
+          case 3:
+            replaceDefender(player(2, .425, .52,
+                opponent: true, facing: math.pi, vx: -.018, vy: -.006));
+            replaceAttacker(
+                player(8, .58, .44, facing: math.pi, vx: -.044, vy: .004),
+                cue: false);
+            replaceDefender(
+                player(3, .62, .46, opponent: true, vx: -.034, vy: .012),
+                cue: false);
+          case 4:
+            replaceDefender(player(2, .555, .52,
+                opponent: true, facing: math.pi, vx: -.050));
+            replaceAttacker(player(9, .85, .49, vx: .034, vy: -.004),
+                cue: false);
+            replaceDefender(
+                player(5, .74, .62, opponent: true, vx: -.050, vy: -.010),
+                cue: false);
+          case 5:
+            replaceDefender(player(2, .43, .45,
+                opponent: true, facing: 2.45, vx: -.055, vy: .030));
+            replaceAttacker(player(7, .56, .24, vx: .052, vy: -.014),
+                cue: false);
+            replaceDefender(
+                player(3, .61, .34, opponent: true, vx: -.030, vy: .034),
+                cue: false);
         }
       case JudgmentFamily.sidePressure:
         switch (spec.configuration) {
           case 0:
             replaceDefender(player(2, .39, .36,
                 opponent: true, facing: 1.3, vx: .012, vy: .070));
+            replaceDefender(
+                player(3, .59, .43, opponent: true, vx: -.024, vy: .020),
+                cue: false);
 
           case 1:
             replaceDefender(player(2, .39, .68,
                 opponent: true, facing: -1.3, vx: .010, vy: -.070));
+            replaceDefender(
+                player(5, .60, .60, opponent: true, vx: -.022, vy: -.020),
+                cue: false);
 
           case 2:
             replaceDefender(player(2, .45, .62,
                 opponent: true, facing: -2.2, vx: -.036, vy: -.040));
+            replaceAttacker(player(10, .66, .67, vx: .040, vy: -.054),
+                cue: false);
+          case 3:
+            replaceDefender(player(2, .39, .36,
+                opponent: true, facing: 1.3, vx: .036, vy: .044));
+            replaceAttacker(player(7, .55, .18, vx: .050, vy: -.010),
+                cue: false);
+            replaceDefender(
+                player(3, .62, .32, opponent: true, vx: -.028, vy: .036),
+                cue: false);
+          case 4:
+            replaceDefender(player(2, .39, .68,
+                opponent: true, facing: -1.3, vx: .035, vy: -.043));
+            replaceAttacker(player(10, .60, .63, vx: .052, vy: -.060),
+                cue: false);
+            replaceDefender(
+                player(5, .63, .62, opponent: true, vx: -.038, vy: -.030),
+                cue: false);
+          case 5:
+            replaceDefender(player(2, .47, .60,
+                opponent: true, facing: -2.2, vx: -.058, vy: -.010));
+            replaceAttacker(player(8, .62, .52, vx: -.038, vy: -.004),
+                cue: false);
+            replaceDefender(
+                player(3, .63, .46, opponent: true, vx: -.040, vy: .006),
+                cue: false);
         }
       case JudgmentFamily.openFrontSecondDefender:
         switch (spec.configuration) {
           case 0:
             replaceDefender(
                 player(3, .71, .35, opponent: true, facing: math.pi, vx: .004));
+            replaceAttacker(player(8, .66, .43, vx: .024, vy: .006),
+                cue: false);
 
           case 1:
             replaceDefender(player(3, .54, .50,
                 opponent: true, facing: math.pi, vx: -.028));
+            replaceDefender(
+                player(2, .46, .56, opponent: true, vx: -.020, vy: -.016),
+                cue: false);
 
           case 2:
             replaceDefender(player(3, .58, .40,
                 opponent: true, facing: math.pi, vx: -.020, vy: .035));
+            replaceAttacker(player(10, .68, .64, vx: .030, vy: -.044),
+                cue: false);
+          case 3:
+            replaceDefender(player(3, .70, .35,
+                opponent: true, facing: math.pi, vx: -.045, vy: .012));
+            replaceAttacker(
+                player(8, .61, .42, facing: math.pi, vx: -.038, vy: .004),
+                cue: false);
+            replaceDefender(
+                player(5, .72, .63, opponent: true, vx: -.022, vy: -.036),
+                cue: false);
+          case 4:
+            replaceDefender(player(3, .55, .49,
+                opponent: true, facing: math.pi, vx: .010, vy: -.020));
+            replaceAttacker(player(7, .57, .22, vx: .048, vy: -.006),
+                cue: false);
+            replaceDefender(
+                player(2, .48, .56, opponent: true, vx: -.050, vy: -.006),
+                cue: false);
+          case 5:
+            replaceDefender(player(3, .58, .40,
+                opponent: true, facing: math.pi, vx: -.052, vy: .040));
+            replaceAttacker(player(10, .63, .58, vx: .046, vy: -.052),
+                cue: false);
+            replaceDefender(
+                player(5, .69, .62, opponent: true, vx: -.046, vy: -.040),
+                cue: false);
         }
       case JudgmentFamily.passingLane:
         firstActions = const [
@@ -350,60 +566,181 @@ class JudgmentEngine {
         ];
         switch (spec.configuration) {
           case 0:
-            replaceDefender(player(2, .46, .56,
-                opponent: true, facing: math.pi, vx: -.045));
+            replaceDefender(player(2, .46, .62,
+                opponent: true, facing: math.pi, vx: -.045, vy: -.030));
+            replaceDefender(
+                player(3, .62, .43, opponent: true, vx: -.012, vy: .006),
+                cue: false);
 
           case 1:
             replaceDefender(player(2, .53, .48,
                 opponent: true, facing: math.pi, vx: -.010));
+            replaceDefender(
+                player(3, .61, .45, opponent: true, vx: -.034, vy: .002),
+                cue: false);
 
           case 2:
             replaceDefender(
                 player(2, .30, .56, opponent: true, facing: 0, vx: -.020));
+            replaceAttacker(player(8, .62, .43, vx: -.028, vy: .002),
+                cue: false);
+          case 3:
+            replaceDefender(player(2, .46, .56,
+                opponent: true, facing: math.pi, vx: .018, vy: -.052));
+            replaceAttacker(player(8, .61, .42, vx: -.046, vy: .000),
+                cue: false);
+            replaceDefender(
+                player(3, .61, .39, opponent: true, vx: -.028, vy: .038),
+                cue: false);
+          case 4:
+            replaceDefender(player(2, .525, .48,
+                opponent: true, facing: math.pi, vx: -.050, vy: .016));
+            replaceAttacker(player(7, .57, .20, vx: .046, vy: -.008),
+                cue: false);
+            replaceDefender(
+                player(3, .60, .44, opponent: true, vx: -.044, vy: .006),
+                cue: false);
+          case 5:
+            replaceDefender(player(2, .31, .56,
+                opponent: true, facing: 0, vx: .048, vy: -.004));
+            replaceAttacker(player(10, .64, .64, vx: .052, vy: -.044),
+                cue: false);
+            replaceDefender(
+                player(5, .66, .60, opponent: true, vx: -.050, vy: -.030),
+                cue: false);
         }
       case JudgmentFamily.receiverSupport:
         switch (spec.configuration) {
           case 0:
-            replaceAttacker(player(10, .72, .61));
+            replaceAttacker(player(10, .72, .61, vx: .030, vy: -.038));
+            replaceDefender(
+                player(3, .70, .24, opponent: true, vx: -.012, vy: .008),
+                cue: false);
+            replaceDefender(
+                player(5, .74, .66, opponent: true, vx: -.024, vy: -.032),
+                cue: false);
 
           case 1:
-            replaceAttacker(player(10, .90, .79));
+            replaceAttacker(player(10, .90, .79, vx: -.010, vy: -.010));
             replaceDefender(
                 player(5, .70, .51, opponent: true, facing: math.pi));
 
           case 2:
-            replaceAttacker(player(7, .58, .28));
+            replaceAttacker(player(7, .58, .28, vx: .040, vy: -.015));
+            replaceDefender(
+                player(3, .62, .36, opponent: true, vx: -.020, vy: .020),
+                cue: false);
 
+            supportWide = true;
+          case 3:
+            replaceAttacker(player(10, .69, .60, vx: -.046, vy: -.026));
+            replaceAttacker(player(8, .59, .43, vx: -.040, vy: .000),
+                cue: false);
+            replaceDefender(
+                player(5, .70, .56, opponent: true, vx: -.044, vy: -.018),
+                cue: false);
+          case 4:
+            replaceAttacker(player(10, .84, .72, vx: .030, vy: -.052));
+            replaceDefender(
+                player(5, .68, .50, opponent: true, vx: -.050, vy: .010),
+                cue: false);
+            replaceDefender(
+                player(3, .64, .43, opponent: true, vx: -.032, vy: -.005),
+                cue: false);
+          case 5:
+            replaceAttacker(player(7, .56, .30, vx: .052, vy: .022));
+            replaceAttacker(player(10, .64, .59, vx: .042, vy: -.052),
+                cue: false);
+            replaceDefender(
+                player(3, .61, .39, opponent: true, vx: -.052, vy: .026),
+                cue: false);
             supportWide = true;
         }
       case JudgmentFamily.numericalAdvantage:
         switch (spec.configuration) {
           case 0:
-            replaceDefender(player(5, .82, .72, opponent: true));
+            replaceDefender(player(5, .82, .72, opponent: true, vx: -.016));
+            replaceAttacker(player(10, .68, .66, vx: .036, vy: -.044),
+                cue: false);
 
           case 1:
-            replaceAttacker(player(7, .57, .24));
+            replaceAttacker(player(7, .57, .24, vx: .046, vy: -.012));
             replaceDefender(player(3, .67, .47, opponent: true, vx: -.020));
 
             supportWide = true;
           case 2:
             replaceDefender(player(2, .42, .52,
                 opponent: true, facing: math.pi, vx: -.050));
+            replaceAttacker(player(4, .19, .55, vx: .016, vy: -.004),
+                cue: false);
 
+            supportBack = true;
+          case 3:
+            replaceDefender(
+                player(5, .82, .72, opponent: true, vx: -.054, vy: -.032));
+            replaceAttacker(player(10, .61, .60, vx: -.040, vy: -.030),
+                cue: false);
+            replaceDefender(
+                player(3, .62, .41, opponent: true, vx: -.034, vy: .024),
+                cue: false);
+          case 4:
+            replaceAttacker(player(7, .58, .25, vx: -.020, vy: .030));
+            replaceAttacker(player(10, .61, .61, vx: .050, vy: -.054),
+                cue: false);
+            replaceDefender(
+                player(3, .66, .47, opponent: true, vx: -.058, vy: -.006),
+                cue: false);
+            supportWide = true;
+          case 5:
+            replaceDefender(player(2, .42, .52,
+                opponent: true, facing: math.pi, vx: -.020));
+            replaceDefender(
+                player(5, .69, .62, opponent: true, vx: -.060, vy: -.018),
+                cue: false);
+            replaceAttacker(player(4, .20, .57, vx: .010, vy: .000),
+                cue: false);
             supportBack = true;
         }
       case JudgmentFamily.postPassSupportAngle:
         switch (spec.configuration) {
           case 0:
-            break;
+            replaceAttacker(player(8, .66, .43, vx: .024, vy: .006),
+                cue: false);
+            replaceDefender(
+                player(3, .66, .35, opponent: true, vx: -.020, vy: .018),
+                cue: false);
           case 1:
             replaceDefender(player(3, .60, .35,
                 opponent: true, facing: math.pi, vx: -.018));
+            replaceAttacker(player(10, .68, .64, vx: .026, vy: -.036),
+                cue: false);
 
           case 2:
-            replaceAttacker(player(8, .72, .28, facing: math.pi));
+            replaceAttacker(player(8, .66, .28, facing: math.pi, vx: .014));
             replaceDefender(
-                player(3, .60, .27, opponent: true, facing: math.pi));
+                player(3, .56, .14, opponent: true, facing: math.pi));
+          case 3:
+            replaceAttacker(
+                player(8, .62, .43, facing: math.pi, vx: -.046, vy: .000));
+            replaceDefender(
+                player(3, .62, .40, opponent: true, vx: -.050, vy: .010),
+                cue: false);
+            replaceDefender(
+                player(5, .70, .59, opponent: true, vx: -.040, vy: -.030),
+                cue: false);
+          case 4:
+            replaceDefender(player(3, .60, .35,
+                opponent: true, facing: math.pi, vx: -.052, vy: .038));
+            replaceAttacker(player(10, .63, .58, vx: .048, vy: -.050),
+                cue: false);
+          case 5:
+            replaceAttacker(
+                player(8, .71, .29, facing: math.pi, vx: -.042, vy: .030));
+            replaceDefender(player(3, .60, .28,
+                opponent: true, facing: math.pi, vx: -.052, vy: .048));
+            replaceDefender(
+                player(5, .68, .58, opponent: true, vx: -.042, vy: -.020),
+                cue: false);
         }
       case JudgmentFamily.transitionBackSpace:
         firstActions = const [
@@ -416,16 +753,47 @@ class JudgmentEngine {
           case 0:
             replaceDefender(player(2, .42, .52,
                 opponent: true, facing: math.pi, vx: -.055));
+            replaceDefender(
+                player(5, .72, .63, opponent: true, vx: -.050, vy: -.010),
+                cue: false);
 
             supportBack = true;
           case 1:
             replaceDefender(player(5, .73, .62,
                 opponent: true, facing: math.pi, vx: -.060));
+            replaceAttacker(player(4, .18, .54, vx: .004, vy: .000),
+                cue: false);
 
           case 2:
-            replaceAttacker(player(9, .87, .50));
+            replaceAttacker(player(9, .87, .50, vx: .028));
             replaceDefender(player(5, .73, .72, opponent: true));
 
+            forwardNumber = 9;
+            supportBack = true;
+          case 3:
+            replaceDefender(player(2, .42, .52,
+                opponent: true, facing: math.pi, vx: -.020, vy: .008));
+            replaceDefender(
+                player(5, .70, .61, opponent: true, vx: -.065, vy: -.024),
+                cue: false);
+            replaceAttacker(player(4, .20, .57, vx: -.006, vy: .000),
+                cue: false);
+            supportBack = true;
+          case 4:
+            replaceDefender(player(5, .74, .62,
+                opponent: true, facing: math.pi, vx: -.026, vy: -.002));
+            replaceAttacker(player(8, .62, .43, vx: -.046, vy: .000),
+                cue: false);
+            replaceDefender(
+                player(3, .60, .42, opponent: true, vx: -.048, vy: .010),
+                cue: false);
+          case 5:
+            replaceAttacker(player(9, .86, .50, vx: -.040));
+            replaceDefender(
+                player(5, .72, .71, opponent: true, vx: -.062, vy: -.032));
+            replaceDefender(
+                player(3, .63, .42, opponent: true, vx: -.042, vy: .006),
+                cue: false);
             forwardNumber = 9;
             supportBack = true;
         }
@@ -517,6 +885,35 @@ class JudgmentEngine {
   ) =>
       _targetFor(state, activeNumber, action, scene);
 
+  JudgmentCoachingEvidence coachingEvidence(
+    JudgmentResult result, {
+    List<JudgmentResult> alternatives = const <JudgmentResult>[],
+  }) {
+    final cue = _actorCueFor(result);
+    final technicalPassCompleted = result.transitions.any((transition) =>
+        transition.action.kind == AttackActionKind.pass &&
+        transition.after.end == null &&
+        transition.after.carrierNumber == transition.action.targetNumber);
+    final receiverSupportUseful = !result.after.finished &&
+        (!technicalPassCompleted ||
+            (_outletPoints(result.after, result.after.carrierNumber)
+                    .isNotEmpty &&
+                _nearestDefender(result.after, result.after.ball)
+                        .position
+                        .distanceTo(result.after.ball) >
+                    .060));
+    final supported = _supportedAlternative(result, alternatives);
+    return JudgmentCoachingEvidence(
+      observedCue: cue,
+      nextHabit: _nextHabitFor(result),
+      technicalPassCompleted: technicalPassCompleted,
+      receiverSupportUseful: receiverSupportUseful,
+      supportedAlternative: supported?.choice.action,
+      supportedAlternativeQuality: supported?.quality,
+      supportedAlternativeReason: supported?.reason,
+    );
+  }
+
   JudgmentResult _firstTouch(JudgmentPhase phase, JudgmentChoice choice) {
     final before = phase.state;
     final transition = choice.action == JudgmentAction.oneTouchReturn
@@ -524,7 +921,7 @@ class JudgmentEngine {
         : _carry(before, choice.target,
             duration: .62, shielding: choice.action == JudgmentAction.shield);
     final after = transition.after;
-    final assessment = _assess(before, after);
+    final assessment = _assess(phase, choice, before, after);
     final next = after.finished
         ? null
         : choice.action == JudgmentAction.oneTouchReturn
@@ -550,7 +947,7 @@ class JudgmentEngine {
           choice.action, 'action', 'Not an action decision'),
     };
     final after = transition.after;
-    final assessment = _assess(before, after);
+    final assessment = _assess(phase, choice, before, after);
     final next = !after.finished &&
             transition.action.kind == AttackActionKind.pass &&
             _needsSupport(phase.scene, choice.action)
@@ -650,7 +1047,11 @@ class JudgmentEngine {
   }
 
   (JudgmentQuality, JudgmentReason) _assess(
-      AttackState before, AttackState after) {
+    JudgmentPhase phase,
+    JudgmentChoice choice,
+    AttackState before,
+    AttackState after,
+  ) {
     if (after.finished) {
       return (
         JudgmentQuality.lost,
@@ -665,10 +1066,22 @@ class JudgmentEngine {
         _nearestDefender(after, after.ball).position.distanceTo(after.ball);
     final oldOptions = _outletPoints(before, before.carrierNumber).length;
     final options = _outletPoints(after, after.carrierNumber).length;
+    final passCompleted = before.carrierNumber != after.carrierNumber;
+    final beforePressure = _nearestDefender(before, before.ball);
+    final pressureDelta = before.ball - beforePressure.position;
+    final pressureBehind = beforePressure.position.x > before.ball.x - .015 &&
+        pressureDelta.y.abs() < .12;
+    final pressureSide = pressureDelta.y.abs() >= .08;
     if (gap < .065) {
       return (
         JudgmentQuality.possessionRetained,
-        JudgmentReason.pressureRemains
+        phase.kind == JudgmentDecisionKind.firstTouch
+            ? pressureBehind
+                ? JudgmentReason.rearPressureArrived
+                : pressureSide
+                    ? JudgmentReason.sidePressureTrap
+                    : JudgmentReason.pressureRemains
+            : JudgmentReason.pressureRemains
       );
     }
     if (options < oldOptions && options < 2) {
@@ -679,12 +1092,26 @@ class JudgmentEngine {
     }
     if (gap > oldGap + .025 ||
         (after.ball.x > before.ball.x + .055 && gap > .10)) {
-      return (JudgmentQuality.spaceGained, JudgmentReason.spaceCreated);
+      return (
+        JudgmentQuality.spaceGained,
+        phase.kind == JudgmentDecisionKind.firstTouch
+            ? pressureBehind
+                ? JudgmentReason.rearPressureEscaped
+                : pressureSide
+                    ? JudgmentReason.sidePressureUsed
+                    : JudgmentReason.spaceCreated
+            : switch (choice.action) {
+                JudgmentAction.passWide => JudgmentReason.laneOpened,
+                JudgmentAction.passBack => JudgmentReason.transitionSecured,
+                JudgmentAction.carryForward => JudgmentReason.spaceCreated,
+                _ => JudgmentReason.spaceCreated,
+              }
+      );
     }
     if (options >= 2) {
       return (
         JudgmentQuality.optionsPreserved,
-        before.carrierNumber != after.carrierNumber
+        passCompleted
             ? JudgmentReason.receiverSupported
             : JudgmentReason.possessionKept
       );
@@ -767,6 +1194,202 @@ class JudgmentEngine {
       _ => false,
     };
   }
+
+  JudgmentResult? _supportedAlternative(
+    JudgmentResult result,
+    List<JudgmentResult> alternatives,
+  ) {
+    final baseRank = _qualityRank(result.quality);
+    final available = alternatives
+        .where((item) =>
+            item.choice.action != result.choice.action &&
+            item.phase.kind == result.phase.kind &&
+            item.phase.step == result.phase.step &&
+            _sameDecisionSnapshot(item.before, result.before))
+        .toList()
+      ..sort((a, b) => _qualityRank(b.quality).compareTo(
+            _qualityRank(a.quality),
+          ));
+    for (final item in available) {
+      if (_qualityRank(item.quality) > baseRank) return item;
+    }
+    return available.isEmpty ? null : available.first;
+  }
+
+  JudgmentActorCue _actorCueFor(JudgmentResult result) {
+    final last = result.transitions.last;
+    // The first-touch review refers to movement during the incoming pass,
+    // before the decision, rather than calling its consequence an observed cue.
+    if (result.phase.kind == JudgmentDecisionKind.firstTouch &&
+        result.choice.action != JudgmentAction.oneTouchReturn) {
+      final number = last.interceptorNumber ??
+          _nearestDefender(result.before, result.before.ball).number;
+      final start = result.phase.scene.initial.defenders
+          .firstWhere((p) => p.number == number);
+      final end = result.before.defenders.firstWhere((p) => p.number == number);
+      final closure = start.position.distanceTo(result.before.ball) -
+          end.position.distanceTo(result.before.ball);
+      return _defenderCue(
+          result.phase.scene.initial,
+          result.before,
+          number,
+          closure > .01
+              ? JudgmentCueKind.pressure
+              : closure < -.01
+                  ? JudgmentCueKind.pressureRetreating
+                  : JudgmentCueKind.pressureHolding);
+    }
+    final interceptedBy = last.interceptorNumber;
+    if (interceptedBy != null) {
+      return _defenderCue(
+        result.before,
+        result.after,
+        interceptedBy,
+        last.action.kind == AttackActionKind.pass
+            ? JudgmentCueKind.coverLane
+            : JudgmentCueKind.pressure,
+      );
+    }
+    if (result.after.end == AttackEnd.offside) {
+      final number = last.offside?.receiverNumber ?? result.choice.targetNumber;
+      if (number != null) {
+        return _attackerCue(
+          result.before,
+          result.before,
+          number,
+          JudgmentCueKind.offsideLine,
+        );
+      }
+    }
+    if (result.phase.kind == JudgmentDecisionKind.support) {
+      return _attackerCue(
+        result.before,
+        result.after,
+        6,
+        JudgmentCueKind.supportRun,
+      );
+    }
+    if (last.action.kind == AttackActionKind.pass &&
+        last.action.targetNumber != null &&
+        !result.after.finished) {
+      return _attackerCue(
+        result.before,
+        result.after,
+        last.action.targetNumber!,
+        JudgmentCueKind.receiverMovement,
+      );
+    }
+    final beforeDefender = _nearestDefender(result.before, result.before.ball);
+    return _defenderCue(
+      result.before,
+      result.after,
+      beforeDefender.number,
+      beforeDefender.position.distanceTo(result.after.ball) >
+              result.after.defenders
+                      .firstWhere((p) => p.number == beforeDefender.number)
+                      .position
+                      .distanceTo(result.after.ball) +
+                  .01
+          ? JudgmentCueKind.pressure
+          : JudgmentCueKind.pressureHolding,
+    );
+  }
+
+  JudgmentActorCue _defenderCue(
+    AttackState before,
+    AttackState after,
+    int number,
+    JudgmentCueKind kind,
+  ) {
+    final start =
+        before.defenders.firstWhere((player) => player.number == number);
+    final end = after.defenders.firstWhere(
+      (player) => player.number == number,
+      orElse: () => start,
+    );
+    return JudgmentActorCue(
+      number: number,
+      opponent: true,
+      kind: kind,
+      from: start.position,
+      to: end.position,
+    );
+  }
+
+  JudgmentActorCue _attackerCue(
+    AttackState before,
+    AttackState after,
+    int number,
+    JudgmentCueKind kind,
+  ) {
+    final start =
+        before.attackers.firstWhere((player) => player.number == number);
+    final end = after.attackers.firstWhere(
+      (player) => player.number == number,
+      orElse: () => start,
+    );
+    return JudgmentActorCue(
+      number: number,
+      opponent: false,
+      kind: kind,
+      from: start.position,
+      to: end.position,
+    );
+  }
+
+  JudgmentHabit _nextHabitFor(JudgmentResult result) {
+    if (result.after.end == AttackEnd.offside) {
+      return JudgmentHabit.scanCover;
+    }
+    return switch (result.phase.kind) {
+      JudgmentDecisionKind.firstTouch => JudgmentHabit.firstTouchAway,
+      JudgmentDecisionKind.support => JudgmentHabit.adjustReturnAngle,
+      JudgmentDecisionKind.nextAction => switch (
+            result.phase.scene.spec.family) {
+          JudgmentFamily.receiverSupport => JudgmentHabit.supportReceiver,
+          JudgmentFamily.numericalAdvantage => JudgmentHabit.useSparePlayer,
+          JudgmentFamily.transitionBackSpace => JudgmentHabit.secureBehindBall,
+          _ => JudgmentHabit.scanCover,
+        },
+    };
+  }
+}
+
+int _qualityRank(JudgmentQuality quality) => switch (quality) {
+      JudgmentQuality.lost => 0,
+      JudgmentQuality.possessionRetained => 1,
+      JudgmentQuality.spaceGained => 2,
+      JudgmentQuality.optionsPreserved => 3,
+    };
+
+bool _sameDecisionSnapshot(AttackState a, AttackState b) {
+  if (a.carrierNumber != b.carrierNumber ||
+      a.ball.distanceTo(b.ball) > 1e-8 ||
+      a.elapsed != b.elapsed ||
+      a.end != b.end) {
+    return false;
+  }
+  bool playersMatch(List<AttackPlayer> left, List<AttackPlayer> right) {
+    if (left.length != right.length) return false;
+    for (final player in left) {
+      final other = right.firstWhere(
+        (item) => item.number == player.number,
+        orElse: () => player.copyWith(
+          position: ScanPassPoint(player.position.x + 1, player.position.y),
+        ),
+      );
+      if (player.position.distanceTo(other.position) > 1e-8 ||
+          player.velocity.distanceTo(other.velocity) > 1e-8 ||
+          (player.facingRadians - other.facingRadians).abs() > 1e-8 ||
+          player.goalkeeper != other.goalkeeper) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  return playersMatch(a.attackers, b.attackers) &&
+      playersMatch(a.defenders, b.defenders);
 }
 
 ScanPassPoint _targetFor(
@@ -792,7 +1415,7 @@ ScanPassPoint _targetFor(
     JudgmentAction.carryForward => offset(.120, 0),
     JudgmentAction.protect => _shieldTarget(state, active.position, .050),
     JudgmentAction.supportInside =>
-      (state.ball + ScanPassPoint(-.105, state.ball.y < .5 ? .085 : -.085))
+      (state.ball + ScanPassPoint(-.105, state.ball.y < .5 ? .125 : -.125))
           .clampToField(minX: .04, maxX: .94, minY: .08, maxY: .92),
     JudgmentAction.supportWide =>
       (state.ball + ScanPassPoint(-.080, state.ball.y < .5 ? -.145 : .145))
@@ -805,6 +1428,8 @@ ScanPassPoint _targetFor(
 AttackTransition _pass(AttackState before, int receiverNumber) {
   final receiver = _attacker(before, receiverNumber);
   final offside = const AttackEngine().checkOffside(before, receiverNumber);
+  final frozenNumber =
+      before.carrierNumber == 6 && receiverNumber != 6 ? 6 : null;
   final duration = (before.ball.distanceTo(receiver.position) / .55)
       .clamp(.25, 1.45)
       .toDouble();
@@ -813,7 +1438,12 @@ AttackTransition _pass(AttackState before, int receiverNumber) {
   for (var sample = 1; sample <= 64; sample++) {
     final fraction = sample / 64;
     final ball = before.ball.lerp(destination, fraction);
-    final world = _advance(before, duration * fraction, focus: ball);
+    final world = _advance(
+      before,
+      duration * fraction,
+      focus: ball,
+      frozenNumber: frozenNumber,
+    );
     final defender = _nearestDefender(world, ball);
     if (defender.position.distanceTo(ball) < .026) {
       return AttackTransition(
@@ -843,7 +1473,12 @@ AttackTransition _pass(AttackState before, int receiverNumber) {
         ballEnd: before.ball,
         offside: offside);
   }
-  final world = _advance(before, duration, focus: destination);
+  final world = _advance(
+    before,
+    duration,
+    focus: destination,
+    frozenNumber: frozenNumber,
+  );
   final after = world.copyWith(
       attackers: _movePlayer(world.attackers, receiverNumber, destination),
       ball: destination,
@@ -908,34 +1543,63 @@ AttackTransition _carry(AttackState before, ScanPassPoint target,
       ballEnd: destination);
 }
 
-AttackState _advance(AttackState state, double seconds,
-    {ScanPassPoint? focus}) {
+AttackState _advance(
+  AttackState state,
+  double seconds, {
+  ScanPassPoint? focus,
+  int? frozenNumber,
+}) {
   final ball = focus ?? state.ball;
   final attackers = [
     for (final p in state.attackers)
-      p.copyWith(
-          position: (p.position + p.velocity * seconds)
-              .clampToField(minX: .04, maxX: .96, minY: .08, maxY: .92))
+      (() {
+        if (p.number == frozenNumber) {
+          return p.copyWith(velocity: const ScanPassPoint(0, 0));
+        }
+        final position = (p.position + p.velocity * seconds)
+            .clampToField(minX: .04, maxX: .96, minY: .08, maxY: .92);
+        final delta = position - p.position;
+        return p.copyWith(
+          position: position,
+          facingRadians: delta.distance > .001
+              ? math.atan2(delta.y, delta.x)
+              : p.facingRadians,
+        );
+      })()
   ];
+  final nearest = state.defenders.where((player) => !player.goalkeeper).reduce(
+      (a, b) =>
+          a.position.distanceTo(ball) <= b.position.distanceTo(ball) ? a : b);
   final defenders = [
     for (final p in state.defenders)
       (() {
+        if (p.goalkeeper) {
+          final targetY = (.5 + (ball.y - .5) * .35).clamp(.40, .60).toDouble();
+          final target = ScanPassPoint(.955, targetY);
+          final delta = target - p.position;
+          final step = _limitedStep(delta, .060 * seconds);
+          return p.copyWith(
+            position: (p.position + p.velocity * seconds * .35 + step)
+                .clampToField(minX: .04, maxX: .96, minY: .08, maxY: .92),
+            facingRadians: step.distance > .001
+                ? math.atan2(step.y, step.x)
+                : p.facingRadians,
+          );
+        }
         final delta = ball - p.position;
         final distance = delta.distance;
-        final response = distance > .001
-            ? delta * (.035 / distance)
+        final response = distance > .001 ? delta * (1 / distance) : delta;
+        final cover = _coverIntent(state, p, ball);
+        final coverDelta = cover - p.position;
+        final coverUnit = coverDelta.distance > .001
+            ? coverDelta * (1 / coverDelta.distance)
             : const ScanPassPoint(0, 0);
-        // Preserve the observed press/drop intention; nearby markers adjust to
-        // the ball after the learner's action rather than moving independently.
-        final velocity = p.goalkeeper
-            ? p.velocity
-            : p.velocity.distance > .002
-                ? (distance < .17
-                    ? p.velocity * .8 + response * .2
-                    : p.velocity)
-                : distance < .24
-                    ? response
-                    : p.velocity;
+        final isPresser = p.number == nearest.number || distance < .115;
+        final base =
+            p.velocity.distance > .002 ? p.velocity : const ScanPassPoint(0, 0);
+        final velocity = isPresser
+            ? base * .48 + response * .055
+            : base * .58 + coverUnit * .042;
         return p.copyWith(
             position: (p.position + velocity * seconds)
                 .clampToField(minX: .04, maxX: .96, minY: .08, maxY: .92),
@@ -964,6 +1628,36 @@ AttackPlayer _nearestDefender(AttackState state, ScanPassPoint point) {
               ),
         );
   return defenders.first;
+}
+
+ScanPassPoint _coverIntent(
+  AttackState state,
+  AttackPlayer defender,
+  ScanPassPoint ball,
+) {
+  final forwardTargets = state.attackers
+      .where((player) => player.number != state.carrierNumber)
+      .toList()
+    ..sort((a, b) => b.position.x.compareTo(a.position.x));
+  final primary = forwardTargets.isEmpty ? state.carrier : forwardTargets.first;
+  final wide = forwardTargets.firstWhere(
+    (player) => player.number == 7 || player.number == 10,
+    orElse: () => primary,
+  );
+  final target = switch (defender.number) {
+    3 => ball.lerp(primary.position, .58),
+    5 => ball.lerp(wide.position, .62),
+    _ => ScanPassPoint(
+        math.max(defender.position.x, math.min(.90, ball.x + .10)),
+        defender.position.y + (ball.y - defender.position.y) * .25,
+      ),
+  };
+  return target.clampToField(minX: .04, maxX: .96, minY: .08, maxY: .92);
+}
+
+ScanPassPoint _limitedStep(ScanPassPoint delta, double limit) {
+  if (delta.distance <= limit || delta.distance < .00001) return delta;
+  return delta * (limit / delta.distance);
 }
 
 List<AttackPlayer> _movePlayer(

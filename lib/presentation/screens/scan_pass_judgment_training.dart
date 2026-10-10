@@ -47,11 +47,13 @@ class _JudgmentEpisodeTrainingScreenState
   bool _observationReplay = false;
   bool _executingAlternative = false;
   bool _replayingChoice = false;
+  bool _fullPitchOverview = false;
   int _replayResultIndex = 0;
   int _reviewIndex = 0;
   int _recurrenceCount = 0;
   final Set<JudgmentFamily> _recurrenceFamilies = {};
   bool _replayingLeadIn = false;
+  _PitchFrame? _focusFrame;
 
   bool get _canChoose => _phase == _JudgmentUiPhase.choosing;
 
@@ -195,6 +197,7 @@ class _JudgmentEpisodeTrainingScreenState
     final token = _sceneToken;
     _scene = _engine.scene(_session[_sceneIndex]);
     _decision = _engine.firstPhase(_scene);
+    _focusFrame = _judgmentFocusFrame(_scene);
     _phase = _JudgmentUiPhase.observing;
     _activeResult = null;
     _terminalResult = null;
@@ -467,6 +470,104 @@ class _JudgmentEpisodeTrainingScreenState
     _runExecution(alternative);
   }
 
+  void _practiceCuePair() {
+    if (_phase != _JudgmentUiPhase.review ||
+        _sceneIndex + 1 >= _session.length) {
+      return;
+    }
+    _session[_sceneIndex + 1] = _scene.spec.pairedCue();
+    _continueSession();
+  }
+
+  void _toggleOverview() {
+    setState(() {
+      _fullPitchOverview = !_fullPitchOverview;
+    });
+  }
+
+  void _showCoachDetail() {
+    final result = _viewResult;
+    if (_phase != _JudgmentUiPhase.review || result == null) return;
+    final l10n = AppLocalizations.of(context)!;
+    final evidence = _coachingEvidence(result);
+    unawaited(_pauseForModal(() => showModalBottomSheet<void>(
+          context: context,
+          showDragHandle: true,
+          isScrollControlled: true,
+          useSafeArea: true,
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * .76,
+          ),
+          builder: (context) {
+            final colors = _ScanPassColors.of(context);
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(children: [
+                      Expanded(
+                        child: Text(
+                          l10n.scanPassJudgmentCoachDetailTitle,
+                          key: const ValueKey<String>(
+                              'judgment-coach-detail-sheet'),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: colors.text,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(l10n.scanPassHelpCloseAction),
+                      ),
+                    ]),
+                    const SizedBox(height: 10),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _coachDetailLine(
+                              l10n.scanPassJudgmentCoachObservedLabel,
+                              _coachObserved(l10n, evidence),
+                              colors,
+                            ),
+                            _coachDetailLine(
+                              l10n.scanPassJudgmentCoachConsequenceLabel,
+                              _coachConsequence(l10n, result, evidence),
+                              colors,
+                            ),
+                            _coachDetailLine(
+                              l10n.scanPassJudgmentCoachConnectionsLabel,
+                              _coachConnections(l10n, result),
+                              colors,
+                            ),
+                            _coachDetailLine(
+                              l10n.scanPassJudgmentCoachNextLabel,
+                              _coachNext(l10n, evidence),
+                              colors,
+                            ),
+                            _coachDetailLine(
+                              l10n.scanPassJudgmentCoachAlternativeLabel,
+                              _coachAlternative(l10n, evidence),
+                              colors,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        )));
+  }
+
   void _retryScene() {
     if (_phase == _JudgmentUiPhase.summary) return;
     setState(() {
@@ -662,8 +763,8 @@ class _JudgmentEpisodeTrainingScreenState
     final colors = _ScanPassColors.of(context);
     return SizedBox(
       height: math.max(
-        42,
-        MediaQuery.textScalerOf(context).scale(14) * 1.16 * 2 + 12,
+        48,
+        MediaQuery.textScalerOf(context).scale(13) * 1.08 * 2 + 4,
       ),
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -672,7 +773,7 @@ class _JudgmentEpisodeTrainingScreenState
           borderRadius: BorderRadius.circular(6),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
           child: Row(children: [
             Icon(Icons.visibility_outlined, color: colors.accent, size: 18),
             const SizedBox(width: 7),
@@ -702,6 +803,21 @@ class _JudgmentEpisodeTrainingScreenState
                       _session.length),
               color: colors.background,
             ),
+            const SizedBox(width: 4),
+            AppBarActionButton(
+              key: const ValueKey<String>('judgment-overview-toggle'),
+              tooltip: _fullPitchOverview
+                  ? l10n.scanPassJudgmentFocusAction
+                  : l10n.scanPassJudgmentOverviewAction,
+              onPressed: _toggleOverview,
+              compact: true,
+              margin: EdgeInsets.zero,
+              icon: Icon(
+                  _fullPitchOverview
+                      ? Icons.center_focus_strong_outlined
+                      : Icons.fullscreen_outlined,
+                  size: 18),
+            ),
           ]),
         ),
       ),
@@ -713,15 +829,22 @@ class _JudgmentEpisodeTrainingScreenState
     final colors = _ScanPassColors.of(context);
     final motion = _activeMotion;
     final view = _viewResult;
+    final reviewEvidence = _phase == _JudgmentUiPhase.review && view != null
+        ? _coachingEvidence(view)
+        : null;
+    final frame = _fullPitchOverview ? null : _focusFrame;
     return LayoutBuilder(builder: (context, constraints) {
       final portrait = MediaQuery.sizeOf(context).width < 600 &&
           MediaQuery.sizeOf(context).height > MediaQuery.sizeOf(context).width;
-      final aspect = (constraints.maxWidth / constraints.maxHeight)
-          .clamp(portrait ? .95 : 1.55, portrait ? 1.35 : 2.6);
+      final availableAspect = constraints.maxWidth / constraints.maxHeight;
+      final aspect = _fullPitchOverview
+          ? availableAspect.clamp(portrait ? .95 : 1.55, portrait ? 1.35 : 2.6)
+          : availableAspect;
       return Center(
         child: AspectRatio(
           aspectRatio: aspect,
-          child: Stack(fit: StackFit.expand, children: [
+          child: ClipRect(
+              child: Stack(fit: StackFit.expand, children: [
             Semantics(
               label: l10n.scanPassJudgmentFieldSemantics,
               image: true,
@@ -743,15 +866,11 @@ class _JudgmentEpisodeTrainingScreenState
                   fontFamily:
                       Theme.of(context).textTheme.bodyMedium?.fontFamily,
                   learnerNumber: 6,
-                  decisionCueFrom: _phase == _JudgmentUiPhase.review &&
-                          view?.phase.kind == JudgmentDecisionKind.firstTouch
-                      ? _scene.cueFrom
-                      : null,
-                  decisionCueTo: _phase == _JudgmentUiPhase.review &&
-                          view?.phase.kind == JudgmentDecisionKind.firstTouch
-                      ? _scene.cueTo
-                      : null,
-                  decisionCueIsOpponent: _scene.cueIsOpponent,
+                  focusFrame: frame,
+                  decisionCueFrom: reviewEvidence?.observedCue.from,
+                  decisionCueTo: reviewEvidence?.observedCue.to,
+                  decisionCueIsOpponent:
+                      reviewEvidence?.observedCue.opponent ?? false,
                   decisionPressurePoint: _phase == _JudgmentUiPhase.review
                       ? view?.pressurePoint
                       : null,
@@ -769,7 +888,7 @@ class _JudgmentEpisodeTrainingScreenState
             if (_canChoose)
               LayoutBuilder(builder: (context, box) {
                 final size = Size(box.maxWidth, box.maxHeight);
-                final geometry = _PitchGeometry(size);
+                final geometry = _PitchGeometry(size, frame: frame);
                 final centers =
                     _judgmentOptionCenters(_decision, geometry, size);
                 final origin = geometry.toOffset(_decision.state.attackers
@@ -800,7 +919,7 @@ class _JudgmentEpisodeTrainingScreenState
                     ),
                 ]);
               }),
-          ]),
+          ])),
         ),
       );
     });
@@ -838,11 +957,7 @@ class _JudgmentEpisodeTrainingScreenState
             10,
           ),
           child: SizedBox(
-            height: landscape
-                ? null
-                : MediaQuery.sizeOf(context).width < 1000
-                    ? 196
-                    : 174,
+            height: landscape ? null : _dockHeight(),
             child: Align(
               alignment: Alignment.topCenter,
               child: _dockContent(l10n, landscape: landscape),
@@ -851,6 +966,20 @@ class _JudgmentEpisodeTrainingScreenState
         ),
       ),
     );
+  }
+
+  double _dockHeight() {
+    final width = MediaQuery.sizeOf(context).width;
+    final scale = MediaQuery.textScalerOf(context).scale(1);
+    final small = width < 380;
+    final base = switch (_phase) {
+      _JudgmentUiPhase.observing => 86.0,
+      _JudgmentUiPhase.executing => 20.0,
+      _JudgmentUiPhase.choosing => small ? 146.0 : 140.0,
+      _JudgmentUiPhase.review => small ? 172.0 : 166.0,
+      _JudgmentUiPhase.summary => 190.0,
+    };
+    return base + math.max(0, scale - 1) * 50;
   }
 
   Widget _dockContent(AppLocalizations l10n, {required bool landscape}) {
@@ -883,17 +1012,18 @@ class _JudgmentEpisodeTrainingScreenState
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _phaseHeader(l10n),
-          const SizedBox(height: 8),
+          const SizedBox(height: 7),
           if (_canChoose)
             compact
-                ? LayoutBuilder(
-                    builder: (context, constraints) {
-                      final width = (constraints.maxWidth - 6) / 2;
-                      return Wrap(spacing: 6, runSpacing: 6, children: [
-                        for (final button in buttons)
-                          SizedBox(width: width, child: button),
-                      ]);
-                    },
+                ? SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(children: [
+                      for (final button in buttons)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: SizedBox(width: 76, child: button),
+                        ),
+                    ]),
                   )
                 : Row(children: [
                     for (final button in buttons)
@@ -914,11 +1044,11 @@ class _JudgmentEpisodeTrainingScreenState
                 valueColor: AlwaysStoppedAnimation<Color>(colors.accent),
               ),
             ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 7),
           OutlinedButton.icon(
             key: const ValueKey<String>('judgment-replay-observation'),
             onPressed: _replayObservation,
-            icon: const Icon(Icons.replay),
+            icon: const Icon(Icons.replay, size: 18),
             label: Text(l10n.scanPassJudgmentReplayObservationAction),
             style: _outlinedStyle(colors),
           ),
@@ -936,9 +1066,9 @@ class _JudgmentEpisodeTrainingScreenState
         borderRadius: BorderRadius.circular(6),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
         child: Row(children: [
-          Icon(_phaseIcon(), size: 18, color: colors.accent),
+          Icon(_phaseIcon(), size: 16, color: colors.accent),
           const SizedBox(width: 7),
           Expanded(
             child: Text(
@@ -979,89 +1109,132 @@ class _JudgmentEpisodeTrainingScreenState
   Widget _reviewDock(AppLocalizations l10n) {
     final colors = _ScanPassColors.of(context);
     final result = _viewResult;
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Expanded(
-          child: SingleChildScrollView(
-              child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(children: [
-                for (var i = 0; i < _episodeResults.length; i++)
-                  Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: ChoiceChip(
+    final evidence = result == null ? null : _coachingEvidence(result);
+    return LayoutBuilder(builder: (context, constraints) {
+      final compact =
+          constraints.maxWidth / MediaQuery.textScalerOf(context).scale(1) <
+              370;
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: [
+              for (var i = 0; i < _episodeResults.length; i++)
+                Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: ChoiceChip(
                         key: ValueKey('judgment-moment-$i'),
                         visualDensity: VisualDensity.compact,
                         label: Text(_actionLabel(
                             l10n, _episodeResults[i].choice.action)),
                         selected: i == _reviewIndex,
-                        onSelected: (_) => _selectReview(i),
-                      )),
-              ])),
-          if (result != null)
-            Semantics(
-                key: const ValueKey<String>('judgment-review-result'),
-                liveRegion: true,
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(_qualityLabel(l10n, result.quality),
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelLarge
-                              ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: colors.text)),
-                      const SizedBox(height: 2),
-                      Text(_reasonLabel(l10n, result.reason),
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: colors.muted, height: 1.25)),
-                    ])),
-        ],
-      ))),
-      Row(children: [
-        Expanded(
-            child: TextButton.icon(
-          key: const ValueKey<String>('judgment-replay-choice'),
-          onPressed: _replayChoice,
-          icon: const Icon(Icons.replay, size: 17),
-          label: Text(l10n.scanPassJudgmentReplayChoiceAction,
-              style: const TextStyle(fontSize: 12)),
-        )),
-        Expanded(
-            child: TextButton.icon(
-          key: const ValueKey<String>('judgment-view-alternative'),
-          onPressed: _alternatives.isEmpty ? null : _viewAlternative,
-          icon: const Icon(Icons.compare_arrows_outlined, size: 17),
-          label: Text(l10n.scanPassJudgmentViewAlternativeAction,
-              style: const TextStyle(fontSize: 12)),
-        )),
-      ]),
-      Row(children: [
-        Expanded(
-            child: OutlinedButton(
-          key: const ValueKey<String>('judgment-retry'),
-          onPressed: _retryScene,
-          style: _outlinedStyle(colors),
-          child: Text(l10n.scanPassJudgmentRetryAction),
-        )),
-        const SizedBox(width: 8),
-        Expanded(
-            child: FilledButton.icon(
-          key: const ValueKey<String>('judgment-next'),
-          onPressed: _continueSession,
-          icon: const Icon(Icons.arrow_forward_outlined, size: 18),
-          label: Text(_sceneIndex + 1 >= _session.length
-              ? l10n.scanPassJudgmentSummaryAction
-              : l10n.scanPassJudgmentContinueAction),
-          style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
-        )),
-      ]),
-    ]);
+                        onSelected: (_) => _selectReview(i))),
+            ])),
+        if (result != null && evidence != null)
+          Semantics(
+              key: const ValueKey<String>('judgment-review-result'),
+              liveRegion: true,
+              child: Padding(
+                  padding: const EdgeInsets.only(top: 3, bottom: 4),
+                  child: Text(_coachCompact(l10n, result, evidence),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colors.text,
+                          height: 1.16,
+                          fontWeight: FontWeight.w600)))),
+        Row(children: [
+          Expanded(
+              child: AppBarActionButton(
+                  key: const ValueKey<String>('judgment-replay-choice'),
+                  tooltip: l10n.scanPassJudgmentReplayChoiceAction,
+                  onPressed: _replayChoice,
+                  compact: true,
+                  margin: EdgeInsets.zero,
+                  icon: const Icon(Icons.replay, size: 17),
+                  label: compact
+                      ? l10n.scanPassJudgmentReplayShort
+                      : l10n.scanPassJudgmentReplayChoiceAction,
+                  maxLabelWidth: 280)),
+          const SizedBox(width: 3),
+          Expanded(
+              child: AppBarActionButton(
+                  key: const ValueKey<String>('judgment-view-alternative'),
+                  tooltip: l10n.scanPassJudgmentViewAlternativeAction,
+                  onPressed: _alternatives.isEmpty ? null : _viewAlternative,
+                  compact: true,
+                  margin: EdgeInsets.zero,
+                  icon: const Icon(Icons.compare_arrows_outlined, size: 17),
+                  label: compact
+                      ? l10n.scanPassJudgmentCompareShort
+                      : l10n.scanPassJudgmentViewAlternativeAction,
+                  maxLabelWidth: 280)),
+          const SizedBox(width: 3),
+          Expanded(
+              child: AppBarActionButton(
+                  key: const ValueKey<String>('judgment-coach-detail'),
+                  tooltip: l10n.scanPassJudgmentCoachDetailAction,
+                  onPressed: _showCoachDetail,
+                  compact: true,
+                  margin: EdgeInsets.zero,
+                  icon: const Icon(Icons.lightbulb_outline, size: 17),
+                  label: l10n.scanPassJudgmentCoachShort)),
+        ]),
+        Row(children: [
+          if (compact) ...[
+            AppBarActionButton(
+                key: const ValueKey<String>('judgment-retry'),
+                tooltip: l10n.scanPassJudgmentRetryAction,
+                onPressed: _retryScene,
+                compact: true,
+                margin: EdgeInsets.zero,
+                icon: const Icon(Icons.refresh_outlined)),
+            const SizedBox(width: 3),
+            AppBarActionButton(
+                key: const ValueKey<String>('judgment-cue-pair'),
+                tooltip: l10n.scanPassJudgmentPairCueAction,
+                onPressed: _sceneIndex + 1 >= _session.length
+                    ? null
+                    : _practiceCuePair,
+                compact: true,
+                margin: EdgeInsets.zero,
+                icon: const Icon(Icons.swap_horiz_outlined)),
+          ] else ...[
+            Expanded(
+                child: OutlinedButton(
+                    key: const ValueKey<String>('judgment-retry'),
+                    onPressed: _retryScene,
+                    style: _outlinedStyle(colors),
+                    child: Text(l10n.scanPassJudgmentRetryAction))),
+            const SizedBox(width: 6),
+            Expanded(
+                child: OutlinedButton.icon(
+                    key: const ValueKey<String>('judgment-cue-pair'),
+                    onPressed: _sceneIndex + 1 >= _session.length
+                        ? null
+                        : _practiceCuePair,
+                    icon: const Icon(Icons.swap_horiz_outlined, size: 17),
+                    label: Text(l10n.scanPassJudgmentPairCueAction),
+                    style: _outlinedStyle(colors))),
+          ],
+          const SizedBox(width: 6),
+          Expanded(
+              child: FilledButton.icon(
+                  key: const ValueKey<String>('judgment-next'),
+                  onPressed: _continueSession,
+                  icon: const Icon(Icons.arrow_forward_outlined, size: 18),
+                  label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                          _sceneIndex + 1 >= _session.length
+                              ? l10n.scanPassJudgmentSummaryAction
+                              : l10n.scanPassJudgmentContinueAction,
+                          maxLines: 1)),
+                  style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 44),
+                      padding: const EdgeInsets.symmetric(horizontal: 10)))),
+        ]),
+      ]);
+    });
   }
 
   Widget _summaryDock(AppLocalizations l10n) {
@@ -1190,6 +1363,168 @@ class _JudgmentEpisodeTrainingScreenState
           _reasonLabel(l10n, record.reason),
         ),
     ];
+  }
+
+  JudgmentCoachingEvidence _coachingEvidence(JudgmentResult result) =>
+      _engine.coachingEvidence(
+        result,
+        alternatives: _engine.alternatives(result.phase),
+      );
+
+  Widget _coachDetailLine(
+    String label,
+    String value,
+    _ScanPassColors colors,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: colors.accent,
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colors.text,
+                height: 1.35,
+              ),
+        ),
+      ]),
+    );
+  }
+
+  String _coachCompact(
+    AppLocalizations l10n,
+    JudgmentResult result,
+    JudgmentCoachingEvidence evidence,
+  ) {
+    return l10n.scanPassJudgmentCoachCompact(
+      _actorLabel(l10n, evidence.observedCue),
+      _cueKindLabel(l10n, evidence.observedCue.kind),
+      _reasonLabel(l10n, result.reason),
+      _habitLabel(l10n, evidence.nextHabit),
+    );
+  }
+
+  String _coachObserved(
+    AppLocalizations l10n,
+    JudgmentCoachingEvidence evidence,
+  ) {
+    return l10n.scanPassJudgmentCoachObserved(
+      _actorLabel(l10n, evidence.observedCue),
+      _cueKindLabel(l10n, evidence.observedCue.kind),
+    );
+  }
+
+  String _coachConsequence(
+    AppLocalizations l10n,
+    JudgmentResult result,
+    JudgmentCoachingEvidence evidence,
+  ) {
+    if (evidence.technicalPassCompleted && !evidence.receiverSupportUseful) {
+      return l10n.scanPassJudgmentCoachPassArrivedIsolated(
+        _reasonLabel(l10n, result.reason),
+      );
+    }
+    if (evidence.technicalPassCompleted && evidence.receiverSupportUseful) {
+      return l10n.scanPassJudgmentCoachPassArrivedSupported(
+        _reasonLabel(l10n, result.reason),
+      );
+    }
+    return l10n.scanPassJudgmentCoachConsequence(
+      _qualityLabel(l10n, result.quality),
+      _reasonLabel(l10n, result.reason),
+    );
+  }
+
+  String _coachConnections(AppLocalizations l10n, JudgmentResult result) {
+    String numbers(AttackState state) {
+      final values = _engine.availableConnections(state);
+      return values.isEmpty
+          ? l10n.scanPassJudgmentCoachNoConnections
+          : values.map(l10n.scanPassJudgmentCoachTeammateNumber).join(', ');
+    }
+
+    final change = l10n.scanPassJudgmentCoachConnectionChange(
+        numbers(result.before), numbers(result.after));
+    if (result.after.finished) {
+      return '${l10n.scanPassJudgmentCoachLostConnection}\n$change';
+    }
+    final defenders = result.after.defenders
+        .where((p) => !p.goalkeeper)
+        .toList()
+      ..sort((a, b) => a.position
+          .distanceTo(result.after.ball)
+          .compareTo(b.position.distanceTo(result.after.ball)));
+    final context = l10n.scanPassJudgmentCoachConnections(
+        l10n.scanPassJudgmentCoachTeammateNumber(result.after.carrierNumber),
+        l10n.scanPassJudgmentCoachOpponentNumber(defenders.first.number),
+        numbers(result.after));
+    return '$context\n$change';
+  }
+
+  String _coachNext(
+    AppLocalizations l10n,
+    JudgmentCoachingEvidence evidence,
+  ) {
+    return l10n.scanPassJudgmentCoachNext(
+      _habitLabel(l10n, evidence.nextHabit),
+    );
+  }
+
+  String _coachAlternative(
+    AppLocalizations l10n,
+    JudgmentCoachingEvidence evidence,
+  ) {
+    if (!evidence.hasSupportedAlternative) {
+      return l10n.scanPassJudgmentCoachNoAlternative;
+    }
+    return l10n.scanPassJudgmentCoachAlternative(
+      _actionLabel(l10n, evidence.supportedAlternative!),
+      _qualityLabel(l10n, evidence.supportedAlternativeQuality!),
+      _reasonLabel(l10n, evidence.supportedAlternativeReason!),
+    );
+  }
+
+  String _actorLabel(AppLocalizations l10n, JudgmentActorCue cue) {
+    return cue.opponent
+        ? l10n.scanPassJudgmentCoachOpponentNumber(cue.number)
+        : l10n.scanPassJudgmentCoachTeammateNumber(cue.number);
+  }
+
+  String _cueKindLabel(AppLocalizations l10n, JudgmentCueKind kind) {
+    return switch (kind) {
+      JudgmentCueKind.pressure => l10n.scanPassJudgmentCuePressure,
+      JudgmentCueKind.pressureRetreating =>
+        l10n.scanPassJudgmentCuePressureRetreating,
+      JudgmentCueKind.pressureHolding =>
+        l10n.scanPassJudgmentCuePressureHolding,
+      JudgmentCueKind.coverLane => l10n.scanPassJudgmentCueCoverLane,
+      JudgmentCueKind.supportRun => l10n.scanPassJudgmentCueSupportRun,
+      JudgmentCueKind.receiverMovement =>
+        l10n.scanPassJudgmentCueReceiverMovement,
+      JudgmentCueKind.recoveryRun => l10n.scanPassJudgmentCueRecoveryRun,
+      JudgmentCueKind.offsideLine => l10n.scanPassJudgmentCueOffsideLine,
+    };
+  }
+
+  String _habitLabel(AppLocalizations l10n, JudgmentHabit habit) {
+    return switch (habit) {
+      JudgmentHabit.firstTouchAway => l10n.scanPassJudgmentHabitFirstTouchAway,
+      JudgmentHabit.scanCover => l10n.scanPassJudgmentHabitScanCover,
+      JudgmentHabit.supportReceiver =>
+        l10n.scanPassJudgmentHabitSupportReceiver,
+      JudgmentHabit.useSparePlayer => l10n.scanPassJudgmentHabitUseSparePlayer,
+      JudgmentHabit.secureBehindBall =>
+        l10n.scanPassJudgmentHabitSecureBehindBall,
+      JudgmentHabit.adjustReturnAngle =>
+        l10n.scanPassJudgmentHabitAdjustReturnAngle,
+    };
   }
 
   IconData _actionIcon(JudgmentAction action) {
@@ -1423,4 +1758,60 @@ class _JudgmentOptionPaths extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _JudgmentOptionPaths oldDelegate) => true;
+}
+
+_PitchFrame _judgmentFocusFrame(JudgmentScene scene) {
+  final points = <ScanPassPoint>[
+    // Include all reachable support destinations without shifting the frame.
+    const ScanPassPoint(.04, .08),
+    const ScanPassPoint(.96, .92),
+    for (final state in [scene.initial, scene.reception]) ...[
+      for (final player in state.attackers)
+        if (!player.goalkeeper) player.position,
+      for (final player in state.defenders)
+        if (!player.goalkeeper) player.position,
+      state.ball,
+    ],
+    scene.cueFrom,
+    scene.cueTo,
+    ScanPassPoint(const AttackEngine().offsideLine(scene.reception), .50),
+  ];
+  var minX = points.map((point) => point.x).reduce(math.min) - .07;
+  var maxX = points.map((point) => point.x).reduce(math.max) + .09;
+  var minY = points.map((point) => point.y).reduce(math.min) - .09;
+  var maxY = points.map((point) => point.y).reduce(math.max) + .09;
+  const minWidth = .76;
+  const minHeight = .68;
+  if (maxX - minX < minWidth) {
+    final center = (minX + maxX) / 2;
+    minX = center - minWidth / 2;
+    maxX = center + minWidth / 2;
+  }
+  if (maxY - minY < minHeight) {
+    final center = (minY + maxY) / 2;
+    minY = center - minHeight / 2;
+    maxY = center + minHeight / 2;
+  }
+  if (minX < 0) {
+    maxX -= minX;
+    minX = 0;
+  }
+  if (maxX > 1.04) {
+    minX -= maxX - 1.04;
+    maxX = 1.04;
+  }
+  if (minY < 0) {
+    maxY -= minY;
+    minY = 0;
+  }
+  if (maxY > 1) {
+    minY -= maxY - 1;
+    maxY = 1;
+  }
+  return _PitchFrame(
+    minX.clamp(0.0, 1.04).toDouble(),
+    maxX.clamp(0.0, 1.04).toDouble(),
+    minY.clamp(0.0, 1.0).toDouble(),
+    maxY.clamp(0.0, 1.0).toDouble(),
+  );
 }

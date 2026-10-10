@@ -26,6 +26,8 @@ void main() {
         findsNothing);
     expect(find.byKey(const ValueKey<String>('judgment-replay-observation')),
         findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('judgment-coach-detail')),
+        findsNothing);
 
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump();
@@ -126,6 +128,47 @@ void main() {
           .startsWith('Other choice'),
       isTrue,
     );
+  });
+
+  testWidgets('review opens coach detail and cue-pair practice after choice',
+      (tester) async {
+    await tester.pumpWidget(_app(
+      home: const JudgmentEpisodeTrainingScreen(
+        seed: 0,
+        observationDuration: Duration.zero,
+        executionDuration: Duration.zero,
+      ),
+    ));
+    await tester.pump();
+
+    expect(_judgmentPainter(tester).focusFrame, isNotNull);
+    await tester.tap(find.byKey(const ValueKey('judgment-overview-toggle')));
+    await tester.pump();
+    expect(_judgmentPainter(tester).focusFrame, isNull);
+    expect(find.byKey(const ValueKey<String>('judgment-coach-detail')),
+        findsNothing);
+
+    await _finishScene(tester);
+    expect(find.byKey(const ValueKey<String>('judgment-coach-detail')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('judgment-cue-pair')),
+        findsOneWidget);
+
+    await tester
+        .tap(find.byKey(const ValueKey<String>('judgment-coach-detail')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey<String>('judgment-coach-detail-sheet')),
+        findsOneWidget);
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey<String>('judgment-cue-pair')));
+    await tester.pump();
+    await tester.pump();
+    expect(
+        find.byKey(const ValueKey<String>('judgment-pitch')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('judgment-summary-title')),
+        findsNothing);
   });
 
   testWidgets(
@@ -253,8 +296,15 @@ void main() {
 
       final pitch = find.byKey(const ValueKey<String>('judgment-pitch'));
       expect(pitch, findsOneWidget);
-      expect(tester.getRect(pitch).height,
-          greaterThan(config.size.height < 430 ? 105 : 210));
+      final pitchHeight = tester.getRect(pitch).height;
+      final minimumPitch = config.size.height < 430
+          ? 105.0
+          : config.size.width < 360
+              ? 220.0
+              : config.size.width < 700
+                  ? 450.0
+                  : 460.0;
+      expect(pitchHeight, greaterThan(minimumPitch));
       for (final key in [
         'judgment-dock-touchLeft',
         'judgment-dock-touchForward',

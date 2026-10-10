@@ -19245,6 +19245,130 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassJudgmentFreshSessionAction => 'Fresh session';
 
   @override
+  String get scanPassJudgmentOverviewAction => 'Full pitch';
+
+  @override
+  String get scanPassJudgmentFocusAction => 'Focus area';
+
+  @override
+  String get scanPassJudgmentPairCueAction => 'Cue change';
+
+  @override
+  String get scanPassJudgmentCoachDetailAction => 'Coach detail';
+
+  @override
+  String get scanPassJudgmentCoachDetailTitle => 'Coaching detail';
+
+  @override
+  String get scanPassJudgmentCoachObservedLabel => 'Movement to notice';
+
+  @override
+  String get scanPassJudgmentCoachConsequenceLabel => 'Choice consequence';
+
+  @override
+  String get scanPassJudgmentCoachNextLabel => 'Next read';
+
+  @override
+  String get scanPassJudgmentCoachAlternativeLabel =>
+      'Same-snapshot comparison';
+
+  @override
+  String scanPassJudgmentCoachOpponentNumber(int number) {
+    return 'Opponent $number';
+  }
+
+  @override
+  String scanPassJudgmentCoachTeammateNumber(int number) {
+    return 'Teammate $number';
+  }
+
+  @override
+  String scanPassJudgmentCoachCompact(
+      String actor, String cue, String reason, String habit) {
+    return '$actor $cue. $reason Next: $habit';
+  }
+
+  @override
+  String scanPassJudgmentCoachObserved(String actor, String cue) {
+    return '$actor $cue.';
+  }
+
+  @override
+  String scanPassJudgmentCoachConsequence(String quality, String reason) {
+    return '$quality: $reason';
+  }
+
+  @override
+  String scanPassJudgmentCoachPassArrivedIsolated(String reason) {
+    return 'The pass was technically completed, but the receiver\'s next support was not useful yet: $reason';
+  }
+
+  @override
+  String scanPassJudgmentCoachPassArrivedSupported(String reason) {
+    return 'The pass arrived and the receiver still had a usable next connection: $reason';
+  }
+
+  @override
+  String scanPassJudgmentCoachNext(String habit) {
+    return 'Repeat the habit: $habit';
+  }
+
+  @override
+  String scanPassJudgmentCoachAlternative(
+      String action, String quality, String reason) {
+    return '$action also ran from this same snapshot and led to $quality: $reason';
+  }
+
+  @override
+  String get scanPassJudgmentCoachNoAlternative =>
+      'No alternative from this exact decision state is available to compare.';
+
+  @override
+  String get scanPassJudgmentCuePressure => 'closed pressure toward the ball';
+
+  @override
+  String get scanPassJudgmentCueCoverLane => 'covered the passing lane';
+
+  @override
+  String get scanPassJudgmentCueSupportRun => 'changed the return angle';
+
+  @override
+  String get scanPassJudgmentCueReceiverMovement =>
+      'took up the receiving position';
+
+  @override
+  String get scanPassJudgmentCueRecoveryRun =>
+      'recovered toward the back-space';
+
+  @override
+  String get scanPassJudgmentCueOffsideLine =>
+      'was beyond the offside line at release';
+
+  @override
+  String get scanPassJudgmentHabitFirstTouchAway =>
+      'Before receiving, check the pressure direction and your next passing lane';
+
+  @override
+  String get scanPassJudgmentHabitScanCover =>
+      'Before passing, check the receiver and the defender covering the lane';
+
+  @override
+  String get scanPassJudgmentHabitSupportReceiver =>
+      'move early enough to help the receiver\'s second action';
+
+  @override
+  String get scanPassJudgmentHabitUseSparePlayer =>
+      'find the spare player before pressure recovers';
+
+  @override
+  String get scanPassJudgmentHabitSecureBehindBall =>
+      'keep one support behind the ball in transition';
+
+  @override
+  String get scanPassJudgmentHabitAdjustReturnAngle =>
+      'arrive on an angle that gives the return pass a lane';
+
+  @override
   String get scanPassJudgmentObserveStatus =>
       'Watch the movement before the receiving decision.';
 
@@ -19329,15 +19453,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassJudgmentReasonRearPressureArrived =>
-      'Rear pressure arrived before the ball was clear.';
+      'Pressure from behind remains close after the first touch.';
 
   @override
   String get scanPassJudgmentReasonSidePressureUsed =>
-      'The touch used the side away from pressure.';
+      'The first touch increased the distance from side pressure.';
 
   @override
   String get scanPassJudgmentReasonSidePressureTrap =>
-      'The touch went into the side trap.';
+      'The side defender remains close after the touch, limiting the next action.';
 
   @override
   String get scanPassJudgmentReasonSecondDefenderContained =>
@@ -19361,7 +19485,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassJudgmentReasonReceiverIsolated =>
-      'The receiver was left isolated after the pass.';
+      'The receiver lost the ball to pressure while waiting for support.';
 
   @override
   String get scanPassJudgmentReasonOverloadUsed =>
@@ -19943,4 +20067,42 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get scanPassJudgmentChooseSupport =>
       'Where should number 6 move to receive again?';
+
+  @override
+  String get scanPassJudgmentCuePressureRetreating =>
+      'moved away from the receiving space';
+
+  @override
+  String get scanPassJudgmentCuePressureHolding =>
+      'held position near the receiving space';
+
+  @override
+  String get scanPassJudgmentCoachConnectionsLabel => 'Next connection';
+
+  @override
+  String scanPassJudgmentCoachConnections(
+      String player, String opponent, String options) {
+    return 'The ball is with $player; the nearest defender is $opponent. Reachable teammates: $options.';
+  }
+
+  @override
+  String get scanPassJudgmentCoachNoConnections => 'none';
+
+  @override
+  String scanPassJudgmentCoachConnectionChange(String before, String after) {
+    return 'Connections before: $before. Connections after: $after.';
+  }
+
+  @override
+  String get scanPassJudgmentCoachLostConnection =>
+      'Possession ended here, so no next connection remains.';
+
+  @override
+  String get scanPassJudgmentReplayShort => 'Replay';
+
+  @override
+  String get scanPassJudgmentCompareShort => 'Compare';
+
+  @override
+  String get scanPassJudgmentCoachShort => 'Coach';
 }

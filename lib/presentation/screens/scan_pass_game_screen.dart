@@ -2925,6 +2925,7 @@ class _AttackPitchPainter extends CustomPainter {
   final Brightness brightness;
   final String? fontFamily;
   final int? learnerNumber;
+  final _PitchFrame? focusFrame;
   final ScanPassPoint? decisionCueFrom;
   final ScanPassPoint? decisionCueTo;
   final bool decisionCueIsOpponent;
@@ -2947,6 +2948,7 @@ class _AttackPitchPainter extends CustomPainter {
     required this.brightness,
     required this.fontFamily,
     this.learnerNumber,
+    this.focusFrame,
     this.decisionCueFrom,
     this.decisionCueTo,
     this.decisionCueIsOpponent = false,
@@ -2988,7 +2990,7 @@ class _AttackPitchPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final geometry = _PitchGeometry(size);
+    final geometry = _PitchGeometry(size, frame: focusFrame);
     _drawPitch(canvas, geometry);
     _drawOffside(canvas, geometry);
     _drawHistory(canvas, geometry);
@@ -3635,8 +3637,13 @@ class _AttackPitchPainter extends CustomPainter {
   }
 
   void _drawAttackArrow(Canvas canvas, _PitchGeometry geometry) {
-    final start = Offset(geometry.x(.72), geometry.y(.09));
-    final end = Offset(geometry.x(.88), geometry.y(.09));
+    final arrowY = geometry.frame == null ? geometry.y(.09) : 25.0;
+    final start = Offset(
+        geometry.frame == null ? geometry.x(.72) : geometry.size.width * .72,
+        arrowY);
+    final end = Offset(
+        geometry.frame == null ? geometry.x(.88) : geometry.size.width * .89,
+        arrowY);
     final paint = Paint()
       ..color = _line.withValues(alpha: .78)
       ..style = PaintingStyle.stroke
@@ -3911,6 +3918,7 @@ class _AttackPitchPainter extends CustomPainter {
         oldDelegate.brightness != brightness ||
         oldDelegate.fontFamily != fontFamily ||
         oldDelegate.learnerNumber != learnerNumber ||
+        oldDelegate.focusFrame != focusFrame ||
         oldDelegate.decisionCueFrom != decisionCueFrom ||
         oldDelegate.decisionCueTo != decisionCueTo ||
         oldDelegate.decisionCueIsOpponent != decisionCueIsOpponent ||
@@ -3973,6 +3981,7 @@ class _PitchGeometry {
 
   final Size size;
   final bool space;
+  final _PitchFrame? frame;
   late final Rect fieldRect = Rect.fromLTWH(
     size.width * (space ? .06 : .035),
     size.height * (space ? .06 : .065),
@@ -3980,14 +3989,45 @@ class _PitchGeometry {
     size.height * (space ? .88 : .86),
   );
 
-  _PitchGeometry(this.size, {this.space = false});
+  _PitchGeometry(this.size, {this.space = false, this.frame});
 
-  double x(double value) =>
-      fieldRect.left + fieldRect.width * value / (space ? 1 : _maxX);
+  double x(double value) {
+    final local = frame;
+    if (local == null || space) {
+      return fieldRect.left + fieldRect.width * value / (space ? 1 : _maxX);
+    }
+    return fieldRect.left +
+        fieldRect.width * (value - local.minX) / (local.maxX - local.minX);
+  }
 
-  double y(double value) => fieldRect.top + fieldRect.height * value;
+  double y(double value) {
+    final local = frame;
+    if (local == null || space) return fieldRect.top + fieldRect.height * value;
+    return fieldRect.top +
+        fieldRect.height * (value - local.minY) / (local.maxY - local.minY);
+  }
 
   Offset toOffset(ScanPassPoint point) => Offset(x(point.x), y(point.y));
+}
+
+class _PitchFrame {
+  final double minX;
+  final double maxX;
+  final double minY;
+  final double maxY;
+
+  const _PitchFrame(this.minX, this.maxX, this.minY, this.maxY);
+
+  @override
+  bool operator ==(Object other) =>
+      other is _PitchFrame &&
+      other.minX == minX &&
+      other.maxX == maxX &&
+      other.minY == minY &&
+      other.maxY == maxY;
+
+  @override
+  int get hashCode => Object.hash(minX, maxX, minY, maxY);
 }
 
 class _ScanPassColors {

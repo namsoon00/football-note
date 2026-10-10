@@ -11,6 +11,7 @@ class AppBarActionButton extends StatelessWidget {
   final bool selected;
   final EdgeInsetsGeometry margin;
   final double maxLabelWidth;
+  final bool compact;
 
   const AppBarActionButton({
     super.key,
@@ -20,6 +21,7 @@ class AppBarActionButton extends StatelessWidget {
     this.label,
     this.badgeCount,
     this.selected = false,
+    this.compact = false,
     this.margin = const EdgeInsetsDirectional.only(end: AppSpacing.xs),
     this.maxLabelWidth = 88,
   });
@@ -31,6 +33,7 @@ class AppBarActionButton extends StatelessWidget {
     this.tooltip,
     this.badgeCount,
     this.selected = false,
+    this.compact = false,
     this.margin = const EdgeInsetsDirectional.only(end: AppSpacing.xs),
   })  : icon = Icon(icon),
         label = null,
@@ -44,9 +47,30 @@ class AppBarActionButton extends StatelessWidget {
     this.tooltip,
     this.badgeCount,
     this.selected = false,
+    this.compact = false,
     this.margin = const EdgeInsetsDirectional.only(end: AppSpacing.xs),
     this.maxLabelWidth = 88,
   });
+
+  ButtonStyle _buttonStyle(BuildContext context, {required bool iconOnly}) {
+    final base = iconOnly
+        ? AppBarActionStyle.iconButtonStyle(context, selected)
+        : AppBarActionStyle.textButtonStyle(context, selected);
+    if (!compact) return base;
+    return base.copyWith(
+      minimumSize: WidgetStateProperty.all(Size(iconOnly ? 44 : 0, 44)),
+      maximumSize:
+          iconOnly ? WidgetStateProperty.all(const Size.square(44)) : null,
+      fixedSize:
+          iconOnly ? WidgetStateProperty.all(const Size.square(44)) : null,
+      padding: WidgetStateProperty.all(
+          EdgeInsets.symmetric(horizontal: iconOnly ? 0 : 4)),
+      textStyle: WidgetStateProperty.all(Theme.of(context)
+          .textTheme
+          .labelLarge
+          ?.copyWith(fontSize: 12, fontWeight: FontWeight.w600, height: 1.0)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +79,7 @@ class AppBarActionButton extends StatelessWidget {
             tooltip: tooltip,
             onPressed: onPressed,
             icon: _ActionIcon(icon: icon, badgeCount: badgeCount),
-            style: AppBarActionStyle.iconButtonStyle(context, selected),
+            style: _buttonStyle(context, iconOnly: true),
           )
         : TextButton.icon(
             onPressed: onPressed,
@@ -71,7 +95,7 @@ class AppBarActionButton extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            style: AppBarActionStyle.textButtonStyle(context, selected),
+            style: _buttonStyle(context, iconOnly: false),
           );
     final wrappedChild =
         tooltip == null ? child : Tooltip(message: tooltip!, child: child);
