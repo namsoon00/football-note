@@ -10390,6 +10390,144 @@
     }
   },
   "scanPassDecisionFieldSemantics": "A football pitch attacking to the right. Your player is number 6. Blue uniforms are teammates, red uniforms are defenders, and the gold ring marks the current ball carrier. Select a teammate or space to prepare the next action.",
+  "scanPassJudgmentHelpBody": "Watch the short situation before number 6 receives, then make one football decision with one tap. The first touch, next action, and support run all use large pitch buttons and matching controls below the field.\n\nThe trainer pauses for judgment by default. Watch again whenever you need to read the pressure, passing lane, receiver support, overload, support angle, or transition space. Choices execute automatically; the app handles the motor skill, not the tactical decision.\n\nReview compares your action with another option from the identical decision state. This is a 2D learning model, not a measurement of gaze or real-match improvement.",
+  "scanPassJudgmentProgress": "{step}/{total} · {family}",
+  "@scanPassJudgmentProgress": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "family": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentReplayObservationAction": "Watch again",
+  "scanPassJudgmentReplayChoiceAction": "Replay my choice",
+  "scanPassJudgmentViewAlternativeAction": "Compare another choice",
+  "scanPassJudgmentRetryAction": "Retry situation",
+  "scanPassJudgmentContinueAction": "Continue",
+  "scanPassJudgmentSummaryAction": "Set summary",
+  "scanPassJudgmentFreshSessionAction": "Fresh session",
+  "scanPassJudgmentObserveStatus": "Watch the movement before the receiving decision.",
+  "scanPassJudgmentReplayObservationStatus": "Replay the same situation before choosing.",
+  "scanPassJudgmentChooseStatus": "One tap chooses and plays the next decision.",
+  "scanPassJudgmentExecutingStatus": "Watch how the football situation changes.",
+  "scanPassJudgmentReviewStatus": "Review the cause on the same pitch.",
+  "scanPassJudgmentReviewStatusWithQuality": "{quality} · compare the cue on the pitch.",
+  "@scanPassJudgmentReviewStatusWithQuality": {
+    "placeholders": {
+      "quality": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentSummaryStatus": "Review the conditions to revisit, then start fresh.",
+  "scanPassJudgmentPhaseObserve": "Watch the receiving picture",
+  "scanPassJudgmentPhaseFirstTouch": "Choose first touch",
+  "scanPassJudgmentPhaseNextAction": "Choose next action",
+  "scanPassJudgmentPhaseSupport": "Choose support space",
+  "scanPassJudgmentFamilyRearPressure": "Rear pressure",
+  "scanPassJudgmentFamilySidePressure": "Side pressure",
+  "scanPassJudgmentFamilyOpenFront": "Open front",
+  "scanPassJudgmentFamilyPassingLane": "Passing lane",
+  "scanPassJudgmentFamilyReceiverSupport": "Receiver support",
+  "scanPassJudgmentFamilyNumericalAdvantage": "Numerical advantage",
+  "scanPassJudgmentFamilySupportAngle": "Support angle",
+  "scanPassJudgmentFamilyTransitionBackSpace": "Transition back-space",
+  "scanPassJudgmentQualitySpaceGained": "Space gained",
+  "scanPassJudgmentQualityPossessionRetained": "Possession retained",
+  "scanPassJudgmentQualityOptionsPreserved": "Next options preserved",
+  "scanPassJudgmentQualityLost": "Possession lost",
+  "scanPassJudgmentReasonRearPressureEscaped": "The touch moved away from rear pressure.",
+  "scanPassJudgmentReasonRearPressureArrived": "Rear pressure arrived before the ball was clear.",
+  "scanPassJudgmentReasonSidePressureUsed": "The touch used the side away from pressure.",
+  "scanPassJudgmentReasonSidePressureTrap": "The touch went into the side trap.",
+  "scanPassJudgmentReasonSecondDefenderContained": "The second defender was held outside the next lane.",
+  "scanPassJudgmentReasonSecondDefenderStepped": "The second defender stepped into the front space.",
+  "scanPassJudgmentReasonLaneOpened": "The defender moved off the passing lane.",
+  "scanPassJudgmentReasonLaneScreened": "The teammate was visible, but the lane was screened.",
+  "scanPassJudgmentReasonReceiverSupported": "The receiver had a quick supporting option.",
+  "scanPassJudgmentReasonReceiverIsolated": "The receiver was left isolated after the pass.",
+  "scanPassJudgmentReasonOverloadUsed": "The spare player in the overload stayed available.",
+  "scanPassJudgmentReasonSparePlayerMissed": "The overload was missed and pressure recovered.",
+  "scanPassJudgmentReasonSupportAngleOpened": "The support run opened a return angle.",
+  "scanPassJudgmentReasonSupportAngleBlocked": "The support angle stayed in the defender’s cover.",
+  "scanPassJudgmentReasonTransitionSecured": "The choice protected the ball during transition pressure.",
+  "scanPassJudgmentReasonBackSpaceExposed": "The choice exposed the back-space behind the ball.",
+  "scanPassJudgmentReasonPossessionKept": "You kept possession. Check the pressure and next connection again.",
+  "scanPassJudgmentReasonIntercepted": "A defender reached the lane or ball first.",
+  "scanPassJudgmentReasonOffside": "The receiver was offside at the pass release.",
+  "scanPassJudgmentBranchOwn": "My choice · {action}",
+  "scanPassJudgmentBranchAlternative": "Other choice · {action}",
+  "@scanPassJudgmentBranchOwn": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "@scanPassJudgmentBranchAlternative": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentActionTouchLeft": "Touch left",
+  "scanPassJudgmentActionTouchRight": "Touch right",
+  "scanPassJudgmentActionTouchForward": "Touch forward",
+  "scanPassJudgmentActionShield": "Shield",
+  "scanPassJudgmentActionOneTouchReturn": "One-touch return",
+  "scanPassJudgmentActionPassForward": "Pass forward",
+  "scanPassJudgmentActionPassWide": "Pass wide",
+  "scanPassJudgmentActionPassBack": "Return pass",
+  "scanPassJudgmentActionCarryForward": "Carry forward",
+  "scanPassJudgmentActionProtect": "Protect",
+  "scanPassJudgmentActionSupportInside": "Support inside",
+  "scanPassJudgmentActionSupportWide": "Support wide",
+  "scanPassJudgmentActionSupportBehind": "Support behind",
+  "scanPassJudgmentActionTouchLeftLabel": "Take the first touch to your left",
+  "scanPassJudgmentActionTouchRightLabel": "Take the first touch to your right",
+  "scanPassJudgmentActionTouchForwardLabel": "Take the first touch forward",
+  "scanPassJudgmentActionShieldLabel": "Put your body between the defender and the ball",
+  "scanPassJudgmentActionOneTouchReturnLabel": "Play a one-touch return pass",
+  "scanPassJudgmentActionPassForwardLabel": "Pass forward",
+  "scanPassJudgmentActionPassWideLabel": "Pass wide",
+  "scanPassJudgmentActionPassBackLabel": "Return pass behind the ball",
+  "scanPassJudgmentActionCarryForwardLabel": "Carry forward",
+  "scanPassJudgmentActionProtectLabel": "Protect possession",
+  "scanPassJudgmentActionSupportInsideLabel": "Move to support inside",
+  "scanPassJudgmentActionSupportWideLabel": "Move to support wide",
+  "scanPassJudgmentActionSupportBehindLabel": "Move behind the ball to support",
+  "scanPassJudgmentSummaryTitle": "Conditions to revisit",
+  "scanPassJudgmentSummaryEmpty": "No decisions recorded yet.",
+  "scanPassJudgmentSummaryCompleted": "{count}/{total} situations completed.",
+  "@scanPassJudgmentSummaryCompleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassJudgmentSummaryRevisit": "{family}: {reason}",
+  "@scanPassJudgmentSummaryRevisit": {
+    "placeholders": {
+      "family": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentFieldSemantics": "A football pitch attacking to the right. Blue players are teammates, red players are defenders, and number 6 is the learner. Use the separate action buttons to choose a first touch, next action, or support space.",
   "spaceTitle": "Read the space",
   "spaceHelpTitle": "Spatial practice guide",
   "spaceHelpBody": "Play as number 6 in a 3v2 situation.\n\n1. Tap the ground to choose where to receive. Start your run, watch the defenders, then request the pass when you decide. Passing too early can leave the ball out of reach.\n\n2. After receiving, choose your own first touch within the small circle.\n\n3. Aim at the ground where moving number 8 can receive. The ball travels to your chosen point, without homing on a player.\n\nMovement plays at half speed. Pause or step through the movement at any time. Gold marks your intended space, not a recommended answer. Arrows show current player movement.\n\nKeyboard: focus the pitch, move the target with arrow keys and press Enter to act. This exercise does not measure real match ability.",
@@ -10571,5 +10709,11 @@
     }
   },
   "chainReplay": "Replay the whole sequence",
-  "chainRetry": "Same layout · a different first touch"
+  "chainRetry": "Same layout · a different first touch",
+  "scanPassJudgmentReasonPressureRemains": "You kept the ball, but the close defender leaves little time for the next action.",
+  "scanPassJudgmentReasonSpaceCreated": "The new ball position leaves room for the next action.",
+  "scanPassJudgmentReasonOptionsReduced": "You kept the ball, but fewer teammates can receive the next pass.",
+  "scanPassJudgmentChooseTouch": "Where can your first touch leave a next action?",
+  "scanPassJudgmentChooseAction": "Read the changed pressure and choose your next action.",
+  "scanPassJudgmentChooseSupport": "Where should number 6 move to receive again?"
 }

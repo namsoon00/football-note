@@ -19215,6 +19215,307 @@ class AppLocalizationsEn extends AppLocalizations {
       'A football pitch attacking to the right. Your player is number 6. Blue uniforms are teammates, red uniforms are defenders, and the gold ring marks the current ball carrier. Select a teammate or space to prepare the next action.';
 
   @override
+  String get scanPassJudgmentHelpBody =>
+      'Watch the short situation before number 6 receives, then make one football decision with one tap. The first touch, next action, and support run all use large pitch buttons and matching controls below the field.\n\nThe trainer pauses for judgment by default. Watch again whenever you need to read the pressure, passing lane, receiver support, overload, support angle, or transition space. Choices execute automatically; the app handles the motor skill, not the tactical decision.\n\nReview compares your action with another option from the identical decision state. This is a 2D learning model, not a measurement of gaze or real-match improvement.';
+
+  @override
+  String scanPassJudgmentProgress(int step, int total, String family) {
+    return '$step/$total · $family';
+  }
+
+  @override
+  String get scanPassJudgmentReplayObservationAction => 'Watch again';
+
+  @override
+  String get scanPassJudgmentReplayChoiceAction => 'Replay my choice';
+
+  @override
+  String get scanPassJudgmentViewAlternativeAction => 'Compare another choice';
+
+  @override
+  String get scanPassJudgmentRetryAction => 'Retry situation';
+
+  @override
+  String get scanPassJudgmentContinueAction => 'Continue';
+
+  @override
+  String get scanPassJudgmentSummaryAction => 'Set summary';
+
+  @override
+  String get scanPassJudgmentFreshSessionAction => 'Fresh session';
+
+  @override
+  String get scanPassJudgmentObserveStatus =>
+      'Watch the movement before the receiving decision.';
+
+  @override
+  String get scanPassJudgmentReplayObservationStatus =>
+      'Replay the same situation before choosing.';
+
+  @override
+  String get scanPassJudgmentChooseStatus =>
+      'One tap chooses and plays the next decision.';
+
+  @override
+  String get scanPassJudgmentExecutingStatus =>
+      'Watch how the football situation changes.';
+
+  @override
+  String get scanPassJudgmentReviewStatus =>
+      'Review the cause on the same pitch.';
+
+  @override
+  String scanPassJudgmentReviewStatusWithQuality(String quality) {
+    return '$quality · compare the cue on the pitch.';
+  }
+
+  @override
+  String get scanPassJudgmentSummaryStatus =>
+      'Review the conditions to revisit, then start fresh.';
+
+  @override
+  String get scanPassJudgmentPhaseObserve => 'Watch the receiving picture';
+
+  @override
+  String get scanPassJudgmentPhaseFirstTouch => 'Choose first touch';
+
+  @override
+  String get scanPassJudgmentPhaseNextAction => 'Choose next action';
+
+  @override
+  String get scanPassJudgmentPhaseSupport => 'Choose support space';
+
+  @override
+  String get scanPassJudgmentFamilyRearPressure => 'Rear pressure';
+
+  @override
+  String get scanPassJudgmentFamilySidePressure => 'Side pressure';
+
+  @override
+  String get scanPassJudgmentFamilyOpenFront => 'Open front';
+
+  @override
+  String get scanPassJudgmentFamilyPassingLane => 'Passing lane';
+
+  @override
+  String get scanPassJudgmentFamilyReceiverSupport => 'Receiver support';
+
+  @override
+  String get scanPassJudgmentFamilyNumericalAdvantage => 'Numerical advantage';
+
+  @override
+  String get scanPassJudgmentFamilySupportAngle => 'Support angle';
+
+  @override
+  String get scanPassJudgmentFamilyTransitionBackSpace =>
+      'Transition back-space';
+
+  @override
+  String get scanPassJudgmentQualitySpaceGained => 'Space gained';
+
+  @override
+  String get scanPassJudgmentQualityPossessionRetained => 'Possession retained';
+
+  @override
+  String get scanPassJudgmentQualityOptionsPreserved =>
+      'Next options preserved';
+
+  @override
+  String get scanPassJudgmentQualityLost => 'Possession lost';
+
+  @override
+  String get scanPassJudgmentReasonRearPressureEscaped =>
+      'The touch moved away from rear pressure.';
+
+  @override
+  String get scanPassJudgmentReasonRearPressureArrived =>
+      'Rear pressure arrived before the ball was clear.';
+
+  @override
+  String get scanPassJudgmentReasonSidePressureUsed =>
+      'The touch used the side away from pressure.';
+
+  @override
+  String get scanPassJudgmentReasonSidePressureTrap =>
+      'The touch went into the side trap.';
+
+  @override
+  String get scanPassJudgmentReasonSecondDefenderContained =>
+      'The second defender was held outside the next lane.';
+
+  @override
+  String get scanPassJudgmentReasonSecondDefenderStepped =>
+      'The second defender stepped into the front space.';
+
+  @override
+  String get scanPassJudgmentReasonLaneOpened =>
+      'The defender moved off the passing lane.';
+
+  @override
+  String get scanPassJudgmentReasonLaneScreened =>
+      'The teammate was visible, but the lane was screened.';
+
+  @override
+  String get scanPassJudgmentReasonReceiverSupported =>
+      'The receiver had a quick supporting option.';
+
+  @override
+  String get scanPassJudgmentReasonReceiverIsolated =>
+      'The receiver was left isolated after the pass.';
+
+  @override
+  String get scanPassJudgmentReasonOverloadUsed =>
+      'The spare player in the overload stayed available.';
+
+  @override
+  String get scanPassJudgmentReasonSparePlayerMissed =>
+      'The overload was missed and pressure recovered.';
+
+  @override
+  String get scanPassJudgmentReasonSupportAngleOpened =>
+      'The support run opened a return angle.';
+
+  @override
+  String get scanPassJudgmentReasonSupportAngleBlocked =>
+      'The support angle stayed in the defender’s cover.';
+
+  @override
+  String get scanPassJudgmentReasonTransitionSecured =>
+      'The choice protected the ball during transition pressure.';
+
+  @override
+  String get scanPassJudgmentReasonBackSpaceExposed =>
+      'The choice exposed the back-space behind the ball.';
+
+  @override
+  String get scanPassJudgmentReasonPossessionKept =>
+      'You kept possession. Check the pressure and next connection again.';
+
+  @override
+  String get scanPassJudgmentReasonIntercepted =>
+      'A defender reached the lane or ball first.';
+
+  @override
+  String get scanPassJudgmentReasonOffside =>
+      'The receiver was offside at the pass release.';
+
+  @override
+  String scanPassJudgmentBranchOwn(String action) {
+    return 'My choice · $action';
+  }
+
+  @override
+  String scanPassJudgmentBranchAlternative(String action) {
+    return 'Other choice · $action';
+  }
+
+  @override
+  String get scanPassJudgmentActionTouchLeft => 'Touch left';
+
+  @override
+  String get scanPassJudgmentActionTouchRight => 'Touch right';
+
+  @override
+  String get scanPassJudgmentActionTouchForward => 'Touch forward';
+
+  @override
+  String get scanPassJudgmentActionShield => 'Shield';
+
+  @override
+  String get scanPassJudgmentActionOneTouchReturn => 'One-touch return';
+
+  @override
+  String get scanPassJudgmentActionPassForward => 'Pass forward';
+
+  @override
+  String get scanPassJudgmentActionPassWide => 'Pass wide';
+
+  @override
+  String get scanPassJudgmentActionPassBack => 'Return pass';
+
+  @override
+  String get scanPassJudgmentActionCarryForward => 'Carry forward';
+
+  @override
+  String get scanPassJudgmentActionProtect => 'Protect';
+
+  @override
+  String get scanPassJudgmentActionSupportInside => 'Support inside';
+
+  @override
+  String get scanPassJudgmentActionSupportWide => 'Support wide';
+
+  @override
+  String get scanPassJudgmentActionSupportBehind => 'Support behind';
+
+  @override
+  String get scanPassJudgmentActionTouchLeftLabel =>
+      'Take the first touch to your left';
+
+  @override
+  String get scanPassJudgmentActionTouchRightLabel =>
+      'Take the first touch to your right';
+
+  @override
+  String get scanPassJudgmentActionTouchForwardLabel =>
+      'Take the first touch forward';
+
+  @override
+  String get scanPassJudgmentActionShieldLabel =>
+      'Put your body between the defender and the ball';
+
+  @override
+  String get scanPassJudgmentActionOneTouchReturnLabel =>
+      'Play a one-touch return pass';
+
+  @override
+  String get scanPassJudgmentActionPassForwardLabel => 'Pass forward';
+
+  @override
+  String get scanPassJudgmentActionPassWideLabel => 'Pass wide';
+
+  @override
+  String get scanPassJudgmentActionPassBackLabel =>
+      'Return pass behind the ball';
+
+  @override
+  String get scanPassJudgmentActionCarryForwardLabel => 'Carry forward';
+
+  @override
+  String get scanPassJudgmentActionProtectLabel => 'Protect possession';
+
+  @override
+  String get scanPassJudgmentActionSupportInsideLabel =>
+      'Move to support inside';
+
+  @override
+  String get scanPassJudgmentActionSupportWideLabel => 'Move to support wide';
+
+  @override
+  String get scanPassJudgmentActionSupportBehindLabel =>
+      'Move behind the ball to support';
+
+  @override
+  String get scanPassJudgmentSummaryTitle => 'Conditions to revisit';
+
+  @override
+  String get scanPassJudgmentSummaryEmpty => 'No decisions recorded yet.';
+
+  @override
+  String scanPassJudgmentSummaryCompleted(int count, int total) {
+    return '$count/$total situations completed.';
+  }
+
+  @override
+  String scanPassJudgmentSummaryRevisit(String family, String reason) {
+    return '$family: $reason';
+  }
+
+  @override
+  String get scanPassJudgmentFieldSemantics =>
+      'A football pitch attacking to the right. Blue players are teammates, red players are defenders, and number 6 is the learner. Use the separate action buttons to choose a first touch, next action, or support space.';
+
+  @override
   String get spaceTitle => 'Read the space';
 
   @override
@@ -19618,4 +19919,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chainRetry => 'Same layout · a different first touch';
+
+  @override
+  String get scanPassJudgmentReasonPressureRemains =>
+      'You kept the ball, but the close defender leaves little time for the next action.';
+
+  @override
+  String get scanPassJudgmentReasonSpaceCreated =>
+      'The new ball position leaves room for the next action.';
+
+  @override
+  String get scanPassJudgmentReasonOptionsReduced =>
+      'You kept the ball, but fewer teammates can receive the next pass.';
+
+  @override
+  String get scanPassJudgmentChooseTouch =>
+      'Where can your first touch leave a next action?';
+
+  @override
+  String get scanPassJudgmentChooseAction =>
+      'Read the changed pressure and choose your next action.';
+
+  @override
+  String get scanPassJudgmentChooseSupport =>
+      'Where should number 6 move to receive again?';
 }

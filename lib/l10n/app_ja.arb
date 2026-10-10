@@ -10390,6 +10390,144 @@
     }
   },
   "scanPassDecisionFieldSemantics": "右へ攻めるサッカーのピッチです。自分の選手は6番です。青いユニフォームは味方、赤は守備者、金色の輪は現在ボールを持つ選手です。味方やスペースを選び、次の動きを準備してください。",
+  "scanPassJudgmentHelpBody": "6番が受ける前の短い状況を見てから、1回のタップでサッカーの判断をします。ファーストタッチ、次の行動、サポートの動きは、ピッチ上の大きなボタンと下の同じ操作で選べます。\n\n標準では判断のために止まります。プレッシャー、パスレーン、受け手の支援、数的優位、サポート角度、切り替え後のスペースを読み直したい時は、いつでももう一度見られます。選択は自動で実行され、アプリは技術動作ではなく判断だけを求めます。\n\n振り返りでは、同じ判断状態から自分の行動と別の選択を比べます。これは2Dの学習モデルであり、視線や実戦での上達を測定するものではありません。",
+  "scanPassJudgmentProgress": "{step}/{total} · {family}",
+  "@scanPassJudgmentProgress": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "family": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentReplayObservationAction": "もう一度見る",
+  "scanPassJudgmentReplayChoiceAction": "自分の選択を再生",
+  "scanPassJudgmentViewAlternativeAction": "別の選択と比較",
+  "scanPassJudgmentRetryAction": "同じ状況を再挑戦",
+  "scanPassJudgmentContinueAction": "続ける",
+  "scanPassJudgmentSummaryAction": "セットまとめ",
+  "scanPassJudgmentFreshSessionAction": "新しいセッション",
+  "scanPassJudgmentObserveStatus": "受ける判断の前の動きを見ましょう。",
+  "scanPassJudgmentReplayObservationStatus": "同じ状況を選択前から再生します。",
+  "scanPassJudgmentChooseStatus": "1回タップすると次の判断がすぐ実行されます。",
+  "scanPassJudgmentExecutingStatus": "選択が状況をどう変えるか見ましょう。",
+  "scanPassJudgmentReviewStatus": "同じピッチで原因を確認しましょう。",
+  "scanPassJudgmentReviewStatusWithQuality": "{quality} · ピッチ上の手がかりを比べましょう。",
+  "@scanPassJudgmentReviewStatusWithQuality": {
+    "placeholders": {
+      "quality": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentSummaryStatus": "復習する条件を確認し、新しく始めましょう。",
+  "scanPassJudgmentPhaseObserve": "受ける前の絵を見る",
+  "scanPassJudgmentPhaseFirstTouch": "ファーストタッチを選ぶ",
+  "scanPassJudgmentPhaseNextAction": "次の行動を選ぶ",
+  "scanPassJudgmentPhaseSupport": "サポート空間を選ぶ",
+  "scanPassJudgmentFamilyRearPressure": "背後の圧力",
+  "scanPassJudgmentFamilySidePressure": "横の圧力",
+  "scanPassJudgmentFamilyOpenFront": "前の空間",
+  "scanPassJudgmentFamilyPassingLane": "パスレーン",
+  "scanPassJudgmentFamilyReceiverSupport": "受け手の支援",
+  "scanPassJudgmentFamilyNumericalAdvantage": "数的優位",
+  "scanPassJudgmentFamilySupportAngle": "サポート角度",
+  "scanPassJudgmentFamilyTransitionBackSpace": "切り替えの背後",
+  "scanPassJudgmentQualitySpaceGained": "スペース獲得",
+  "scanPassJudgmentQualityPossessionRetained": "保持できた",
+  "scanPassJudgmentQualityOptionsPreserved": "次の選択を維持",
+  "scanPassJudgmentQualityLost": "保持を失った",
+  "scanPassJudgmentReasonRearPressureEscaped": "タッチが背後の圧力から離れました。",
+  "scanPassJudgmentReasonRearPressureArrived": "ボールが離れる前に背後の圧力が届きました。",
+  "scanPassJudgmentReasonSidePressureUsed": "圧力と反対側を使いました。",
+  "scanPassJudgmentReasonSidePressureTrap": "タッチが横の罠へ向かいました。",
+  "scanPassJudgmentReasonSecondDefenderContained": "2人目の守備者を次のレーン外に保ちました。",
+  "scanPassJudgmentReasonSecondDefenderStepped": "2人目の守備者が前の空間へ出ました。",
+  "scanPassJudgmentReasonLaneOpened": "守備者がパスレーンを空けました。",
+  "scanPassJudgmentReasonLaneScreened": "味方は見えていましたが、レーンは隠されていました。",
+  "scanPassJudgmentReasonReceiverSupported": "受け手にすぐ使える支援がありました。",
+  "scanPassJudgmentReasonReceiverIsolated": "パス後に受け手が孤立しました。",
+  "scanPassJudgmentReasonOverloadUsed": "数的優位の余った選手が使えるままでした。",
+  "scanPassJudgmentReasonSparePlayerMissed": "余った選手を使えず、圧力が戻りました。",
+  "scanPassJudgmentReasonSupportAngleOpened": "サポートの動きが返しの角度を開きました。",
+  "scanPassJudgmentReasonSupportAngleBlocked": "サポート角度が守備のカバー内に残りました。",
+  "scanPassJudgmentReasonTransitionSecured": "切り替えの圧力の中でボールを守りました。",
+  "scanPassJudgmentReasonBackSpaceExposed": "ボールの背後のスペースが露出しました。",
+  "scanPassJudgmentReasonPossessionKept": "ボールを保持しました。相手の位置と次のつながりを確認しましょう。",
+  "scanPassJudgmentReasonIntercepted": "守備者がレーンまたはボールに先に届きました。",
+  "scanPassJudgmentReasonOffside": "パスの瞬間、受け手はオフサイド位置でした。",
+  "scanPassJudgmentBranchOwn": "自分の選択 · {action}",
+  "scanPassJudgmentBranchAlternative": "別の選択 · {action}",
+  "@scanPassJudgmentBranchOwn": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "@scanPassJudgmentBranchAlternative": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentActionTouchLeft": "左へタッチ",
+  "scanPassJudgmentActionTouchRight": "右へタッチ",
+  "scanPassJudgmentActionTouchForward": "前へタッチ",
+  "scanPassJudgmentActionShield": "シールド",
+  "scanPassJudgmentActionOneTouchReturn": "ワンタッチ返し",
+  "scanPassJudgmentActionPassForward": "前方パス",
+  "scanPassJudgmentActionPassWide": "ワイドパス",
+  "scanPassJudgmentActionPassBack": "リターンパス",
+  "scanPassJudgmentActionCarryForward": "前へ運ぶ",
+  "scanPassJudgmentActionProtect": "守る",
+  "scanPassJudgmentActionSupportInside": "内側サポート",
+  "scanPassJudgmentActionSupportWide": "広くサポート",
+  "scanPassJudgmentActionSupportBehind": "後ろでサポート",
+  "scanPassJudgmentActionTouchLeftLabel": "左へファーストタッチ",
+  "scanPassJudgmentActionTouchRightLabel": "右へファーストタッチ",
+  "scanPassJudgmentActionTouchForwardLabel": "前へファーストタッチ",
+  "scanPassJudgmentActionShieldLabel": "相手とボールの間に体を入れて守る",
+  "scanPassJudgmentActionOneTouchReturnLabel": "ワンタッチで返すパス",
+  "scanPassJudgmentActionPassForwardLabel": "前方へパス",
+  "scanPassJudgmentActionPassWideLabel": "ワイドへパス",
+  "scanPassJudgmentActionPassBackLabel": "ボールの後ろへ返すパス",
+  "scanPassJudgmentActionCarryForwardLabel": "前へ運ぶ",
+  "scanPassJudgmentActionProtectLabel": "保持を守る",
+  "scanPassJudgmentActionSupportInsideLabel": "内側へサポートに動く",
+  "scanPassJudgmentActionSupportWideLabel": "広い側へサポートに動く",
+  "scanPassJudgmentActionSupportBehindLabel": "ボールの後ろでサポートする",
+  "scanPassJudgmentSummaryTitle": "復習する条件",
+  "scanPassJudgmentSummaryEmpty": "まだ記録された判断はありません。",
+  "scanPassJudgmentSummaryCompleted": "{count}/{total} 場面を完了。",
+  "@scanPassJudgmentSummaryCompleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassJudgmentSummaryRevisit": "{family}: {reason}",
+  "@scanPassJudgmentSummaryRevisit": {
+    "placeholders": {
+      "family": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassJudgmentFieldSemantics": "右へ攻めるサッカーのピッチです。青は味方、赤は守備者、6番が学習者です。別の行動ボタンでファーストタッチ、次の行動、サポート空間を選んでください。",
   "spaceTitle": "スペースを読む",
   "spaceHelpTitle": "スペース練習ガイド",
   "spaceHelpBody": "6番として3対2をつなぎます。\n\n① ピッチをタップして受ける位置を決めます。走り始めたら守備と自分の位置を見て、パスを受けるタイミングを選びます。早すぎるとボールに届かないことがあります。\n\n② 受けた後は小さな円の中でファーストタッチの方向を選びます。\n\n③ 動く8番が受けられる地点を選んでパスします。ボールは選んだ地点へ進み、選手を自動追尾しません。\n\n動きは半分の速さで再生されます。一時停止やコマ送りができます。金色は選んだスペースで、正解のヒントではありません。矢印は現在の動きです。\n\nキーボード：ピッチを選択し、矢印キーで地点を動かしEnterで実行します。この練習は実際の試合能力を測定しません。",
@@ -10571,5 +10709,11 @@
     }
   },
   "chainReplay": "流れ全体を再生",
-  "chainRetry": "同じ配置で別のタッチ"
+  "chainRetry": "同じ配置で別のタッチ",
+  "scanPassJudgmentReasonPressureRemains": "ボールは守れましたが、相手が近く、次の動作の余裕が少ない状態です。",
+  "scanPassJudgmentReasonSpaceCreated": "ボールを動かした先に、次の動作のための余裕があります。",
+  "scanPassJudgmentReasonOptionsReduced": "ボールは守れましたが、次のパスを受けられる味方が減りました。",
+  "scanPassJudgmentChooseTouch": "次の動作につながるファーストタッチはどちらですか？",
+  "scanPassJudgmentChooseAction": "変化したプレッシャーを見て、次の動作を選びましょう。",
+  "scanPassJudgmentChooseSupport": "6番が再び受ける位置を選びましょう。"
 }
