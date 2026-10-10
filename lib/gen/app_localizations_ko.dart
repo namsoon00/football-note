@@ -18575,6 +18575,280 @@ class AppLocalizationsKo extends AppLocalizations {
       '오른쪽으로 공격하는 축구 경기장입니다. 내 선수는 6번입니다. 파란 유니폼은 동료, 붉은 유니폼은 수비수이며 금색 테두리는 현재 공을 가진 선수입니다. 동료나 공간을 선택해 다음 행동을 준비하세요.';
 
   @override
+  String get scanPassJudgmentHelpBody =>
+      '6번이 받기 전의 짧은 상황을 본 뒤 한 번 탭해 축구 판단을 내립니다. 첫 터치, 다음 행동, 지원 움직임은 모두 경기장 위 큰 버튼과 아래의 같은 조작으로 선택합니다.\n\n기본은 판단을 위해 멈춘 상태입니다. 압박, 패스 길, 받는 선수의 지원, 수적 우위, 지원 각도, 전환 뒤 공간을 다시 보고 싶으면 언제든 다시 볼 수 있습니다. 선택은 자동으로 실행되며, 앱은 운동 기술이 아니라 판단만 묻습니다.\n\n복기에서는 같은 결정 순간에서 내 행동과 다른 선택을 비교합니다. 이 기능은 2D 학습 모델이며 시선이나 실제 경기력 향상을 측정하지 않습니다.';
+
+  @override
+  String scanPassJudgmentProgress(int step, int total, String family) {
+    return '$step/$total · $family';
+  }
+
+  @override
+  String get scanPassJudgmentReplayObservationAction => '다시 보기';
+
+  @override
+  String get scanPassJudgmentReplayChoiceAction => '내 선택 재생';
+
+  @override
+  String get scanPassJudgmentViewAlternativeAction => '다른 선택 비교';
+
+  @override
+  String get scanPassJudgmentRetryAction => '같은 상황 다시';
+
+  @override
+  String get scanPassJudgmentContinueAction => '계속';
+
+  @override
+  String get scanPassJudgmentSummaryAction => '세트 정리';
+
+  @override
+  String get scanPassJudgmentFreshSessionAction => '새 세션';
+
+  @override
+  String get scanPassJudgmentObserveStatus => '받는 판단 전 움직임을 보세요.';
+
+  @override
+  String get scanPassJudgmentReplayObservationStatus => '같은 상황을 선택 전부터 다시 봅니다.';
+
+  @override
+  String get scanPassJudgmentChooseStatus => '한 번 탭하면 다음 판단이 바로 실행됩니다.';
+
+  @override
+  String get scanPassJudgmentExecutingStatus => '선택이 경기 상황을 어떻게 바꾸는지 보세요.';
+
+  @override
+  String get scanPassJudgmentReviewStatus => '같은 경기장에서 원인을 확인하세요.';
+
+  @override
+  String scanPassJudgmentReviewStatusWithQuality(String quality) {
+    return '$quality · 경기장에서 단서를 비교하세요.';
+  }
+
+  @override
+  String get scanPassJudgmentSummaryStatus => '다시 볼 조건을 확인하고 새로 시작하세요.';
+
+  @override
+  String get scanPassJudgmentPhaseObserve => '받기 전 그림 보기';
+
+  @override
+  String get scanPassJudgmentPhaseFirstTouch => '첫 터치 선택';
+
+  @override
+  String get scanPassJudgmentPhaseNextAction => '다음 행동 선택';
+
+  @override
+  String get scanPassJudgmentPhaseSupport => '지원 공간 선택';
+
+  @override
+  String get scanPassJudgmentFamilyRearPressure => '뒤 압박';
+
+  @override
+  String get scanPassJudgmentFamilySidePressure => '옆 압박';
+
+  @override
+  String get scanPassJudgmentFamilyOpenFront => '앞 공간';
+
+  @override
+  String get scanPassJudgmentFamilyPassingLane => '패스 길';
+
+  @override
+  String get scanPassJudgmentFamilyReceiverSupport => '받는 선수 지원';
+
+  @override
+  String get scanPassJudgmentFamilyNumericalAdvantage => '수적 우위';
+
+  @override
+  String get scanPassJudgmentFamilySupportAngle => '지원 각도';
+
+  @override
+  String get scanPassJudgmentFamilyTransitionBackSpace => '전환 뒤 공간';
+
+  @override
+  String get scanPassJudgmentQualitySpaceGained => '공간 확보';
+
+  @override
+  String get scanPassJudgmentQualityPossessionRetained => '소유 유지';
+
+  @override
+  String get scanPassJudgmentQualityOptionsPreserved => '다음 선택 유지';
+
+  @override
+  String get scanPassJudgmentQualityLost => '소유 상실';
+
+  @override
+  String get scanPassJudgmentReasonRearPressureEscaped => '첫 터치가 뒤 압박에서 벗어났어요.';
+
+  @override
+  String get scanPassJudgmentReasonRearPressureArrived =>
+      '공이 빠지기 전에 뒤 압박이 도착했어요.';
+
+  @override
+  String get scanPassJudgmentReasonSidePressureUsed => '압박 반대쪽을 사용했어요.';
+
+  @override
+  String get scanPassJudgmentReasonSidePressureTrap => '터치가 옆 압박의 덫으로 향했어요.';
+
+  @override
+  String get scanPassJudgmentReasonSecondDefenderContained =>
+      '두 번째 수비수를 다음 길 밖에 묶어 두었어요.';
+
+  @override
+  String get scanPassJudgmentReasonSecondDefenderStepped =>
+      '두 번째 수비수가 앞 공간으로 들어왔어요.';
+
+  @override
+  String get scanPassJudgmentReasonLaneOpened => '수비가 패스 길을 비웠어요.';
+
+  @override
+  String get scanPassJudgmentReasonLaneScreened => '동료는 보였지만 길은 가려져 있었어요.';
+
+  @override
+  String get scanPassJudgmentReasonReceiverSupported =>
+      '받는 선수에게 바로 연결할 지원이 있었어요.';
+
+  @override
+  String get scanPassJudgmentReasonReceiverIsolated => '패스 뒤 받는 선수가 고립되었어요.';
+
+  @override
+  String get scanPassJudgmentReasonOverloadUsed => '수적 우위의 남는 선수가 계속 살아 있었어요.';
+
+  @override
+  String get scanPassJudgmentReasonSparePlayerMissed =>
+      '남는 선수를 쓰지 못해 압박이 회복됐어요.';
+
+  @override
+  String get scanPassJudgmentReasonSupportAngleOpened =>
+      '지원 움직임이 되돌려 받을 각도를 열었어요.';
+
+  @override
+  String get scanPassJudgmentReasonSupportAngleBlocked =>
+      '지원 각도가 수비 커버 안에 남았어요.';
+
+  @override
+  String get scanPassJudgmentReasonTransitionSecured => '전환 압박 속에서 공을 보호했어요.';
+
+  @override
+  String get scanPassJudgmentReasonBackSpaceExposed => '공 뒤 공간이 노출되었어요.';
+
+  @override
+  String get scanPassJudgmentReasonPossessionKept =>
+      '공을 유지했어요. 수비와 다음 연결을 다시 확인하세요.';
+
+  @override
+  String get scanPassJudgmentReasonIntercepted => '수비가 길이나 공에 먼저 닿았어요.';
+
+  @override
+  String get scanPassJudgmentReasonOffside => '패스 순간 받는 선수가 오프사이드 위치였어요.';
+
+  @override
+  String scanPassJudgmentBranchOwn(String action) {
+    return '내 선택 · $action';
+  }
+
+  @override
+  String scanPassJudgmentBranchAlternative(String action) {
+    return '다른 선택 · $action';
+  }
+
+  @override
+  String get scanPassJudgmentActionTouchLeft => '왼쪽 터치';
+
+  @override
+  String get scanPassJudgmentActionTouchRight => '오른쪽 터치';
+
+  @override
+  String get scanPassJudgmentActionTouchForward => '앞 터치';
+
+  @override
+  String get scanPassJudgmentActionShield => '등지기';
+
+  @override
+  String get scanPassJudgmentActionOneTouchReturn => '원터치 리턴';
+
+  @override
+  String get scanPassJudgmentActionPassForward => '전진 패스';
+
+  @override
+  String get scanPassJudgmentActionPassWide => '측면 패스';
+
+  @override
+  String get scanPassJudgmentActionPassBack => '되돌리기';
+
+  @override
+  String get scanPassJudgmentActionCarryForward => '앞으로 운반';
+
+  @override
+  String get scanPassJudgmentActionProtect => '보호';
+
+  @override
+  String get scanPassJudgmentActionSupportInside => '안쪽 지원';
+
+  @override
+  String get scanPassJudgmentActionSupportWide => '넓게 지원';
+
+  @override
+  String get scanPassJudgmentActionSupportBehind => '뒤에서 지원';
+
+  @override
+  String get scanPassJudgmentActionTouchLeftLabel => '왼쪽으로 첫 터치';
+
+  @override
+  String get scanPassJudgmentActionTouchRightLabel => '오른쪽으로 첫 터치';
+
+  @override
+  String get scanPassJudgmentActionTouchForwardLabel => '앞으로 첫 터치';
+
+  @override
+  String get scanPassJudgmentActionShieldLabel => '수비를 등지고 공을 보호하기';
+
+  @override
+  String get scanPassJudgmentActionOneTouchReturnLabel => '원터치 리턴 패스';
+
+  @override
+  String get scanPassJudgmentActionPassForwardLabel => '전진 패스';
+
+  @override
+  String get scanPassJudgmentActionPassWideLabel => '측면 패스';
+
+  @override
+  String get scanPassJudgmentActionPassBackLabel => '공 뒤로 되돌리는 패스';
+
+  @override
+  String get scanPassJudgmentActionCarryForwardLabel => '앞으로 운반';
+
+  @override
+  String get scanPassJudgmentActionProtectLabel => '소유 보호';
+
+  @override
+  String get scanPassJudgmentActionSupportInsideLabel => '안쪽으로 지원 움직임';
+
+  @override
+  String get scanPassJudgmentActionSupportWideLabel => '넓은 쪽으로 지원 움직임';
+
+  @override
+  String get scanPassJudgmentActionSupportBehindLabel => '공 뒤에서 지원 움직임';
+
+  @override
+  String get scanPassJudgmentSummaryTitle => '다시 볼 조건';
+
+  @override
+  String get scanPassJudgmentSummaryEmpty => '아직 기록된 판단이 없습니다.';
+
+  @override
+  String scanPassJudgmentSummaryCompleted(int count, int total) {
+    return '$count/$total개 상황 완료.';
+  }
+
+  @override
+  String scanPassJudgmentSummaryRevisit(String family, String reason) {
+    return '$family: $reason';
+  }
+
+  @override
+  String get scanPassJudgmentFieldSemantics =>
+      '오른쪽으로 공격하는 축구 경기장입니다. 파란 선수는 동료, 빨간 선수는 수비수이며 6번이 학습자입니다. 별도의 행동 버튼으로 첫 터치, 다음 행동, 지원 공간을 선택하세요.';
+
+  @override
   String get spaceTitle => '공간 읽기';
 
   @override
@@ -18955,4 +19229,25 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get chainRetry => '같은 배치 · 다른 첫 터치';
+
+  @override
+  String get scanPassJudgmentReasonPressureRemains =>
+      '공은 지켰지만 수비가 가까워 다음 행동의 여유가 적어요.';
+
+  @override
+  String get scanPassJudgmentReasonSpaceCreated =>
+      '공을 옮긴 위치에 다음 행동을 할 여유가 있어요.';
+
+  @override
+  String get scanPassJudgmentReasonOptionsReduced =>
+      '공은 지켰지만 바로 연결할 수 있는 동료가 줄었어요.';
+
+  @override
+  String get scanPassJudgmentChooseTouch => '어디로 받아야 다음 행동을 이어갈 수 있을까요?';
+
+  @override
+  String get scanPassJudgmentChooseAction => '달라진 압박을 보고 다음 행동을 고르세요.';
+
+  @override
+  String get scanPassJudgmentChooseSupport => '6번이 다시 받을 위치를 고르세요.';
 }

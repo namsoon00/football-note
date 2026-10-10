@@ -1,30 +1,56 @@
-# Scan Pass First-Touch Chain Model
+# Scan Pass Judgment Episode Model
 
-Scan Pass opens on a 3v2 sequence in which the learner controls **the same number 6 throughout**. The core is a preplanned first touch, a deliberate next action, and movement without the ball to receive again. A completed pass is an intermediate event; it does not end the exercise or transfer control to the recipient. Two actual return receptions and their chosen touches complete a sequence. The previous goal and offside game remains available through the football button, **Free attack**.
+Scan Pass now opens on a judgment-first episode trainer. The default surface shows a short moving football situation before number 6 receives, then pauses for a one-tap tactical decision. The learner chooses a contextual action on the pitch or through the equivalent large controls below the field; the action executes immediately. There is no mode picker, coordinate dragging, kick-power control, precision timing challenge, or separate confirmation button in the default flow.
 
-## Continuous choices
+The trainer keeps the mature football presentation used by the retained match screens: a wide pitch, human uniform silhouettes, a soccer ball, body-facing chevrons, rightward attacking direction, moving defenders, visible possession ring, and actual ball/player motion. The default experience is not a quiz card and does not show a green recommended route before the choice.
 
-1. **Plan the first touch before receiving.** Drag from number 6, tap the ground, or use the arrow keys to choose a direction and distance within three model metres. Confirm to request the incoming pass. The selected touch is executed at reception, including its exact direction and length. There is no automatic touch or receive-position/timing question.
-2. **Read the changed situation and choose the next action.** Tap a teammate to prepare a pass to 4 or 8. Drag into space for a carry of up to four metres, or select Protect and choose a short turn of up to 1.5 metres. A separate button commits the choice. Carrying or shielding leads back to this decision with the same live geometry. Facing affects the time needed to turn before releasing a pass, while defenders continue moving.
-3. **Offer a return.** After a successful pass, the teammate holds the ball and the learner personally chooses where number 6 runs, within seven metres. Defenders react to both players. A usable return needs separation and an open passing lane. The next reception is prepared at the reached position, without resetting or teleporting any player. The learner chooses the next first touch before the teammate sends the return.
+## Episode Flow
 
-The ball travels continuously. Defenders have finite reactive speeds, and committed touches, turns, carries, passes and runs have collision or pressure consequences. The model uses small deterministic substeps on a 30m by 20m pitch. These are instructional approximations rather than measurements of professional players. Nearby viable destinations are tested, so success does not depend on a single correct pixel. Seeded layouts vary the pressure direction and supporting geometry.
+1. **Watch before receiving.** Number 4 plays into number 6 while teammates and defenders move. The observation is long enough to read pressure, passing lanes and support. The learner can replay the same observation before choosing.
+2. **Choose one action.** At the receiving moment the model offers two to four neutral intentions, such as touch left, touch right, touch forward, shield, or one-touch return. A single tap immediately commits and animates the consequence.
+3. **Continue only when the football state calls for it.** If the first touch keeps the ball alive, the next decision can be pass forward, pass wide, return pass, carry, or protect. If a pass creates a meaningful off-ball problem, the learner then chooses a support position for number 6. Episodes end after one to three decisions.
+4. **Review cause and alternative.** Feedback shows the actual chosen sequence, highlights the relevant pressure/lane/support cue, and gives one localized causal sentence. Moment chips select the first touch, next action or support movement. “Compare another choice” replays an alternative from that moment’s identical decision state. Review-only cue highlights explain the outcome without identifying a preferred choice in advance. Replaying the lead-in after a first touch includes the completed actions and returns to the unchanged current decision. “Retry situation” restarts the same scene; “Continue” advances the ten-scene set.
 
-## Reading and interaction
+Poor but legal choices still execute. They may keep possession under pressure, lose a passing lane, expose back-space, or be intercepted/offside where the authored situation makes that consequence relevant. The trainer never silently normalizes every branch to success and never auto-selects a best route.
 
-The pitch keeps a stable 3:2 aspect ratio across desktop, phone and landscape layouts. Both teams use human uniform silhouettes, the ball has soccer-ball panels, and number 6 has a persistent learner label and blue halo. The possession ring follows the ball holder. A small triangle shows body direction and motion arrows show current velocity. A neutral gold arrow previews the learner's choice without exposing a safe/unsafe answer.
+## Catalog
 
-Decision stages pause the simulation. Committed movement plays at half speed with pause and single-step controls. Help, Free attack and backgrounding pause the sequence; resumption is explicit. There is no countdown, speed bonus or numeric skill score. Touch, mouse dragging and keyboard input share the same spatial model. The canvas excludes synthesized web semantic tap coordinates, and provides focus/arrow-key control plus accessible teammate buttons.
+`JudgmentEngine.catalog()` contains 24 base scenes: eight families with three authored configurations each. Mirroring and small seeded shifts may vary screen placement, but the three configurations per family are different causal situations, not jittered duplicates.
 
-## Causal review
+| Family | Three configuration themes |
+| --- | --- |
+| Rear pressure | close rear presser, dropping presser, curved rear press |
+| Side pressure | pressure from upper side, pressure from lower side, side trap recovering inside |
+| Open front / second defender | open carry lane, second defender stepping, lane screened while front appears open |
+| Passing-lane defender | defender commits to the ball, defender screens forward lane, defender jumps the return lane |
+| Receiver support / pressure | third-player support near the receiver, isolated receiver, wide underlap support |
+| Numerical advantage | central overload, wide 2v1, spare player behind pressure |
+| Post-pass support angle | inside return angle, flat covered angle, blind-side/wide support angle |
+| Transition / back-space | secure reset under counter-pressure, back-space behind the ball, high-line/offside forward option |
 
-The review preserves actual trajectory frames and moment snapshots. It compares the learner's pressure and immediate passing lanes before and after each first touch, then lets the player inspect the next action and off-ball destination. Movement trails, moment controls and full-sequence replay explain what changed. A same-layout retry invites a different first touch; a new layout changes the situation. Review overlays appear only after the attempt.
+A ten-scene session mixes families and configurations. If a missed condition loses possession or exposes a key cue, the final two slots can revisit that family in another valid configuration. The first eight slots retain all eight families, and retrying a scene replaces its record instead of adding an extra completed scene.
 
-No XP, gaze inference or persistent progression is recorded. Test results establish software behavior, not improvement in real match judgment. Transfer to play would require separate unfamiliar-scene and field evaluation.
+## Causal Rules
 
-Coverage includes manual preplanned touches, alternate touches under identical geometry, facing and release delay, pass/carry/protect choices, continued control after passing, return-lane consequences of the learner's own run, continuous return flights, two successive reconnections, nearby viable choices, seeded variation, lifecycle pauses, pointer and keyboard input, responsive controls and review playback. Real web checks include accessibility-enabled spatial input.
+The model is deterministic. Player positions, velocities, simultaneous ball/defender movement, nearest defensive pressure, offside line and predicted next outlets determine the qualitative outcome. There is no preferred-action answer key: changing a family label without changing the geometry cannot change the assessment. Body orientation is drawn to explain motion; technical execution is automatic. Transitions use the same `AttackState` and `AttackTransition` infrastructure as the continuous attack view. The ball travels along the actual selected branch; defenders do not teleport between decisions.
 
-The earlier `SpaceTrainingScreen` and its engine remain for regression coverage but are no longer the default entry. Its receive-position/timing exercise is not part of the new chain.
+First-touch actions move number 6, shield briefly, or return the ball. Next-action decisions evaluate pass interception/offside, forward carry pressure, and whether protecting possession leaves another action available. Support decisions move number 6 off the ball while the teammate holds possession, check pressure throughout that movement, and execute an actual return pass. The ball can be lost while support arrives or intercepted on the return. Different first touches can therefore leave different viable support routes later in the same episode.
+
+Outcomes are qualitative: space gained, possession retained, next options preserved, or possession lost. The UI does not award XP, score speed, infer gaze, claim measured scanning skill, or promise real-world transfer.
+
+## Controls and Accessibility
+
+The pitch remains responsive across desktop, phone, small phone, and landscape layouts. In compact layouts the action dock wraps into stable two-column controls, while pitch targets remain distinct 48px semantic buttons. Targets use separated callouts with neutral guide lines, avoiding overlap with each other and player silhouettes on small screens. The pitch itself is rendered as an image; raw coordinate gesture handlers are not used for the default judgment choices, avoiding synthesized center-tap semantics.
+
+Keyboard and screen-reader users receive the same decision set through the dock buttons. Replay, retry, compare alternative, continue, free attack and help are all reachable without scrolling excessively in the tested desktop and phone layouts.
+
+## Retained Legacy Surfaces
+
+The previous continuous attack remains available from the Scan Pass app bar as **Free attack**. That mode still uses `AttackEngine`, keeps one possession moving across the same pitch, and retains the goal, keeper, offside, undo, and full replay behavior from the earlier version.
+
+`TouchChainTrainingScreen` remains available for regression coverage and optional legacy use. It still models the longer first-touch chain in which the learner controls the same number 6 through first touch, next action, and off-ball return movement with explicit commit controls. It is no longer the default Scan Pass entry.
+
+The earlier `SpaceTrainingScreen` and its engine remain for regression coverage but are no longer the default entry. Its receive-position/timing exercise is not part of the new judgment episode trainer.
 
 ## Earlier scenario lesson implementation
 

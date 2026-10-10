@@ -10,10 +10,12 @@ import '../../domain/scan_pass/scan_pass_attack.dart';
 import '../../domain/scan_pass/scan_pass_chain.dart';
 import '../../domain/scan_pass/scan_pass_decision.dart';
 import '../../domain/scan_pass/scan_pass_game.dart' show ScanPassPoint;
+import '../../domain/scan_pass/scan_pass_judgment.dart';
 import '../../domain/scan_pass/scan_pass_space.dart';
 import '../theme/app_motion.dart';
 import '../widgets/app_bar_action_button.dart';
 
+part 'scan_pass_judgment_training.dart';
 part 'scan_pass_space_training.dart';
 part 'scan_pass_chain_training.dart';
 
@@ -43,8 +45,10 @@ class ScanPassGameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TouchChainTrainingScreen(
+    return JudgmentEpisodeTrainingScreen(
       seed: seed,
+      observationDuration: previewDuration,
+      executionDuration: passAnimationDuration,
       freeAttackBuilder: (context) => ScanPassFreeAttackScreen(
         optionRepository: optionRepository,
         seed: seed,
@@ -2827,17 +2831,19 @@ class _DockActionButton extends StatelessWidget {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6)),
             ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              if (icon != null) ...[
-                Icon(icon, size: compact ? 16 : 18),
-                SizedBox(width: compact ? 3 : 7),
-              ],
-              Flexible(
-                  child: Text(label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: compact ? const TextStyle(fontSize: 12) : null)),
-            ]),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                if (icon != null) ...[
+                  Icon(icon, size: compact ? 16 : 18),
+                  SizedBox(width: compact ? 3 : 7),
+                ],
+                Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: compact ? const TextStyle(fontSize: 12) : null),
+              ]),
+            ),
           ),
         ));
   }
