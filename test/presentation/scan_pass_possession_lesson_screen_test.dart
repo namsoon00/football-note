@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/scan_pass/scan_pass_attack.dart';
+import 'package:football_note/domain/scan_pass/scan_pass_possession_lesson.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('default entry opens possession lesson and keeps practice access',
+  testWidgets('default entry opens the continuous situation catalog',
       (tester) async {
     await tester.pumpWidget(_app(
       home: ScanPassGameScreen(
@@ -19,201 +20,158 @@ void main() {
     ));
     await tester.pump();
 
+    expect(find.byKey(const ValueKey<String>('possession-catalog')),
+        findsOneWidget);
     expect(
-        find.byKey(const ValueKey<String>('possession-pitch')), findsOneWidget);
+        find.byKey(const ValueKey<String>('possession-pitch')), findsNothing);
     expect(find.byKey(const ValueKey<String>('judgment-pitch')), findsNothing);
     expect(find.byKey(const ValueKey<String>('attack-start')), findsNothing);
-
-    await tester
-        .tap(find.byKey(const ValueKey<String>('possession-practice-menu')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey<String>('possession-open-free-attack')),
-        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('possession-practice-menu')),
+        findsNothing);
     expect(
-        find.byKey(
-          const ValueKey<String>('possession-open-judgment-practice'),
-        ),
-        findsOneWidget);
-
-    await tester.tap(
-      find.byKey(const ValueKey<String>('possession-open-judgment-practice')),
+      find.byKey(
+        const ValueKey<String>('possession-open-judgment-practice'),
+      ),
+      findsNothing,
     );
-    await tester.pumpAndSettle();
 
+    for (final id in _scenarioIds) {
+      expect(
+          find.byKey(ValueKey<String>('possession-card-$id')), findsOneWidget,
+          reason: id);
+    }
+
+    await _openScenario(tester, 'halfSpace-cover');
     expect(
-        find.byKey(const ValueKey<String>('judgment-pitch')), findsOneWidget);
+        find.byKey(const ValueKey<String>('possession-pitch')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('possession-guided-play')),
+        findsNothing);
+    expect(find.byKey(const ValueKey<String>('possession-action-touchAway')),
+        findsOneWidget);
+    expect(find.textContaining('Passing-lane cover'), findsWidgets);
   });
 
-  testWidgets('guided route plays full possession before independent practice',
+  testWidgets('scenario starts independently and keeps coach demo next catalog',
       (tester) async {
     await tester.pumpWidget(_lessonApp());
     await tester.pump();
 
-    expect(
-        find.byKey(const ValueKey<String>('possession-pitch')), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('possession-action-touchAway')),
-        findsNothing);
-    expect(find.byKey(const ValueKey<String>('possession-guided-play')),
+    await _openScenario(tester, 'centralReceive-pressure');
+    expect(find.byKey(const ValueKey<String>('possession-coach-demo')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('possession-return-catalog')),
         findsOneWidget);
 
-    await _playGuidedRoute(tester);
-
+    await tester
+        .tap(find.byKey(const ValueKey<String>('possession-coach-demo')));
+    await tester.pump();
+    await tester.pump();
     expect(find.byKey(const ValueKey<String>('possession-review-result')),
         findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('possession-try-independent')),
+    expect(find.byKey(const ValueKey<String>('possession-compare-coach')),
         findsOneWidget);
     expect(
       (_possessionPainter(tester).decisionBranchLabel as String),
       'Coach’s suggested attack',
     );
-  });
 
-  testWidgets('independent practice hides recommendation until review',
-      (tester) async {
-    await tester.pumpWidget(_lessonApp());
-    await tester.pump();
-    await _playGuidedRoute(tester);
     await tester
-        .tap(find.byKey(const ValueKey<String>('possession-try-independent')));
+        .tap(find.byKey(const ValueKey<String>('possession-next-scenario')));
     await tester.pump();
     await tester.pump();
-
     expect(find.byKey(const ValueKey<String>('possession-action-touchAway')),
         findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('possession-review-result')),
-        findsNothing);
-    expect(_possessionPainter(tester).decisionBranchLabel, isNull);
+    expect(find.textContaining('2/12'), findsWidgets);
 
     await tester
-        .tap(find.byKey(const ValueKey<String>('possession-dock-turnForward')));
+        .tap(find.byKey(const ValueKey<String>('possession-return-catalog')));
     await tester.pump();
-
-    expect(find.byKey(const ValueKey<String>('possession-review-result')),
+    expect(find.byKey(const ValueKey<String>('possession-catalog')),
         findsOneWidget);
-    expect(
-      (_possessionPainter(tester).decisionBranchLabel as String),
-      'My attack',
-    );
-
-    await tester
-        .tap(find.byKey(const ValueKey<String>('possession-compare-coach')));
-    await tester.pump();
-    final painter = _possessionPainter(tester);
-    expect(painter.decisionBranchLabel as String, 'Coach’s suggested attack');
-    expect((painter.history as List<AttackTransition>).length,
-        greaterThanOrEqualTo(4));
   });
 
-  testWidgets('changed-cue challenge starts from practice loop without leak',
-      (tester) async {
-    await tester.pumpWidget(_lessonApp());
-    await tester.pump();
-    await _playGuidedRoute(tester);
-    await tester
-        .tap(find.byKey(const ValueKey<String>('possession-changed-cue')));
-    await tester.pump();
-    await tester.pump();
-
-    expect(find.text('Changed cue'), findsWidgets);
-    expect(find.byKey(const ValueKey<String>('possession-action-turnForward')),
-        findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('possession-review-result')),
-        findsNothing);
-    expect(_possessionPainter(tester).decisionBranchLabel, isNull);
-  });
-
-  testWidgets(
-      'full demonstration is readable and manual pause survives background',
+  testWidgets('choice routes show actual metres and selected execution route',
       (tester) async {
     await tester.pumpWidget(_app(
-        disableAnimations: false,
-        home: const ScanPassPossessionLessonScreen()));
+      disableAnimations: false,
+      home: const ScanPassPossessionLessonScreen(
+        observationDuration: Duration.zero,
+        executionDuration: Duration(milliseconds: 600),
+      ),
+    ));
     await tester.pump();
-    final initialBounds =
-        tester.getRect(find.byKey(const ValueKey('possession-pitch')));
-    await _playGuidedRoute(tester);
-    await tester.pump(const Duration(seconds: 4));
+    await _openScenario(tester, 'centralReceive-pressure');
+
+    expect(find.textContaining('m'), findsWidgets);
+    final choiceOverlay = _routeOverlay(tester);
+    expect(choiceOverlay.routes, hasLength(3));
+    for (final dynamic route in choiceOverlay.routes as List<dynamic>) {
+      expect(route.distanceMetres as double, greaterThan(0));
+    }
+
+    await tester
+        .tap(find.byKey(const ValueKey<String>('possession-dock-touchAway')));
+    await tester.pump();
+    final executingOverlay = _routeOverlay(tester);
+    expect(executingOverlay.routes, isNotEmpty);
     expect(
-        find.byKey(const ValueKey('possession-review-result')), findsNothing);
-    expect(tester.getRect(find.byKey(const ValueKey('possession-pitch'))),
-        initialBounds);
-    await tester.tap(find.byKey(const ValueKey('possession-pause')));
+        find.byKey(const ValueKey<String>('possession-pause')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey<String>('possession-pause')));
     await tester.pump();
     final paused =
         (_possessionPainter(tester).displayState as AttackState).elapsed;
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-    await tester.pump(const Duration(seconds: 3));
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await tester.pump(const Duration(seconds: 3));
+    await tester.pump(const Duration(seconds: 1));
     expect((_possessionPainter(tester).displayState as AttackState).elapsed,
         paused);
-    await tester.tap(find.byKey(const ValueKey('possession-pause')));
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 2));
-    expect((_possessionPainter(tester).displayState as AttackState).elapsed,
-        greaterThan(paused));
-    await tester.pumpAndSettle(const Duration(milliseconds: 100));
-    expect(
-        find.byKey(const ValueKey('possession-review-result')), findsOneWidget);
-    expect(tester.getRect(find.byKey(const ValueKey('possession-pitch'))),
-        initialBounds);
-    expect(tester.takeException(), isNull);
   });
 
-  testWidgets(
-      'comparison and moment replay preserve the learner and hide future trails',
+  testWidgets('support phase draws number 6 off-ball run distances',
       (tester) async {
-    await tester.pumpWidget(_lessonApp());
+    await tester.pumpWidget(_app(
+      disableAnimations: false,
+      home: const ScanPassPossessionLessonScreen(
+        observationDuration: Duration.zero,
+        executionDuration: Duration(milliseconds: 80),
+      ),
+    ));
     await tester.pump();
-    await _playGuidedRoute(tester);
-    Future<void> tap(String key) async {
-      await tester.tap(find.byKey(ValueKey(key)));
-      await tester.pump();
+    await _openScenario(tester, 'centralReceive-pressure');
+
+    final path = _pathToSupportDecision();
+    for (final choice in path) {
+      await _tapChoiceAndFinish(tester, choice);
+    }
+    expect(find.byKey(const ValueKey<String>('possession-dock-supportInside')),
+        findsOneWidget);
+    final supportOverlay = _routeOverlay(tester);
+    expect(supportOverlay.routes, hasLength(3));
+    for (final dynamic route in supportOverlay.routes as List<dynamic>) {
+      expect(route.ballPath as bool, isFalse);
+      expect(route.distanceMetres as double, greaterThan(0));
     }
 
-    await tap('possession-try-independent');
+    await tester.tap(find.byKey(ValueKey<String>(
+        'possession-dock-${_supportChoiceForCurrentScene().name}')));
     await tester.pump();
-    final bounds =
-        tester.getRect(find.byKey(const ValueKey('possession-pitch')));
-    await tap('possession-dock-touchAway');
+    final selectedOverlay = _routeOverlay(tester);
+    expect(selectedOverlay.routes, isNotEmpty);
     expect(
-        tester.getRect(find.byKey(const ValueKey('possession-pitch'))), bounds);
-    await tap('possession-dock-passTo9');
-    await tap('possession-dock-supportWide');
-    final original = (_possessionPainter(tester).displayState as AttackState);
-    expect(original.end, isNull);
-    expect(original.carrierNumber, 4);
-    await tap('possession-compare-coach');
-    expect((_possessionPainter(tester).displayState as AttackState).end,
-        isNotNull);
-    await tap('possession-replay');
-    await tap('possession-compare-mine');
-    expect((_possessionPainter(tester).displayState as AttackState),
-        same(original));
-    await tap('possession-moment-receive');
-    expect(_possessionPainter(tester).history as List, isEmpty);
-    await tap('possession-moment-touch');
-    expect((_possessionPainter(tester).history as List).length, 1);
-    expect(tester.takeException(), isNull);
+      (selectedOverlay.routes as List<dynamic>)
+          .any((dynamic route) => route.ballPath as bool),
+      isFalse,
+    );
   });
 
-  testWidgets(
-      'early loss cannot be reviewed as a pass or support that did not happen',
-      (tester) async {
+  testWidgets('speed toggle is readable and changes state', (tester) async {
     await tester.pumpWidget(_lessonApp());
     await tester.pump();
-    await _playGuidedRoute(tester);
-    await tester.tap(find.byKey(const ValueKey('possession-try-independent')));
+    await _openScenario(tester, 'centralReceive-pressure');
+
+    expect(find.text('1x'), findsOneWidget);
+    await tester
+        .tap(find.byKey(const ValueKey<String>('possession-speed-toggle')));
     await tester.pump();
-    await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('possession-dock-turnForward')));
-    await tester.pump();
-    expect(find.byKey(const ValueKey('possession-moment-link')), findsNothing);
-    expect(
-        find.byKey(const ValueKey('possession-moment-support')), findsNothing);
-    await tester.tap(find.byKey(const ValueKey('possession-moment-touch')));
-    await tester.pump();
-    expect(find.textContaining('first-touch path'), findsOneWidget);
+    expect(find.text('0.65x'), findsOneWidget);
   });
 
   for (final config in <({Size size, double textScale})>[
@@ -222,8 +180,7 @@ void main() {
     (size: const Size(568, 320), textScale: 1.3),
     (size: const Size(1280, 800), textScale: 1.3),
   ]) {
-    testWidgets('possession lesson controls fit ${config.size}',
-        (tester) async {
+    testWidgets('catalog and play controls fit ${config.size}', (tester) async {
       tester.view.physicalSize = config.size;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
@@ -231,32 +188,40 @@ void main() {
 
       await tester.pumpWidget(_lessonApp(textScale: config.textScale));
       await tester.pump();
-      await _playGuidedRoute(tester);
+      expect(find.byKey(const ValueKey<String>('possession-catalog')),
+          findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await _openScenario(tester, 'centralReceive-pressure');
       for (final key in [
-        'possession-replay',
-        'possession-coach-detail',
-        'possession-try-independent',
-        'possession-changed-cue'
+        'possession-coach-demo',
+        'possession-return-catalog',
+        'possession-dock-touchAway',
       ]) {
-        final finder = find.byKey(ValueKey(key));
+        final finder = find.byKey(ValueKey<String>(key));
         expect(finder.hitTestable(), findsOneWidget, reason: key);
         expect(tester.getRect(finder).bottom,
             lessThanOrEqualTo(config.size.height));
       }
-      await tester.tap(
-        find.byKey(const ValueKey<String>('possession-try-independent')),
-      );
-      await tester.pump();
-      await tester.pump();
-
-      expect(find.byKey(const ValueKey<String>('possession-pitch')),
-          findsOneWidget);
-      expect(find.byKey(const ValueKey<String>('possession-dock-touchAway')),
-          findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }
 }
+
+const _scenarioIds = <String>[
+  'centralReceive-pressure',
+  'centralReceive-cover',
+  'halfSpace-pressure',
+  'halfSpace-cover',
+  'touchline-pressure',
+  'touchline-cover',
+  'layoff-pressure',
+  'layoff-cover',
+  'thirdPlayer-pressure',
+  'thirdPlayer-cover',
+  'transition-pressure',
+  'transition-cover',
+];
 
 Widget _lessonApp({
   double textScale = 1,
@@ -295,16 +260,74 @@ dynamic _possessionPainter(WidgetTester tester) => tester
     .widget<CustomPaint>(find.byKey(const ValueKey<String>('possession-pitch')))
     .painter;
 
-Future<void> _playGuidedRoute(WidgetTester tester) async {
-  await tester
-      .tap(find.byKey(const ValueKey<String>('possession-guided-next-cue')));
+dynamic _routeOverlay(WidgetTester tester) => tester
+    .widget<CustomPaint>(
+        find.byKey(const ValueKey<String>('possession-route-overlay')))
+    .painter;
+
+Future<void> _openScenario(WidgetTester tester, String id) async {
+  final card = find.byKey(ValueKey<String>('possession-card-$id'));
+  await tester.ensureVisible(card);
+  await tester.tap(card);
   await tester.pump();
-  await tester
-      .tap(find.byKey(const ValueKey<String>('possession-guided-next-cue')));
   await tester.pump();
+}
+
+List<ScanPassPossessionChoice> _pathToSupportDecision() {
+  const engine = ScanPassPossessionLessonEngine();
+  final scenario = ScanPassPossessionLessonEngine.catalog.first;
+  final scene =
+      engine.scene(variant: scenario.variant, situation: scenario.situation);
+  final firstPoint = engine.firstPhase(scene);
+  for (final first in firstPoint.choices) {
+    final firstResult = engine.choose(firstPoint, first);
+    final secondPoint = firstResult.nextPoint;
+    if (secondPoint == null) continue;
+    if (secondPoint.kind == ScanPassPossessionDecisionKind.support) {
+      return <ScanPassPossessionChoice>[first];
+    }
+    for (final second in secondPoint.choices) {
+      final secondResult = engine.choose(secondPoint, second);
+      final supportPoint = secondResult.nextPoint;
+      if (supportPoint?.kind == ScanPassPossessionDecisionKind.support) {
+        return <ScanPassPossessionChoice>[first, second];
+      }
+    }
+  }
+  fail('No route reached the support decision in the possession engine.');
+}
+
+ScanPassPossessionChoice _supportChoiceForCurrentScene() {
+  const engine = ScanPassPossessionLessonEngine();
+  final scenario = ScanPassPossessionLessonEngine.catalog.first;
+  final scene =
+      engine.scene(variant: scenario.variant, situation: scenario.situation);
+  final firstPoint = engine.firstPhase(scene);
+  for (final first in firstPoint.choices) {
+    final firstResult = engine.choose(firstPoint, first);
+    final next = firstResult.nextPoint;
+    if (next?.kind == ScanPassPossessionDecisionKind.support) {
+      return next!.choices.first;
+    }
+    if (next?.kind != ScanPassPossessionDecisionKind.nextAction) continue;
+    for (final second in next!.choices) {
+      final secondResult = engine.choose(next, second);
+      final support = secondResult.nextPoint;
+      if (support?.kind == ScanPassPossessionDecisionKind.support) {
+        return support!.choices.first;
+      }
+    }
+  }
+  fail('No support choice available in the possession engine.');
+}
+
+Future<void> _tapChoiceAndFinish(
+  WidgetTester tester,
+  ScanPassPossessionChoice choice,
+) async {
   await tester
-      .tap(find.byKey(const ValueKey<String>('possession-guided-play')));
-  await tester.pump();
+      .tap(find.byKey(ValueKey<String>('possession-dock-${choice.name}')));
+  await tester.pumpAndSettle(const Duration(milliseconds: 40));
 }
 
 class _Options implements OptionRepository {

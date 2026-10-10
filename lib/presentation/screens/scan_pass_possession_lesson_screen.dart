@@ -2,24 +2,29 @@ part of 'scan_pass_game_screen.dart';
 
 enum _PossessionMode { guided, independent, changedCue }
 
-enum _PossessionUiPhase { guidedCue, observing, choosing, executing, review }
+enum _PossessionUiPhase {
+  catalog,
+  guidedCue,
+  observing,
+  choosing,
+  executing,
+  review,
+}
 
 enum _PossessionBranchView { mine, coach }
 
 class ScanPassPossessionLessonScreen extends StatefulWidget {
   final int? seed;
-  final Duration observationDuration;
+  final Duration? observationDuration;
   final Duration executionDuration;
   final WidgetBuilder? freeAttackBuilder;
-  final WidgetBuilder? judgmentPracticeBuilder;
 
   const ScanPassPossessionLessonScreen({
     super.key,
     this.seed,
-    this.observationDuration = const Duration(milliseconds: 2400),
-    this.executionDuration = const Duration(milliseconds: 3600),
+    this.observationDuration,
+    this.executionDuration = const Duration(milliseconds: 1000),
     this.freeAttackBuilder,
-    this.judgmentPracticeBuilder,
   });
 
   @override
@@ -30,6 +35,8 @@ class ScanPassPossessionLessonScreen extends StatefulWidget {
 class _ScanPassPossessionLessonScreenState
     extends State<ScanPassPossessionLessonScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  static const _catalog = ScanPassPossessionLessonEngine.catalog;
+
   final ScanPassPossessionLessonEngine _engine =
       const ScanPassPossessionLessonEngine();
 
@@ -38,16 +45,18 @@ class _ScanPassPossessionLessonScreenState
   late ScanPassPossessionDecisionPoint _decision;
   late ScanPassPossessionBranch _coachBranch;
 
-  _PossessionMode _mode = _PossessionMode.guided;
-  _PossessionUiPhase _phase = _PossessionUiPhase.guidedCue;
+  _PossessionMode _mode = _PossessionMode.independent;
+  _PossessionUiPhase _phase = _PossessionUiPhase.catalog;
   _PossessionBranchView _branchView = _PossessionBranchView.coach;
   ScanPassPossessionMoment _moment = ScanPassPossessionMoment.receive;
+  int _catalogIndex = 0;
   int _cueIndex = 0;
   bool _foreground = true;
   bool _manuallyPaused = false;
   bool _modalOpen = false;
   bool _routeOpen = false;
   bool _playingReplay = false;
+  bool _slowMotion = false;
   List<AttackTransition> _motionTransitions = const <AttackTransition>[];
   ScanPassPossessionStepResult? _pendingResult;
   ScanPassPossessionBranch? _myBranch;
@@ -66,14 +75,14 @@ class _ScanPassPossessionLessonScreenState
     WidgetsBinding.instance.addObserver(this);
     _motionController = AnimationController(vsync: this)
       ..addStatusListener(_handleMotionStatus);
-    _loadScene(_PossessionMode.guided);
+    _loadCatalogItem(_catalog.first, startObservation: false);
   }
 
   @override
   void didUpdateWidget(covariant ScanPassPossessionLessonScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.seed != widget.seed) {
-      _loadScene(_PossessionMode.guided);
+      _loadCatalogItem(_catalog[_catalogIndex], startObservation: false);
     }
   }
 
@@ -103,20 +112,23 @@ class _ScanPassPossessionLessonScreenState
     }
   }
 
-  void _loadScene(_PossessionMode mode) {
-    final variant = mode == _PossessionMode.changedCue
-        ? ScanPassPossessionVariant.cover
-        : ScanPassPossessionVariant.pressure;
-    _scene = _engine.scene(variant: variant);
+  void _loadCatalogItem(
+    ScanPassPossessionScenario item, {
+    required bool startObservation,
+  }) {
+    _scene = _engine.scene(variant: item.variant, situation: item.situation);
     _decision = _engine.firstPhase(_scene);
     _coachBranch = _engine.recommendedBranch(_scene);
+    final itemIndex = _catalog.indexOf(item);
+    _catalogIndex = itemIndex < 0 ? 0 : itemIndex;
+    final mode = item.variant == ScanPassPossessionVariant.cover
+        ? _PossessionMode.changedCue
+        : _PossessionMode.independent;
     _mode = mode;
-    _phase = mode == _PossessionMode.guided
-        ? _PossessionUiPhase.guidedCue
-        : _PossessionUiPhase.observing;
-    _branchView = mode == _PossessionMode.guided
-        ? _PossessionBranchView.coach
-        : _PossessionBranchView.mine;
+    _phase = startObservation
+        ? _PossessionUiPhase.observing
+        : _PossessionUiPhase.catalog;
+    _branchView = _PossessionBranchView.mine;
     _moment = ScanPassPossessionMoment.receive;
     _cueIndex = 0;
     _myBranch = null;
@@ -127,7 +139,7 @@ class _ScanPassPossessionLessonScreenState
     _motionController
       ..stop()
       ..value = 0;
-    if (_phase == _PossessionUiPhase.observing) {
+    if (startObservation) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _phase == _PossessionUiPhase.observing) {
           _runObservation();
@@ -136,10 +148,36 @@ class _ScanPassPossessionLessonScreenState
     }
   }
 
+  void _returnToCatalog() {
+    setState(() {
+      _phase = _PossessionUiPhase.catalog;
+      _playingReplay = false;
+      _pendingResult = null;
+      _motionTransitions = const <AttackTransition>[];
+      _motionController
+        ..stop()
+        ..value = 0;
+    });
+  }
+
+  void _startScenario(int index) {
+    setState(() => _loadCatalogItem(_catalog[index], startObservation: true));
+  }
+
+  void _restartScenario() {
+    setState(() =>
+        _loadCatalogItem(_catalog[_catalogIndex], startObservation: true));
+  }
+
+  void _nextScenario() {
+    final next = (_catalogIndex + 1) % _catalog.length;
+    setState(() => _loadCatalogItem(_catalog[next], startObservation: true));
+  }
+
   void _runObservation() {
     _playTransitions(
       <AttackTransition>[_scene.observation],
-      reducedDuration: widget.observationDuration,
+      overrideDuration: widget.observationDuration,
       replay: false,
     );
   }
@@ -173,7 +211,7 @@ class _ScanPassPossessionLessonScreenState
 
   void _playTransitions(
     List<AttackTransition> transitions, {
-    Duration? reducedDuration,
+    Duration? overrideDuration,
     required bool replay,
   }) {
     setState(() {
@@ -183,7 +221,7 @@ class _ScanPassPossessionLessonScreenState
       _playingReplay = replay;
       _motionController.value = 0;
     });
-    _runMotion(transitions, overrideDuration: reducedDuration);
+    _runMotion(transitions, overrideDuration: overrideDuration);
   }
 
   void _runMotion(
@@ -192,8 +230,11 @@ class _ScanPassPossessionLessonScreenState
   }) {
     _manuallyPaused = false;
     final reduced = AppMotion.reduceMotion(context);
-    final duration = overrideDuration ?? widget.executionDuration;
-    if (transitions.isEmpty || reduced || duration == Duration.zero) {
+    final modelSecondDuration = widget.executionDuration;
+    if (transitions.isEmpty ||
+        reduced ||
+        overrideDuration == Duration.zero ||
+        (overrideDuration == null && modelSecondDuration == Duration.zero)) {
       _motionController.value = 1;
       _finishMotion();
       return;
@@ -202,13 +243,38 @@ class _ScanPassPossessionLessonScreenState
         transitions.fold<double>(0, (sum, item) => sum + item.duration);
     // Preserve readable time for the whole possession. A full replay must not
     // be squeezed into the per-action animation duration.
+    final speed = _slowMotion ? .65 : 1.0;
     final milliseconds = overrideDuration != null
         ? overrideDuration.inMilliseconds
-        : (modelSeconds * 3600 * widget.executionDuration.inMilliseconds / 3600)
-            .round();
+        : (modelSeconds * modelSecondDuration.inMilliseconds / speed).round();
     _motionController.duration =
         Duration(milliseconds: math.max(1, milliseconds));
     unawaited(_motionController.forward(from: 0));
+  }
+
+  void _togglePlaybackSpeed() {
+    final running = _motionController.isAnimating;
+    final progress = _motionController.value;
+    final oldSpeed = _slowMotion ? .65 : 1.0;
+    final duration = _motionController.duration;
+    setState(() {
+      _slowMotion = !_slowMotion;
+      if (_phase == _PossessionUiPhase.executing && duration != null) {
+        _motionController.stop();
+        _motionController.duration = Duration(
+            microseconds:
+                (duration.inMicroseconds * oldSpeed / (_slowMotion ? .65 : 1.0))
+                    .round());
+        _motionController.value = progress;
+      }
+    });
+    if (running &&
+        _foreground &&
+        !_modalOpen &&
+        !_routeOpen &&
+        !_manuallyPaused) {
+      unawaited(_motionController.forward(from: progress));
+    }
   }
 
   void _handleMotionStatus(AnimationStatus status) {
@@ -264,67 +330,6 @@ class _ScanPassPossessionLessonScreenState
         _phase == _PossessionUiPhase.executing) {
       unawaited(_motionController.forward());
     }
-  }
-
-  void _showPracticeMenu() {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = _ScanPassColors.of(context);
-    unawaited(_pauseForModal(() {
-      return showModalBottomSheet<void>(
-        context: context,
-        showDragHandle: true,
-        backgroundColor: colors.surface,
-        builder: (context) => SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(18, 4, 18, 18),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  l10n.scanPassPossessionPracticeTitle,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: colors.text,
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  key: const ValueKey<String>('possession-open-free-attack'),
-                  onPressed: widget.freeAttackBuilder == null
-                      ? null
-                      : () {
-                          Navigator.of(context).pop();
-                          _openBuilder(widget.freeAttackBuilder!);
-                        },
-                  icon: const Icon(Icons.sports_soccer_outlined, size: 18),
-                  label: Text(l10n.scanPassFreeAttackAction),
-                ),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  key: const ValueKey<String>(
-                    'possession-open-judgment-practice',
-                  ),
-                  onPressed: widget.judgmentPracticeBuilder == null
-                      ? null
-                      : () {
-                          Navigator.of(context).pop();
-                          _openBuilder(widget.judgmentPracticeBuilder!);
-                        },
-                  icon: const Icon(Icons.grid_view_outlined, size: 18),
-                  label: Text(l10n.scanPassPossessionJudgmentPracticeAction),
-                ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.scanPassHelpCloseAction),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }));
   }
 
   Future<void> _openBuilder(WidgetBuilder builder) async {
@@ -447,20 +452,21 @@ class _ScanPassPossessionLessonScreenState
       child: Scaffold(
         backgroundColor: colors.background,
         appBar: AppBar(
-          title: Text(l10n.scanPassTitle),
+          title: Text(_appBarTitle(l10n)),
           backgroundColor: colors.surface,
           foregroundColor: colors.text,
           iconTheme: IconThemeData(color: colors.text),
           surfaceTintColor: Colors.transparent,
           actions: [
-            AppBarActionButton.label(
-              key: const ValueKey<String>('possession-practice-menu'),
-              tooltip: l10n.scanPassPossessionPracticeTooltip,
-              onPressed: _showPracticeMenu,
-              icon: const Icon(Icons.menu_book_outlined),
-              label: l10n.scanPassPossessionPracticeAction,
-              maxLabelWidth: 92,
-            ),
+            if (_phase != _PossessionUiPhase.catalog)
+              AppBarActionButton.label(
+                key: const ValueKey<String>('possession-return-catalog'),
+                tooltip: l10n.scanPassPossessionCatalogReturnAction,
+                onPressed: _returnToCatalog,
+                icon: const Icon(Icons.grid_view_outlined),
+                label: l10n.scanPassPossessionCatalogReturnShort,
+                maxLabelWidth: 84,
+              ),
             AppBarActionButton(
               key: const ValueKey<String>('possession-help'),
               tooltip: l10n.scanPassHelpAction,
@@ -472,12 +478,97 @@ class _ScanPassPossessionLessonScreenState
         body: SafeArea(
           child: AnimatedBuilder(
             animation: _motionController,
-            builder: (context, _) => _buildBoard(l10n),
+            builder: (context, _) => _phase == _PossessionUiPhase.catalog
+                ? _buildCatalog(l10n)
+                : _buildBoard(l10n),
           ),
         ),
       ),
     );
   }
+
+  String _appBarTitle(AppLocalizations l10n) {
+    if (_phase == _PossessionUiPhase.catalog) return l10n.scanPassTitle;
+    return l10n.scanPassPossessionSceneProgressTitle(
+      _catalogIndex + 1,
+      _catalog.length,
+      _scenarioTitle(l10n, _catalog[_catalogIndex]),
+    );
+  }
+
+  Widget _buildCatalog(AppLocalizations l10n) {
+    final colors = _ScanPassColors.of(context);
+    return LayoutBuilder(builder: (context, constraints) {
+      final width = constraints.maxWidth;
+      final columns = width >= 1000
+          ? 3
+          : width >= 640
+              ? 2
+              : 1;
+      final spacing = width < 380 ? 8.0 : 12.0;
+      final itemWidth = (width - 28 - spacing * (columns - 1)) / columns;
+      final cards = <Widget>[
+        for (var i = 0; i < _catalog.length; i += 1)
+          SizedBox(
+            width: itemWidth,
+            child: _ScenarioCatalogCard(
+              key: ValueKey<String>('possession-card-${_catalog[i].id}'),
+              scene: _previewScene(_catalog[i]),
+              title: _scenarioTitle(l10n, _catalog[i]),
+              description: _scenarioDescription(l10n, _catalog[i]),
+              setup: _variantLabel(l10n, _catalog[i].variant),
+              progress: l10n.scanPassPossessionCatalogCardProgress(
+                i + 1,
+                _catalog.length,
+              ),
+              actionLabel: l10n.scanPassPossessionStartScenarioAction,
+              labels: _PitchLabels.from(l10n),
+              colors: colors,
+              onPressed: () => _startScenario(i),
+            ),
+          ),
+        if (widget.freeAttackBuilder != null)
+          SizedBox(
+            width: itemWidth,
+            child: _SecondaryCatalogAction(
+              key: const ValueKey<String>('possession-free-attack-card'),
+              title: l10n.scanPassFreeAttackAction,
+              description: l10n.scanPassPossessionFreeAttackDescription,
+              actionLabel: l10n.scanPassPossessionOpenFreeAttackAction,
+              colors: colors,
+              onPressed: () => _openBuilder(widget.freeAttackBuilder!),
+            ),
+          ),
+      ];
+      return SingleChildScrollView(
+        key: const ValueKey<String>('possession-catalog'),
+        padding: EdgeInsets.fromLTRB(14, 12, 14, 18 + spacing),
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Text(
+            l10n.scanPassPossessionCatalogTitle,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: colors.text,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.scanPassPossessionCatalogIntro,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colors.muted,
+                  height: 1.22,
+                ),
+          ),
+          SizedBox(height: spacing),
+          Wrap(spacing: spacing, runSpacing: spacing, children: cards),
+        ]),
+      );
+    });
+  }
+
+  ScanPassPossessionScene _previewScene(ScanPassPossessionScenario item) =>
+      _engine.scene(variant: item.variant, situation: item.situation);
 
   Widget _buildBoard(AppLocalizations l10n) {
     return LayoutBuilder(builder: (context, constraints) {
@@ -523,38 +614,52 @@ class _ScanPassPossessionLessonScreenState
 
   Widget _buildStrip(AppLocalizations l10n) {
     final colors = _ScanPassColors.of(context);
-    return SizedBox(
-      height: math.max(
-        48,
-        MediaQuery.textScalerOf(context).scale(13) * 1.12 * 2 + 6,
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.surface,
-          border: Border.all(color: colors.line),
-          borderRadius: BorderRadius.circular(6),
+    return LayoutBuilder(
+      builder: (context, constraints) => SizedBox(
+        height: math.max(
+          48,
+          MediaQuery.textScalerOf(context).scale(13) * 1.12 * 2 + 8,
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-          child: Row(children: [
-            Icon(_modeIcon(), color: colors.accent, size: 18),
-            const SizedBox(width: 7),
-            Expanded(
-              child: Text(
-                _status(l10n),
-                key: const ValueKey<String>('possession-status'),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: colors.text,
-                      fontWeight: FontWeight.w700,
-                      height: 1.12,
-                    ),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.surface,
+            border: Border.all(color: colors.line),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+            child: Row(children: [
+              Icon(_modeIcon(), color: colors.accent, size: 18),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  _status(l10n),
+                  key: const ValueKey<String>('possession-status'),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: colors.text,
+                        fontWeight: FontWeight.w700,
+                        height: 1.12,
+                      ),
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            _MiniChip(text: _modeLabel(l10n), color: colors.background),
-          ]),
+              const SizedBox(width: 8),
+              if (constraints.maxWidth >= 420) ...[
+                _MiniChip(text: _modeLabel(l10n), color: colors.background),
+                const SizedBox(width: 6),
+              ],
+              _SpeedToggle(
+                key: const ValueKey<String>('possession-speed-toggle'),
+                slow: _slowMotion,
+                label: _slowMotion
+                    ? l10n.scanPassPossessionSpeedSlow
+                    : l10n.scanPassPossessionSpeedNormal,
+                tooltip: l10n.scanPassPossessionSlowMotionTooltip,
+                onPressed: _togglePlaybackSpeed,
+              ),
+            ]),
+          ),
         ),
       ),
     );
@@ -609,6 +714,26 @@ class _ScanPassPossessionLessonScreenState
                   ),
                 ),
               ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    key: const ValueKey<String>('possession-route-overlay'),
+                    painter: _PossessionRouteOverlayPainter(
+                      routes: _routeOverlayItems(l10n),
+                      showLabels: !_canChoose,
+                      actors: [
+                        ..._displayState.attackers,
+                        ..._displayState.defenders
+                      ].map((p) => p.position).toList(),
+                      legendPass: l10n.scanPassPossessionLegendPassPath,
+                      legendRun: l10n.scanPassPossessionLegendRunPath,
+                      brightness: Theme.of(context).brightness,
+                      fontFamily:
+                          Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    ),
+                  ),
+                ),
+              ),
               if (_canChoose) _buildPitchTargets(l10n),
             ]),
           ),
@@ -625,10 +750,8 @@ class _ScanPassPossessionLessonScreenState
         constraints.maxHeight,
       ));
       final size = Size(constraints.maxWidth, constraints.maxHeight);
-      final targets = [
-        for (final choice in _decision.choices)
-          geometry.toOffset(_engine.targetFor(_decision, choice))
-      ];
+      final routes = _choiceRouteItems(l10n);
+      final targets = [for (final route in routes) geometry.toOffset(route.to)];
       final people = [
         for (final p in [
           ..._decision.state.attackers,
@@ -643,36 +766,28 @@ class _ScanPassPossessionLessonScreenState
                 child: CustomPaint(
                     painter: _PossessionTargetConnectors(
                         targets, centers, colors.team)))),
-        for (final choice in _decision.choices)
+        for (var i = 0; i < routes.length; i += 1)
           _PitchButton(
-            key: ValueKey<String>('possession-action-${choice.name}'),
-            center: centers[_decision.choices.indexOf(choice)],
-            label: _choiceSemantics(l10n, choice),
+            key: ValueKey<String>('possession-action-${routes[i].choice.name}'),
+            center: centers[i],
+            label: routes[i].semanticsLabel,
             selected: false,
             color: colors.team,
-            onPressed: () => _choose(choice),
-            child: _choicePitchChild(choice),
+            onPressed: () => _choose(routes[i].choice),
+            child: Text(
+              l10n.scanPassPossessionRouteDistance(routes[i].numberLabel,
+                  _distanceText(routes[i].distanceMetres)),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              style: TextStyle(
+                  color: colors.text,
+                  fontSize: 11,
+                  height: 1.15,
+                  fontWeight: FontWeight.w900),
+            ),
           ),
       ]);
     });
-  }
-
-  Widget _choicePitchChild(ScanPassPossessionChoice choice) {
-    final targetNumber = switch (choice) {
-      ScanPassPossessionChoice.passTo8 => 8,
-      ScanPassPossessionChoice.passTo9 => 9,
-      ScanPassPossessionChoice.recycle4 ||
-      ScanPassPossessionChoice.oneTouchLayoff =>
-        4,
-      _ => null,
-    };
-    if (targetNumber != null) {
-      return Text(
-        targetNumber.toString(),
-        style: const TextStyle(fontWeight: FontWeight.w800),
-      );
-    }
-    return Icon(_choiceIcon(choice), size: 18);
   }
 
   Widget _buildDock(AppLocalizations l10n, {required bool landscape}) {
@@ -708,12 +823,12 @@ class _ScanPassPossessionLessonScreenState
 
   double _dockHeight() {
     final scale = MediaQuery.textScalerOf(context).scale(1);
-    return (MediaQuery.sizeOf(context).width < 600 ? 218.0 : 186.0) +
-        math.max(0, scale - 1) * 66;
+    return 186.0 + math.max(0, scale - 1) * 50;
   }
 
   Widget _dockContent(AppLocalizations l10n, {required bool landscape}) {
     return switch (_phase) {
+      _PossessionUiPhase.catalog => const SizedBox.shrink(),
       _PossessionUiPhase.guidedCue => _guidedDock(l10n),
       _PossessionUiPhase.observing => _observingDock(),
       _PossessionUiPhase.choosing => _choiceDock(l10n, landscape: landscape),
@@ -827,17 +942,25 @@ class _ScanPassPossessionLessonScreenState
     required bool landscape,
   }) {
     final compact = landscape || MediaQuery.sizeOf(context).width < 900;
+    final colors = _ScanPassColors.of(context);
+    final routes = _choiceRouteItems(l10n);
     final buttons = [
-      for (final choice in _decision.choices)
-        _DockActionButton(
-          key: ValueKey<String>('possession-dock-${choice.name}'),
-          selected: false,
-          icon: _choiceIcon(choice),
-          label: _choiceLabel(l10n, choice),
-          semanticsLabel: _choiceSemantics(l10n, choice),
-          compact: compact,
-          onPressed: () => _choose(choice),
-        ),
+      for (final route in routes)
+        Semantics(
+            button: true,
+            label: route.semanticsLabel,
+            child: OutlinedButton(
+                key: ValueKey<String>('possession-dock-${route.choice.name}'),
+                onPressed: () => _choose(route.choice),
+                style: _outlinedStyle(colors).copyWith(
+                    minimumSize: const WidgetStatePropertyAll(Size(0, 64)),
+                    padding: const WidgetStatePropertyAll(
+                        EdgeInsets.symmetric(horizontal: 4, vertical: 5))),
+                child: Text(route.dockLabel,
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    style:
+                        TextStyle(fontSize: compact ? 12 : 14, height: 1.2)))),
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _phaseHeader(
@@ -845,27 +968,27 @@ class _ScanPassPossessionLessonScreenState
         label: _decisionPrompt(l10n, _decision.kind),
       ),
       const SizedBox(height: 8),
-      if (compact)
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(children: [
-            for (final button in buttons)
-              Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: SizedBox(width: 96, child: button),
-              ),
-          ]),
-        )
-      else
-        Row(children: [
-          for (final button in buttons)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: button,
-              ),
+      Row(children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            key: const ValueKey<String>('possession-coach-demo'),
+            onPressed: _playGuidedRoute,
+            style: _outlinedStyle(_ScanPassColors.of(context)),
+            icon: const Icon(Icons.school_outlined, size: 18),
+            label: Text(l10n.scanPassPossessionCoachDemoAction),
+          ),
+        ),
+      ]),
+      const SizedBox(height: 8),
+      Row(children: [
+        for (final button in buttons)
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: button,
             ),
-        ]),
+          ),
+      ]),
     ]);
   }
 
@@ -946,28 +1069,25 @@ class _ScanPassPossessionLessonScreenState
       Row(children: [
         Expanded(
             child: OutlinedButton(
-                key: ValueKey(_mode == _PossessionMode.guided
-                    ? 'possession-try-independent'
-                    : 'possession-retry'),
-                onPressed: () => setState(() => _loadScene(
-                    _mode == _PossessionMode.changedCue
-                        ? _PossessionMode.changedCue
-                        : _PossessionMode.independent)),
+                key: const ValueKey('possession-retry'),
+                onPressed: _restartScenario,
                 style: _outlinedStyle(colors),
-                child: Text(_mode == _PossessionMode.guided
-                    ? l10n.scanPassPossessionTryIndependentAction
-                    : l10n.scanPassJudgmentRetryAction))),
+                child: Text(l10n.scanPassJudgmentRetryAction,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    style: const TextStyle(fontSize: 12, height: 1.1)))),
         const SizedBox(width: 6),
         Expanded(
-            child: FilledButton.icon(
-                key: const ValueKey('possession-changed-cue'),
-                onPressed: () =>
-                    setState(() => _loadScene(_PossessionMode.changedCue)),
+            child: FilledButton(
+                key: const ValueKey('possession-next-scenario'),
+                onPressed: _nextScenario,
                 style: FilledButton.styleFrom(
                     minimumSize: const Size(0, 44),
-                    padding: const EdgeInsets.symmetric(horizontal: 8)),
-                icon: const Icon(Icons.swap_horiz, size: 18),
-                label: Text(l10n.scanPassPossessionChangedCueAction))),
+                    padding: const EdgeInsets.symmetric(horizontal: 6)),
+                child: Text(l10n.scanPassPossessionNextScenarioAction,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    style: const TextStyle(fontSize: 12, height: 1.1)))),
       ]),
     ]);
   }
@@ -1039,6 +1159,7 @@ class _ScanPassPossessionLessonScreenState
       final motion = _activeMotion;
       if (motion != null) return motion.transition.frame(motion.progress);
     }
+    if (_phase == _PossessionUiPhase.catalog) return _scene.reception;
     if (_phase == _PossessionUiPhase.guidedCue) return _scene.reception;
     if (_phase == _PossessionUiPhase.observing) return _scene.initial;
     if (_phase == _PossessionUiPhase.choosing) return _decision.state;
@@ -1051,6 +1172,7 @@ class _ScanPassPossessionLessonScreenState
         _motionTransitions.isNotEmpty) {
       return _motionTransitions.first.before;
     }
+    if (_phase == _PossessionUiPhase.catalog) return _scene.reception;
     if (_phase == _PossessionUiPhase.choosing) return _decision.state;
     final branch = _selectedBranch;
     return branch?.stateAt(_moment) ?? _scene.reception;
@@ -1157,6 +1279,7 @@ class _ScanPassPossessionLessonScreenState
   }
 
   String _status(AppLocalizations l10n) => switch (_phase) {
+        _PossessionUiPhase.catalog => l10n.scanPassPossessionCatalogTitle,
         _PossessionUiPhase.guidedCue => l10n.scanPassPossessionGuidedStatus,
         _PossessionUiPhase.observing => _mode == _PossessionMode.changedCue
             ? l10n.scanPassPossessionChangedObserveStatus
@@ -1173,8 +1296,8 @@ class _ScanPassPossessionLessonScreenState
 
   String _modeLabel(AppLocalizations l10n) => switch (_mode) {
         _PossessionMode.guided => l10n.scanPassPossessionModeGuided,
-        _PossessionMode.independent => l10n.scanPassPossessionModeIndependent,
-        _PossessionMode.changedCue => l10n.scanPassPossessionModeChangedCue,
+        _PossessionMode.independent => l10n.scanPassPossessionVariantPressure,
+        _PossessionMode.changedCue => l10n.scanPassPossessionVariantCover,
       };
 
   IconData _modeIcon() => switch (_mode) {
@@ -1191,18 +1314,130 @@ class _ScanPassPossessionLessonScreenState
         ScanPassPossessionDecisionKind.support => Icons.directions_run_outlined,
       };
 
-  IconData _choiceIcon(ScanPassPossessionChoice choice) => switch (choice) {
-        ScanPassPossessionChoice.touchAway => Icons.south_east_outlined,
-        ScanPassPossessionChoice.turnForward => Icons.turn_right_outlined,
-        ScanPassPossessionChoice.oneTouchLayoff => Icons.keyboard_return,
-        ScanPassPossessionChoice.passTo8 ||
-        ScanPassPossessionChoice.passTo9 ||
-        ScanPassPossessionChoice.recycle4 =>
-          Icons.near_me_outlined,
-        ScanPassPossessionChoice.supportInside => Icons.call_split_outlined,
-        ScanPassPossessionChoice.supportWide => Icons.open_in_full_outlined,
-        ScanPassPossessionChoice.supportBehind => Icons.undo_outlined,
-      };
+  List<_PossessionChoiceRoute> _choiceRouteItems(AppLocalizations l10n) {
+    return [
+      for (var i = 0; i < _decision.choices.length; i += 1)
+        _choiceRoute(l10n, _decision.choices[i], i + 1),
+    ];
+  }
+
+  _PossessionChoiceRoute _choiceRoute(
+    AppLocalizations l10n,
+    ScanPassPossessionChoice choice,
+    int number,
+  ) {
+    final target = _engine.targetFor(_decision, choice);
+    final ballRoute = _choiceUsesBallPath(choice);
+    final origin = ballRoute
+        ? _decision.state.ball
+        : _playerByNumber(_decision.state.attackers, 6)!.position;
+    final distance = _distanceMetres(origin, target);
+    final distanceText = _distanceText(distance);
+    final baseLabel = _choiceLabel(l10n, choice);
+    return _PossessionChoiceRoute(
+      choice: choice,
+      from: origin,
+      to: target,
+      ballPath: ballRoute,
+      numberLabel: number.toString(),
+      dockLabel: l10n.scanPassPossessionNumberedChoice(
+        number,
+        baseLabel,
+        distanceText,
+      ),
+      semanticsLabel: l10n.scanPassPossessionChoiceWithDistanceLabel(
+        number,
+        _choiceSemantics(l10n, choice),
+        distanceText,
+      ),
+      distanceMetres: distance,
+    );
+  }
+
+  List<_PossessionRouteOverlayItem> _routeOverlayItems(AppLocalizations l10n) {
+    if (_phase == _PossessionUiPhase.choosing) {
+      return [
+        for (final route in _choiceRouteItems(l10n))
+          _PossessionRouteOverlayItem(
+            from: route.from,
+            to: route.to,
+            ballPath: route.ballPath,
+            label: l10n.scanPassPossessionRouteDistance(
+              route.numberLabel,
+              _distanceText(route.distanceMetres),
+            ),
+            distanceMetres: route.distanceMetres,
+          ),
+      ];
+    }
+    if (_phase == _PossessionUiPhase.executing) {
+      final transition = _activeMotion?.transition;
+      if (transition == null) return const <_PossessionRouteOverlayItem>[];
+      return _selectedTransitionRoutes(l10n, transition);
+    }
+    return const <_PossessionRouteOverlayItem>[];
+  }
+
+  List<_PossessionRouteOverlayItem> _selectedTransitionRoutes(
+    AppLocalizations l10n,
+    AttackTransition transition,
+  ) {
+    final routes = <_PossessionRouteOverlayItem>[];
+    if (transition.action.kind == AttackActionKind.pass ||
+        transition.action.kind == AttackActionKind.shoot) {
+      final distance =
+          _distanceMetres(transition.before.ball, transition.ballEnd);
+      routes.add(_PossessionRouteOverlayItem(
+        from: transition.before.ball,
+        to: transition.ballEnd,
+        ballPath: true,
+        label: l10n.scanPassPossessionSelectedRouteDistance(
+          _distanceText(distance),
+        ),
+        distanceMetres: distance,
+      ));
+    }
+    final before6 = _playerByNumber(transition.before.attackers, 6);
+    final after6 = _playerByNumber(transition.after.attackers, 6);
+    if (before6 != null && after6 != null) {
+      final path = transition.motionSamples.isEmpty
+          ? [before6.position, after6.position]
+          : [
+              for (final sample in transition.motionSamples)
+                _playerByNumber(sample.attackers, 6)!.position
+            ];
+      var distance = 0.0;
+      for (var i = 1; i < path.length; i++) {
+        distance += _distanceMetres(path[i - 1], path[i]);
+      }
+      if (distance >= .4 ||
+          transition.action.kind == AttackActionKind.hold ||
+          transition.action.kind == AttackActionKind.carry) {
+        routes.add(_PossessionRouteOverlayItem(
+          from: before6.position,
+          to: after6.position,
+          path: path,
+          ballPath: false,
+          label: l10n.scanPassPossessionSelectedRunDistance(
+            _distanceText(distance),
+          ),
+          distanceMetres: distance,
+        ));
+      }
+    }
+    return routes;
+  }
+
+  bool _choiceUsesBallPath(ScanPassPossessionChoice choice) =>
+      choice == ScanPassPossessionChoice.oneTouchLayoff ||
+      choice == ScanPassPossessionChoice.passTo8 ||
+      choice == ScanPassPossessionChoice.passTo9 ||
+      choice == ScanPassPossessionChoice.recycle4;
+
+  static double _distanceMetres(ScanPassPoint from, ScanPassPoint to) =>
+      ScanPassPossessionLessonEngine.distanceMetres(from, to);
+
+  static String _distanceText(double metres) => metres.toStringAsFixed(1);
 
   String _decisionPrompt(
     AppLocalizations l10n,
@@ -1296,6 +1531,83 @@ class _ScanPassPossessionLessonScreenState
         l10n.scanPassPossessionCueFutureSpace,
     };
   }
+
+  String _scenarioTitle(
+    AppLocalizations l10n,
+    ScanPassPossessionScenario item,
+  ) =>
+      l10n.scanPassPossessionScenarioTitle(
+        _situationTitle(l10n, item.situation),
+        _variantLabel(l10n, item.variant),
+      );
+
+  String _scenarioDescription(
+    AppLocalizations l10n,
+    ScanPassPossessionScenario item,
+  ) =>
+      l10n.scanPassPossessionScenarioDescription(
+        _situationDescription(l10n, item.situation),
+        _variantDescription(l10n, item.variant),
+      );
+
+  String _variantLabel(
+    AppLocalizations l10n,
+    ScanPassPossessionVariant variant,
+  ) =>
+      switch (variant) {
+        ScanPassPossessionVariant.pressure =>
+          l10n.scanPassPossessionVariantPressure,
+        ScanPassPossessionVariant.cover => l10n.scanPassPossessionVariantCover,
+      };
+
+  String _variantDescription(
+    AppLocalizations l10n,
+    ScanPassPossessionVariant variant,
+  ) =>
+      switch (variant) {
+        ScanPassPossessionVariant.pressure =>
+          l10n.scanPassPossessionVariantPressureDescription,
+        ScanPassPossessionVariant.cover =>
+          l10n.scanPassPossessionVariantCoverDescription,
+      };
+
+  String _situationTitle(
+    AppLocalizations l10n,
+    ScanPassPossessionSituation situation,
+  ) =>
+      switch (situation) {
+        ScanPassPossessionSituation.centralReceive =>
+          l10n.scanPassPossessionSituationCentralReceive,
+        ScanPassPossessionSituation.halfSpace =>
+          l10n.scanPassPossessionSituationHalfSpace,
+        ScanPassPossessionSituation.touchline =>
+          l10n.scanPassPossessionSituationTouchline,
+        ScanPassPossessionSituation.layoff =>
+          l10n.scanPassPossessionSituationLayoff,
+        ScanPassPossessionSituation.thirdPlayer =>
+          l10n.scanPassPossessionSituationThirdPlayer,
+        ScanPassPossessionSituation.transition =>
+          l10n.scanPassPossessionSituationTransition,
+      };
+
+  String _situationDescription(
+    AppLocalizations l10n,
+    ScanPassPossessionSituation situation,
+  ) =>
+      switch (situation) {
+        ScanPassPossessionSituation.centralReceive =>
+          l10n.scanPassPossessionSituationCentralReceiveDescription,
+        ScanPassPossessionSituation.halfSpace =>
+          l10n.scanPassPossessionSituationHalfSpaceDescription,
+        ScanPassPossessionSituation.touchline =>
+          l10n.scanPassPossessionSituationTouchlineDescription,
+        ScanPassPossessionSituation.layoff =>
+          l10n.scanPassPossessionSituationLayoffDescription,
+        ScanPassPossessionSituation.thirdPlayer =>
+          l10n.scanPassPossessionSituationThirdPlayerDescription,
+        ScanPassPossessionSituation.transition =>
+          l10n.scanPassPossessionSituationTransitionDescription,
+      };
 
   String _coachLine(AppLocalizations l10n, ScanPassPossessionBranch branch,
       {ScanPassPossessionMoment? moment}) {
@@ -1414,6 +1726,526 @@ class _ScanPassPossessionLessonScreenState
       );
 }
 
+class _ScenarioCatalogCard extends StatelessWidget {
+  final ScanPassPossessionScene scene;
+  final String title;
+  final String description;
+  final String setup;
+  final String progress;
+  final String actionLabel;
+  final _PitchLabels labels;
+  final _ScanPassColors colors;
+  final VoidCallback onPressed;
+
+  const _ScenarioCatalogCard({
+    super.key,
+    required this.scene,
+    required this.title,
+    required this.description,
+    required this.setup,
+    required this.progress,
+    required this.actionLabel,
+    required this.labels,
+    required this.colors,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: colors.surface,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: colors.line),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: colors.text,
+                        fontWeight: FontWeight.w900,
+                        height: 1.12,
+                      ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              _MiniChip(text: progress, color: colors.background),
+            ]),
+            const SizedBox(height: 8),
+            AspectRatio(
+              aspectRatio: 1.75,
+              child: CustomPaint(
+                painter: _AttackPitchPainter(
+                  displayState: scene.reception,
+                  baseState: scene.reception,
+                  selectedAction: null,
+                  selectedTarget: null,
+                  previewOffside: null,
+                  activeTransition: null,
+                  activeProgress: 0,
+                  history: const <AttackTransition>[],
+                  scanOverlay: false,
+                  terminalBanner: false,
+                  labels: labels,
+                  brightness: Theme.of(context).brightness,
+                  fontFamily:
+                      Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                  learnerNumber: 6,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              description,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.muted,
+                    height: 1.18,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            Row(children: [
+              Expanded(child: _MiniChip(text: setup, color: colors.active)),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                key: ValueKey<String>('possession-start-${title.hashCode}'),
+                onPressed: onPressed,
+                icon: const Icon(Icons.play_arrow_outlined, size: 18),
+                label: Text(actionLabel),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, 40),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ),
+            ]),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class _SecondaryCatalogAction extends StatelessWidget {
+  final String title;
+  final String description;
+  final String actionLabel;
+  final _ScanPassColors colors;
+  final VoidCallback onPressed;
+
+  const _SecondaryCatalogAction({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.actionLabel,
+    required this.colors,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: colors.background,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: colors.line),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Icon(Icons.sports_soccer_outlined, color: colors.accent, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: colors.text,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              description,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.muted,
+                    height: 1.18,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                onPressed: onPressed,
+                icon: const Icon(Icons.open_in_new_outlined, size: 18),
+                label: Text(actionLabel),
+              ),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class _SpeedToggle extends StatelessWidget {
+  final bool slow;
+  final String label;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  const _SpeedToggle(
+      {super.key,
+      required this.slow,
+      required this.label,
+      required this.tooltip,
+      required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) => AppBarActionButton.label(
+      icon:
+          Icon(slow ? Icons.slow_motion_video : Icons.speed_outlined, size: 17),
+      label: label,
+      tooltip: tooltip,
+      onPressed: onPressed,
+      selected: slow,
+      compact: true,
+      margin: EdgeInsets.zero,
+      maxLabelWidth: 48);
+}
+
+class _PossessionChoiceRoute {
+  final ScanPassPossessionChoice choice;
+  final ScanPassPoint from;
+  final ScanPassPoint to;
+  final bool ballPath;
+  final String numberLabel;
+  final String dockLabel;
+  final String semanticsLabel;
+  final double distanceMetres;
+
+  const _PossessionChoiceRoute({
+    required this.choice,
+    required this.from,
+    required this.to,
+    required this.ballPath,
+    required this.numberLabel,
+    required this.dockLabel,
+    required this.semanticsLabel,
+    required this.distanceMetres,
+  });
+}
+
+class _PossessionRouteOverlayItem {
+  final ScanPassPoint from;
+  final ScanPassPoint to;
+  final bool ballPath;
+  final List<ScanPassPoint> path;
+  final String label;
+  final double distanceMetres;
+
+  const _PossessionRouteOverlayItem({
+    required this.from,
+    required this.to,
+    required this.ballPath,
+    this.path = const [],
+    required this.label,
+    required this.distanceMetres,
+  });
+}
+
+class _PossessionRouteOverlayPainter extends CustomPainter {
+  final List<_PossessionRouteOverlayItem> routes;
+  final String legendPass;
+  final String legendRun;
+  final Brightness brightness;
+  final String? fontFamily;
+  final List<ScanPassPoint> actors;
+  final bool showLabels;
+
+  const _PossessionRouteOverlayPainter({
+    required this.routes,
+    required this.legendPass,
+    required this.legendRun,
+    required this.brightness,
+    this.fontFamily,
+    this.actors = const [],
+    this.showLabels = true,
+  });
+
+  bool get _isDark => brightness == Brightness.dark;
+
+  Color get _pass =>
+      _isDark ? const Color(0xFFE2C57E) : const Color(0xFF84611F);
+
+  Color get _run => _isDark ? const Color(0xFF77A9C4) : const Color(0xFF35718D);
+
+  Color get _text =>
+      _isDark ? const Color(0xFFE9EEEB) : const Color(0xFF1D2D31);
+
+  Color get _surface =>
+      (_isDark ? const Color(0xFF111A1E) : Colors.white).withValues(alpha: .90);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (routes.isEmpty) return;
+    final geometry = _PitchGeometry(size);
+    final usedLabels = [
+      for (final p in actors)
+        Rect.fromCenter(
+            center: geometry.toOffset(p) + const Offset(0, 4),
+            width: 42,
+            height: 64)
+    ];
+    for (final route in routes) {
+      final paint = Paint()
+        ..color = (route.ballPath ? _pass : _run).withValues(alpha: .88)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = route.ballPath ? 2.3 : 2.0
+        ..strokeCap = StrokeCap.round;
+      final from = geometry.toOffset(route.from);
+      final to = geometry.toOffset(route.to);
+      if ((to - from).distance < 3) continue;
+      if (route.ballPath) {
+        canvas.drawLine(from, to, paint);
+      } else {
+        final points = route.path.length > 1
+            ? route.path.map(geometry.toOffset).toList()
+            : [from, to];
+        final path = Path()..moveTo(points.first.dx, points.first.dy);
+        for (final p in points.skip(1)) {
+          path.lineTo(p.dx, p.dy);
+        }
+        for (final metric in path.computeMetrics()) {
+          for (var distance = 0.0; distance < metric.length; distance += 12) {
+            canvas.drawPath(
+                metric.extractPath(
+                    distance, math.min(distance + 7, metric.length)),
+                paint);
+          }
+        }
+      }
+      final arrowFrom = route.path.length > 1
+          ? route.path.reversed.skip(1).map(geometry.toOffset).firstWhere(
+              (point) => (to - point).distance >= 10,
+              orElse: () => from)
+          : from;
+      _drawArrowHead(canvas, arrowFrom, to, paint);
+      _drawArrival(canvas, to, route.ballPath ? _pass : _run);
+      if (showLabels) {
+        _drawLabel(canvas, geometry, route.label, from, to, usedLabels);
+      }
+    }
+    _drawLegend(canvas, geometry);
+  }
+
+  void _drawArrival(Canvas canvas, Offset center, Color color) {
+    canvas.drawCircle(
+      center,
+      7,
+      Paint()..color = color.withValues(alpha: .14),
+    );
+    canvas.drawCircle(
+      center,
+      7,
+      Paint()
+        ..color = color.withValues(alpha: .88)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6,
+    );
+  }
+
+  void _drawLabel(
+    Canvas canvas,
+    _PitchGeometry geometry,
+    String label,
+    Offset from,
+    Offset to,
+    List<Rect> usedLabels,
+  ) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: TextStyle(
+          color: _text,
+          fontSize: math.max(10, geometry.size.shortestSide * .030),
+          fontWeight: FontWeight.w800,
+          fontFamily: fontFamily,
+          height: 1.0,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: 110);
+    final delta = to - from;
+    final normal = delta.distance < 1
+        ? const Offset(0, -1)
+        : Offset(-delta.dy, delta.dx) / delta.distance;
+    final anchor = Offset.lerp(from, to, .58)! + normal * 24;
+    Rect rectFor(Offset point) => Rect.fromLTWH(
+        point.dx - painter.width / 2 - 7,
+        point.dy - painter.height / 2 - 4,
+        painter.width + 14,
+        painter.height + 8);
+    Rect clamp(Rect rect) {
+      return rect.shift(Offset(
+          rect.left < geometry.fieldRect.left
+              ? geometry.fieldRect.left - rect.left
+              : rect.right > geometry.fieldRect.right
+                  ? geometry.fieldRect.right - rect.right
+                  : 0,
+          rect.top < geometry.fieldRect.top
+              ? geometry.fieldRect.top - rect.top
+              : rect.bottom > geometry.fieldRect.bottom
+                  ? geometry.fieldRect.bottom - rect.bottom
+                  : 0));
+    }
+
+    var rect = clamp(rectFor(anchor));
+    var bestCost = double.infinity;
+    for (var radius = 0; radius <= 180; radius += 12) {
+      for (var angle = 0; angle < 16; angle++) {
+        final candidate = clamp(rectFor(anchor +
+            Offset(math.cos(angle * math.pi / 8) * radius,
+                math.sin(angle * math.pi / 8) * radius)));
+        final cost = (candidate.center - anchor).distance +
+            usedLabels.where((r) => r.overlaps(candidate.inflate(3))).length *
+                10000;
+        if (cost < bestCost) {
+          bestCost = cost;
+          rect = candidate;
+        }
+      }
+      if (bestCost < 10000) break;
+    }
+    usedLabels.add(rect);
+    canvas.drawRRect(
+      BorderRadius.circular(5).toRRect(rect),
+      Paint()..color = _surface,
+    );
+    painter.paint(
+      canvas,
+      Offset(
+        rect.center.dx - painter.width / 2,
+        rect.center.dy - painter.height / 2,
+      ),
+    );
+  }
+
+  void _drawLegend(Canvas canvas, _PitchGeometry geometry) {
+    final field = geometry.fieldRect;
+    final width = math.min(190.0, field.width * .58);
+    final rect = Rect.fromLTWH(
+      field.left + 8,
+      field.bottom - 38,
+      width,
+      30,
+    );
+    canvas.drawRRect(
+      BorderRadius.circular(5).toRRect(rect),
+      Paint()..color = _surface,
+    );
+    final start = Offset(rect.left + 10, rect.center.dy - 6);
+    _legendLine(canvas, start, _pass, dashed: false);
+    _legendText(canvas, legendPass, start + const Offset(26, 0));
+    final second = Offset(rect.left + 10, rect.center.dy + 8);
+    _legendLine(canvas, second, _run, dashed: true);
+    _legendText(canvas, legendRun, second + const Offset(26, 0));
+  }
+
+  void _legendLine(Canvas canvas, Offset start, Color color,
+      {required bool dashed}) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round;
+    final end = start + const Offset(20, 0);
+    if (dashed) {
+      _drawDashedLine(canvas, start, end, paint, dash: 4, gap: 3);
+    } else {
+      canvas.drawLine(start, end, paint);
+    }
+  }
+
+  void _legendText(Canvas canvas, String label, Offset anchor) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: TextStyle(
+          color: _text,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          fontFamily: fontFamily,
+          height: 1,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: 145);
+    painter.paint(canvas, anchor - Offset(0, painter.height / 2));
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    Paint paint, {
+    required double dash,
+    required double gap,
+  }) {
+    final delta = to - from;
+    final distance = delta.distance;
+    if (distance == 0) return;
+    final direction = delta / distance;
+    var travelled = 0.0;
+    while (travelled < distance) {
+      final start = from + direction * travelled;
+      final end = from + direction * math.min(travelled + dash, distance);
+      canvas.drawLine(start, end, paint);
+      travelled += dash + gap;
+    }
+  }
+
+  void _drawArrowHead(Canvas canvas, Offset from, Offset to, Paint paint) {
+    final vector = to - from;
+    if (vector.distance < 5) return;
+    final angle = math.atan2(vector.dy, vector.dx);
+    const length = 8.0;
+    final left =
+        to - Offset(math.cos(angle - .55), math.sin(angle - .55)) * length;
+    final right =
+        to - Offset(math.cos(angle + .55), math.sin(angle + .55)) * length;
+    canvas.drawLine(to, left, paint);
+    canvas.drawLine(to, right, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PossessionRouteOverlayPainter oldDelegate) {
+    return oldDelegate.routes != routes ||
+        oldDelegate.legendPass != legendPass ||
+        oldDelegate.legendRun != legendRun ||
+        oldDelegate.brightness != brightness ||
+        oldDelegate.fontFamily != fontFamily ||
+        oldDelegate.actors != actors ||
+        oldDelegate.showLabels != showLabels;
+  }
+}
+
 List<Offset> _possessionOptionCenters(
     List<Offset> targets, List<Offset> people, Size size) {
   final centers = <Offset>[];
@@ -1432,7 +2264,7 @@ List<Offset> _possessionOptionCenters(
         final overlaps = centers.any((p) =>
             (p.dx - candidate.dx).abs() < 52 &&
             (p.dy - candidate.dy).abs() < 52);
-        final coversPlayer = people.any((p) => (p - candidate).distance < 36);
+        final coversPlayer = people.any((p) => (p - candidate).distance < 46);
         final cost = (candidate - target).distance +
             (overlaps ? 10000 : 0) +
             (coversPlayer ? 1000 : 0);

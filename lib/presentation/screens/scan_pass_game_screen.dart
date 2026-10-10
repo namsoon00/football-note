@@ -30,7 +30,7 @@ enum _AttackMode { intro, choosing, executing, terminal, replaying }
 class ScanPassGameScreen extends StatelessWidget {
   final OptionRepository optionRepository;
   final int? seed;
-  final Duration previewDuration;
+  final Duration? previewDuration;
   final Duration choiceDuration;
   final Duration passAnimationDuration;
   final AttackState? initialAttack;
@@ -39,14 +39,16 @@ class ScanPassGameScreen extends StatelessWidget {
     super.key,
     required this.optionRepository,
     this.seed,
-    this.previewDuration = const Duration(milliseconds: 2400),
+    this.previewDuration,
     this.choiceDuration = const Duration(seconds: 12),
-    this.passAnimationDuration = const Duration(milliseconds: 3600),
+    this.passAnimationDuration = const Duration(milliseconds: 1000),
     this.initialAttack,
   });
 
   @override
   Widget build(BuildContext context) {
+    final legacyPreviewDuration =
+        previewDuration ?? const Duration(milliseconds: 2400);
     return ScanPassPossessionLessonScreen(
       seed: seed,
       observationDuration: previewDuration,
@@ -54,23 +56,10 @@ class ScanPassGameScreen extends StatelessWidget {
       freeAttackBuilder: (context) => ScanPassFreeAttackScreen(
         optionRepository: optionRepository,
         seed: seed,
-        previewDuration: previewDuration,
+        previewDuration: legacyPreviewDuration,
         choiceDuration: choiceDuration,
         passAnimationDuration: passAnimationDuration,
         initialAttack: initialAttack,
-      ),
-      judgmentPracticeBuilder: (context) => JudgmentEpisodeTrainingScreen(
-        seed: seed,
-        observationDuration: previewDuration,
-        executionDuration: passAnimationDuration,
-        freeAttackBuilder: (context) => ScanPassFreeAttackScreen(
-          optionRepository: optionRepository,
-          seed: seed,
-          previewDuration: previewDuration,
-          choiceDuration: choiceDuration,
-          passAnimationDuration: passAnimationDuration,
-          initialAttack: initialAttack,
-        ),
       ),
     );
   }

@@ -8,8 +8,9 @@ void main() {
   const engine = ScanPassPossessionLessonEngine();
   test('all possession branches use continuous real flights and carries', () {
     var count = 0;
-    for (final variant in ScanPassPossessionVariant.values) {
-      final scene = engine.scene(variant: variant);
+    for (final item in ScanPassPossessionLessonEngine.catalog) {
+      final scene =
+          engine.scene(variant: item.variant, situation: item.situation);
       for (final branch in _branches(engine, engine.firstPhase(scene))) {
         count++;
         var previous = scene.initial;
@@ -27,8 +28,10 @@ void main() {
           if (t.interceptorNumber != null) {
             final defender = t.after.defenders
                 .firstWhere((p) => p.number == t.interceptorNumber);
-            expect(t.after.ball.distanceTo(defender.position),
-                lessThanOrEqualTo((defender.goalkeeper ? .040 : .022) + 1e-8));
+            expect(
+                ScanPassPossessionLessonEngine.distanceMetres(
+                    t.after.ball, defender.position),
+                lessThanOrEqualTo((defender.goalkeeper ? 1.5 : .90) + 1e-8));
           }
           if (t.action.kind == AttackActionKind.hold ||
               t.action.kind == AttackActionKind.carry) {
@@ -42,7 +45,7 @@ void main() {
         }
       }
     }
-    expect(count, greaterThanOrEqualTo(20));
+    expect(count, greaterThanOrEqualTo(140));
   });
   test(
       'geometry rather than scene label determines outcomes and recommendations',
@@ -71,8 +74,21 @@ void main() {
     }
   });
   test('early first-touch loss has no fictitious link or support review', () {
-    final result = engine.choose(engine.firstPhase(engine.scene()),
-        ScanPassPossessionChoice.turnForward);
+    final original = engine.scene();
+    final scene = ScanPassPossessionScene(
+        variant: original.variant,
+        initial: original.initial,
+        spotlights: original.spotlights,
+        reception: original.reception.copyWith(defenders: [
+          for (final p in original.reception.defenders)
+            p.number == 2
+                ? p.copyWith(
+                    position:
+                        original.reception.ball + const ScanPassPoint(.008, 0))
+                : p
+        ]));
+    final result = engine.choose(
+        engine.firstPhase(scene), ScanPassPossessionChoice.turnForward);
     expect(result.branch, isNotNull);
     expect(result.after.end, AttackEnd.intercepted);
     expect(result.branch!.availableMoments, [
@@ -129,7 +145,7 @@ void main() {
       if (t.after.finished) expect(connections, isEmpty);
     }
     expect(engine.availableConnections(scene, branch.transitions.first.after),
-        contains(8));
+        isNotEmpty);
   });
 }
 

@@ -34280,25 +34280,25 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPossessionModeChangedCue.
   ///
   /// In en, this message translates to:
-  /// **'Changed cue'**
+  /// **'Different defensive setup'**
   String get scanPassPossessionModeChangedCue;
 
   /// No description provided for @scanPassPossessionPracticeAction.
   ///
   /// In en, this message translates to:
-  /// **'Practice'**
+  /// **'Situations'**
   String get scanPassPossessionPracticeAction;
 
   /// No description provided for @scanPassPossessionPracticeTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Open Scan Pass practice options'**
+  /// **'Open Scan Pass situations'**
   String get scanPassPossessionPracticeTooltip;
 
   /// No description provided for @scanPassPossessionPracticeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Practice options'**
+  /// **'Situations'**
   String get scanPassPossessionPracticeTitle;
 
   /// No description provided for @scanPassPossessionJudgmentPracticeAction.
@@ -34307,10 +34307,222 @@ abstract class AppLocalizations {
   /// **'48-scene judgment practice'**
   String get scanPassPossessionJudgmentPracticeAction;
 
+  /// No description provided for @scanPassPossessionCatalogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an attacking situation'**
+  String get scanPassPossessionCatalogTitle;
+
+  /// No description provided for @scanPassPossessionCatalogIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a situation and play through the attack. Compare your route with the coach afterwards.'**
+  String get scanPassPossessionCatalogIntro;
+
+  /// No description provided for @scanPassPossessionCatalogReturnAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to the situation catalog'**
+  String get scanPassPossessionCatalogReturnAction;
+
+  /// No description provided for @scanPassPossessionCatalogReturnShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Situations'**
+  String get scanPassPossessionCatalogReturnShort;
+
+  /// No description provided for @scanPassPossessionCatalogCardProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total}'**
+  String scanPassPossessionCatalogCardProgress(int current, int total);
+
+  /// No description provided for @scanPassPossessionSceneProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total} · {title}'**
+  String scanPassPossessionSceneProgressTitle(
+      int current, int total, String title);
+
+  /// No description provided for @scanPassPossessionScenarioStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total} · {title} · {status}'**
+  String scanPassPossessionScenarioStatus(
+      int current, int total, String title, String status);
+
+  /// No description provided for @scanPassPossessionStartScenarioAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get scanPassPossessionStartScenarioAction;
+
+  /// No description provided for @scanPassPossessionNextScenarioAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Next situation'**
+  String get scanPassPossessionNextScenarioAction;
+
+  /// No description provided for @scanPassPossessionCoachDemoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach demo'**
+  String get scanPassPossessionCoachDemoAction;
+
+  /// No description provided for @scanPassPossessionFreeAttackDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue an attack with open choices outside the situation sequence.'**
+  String get scanPassPossessionFreeAttackDescription;
+
+  /// No description provided for @scanPassPossessionOpenFreeAttackAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get scanPassPossessionOpenFreeAttackAction;
+
+  /// No description provided for @scanPassPossessionSpeedNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'1x'**
+  String get scanPassPossessionSpeedNormal;
+
+  /// No description provided for @scanPassPossessionSpeedSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'0.65x'**
+  String get scanPassPossessionSpeedSlow;
+
+  /// No description provided for @scanPassPossessionSlowMotionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle slower viewing speed'**
+  String get scanPassPossessionSlowMotionTooltip;
+
+  /// No description provided for @scanPassPossessionLegendPassPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass'**
+  String get scanPassPossessionLegendPassPath;
+
+  /// No description provided for @scanPassPossessionLegendRunPath.
+  ///
+  /// In en, this message translates to:
+  /// **'#6 run'**
+  String get scanPassPossessionLegendRunPath;
+
+  /// No description provided for @scanPassPossessionScenarioTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{situation} · {setup}'**
+  String scanPassPossessionScenarioTitle(String situation, String setup);
+
+  /// No description provided for @scanPassPossessionScenarioDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'{situation} {setup}'**
+  String scanPassPossessionScenarioDescription(String situation, String setup);
+
+  /// No description provided for @scanPassPossessionVariantPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure setup'**
+  String get scanPassPossessionVariantPressure;
+
+  /// No description provided for @scanPassPossessionVariantCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Passing-lane cover'**
+  String get scanPassPossessionVariantCover;
+
+  /// No description provided for @scanPassPossessionVariantPressureDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The closest defender steps toward #6 as the ball arrives.'**
+  String get scanPassPossessionVariantPressureDescription;
+
+  /// No description provided for @scanPassPossessionVariantCoverDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The first defender protects space while the cover line shifts.'**
+  String get scanPassPossessionVariantCoverDescription;
+
+  /// No description provided for @scanPassPossessionSituationCentralReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Central receive'**
+  String get scanPassPossessionSituationCentralReceive;
+
+  /// No description provided for @scanPassPossessionSituationCentralReceiveDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Number 6 receives centrally with support ahead and behind.'**
+  String get scanPassPossessionSituationCentralReceiveDescription;
+
+  /// No description provided for @scanPassPossessionSituationHalfSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Half-space receive'**
+  String get scanPassPossessionSituationHalfSpace;
+
+  /// No description provided for @scanPassPossessionSituationHalfSpaceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'#6 receives on the inside channel with #8 ahead.'**
+  String get scanPassPossessionSituationHalfSpaceDescription;
+
+  /// No description provided for @scanPassPossessionSituationTouchline.
+  ///
+  /// In en, this message translates to:
+  /// **'Touchline receive'**
+  String get scanPassPossessionSituationTouchline;
+
+  /// No description provided for @scanPassPossessionSituationTouchlineDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'#6 receives near the side with limited outside room.'**
+  String get scanPassPossessionSituationTouchlineDescription;
+
+  /// No description provided for @scanPassPossessionSituationLayoff.
+  ///
+  /// In en, this message translates to:
+  /// **'Layoff angle'**
+  String get scanPassPossessionSituationLayoff;
+
+  /// No description provided for @scanPassPossessionSituationLayoffDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Number 6 receives between angled passing options, with number 4 behind as a return option.'**
+  String get scanPassPossessionSituationLayoffDescription;
+
+  /// No description provided for @scanPassPossessionSituationThirdPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Third-player link'**
+  String get scanPassPossessionSituationThirdPlayer;
+
+  /// No description provided for @scanPassPossessionSituationThirdPlayerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'#8 and #9 move so the next pass can unlock a return lane.'**
+  String get scanPassPossessionSituationThirdPlayerDescription;
+
+  /// No description provided for @scanPassPossessionSituationTransition.
+  ///
+  /// In en, this message translates to:
+  /// **'Transition receive'**
+  String get scanPassPossessionSituationTransition;
+
+  /// No description provided for @scanPassPossessionSituationTransitionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'#6 receives while both teams are still recovering into shape.'**
+  String get scanPassPossessionSituationTransitionDescription;
+
   /// No description provided for @scanPassPossessionHelpBody.
   ///
   /// In en, this message translates to:
-  /// **'Read the pressure before number 6 receives, choose the first touch, connect the next player, then move number 6 again to support the attack. The model shows the full possession outcome and compares your route with a coach route from the same start.'**
+  /// **'Choose a situation, read the pressure before number 6 receives, then choose a first touch, pass and supporting run. Solid lines show the ball; dashed lines show your run and arrival. Compare the full attack with the coach, or use pause and slow playback to look again.'**
   String get scanPassPossessionHelpBody;
 
   /// No description provided for @scanPassPossessionGuidedStatus.
@@ -34328,25 +34540,25 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPossessionChangedObserveStatus.
   ///
   /// In en, this message translates to:
-  /// **'The movement has changed. Read the first defender and the space around #8 again.'**
+  /// **'Different defensive setup: read the first defender and the space around #8 again.'**
   String get scanPassPossessionChangedObserveStatus;
 
   /// No description provided for @scanPassPossessionChooseStatus.
   ///
   /// In en, this message translates to:
-  /// **'Goal: escape pressure and give the next receiver room to advance.'**
+  /// **'Escape pressure and open the next pass.'**
   String get scanPassPossessionChooseStatus;
 
   /// No description provided for @scanPassPossessionExecutingStatus.
   ///
   /// In en, this message translates to:
-  /// **'Watch the possession continue from that choice.'**
+  /// **'Watch how your movement develops the attack.'**
   String get scanPassPossessionExecutingStatus;
 
   /// No description provided for @scanPassPossessionReviewStatus.
   ///
   /// In en, this message translates to:
-  /// **'Compare the full possession and inspect the turning point.'**
+  /// **'Compare your attack with the coach’s route.'**
   String get scanPassPossessionReviewStatus;
 
   /// No description provided for @scanPassPossessionGuidedObjective.
@@ -34400,7 +34612,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPossessionChangedCueAction.
   ///
   /// In en, this message translates to:
-  /// **'Changed cue'**
+  /// **'Different defensive setup'**
   String get scanPassPossessionChangedCueAction;
 
   /// No description provided for @scanPassPossessionReplayAction.
@@ -34564,6 +34776,38 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move number 6 behind the ball'**
   String get scanPassPossessionChoiceSupportBehindLabel;
+
+  /// No description provided for @scanPassPossessionNumberedChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'{number}. {choice} · {metres}m'**
+  String scanPassPossessionNumberedChoice(
+      int number, String choice, String metres);
+
+  /// No description provided for @scanPassPossessionChoiceWithDistanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Option {number}: {choice}. Route distance {metres} metres.'**
+  String scanPassPossessionChoiceWithDistanceLabel(
+      int number, String choice, String metres);
+
+  /// No description provided for @scanPassPossessionRouteDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'{number} · {metres}m'**
+  String scanPassPossessionRouteDistance(String number, String metres);
+
+  /// No description provided for @scanPassPossessionSelectedRouteDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball · {metres} m'**
+  String scanPassPossessionSelectedRouteDistance(String metres);
+
+  /// No description provided for @scanPassPossessionSelectedRunDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'#6 run · {metres}m'**
+  String scanPassPossessionSelectedRunDistance(String metres);
 
   /// No description provided for @scanPassPossessionMomentReceive.
   ///

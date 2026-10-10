@@ -10866,18 +10866,112 @@
   "scanPassJudgmentCoachShort": "コーチ",
   "scanPassPossessionModeGuided": "ガイド",
   "scanPassPossessionModeIndependent": "自分で読む",
-  "scanPassPossessionModeChangedCue": "変化した手掛かり",
-  "scanPassPossessionPracticeAction": "練習",
-  "scanPassPossessionPracticeTooltip": "スキャンパスの練習オプションを開く",
-  "scanPassPossessionPracticeTitle": "練習オプション",
+  "scanPassPossessionModeChangedCue": "別の守備配置",
+  "scanPassPossessionPracticeAction": "場面",
+  "scanPassPossessionPracticeTooltip": "スキャンパスの場面を開く",
+  "scanPassPossessionPracticeTitle": "場面",
   "scanPassPossessionJudgmentPracticeAction": "48場面の判断練習",
-  "scanPassPossessionHelpBody": "6番が受ける前にプレッシャーを読み、ファーストタッチを選び、次の味方へつなぎ、もう一度6番が動いて攻撃を支えます。モデルはポゼッション全体の結果を示し、同じ開始地点からのコーチルートと比較します。",
+  "scanPassPossessionCatalogTitle": "攻撃の状況を選ぶ",
+  "scanPassPossessionCatalogIntro": "状況を選び、ファーストタッチから攻撃をつなごう。終了後に自分とコーチの展開を比較できます。",
+  "scanPassPossessionCatalogReturnAction": "場面一覧へ戻る",
+  "scanPassPossessionCatalogReturnShort": "場面",
+  "scanPassPossessionCatalogCardProgress": "{current}/{total}",
+  "@scanPassPossessionCatalogCardProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionSceneProgressTitle": "{current}/{total} · {title}",
+  "@scanPassPossessionSceneProgressTitle": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionScenarioStatus": "{current}/{total} · {title} · {status}",
+  "@scanPassPossessionScenarioStatus": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "title": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionStartScenarioAction": "開始",
+  "scanPassPossessionNextScenarioAction": "次の場面",
+  "scanPassPossessionCoachDemoAction": "コーチ実演",
+  "scanPassPossessionFreeAttackDescription": "状況の順番に縛られず、自由に攻撃を続けます。",
+  "scanPassPossessionOpenFreeAttackAction": "開く",
+  "scanPassPossessionSpeedNormal": "1x",
+  "scanPassPossessionSpeedSlow": "0.65x",
+  "scanPassPossessionSlowMotionTooltip": "ゆっくり見る速度に切り替える",
+  "scanPassPossessionLegendPassPath": "パス",
+  "scanPassPossessionLegendRunPath": "6番の移動",
+  "scanPassPossessionScenarioTitle": "{situation} · {setup}",
+  "@scanPassPossessionScenarioTitle": {
+    "placeholders": {
+      "situation": {
+        "type": "String"
+      },
+      "setup": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionScenarioDescription": "{situation} {setup}",
+  "@scanPassPossessionScenarioDescription": {
+    "placeholders": {
+      "situation": {
+        "type": "String"
+      },
+      "setup": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionVariantPressure": "プレッシャー配置",
+  "scanPassPossessionVariantCover": "パスコースの遮断",
+  "scanPassPossessionVariantPressureDescription": "ボール到着時に最も近い守備者が6番へ詰めます。",
+  "scanPassPossessionVariantCoverDescription": "最初の守備者はスペースを守り、カバーラインも動きます。",
+  "scanPassPossessionSituationCentralReceive": "中央で受ける",
+  "scanPassPossessionSituationCentralReceiveDescription": "6番が中央で受け、前後に味方のサポートがあります。",
+  "scanPassPossessionSituationHalfSpace": "ハーフスペースで受ける",
+  "scanPassPossessionSituationHalfSpaceDescription": "6番が内側のチャンネルで受け、前に8番が動きます。",
+  "scanPassPossessionSituationTouchline": "タッチライン際で受ける",
+  "scanPassPossessionSituationTouchlineDescription": "6番がサイド近くで受け、外側の余地が限られます。",
+  "scanPassPossessionSituationLayoff": "落としの角度",
+  "scanPassPossessionSituationLayoffDescription": "6番が斜めのパスコースの間で受け、後ろの4番が戻しの選択肢になります。",
+  "scanPassPossessionSituationThirdPlayer": "第三者の接続",
+  "scanPassPossessionSituationThirdPlayerDescription": "8番と9番の動きが次のパスとリターンの道を開きます。",
+  "scanPassPossessionSituationTransition": "切り替わりで受ける",
+  "scanPassPossessionSituationTransitionDescription": "両チームが形を戻す途中で6番がボールを受けます。",
+  "scanPassPossessionHelpBody": "状況を選び、6番が受ける前にプレッシャーを確認します。ファーストタッチ、パス、サポートの方向を選ぼう。実線はボール、破線は自分の移動と到着点です。攻撃全体をコーチの展開と比較し、一時停止やスロー再生で見直せます。",
   "scanPassPossessionGuidedStatus": "6番でプレー · プレッシャーを外して攻撃をつなぎましょう。",
   "scanPassPossessionObserveStatus": "選ぶ前に6番が受ける場面を見ましょう。",
-  "scanPassPossessionChangedObserveStatus": "動きが変わりました。最初の守備と8番の周囲をもう一度見ましょう。",
-  "scanPassPossessionChooseStatus": "目標：プレッシャーを外し、次の受け手に前進する余裕を作りましょう。",
-  "scanPassPossessionExecutingStatus": "その選択からポゼッションがどう続くか見ます。",
-  "scanPassPossessionReviewStatus": "全体のポゼッションを比較し、分岐点を確認しましょう。",
+  "scanPassPossessionChangedObserveStatus": "別の守備配置です。最初の守備と8番周辺のスペースをもう一度読みましょう。",
+  "scanPassPossessionChooseStatus": "プレッシャーを外し、次のパスコースを作ろう。",
+  "scanPassPossessionExecutingStatus": "選んだ動きで攻撃がどう続くか見てみよう。",
+  "scanPassPossessionReviewStatus": "自分の攻撃とコーチの展開を比較しよう。",
   "scanPassPossessionGuidedObjective": "目標：最初のプレッシャーを外し、次の受け手に前進する時間を与える。",
   "scanPassPossessionCuePressure": "守備の2番が6番へ接近します。どちら側を閉じているか見ましょう。",
   "scanPassPossessionCuePressureRetreats": "2番が下がり、3番が8番の近くをカバーします。",
@@ -10886,7 +10980,7 @@
   "scanPassPossessionNextCueAction": "次の手掛かり",
   "scanPassPossessionPlayCoachRouteAction": "ルート再生",
   "scanPassPossessionTryIndependentAction": "自分で試す",
-  "scanPassPossessionChangedCueAction": "変化した手掛かり",
+  "scanPassPossessionChangedCueAction": "別の守備配置",
   "scanPassPossessionReplayAction": "選択したポゼッションを再生",
   "scanPassPossessionGuidedBranch": "ガイド読み",
   "scanPassPossessionMineBranch": "自分の攻撃",
@@ -10914,6 +11008,61 @@
   "scanPassPossessionChoiceSupportInsideLabel": "6番を内側のリターン角度へ動かす",
   "scanPassPossessionChoiceSupportWideLabel": "6番を外側のリターン角度へ動かす",
   "scanPassPossessionChoiceSupportBehindLabel": "6番をボールの後ろへ動かす",
+  "scanPassPossessionNumberedChoice": "{number}. {choice} · {metres}m",
+  "@scanPassPossessionNumberedChoice": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "choice": {
+        "type": "String"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionChoiceWithDistanceLabel": "{number}番の選択: {choice}。移動距離 {metres}メートル。",
+  "@scanPassPossessionChoiceWithDistanceLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "choice": {
+        "type": "String"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionRouteDistance": "{number} · {metres}m",
+  "@scanPassPossessionRouteDistance": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionSelectedRouteDistance": "ボール · {metres}m",
+  "@scanPassPossessionSelectedRouteDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionSelectedRunDistance": "6番の移動 · {metres}m",
+  "@scanPassPossessionSelectedRunDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
   "scanPassPossessionMomentReceive": "受ける",
   "scanPassPossessionMomentTouch": "タッチ",
   "scanPassPossessionMomentLink": "接続",

@@ -7,252 +7,171 @@ import 'package:football_note/domain/scan_pass/scan_pass_possession_lesson.dart'
 void main() {
   const engine = ScanPassPossessionLessonEngine();
 
-  test('recommended pressure route solves pressure and reaches a final chance',
+  test(
+      'catalog has twelve playable situations with six distinct spatial problems',
       () {
-    final scene = engine.scene(variant: ScanPassPossessionVariant.pressure);
-    final branch = engine.recommendedBranch(scene);
-
-    expect(
-      branch.decisions,
-      const <ScanPassPossessionChoice>[
-        ScanPassPossessionChoice.touchAway,
-        ScanPassPossessionChoice.passTo8,
-        ScanPassPossessionChoice.supportInside,
-      ],
-    );
-    expect(branch.outcome, ScanPassPossessionOutcomeKind.chanceCreated);
-    expect(
-        branch.evidence, contains(ScanPassPossessionEvidence.pressureEscaped));
-    expect(branch.evidence,
-        contains(ScanPassPossessionEvidence.receiverConnected));
-    expect(
-        branch.evidence, contains(ScanPassPossessionEvidence.supportConnected));
-    expect(
-      branch.transitions.any(
-        (transition) => transition.action.kind == AttackActionKind.shoot,
-      ),
-      isTrue,
-    );
-    expect(
-      branch.finalState.end,
-      anyOf(AttackEnd.saved, AttackEnd.blocked, AttackEnd.goal),
-    );
-    _expectContinuity(branch);
-    expect(_movedAttackers(branch.transitions), greaterThanOrEqualTo(3));
-    expect(_movedDefenders(branch.transitions), greaterThanOrEqualTo(2));
+    const catalog = ScanPassPossessionLessonEngine.catalog;
+    expect(catalog.length, 12);
+    expect(catalog.map((s) => s.id).toSet().length, 12);
+    final origins = <String>{};
+    for (final item in catalog) {
+      final scene =
+          engine.scene(situation: item.situation, variant: item.variant);
+      origins.add('${scene.reception.ball.x}/${scene.reception.ball.y}');
+      expect(scene.situation, item.situation);
+      expect(scene.reception.carrierNumber, 6);
+      expect(scene.observation.duration, inExclusiveRange(.4, 1.5));
+      expect(scene.observation.after, same(scene.reception));
+    }
+    expect(origins.length, 6);
   });
 
-  test('changed cue changes the recommended route instead of repeating layoff',
+  test(
+      'recommended attacks connect from reception to a real shot or safe reset',
       () {
-    final pressure = engine.recommendedBranch(
-      engine.scene(variant: ScanPassPossessionVariant.pressure),
-    );
-    final cover = engine.recommendedBranch(
-      engine.scene(variant: ScanPassPossessionVariant.cover),
-    );
-
-    expect(pressure.decisions.first, ScanPassPossessionChoice.touchAway);
-    expect(
-      cover.decisions,
-      const <ScanPassPossessionChoice>[
-        ScanPassPossessionChoice.turnForward,
-        ScanPassPossessionChoice.passTo9,
-        ScanPassPossessionChoice.supportInside,
-      ],
-    );
-    expect(cover.decisions.first, isNot(pressure.decisions.first));
-    expect(
-      cover.scene.initial.attackers.map((player) => player.position.x),
-      pressure.scene.initial.attackers.map((player) => player.position.x),
-    );
+    var shots = 0;
+    for (final item in ScanPassPossessionLessonEngine.catalog) {
+      final scene =
+          engine.scene(situation: item.situation, variant: item.variant);
+      final branch = engine.recommendedBranch(scene);
+      expect(branch.recommended, isTrue);
+      expect(branch.outcome, isNot(ScanPassPossessionOutcomeKind.turnover),
+          reason: item.id);
+      if (branch.outcome == ScanPassPossessionOutcomeKind.chanceCreated) {
+        shots++;
+        expect(branch.transitions.last.action.kind, AttackActionKind.shoot);
+        expect(branch.finalState.end,
+            anyOf(AttackEnd.goal, AttackEnd.saved, AttackEnd.blocked));
+        expect(branch.evidence,
+            contains(ScanPassPossessionEvidence.supportConnected));
+      } else {
+        expect(branch.finalState.carrierNumber, 4);
+        expect(branch.finalState.finished, isFalse);
+      }
+      final transitions = branch.fullTransitions;
+      for (var i = 1; i < transitions.length; i++) {
+        expect(transitions[i].before, same(transitions[i - 1].after));
+      }
+      expect(
+          transitions.fold<double>(0, (s, t) => s + t.duration), lessThan(13));
+    }
+    expect(shots, greaterThanOrEqualTo(8));
   });
 
-  test('first-touch effect persists through the possession outcome', () {
-    final scene = engine.scene(variant: ScanPassPossessionVariant.pressure);
-    final escaped = _play(engine, scene, const <ScanPassPossessionChoice>[
-      ScanPassPossessionChoice.touchAway,
-      ScanPassPossessionChoice.passTo8,
-      ScanPassPossessionChoice.supportInside,
-    ]);
-    final trapped = _play(engine, scene, const <ScanPassPossessionChoice>[
-      ScanPassPossessionChoice.turnForward,
-      ScanPassPossessionChoice.passTo8,
-      ScanPassPossessionChoice.supportInside,
-    ]);
-
-    expect(escaped.outcome, ScanPassPossessionOutcomeKind.chanceCreated);
-    expect(trapped.outcome, ScanPassPossessionOutcomeKind.turnover);
-    expect(
-        trapped.evidence, contains(ScanPassPossessionEvidence.pressureStayed));
-    expect(
-        _signature(escaped.finalState), isNot(_signature(trapped.finalState)));
-    expect(escaped.stateAt(ScanPassPossessionMoment.touch).ball.y,
-        greaterThan(trapped.stateAt(ScanPassPossessionMoment.touch).ball.y));
-  });
-
-  test('support choice changes the actual return link and final possession',
+  test(
+      'defensive variations change decisions without moving the opening attackers',
       () {
-    final scene = engine.scene(variant: ScanPassPossessionVariant.pressure);
-    final inside = _play(engine, scene, const <ScanPassPossessionChoice>[
-      ScanPassPossessionChoice.touchAway,
-      ScanPassPossessionChoice.passTo9,
-      ScanPassPossessionChoice.supportInside,
-    ]);
-    final behind = _play(engine, scene, const <ScanPassPossessionChoice>[
-      ScanPassPossessionChoice.touchAway,
-      ScanPassPossessionChoice.passTo9,
-      ScanPassPossessionChoice.supportWide,
-    ]);
-
-    expect(inside.outcome, ScanPassPossessionOutcomeKind.chanceCreated);
-    expect(behind.outcome, ScanPassPossessionOutcomeKind.recycled);
-    expect(
-      inside.transitions.map((transition) => transition.action).where(
-            (action) =>
-                action.kind == AttackActionKind.pass &&
-                action.targetNumber == 9,
-          ),
-      isNotEmpty,
-    );
-    expect(behind.finalState.carrierNumber, 4);
-    expect(
-      inside
-          .stateAt(ScanPassPossessionMoment.support)
-          .attackers
-          .firstWhere((player) => player.number == 6)
-          .position,
-      isNot(
-        behind
-            .stateAt(ScanPassPossessionMoment.support)
-            .attackers
-            .firstWhere((player) => player.number == 6)
-            .position,
-      ),
-    );
+    var differentFirstTouches = 0;
+    for (final situation in ScanPassPossessionSituation.values) {
+      final press = engine.scene(situation: situation);
+      final cover = engine.scene(
+          situation: situation, variant: ScanPassPossessionVariant.cover);
+      expect(press.initial.attackers.map((p) => p.position.x),
+          cover.initial.attackers.map((p) => p.position.x));
+      expect(press.initial.attackers.map((p) => p.position.y),
+          cover.initial.attackers.map((p) => p.position.y));
+      expect(press.reception.defenders.first.position.x,
+          isNot(cover.reception.defenders.first.position.x));
+      if (engine.recommendedBranch(press).decisions.first !=
+          engine.recommendedBranch(cover).decisions.first) {
+        differentFirstTouches++;
+      }
+    }
+    expect(differentFirstTouches, greaterThanOrEqualTo(3));
   });
 
-  test('learner remains number 6 during teammate possession support choice',
+  test('support direction and metre distance match the learner actual run', () {
+    var checked = 0;
+    for (final item in ScanPassPossessionLessonEngine.catalog) {
+      final scene =
+          engine.scene(situation: item.situation, variant: item.variant);
+      final branch = engine.recommendedBranch(scene);
+      var point = engine.firstPhase(scene);
+      for (final choice in branch.decisions) {
+        if (point.kind == ScanPassPossessionDecisionKind.support) {
+          expect(point.activeNumber, 6);
+          expect(point.state.carrierNumber, isNot(6));
+          final origins =
+              point.state.attackers.firstWhere((p) => p.number == 6).position;
+          final destinations = <String>{};
+          for (final option in point.choices) {
+            final target = engine.targetFor(point, option);
+            destinations.add('${target.x}/${target.y}');
+            final run = engine.choose(point, option).transitions.first;
+            if (!run.after.finished) {
+              final end =
+                  run.after.attackers.firstWhere((p) => p.number == 6).position;
+              expect(ScanPassPossessionLessonEngine.distanceMetres(end, target),
+                  lessThan(1e-7));
+              final expected = ScanPassPossessionLessonEngine.distanceMetres(
+                  origins, target);
+              var travelled = 0.0;
+              for (var i = 1; i < run.motionSamples.length; i++) {
+                final a = run.motionSamples[i - 1].attackers
+                    .firstWhere((p) => p.number == 6)
+                    .position;
+                final b = run.motionSamples[i].attackers
+                    .firstWhere((p) => p.number == 6)
+                    .position;
+                travelled +=
+                    ScanPassPossessionLessonEngine.distanceMetres(a, b);
+              }
+              expect(travelled, closeTo(expected, 1e-7));
+              expect(travelled, inInclusiveRange(3, 9));
+              checked++;
+            }
+          }
+          expect(destinations.length, 3);
+        }
+        final result = engine.choose(point, choice);
+        if (result.nextPoint == null) break;
+        point = result.nextPoint!;
+      }
+    }
+    expect(checked, greaterThan(15));
+  });
+
+  test('distances use pitch dimensions rather than pixels or normalized length',
       () {
-    final scene = engine.scene(variant: ScanPassPossessionVariant.pressure);
-    var point = engine.firstPhase(scene);
-    var result = engine.choose(point, ScanPassPossessionChoice.touchAway);
-    point = result.nextPoint!;
-    result = engine.choose(point, ScanPassPossessionChoice.passTo8);
-    point = result.nextPoint!;
-
-    expect(point.kind, ScanPassPossessionDecisionKind.support);
-    expect(point.activeNumber, 6);
-    expect(point.state.carrierNumber, 8);
-    expect(point.choices, contains(ScanPassPossessionChoice.supportInside));
+    expect(
+        ScanPassPossessionLessonEngine.distanceMetres(
+            const ScanPassPoint(0, 0), const ScanPassPoint(1, 0)),
+        105);
+    expect(
+        ScanPassPossessionLessonEngine.distanceMetres(
+            const ScanPassPoint(0, 0), const ScanPassPoint(0, 1)),
+        68);
+    expect(
+        ScanPassPossessionLessonEngine.distanceMetres(
+            const ScanPassPoint(.4, .4),
+            const ScanPassPoint(.4 + 3 / 105, .4 + 4 / 68)),
+        closeTo(5, 1e-8));
   });
 
-  test('replays are deterministic and do not mutate the learner branch', () {
-    final scene = engine.scene(variant: ScanPassPossessionVariant.cover);
-    const choices = <ScanPassPossessionChoice>[
-      ScanPassPossessionChoice.turnForward,
-      ScanPassPossessionChoice.passTo9,
-      ScanPassPossessionChoice.supportInside,
-    ];
-    final first = _play(engine, scene, choices);
-    final second = _play(engine, scene, choices);
+  test(
+      'replaying and comparing branches is deterministic and preserves choices',
+      () {
+    final scene =
+        engine.scene(situation: ScanPassPossessionSituation.halfSpace);
     final coach = engine.recommendedBranch(scene);
+    ScanPassPossessionBranch play() {
+      var point = engine.firstPhase(scene);
+      for (final choice in coach.decisions) {
+        final result = engine.choose(point, choice);
+        if (result.branch != null) return result.branch!;
+        point = result.nextPoint!;
+      }
+      throw StateError('Unfinished route');
+    }
 
-    expect(_branchSignature(first), _branchSignature(second));
+    final first = play(), second = play();
     expect(first.recommended, isFalse);
-    expect(coach.recommended, isTrue);
-    expect(first.decisions, choices);
-    expect(coach.decisions, choices);
-    expect(_branchSignature(first), _branchSignature(coach));
+    expect(first.decisions, coach.decisions);
+    expect(
+        first.transitions.map((t) =>
+            '${t.after.ball.x}/${t.after.ball.y}/${t.after.end}/${t.duration}'),
+        second.transitions.map((t) =>
+            '${t.after.ball.x}/${t.after.ball.y}/${t.after.end}/${t.duration}'));
+    expect(identical(first, coach), isFalse);
   });
-}
-
-ScanPassPossessionBranch _play(
-  ScanPassPossessionLessonEngine engine,
-  ScanPassPossessionScene scene,
-  List<ScanPassPossessionChoice> choices,
-) {
-  var point = engine.firstPhase(scene);
-  for (final choice in choices) {
-    final result = engine.choose(point, choice);
-    if (result.branch != null) return result.branch!;
-    point = result.nextPoint!;
-  }
-  throw StateError('Choices did not reach a terminal possession.');
-}
-
-void _expectContinuity(ScanPassPossessionBranch branch) {
-  final transitions = branch.fullTransitions;
-  expect(transitions, isNotEmpty);
-  for (var i = 1; i < transitions.length; i += 1) {
-    expect(
-      _signature(transitions[i].before),
-      _signature(transitions[i - 1].after),
-      reason: 'transition $i must continue from the previous final state',
-    );
-    expect(
-      transitions[i].after.elapsed,
-      greaterThanOrEqualTo(transitions[i].before.elapsed),
-    );
-    expect(
-      transitions[i].after.ball.distanceTo(transitions[i].ballEnd),
-      lessThan(1e-9),
-    );
-  }
-  final attackerNumbers =
-      transitions.first.before.attackers.map((player) => player.number).toSet();
-  final defenderNumbers =
-      transitions.first.before.defenders.map((player) => player.number).toSet();
-  for (final transition in transitions) {
-    expect(transition.after.attackers.map((player) => player.number).toSet(),
-        attackerNumbers);
-    expect(transition.after.defenders.map((player) => player.number).toSet(),
-        defenderNumbers);
-  }
-}
-
-int _movedAttackers(List<AttackTransition> transitions) =>
-    transitions.fold<Set<int>>(<int>{}, (moved, transition) {
-      for (final before in transition.before.attackers) {
-        final after = transition.after.attackers
-            .firstWhere((player) => player.number == before.number);
-        if (before.position.distanceTo(after.position) > .002) {
-          moved.add(before.number);
-        }
-      }
-      return moved;
-    }).length;
-
-int _movedDefenders(List<AttackTransition> transitions) =>
-    transitions.fold<Set<int>>(<int>{}, (moved, transition) {
-      for (final before in transition.before.defenders) {
-        final after = transition.after.defenders
-            .firstWhere((player) => player.number == before.number);
-        if (before.position.distanceTo(after.position) > .002) {
-          moved.add(before.number);
-        }
-      }
-      return moved;
-    }).length;
-
-String _branchSignature(ScanPassPossessionBranch branch) => branch.transitions
-    .map((transition) => _signature(transition.after))
-    .join('|');
-
-String _signature(AttackState state) {
-  String point(ScanPassPoint point) =>
-      '${point.x.toStringAsFixed(4)},${point.y.toStringAsFixed(4)}';
-  final attackers = state.attackers
-      .map((player) => '${player.number}:${point(player.position)}')
-      .join('/');
-  final defenders = state.defenders
-      .map((player) => '${player.number}:${point(player.position)}')
-      .join('/');
-  return [
-    attackers,
-    defenders,
-    point(state.ball),
-    state.carrierNumber,
-    state.end,
-    state.elapsed.toStringAsFixed(3),
-  ].join('#');
 }

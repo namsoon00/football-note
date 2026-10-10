@@ -19351,23 +19351,150 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassPossessionModeIndependent => '自分で読む';
 
   @override
-  String get scanPassPossessionModeChangedCue => '変化した手掛かり';
+  String get scanPassPossessionModeChangedCue => '別の守備配置';
 
   @override
-  String get scanPassPossessionPracticeAction => '練習';
+  String get scanPassPossessionPracticeAction => '場面';
 
   @override
-  String get scanPassPossessionPracticeTooltip => 'スキャンパスの練習オプションを開く';
+  String get scanPassPossessionPracticeTooltip => 'スキャンパスの場面を開く';
 
   @override
-  String get scanPassPossessionPracticeTitle => '練習オプション';
+  String get scanPassPossessionPracticeTitle => '場面';
 
   @override
   String get scanPassPossessionJudgmentPracticeAction => '48場面の判断練習';
 
   @override
+  String get scanPassPossessionCatalogTitle => '攻撃の状況を選ぶ';
+
+  @override
+  String get scanPassPossessionCatalogIntro =>
+      '状況を選び、ファーストタッチから攻撃をつなごう。終了後に自分とコーチの展開を比較できます。';
+
+  @override
+  String get scanPassPossessionCatalogReturnAction => '場面一覧へ戻る';
+
+  @override
+  String get scanPassPossessionCatalogReturnShort => '場面';
+
+  @override
+  String scanPassPossessionCatalogCardProgress(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String scanPassPossessionSceneProgressTitle(
+      int current, int total, String title) {
+    return '$current/$total · $title';
+  }
+
+  @override
+  String scanPassPossessionScenarioStatus(
+      int current, int total, String title, String status) {
+    return '$current/$total · $title · $status';
+  }
+
+  @override
+  String get scanPassPossessionStartScenarioAction => '開始';
+
+  @override
+  String get scanPassPossessionNextScenarioAction => '次の場面';
+
+  @override
+  String get scanPassPossessionCoachDemoAction => 'コーチ実演';
+
+  @override
+  String get scanPassPossessionFreeAttackDescription =>
+      '状況の順番に縛られず、自由に攻撃を続けます。';
+
+  @override
+  String get scanPassPossessionOpenFreeAttackAction => '開く';
+
+  @override
+  String get scanPassPossessionSpeedNormal => '1x';
+
+  @override
+  String get scanPassPossessionSpeedSlow => '0.65x';
+
+  @override
+  String get scanPassPossessionSlowMotionTooltip => 'ゆっくり見る速度に切り替える';
+
+  @override
+  String get scanPassPossessionLegendPassPath => 'パス';
+
+  @override
+  String get scanPassPossessionLegendRunPath => '6番の移動';
+
+  @override
+  String scanPassPossessionScenarioTitle(String situation, String setup) {
+    return '$situation · $setup';
+  }
+
+  @override
+  String scanPassPossessionScenarioDescription(String situation, String setup) {
+    return '$situation $setup';
+  }
+
+  @override
+  String get scanPassPossessionVariantPressure => 'プレッシャー配置';
+
+  @override
+  String get scanPassPossessionVariantCover => 'パスコースの遮断';
+
+  @override
+  String get scanPassPossessionVariantPressureDescription =>
+      'ボール到着時に最も近い守備者が6番へ詰めます。';
+
+  @override
+  String get scanPassPossessionVariantCoverDescription =>
+      '最初の守備者はスペースを守り、カバーラインも動きます。';
+
+  @override
+  String get scanPassPossessionSituationCentralReceive => '中央で受ける';
+
+  @override
+  String get scanPassPossessionSituationCentralReceiveDescription =>
+      '6番が中央で受け、前後に味方のサポートがあります。';
+
+  @override
+  String get scanPassPossessionSituationHalfSpace => 'ハーフスペースで受ける';
+
+  @override
+  String get scanPassPossessionSituationHalfSpaceDescription =>
+      '6番が内側のチャンネルで受け、前に8番が動きます。';
+
+  @override
+  String get scanPassPossessionSituationTouchline => 'タッチライン際で受ける';
+
+  @override
+  String get scanPassPossessionSituationTouchlineDescription =>
+      '6番がサイド近くで受け、外側の余地が限られます。';
+
+  @override
+  String get scanPassPossessionSituationLayoff => '落としの角度';
+
+  @override
+  String get scanPassPossessionSituationLayoffDescription =>
+      '6番が斜めのパスコースの間で受け、後ろの4番が戻しの選択肢になります。';
+
+  @override
+  String get scanPassPossessionSituationThirdPlayer => '第三者の接続';
+
+  @override
+  String get scanPassPossessionSituationThirdPlayerDescription =>
+      '8番と9番の動きが次のパスとリターンの道を開きます。';
+
+  @override
+  String get scanPassPossessionSituationTransition => '切り替わりで受ける';
+
+  @override
+  String get scanPassPossessionSituationTransitionDescription =>
+      '両チームが形を戻す途中で6番がボールを受けます。';
+
+  @override
   String get scanPassPossessionHelpBody =>
-      '6番が受ける前にプレッシャーを読み、ファーストタッチを選び、次の味方へつなぎ、もう一度6番が動いて攻撃を支えます。モデルはポゼッション全体の結果を示し、同じ開始地点からのコーチルートと比較します。';
+      '状況を選び、6番が受ける前にプレッシャーを確認します。ファーストタッチ、パス、サポートの方向を選ぼう。実線はボール、破線は自分の移動と到着点です。攻撃全体をコーチの展開と比較し、一時停止やスロー再生で見直せます。';
 
   @override
   String get scanPassPossessionGuidedStatus => '6番でプレー · プレッシャーを外して攻撃をつなぎましょう。';
@@ -19377,17 +19504,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassPossessionChangedObserveStatus =>
-      '動きが変わりました。最初の守備と8番の周囲をもう一度見ましょう。';
+      '別の守備配置です。最初の守備と8番周辺のスペースをもう一度読みましょう。';
 
   @override
-  String get scanPassPossessionChooseStatus =>
-      '目標：プレッシャーを外し、次の受け手に前進する余裕を作りましょう。';
+  String get scanPassPossessionChooseStatus => 'プレッシャーを外し、次のパスコースを作ろう。';
 
   @override
-  String get scanPassPossessionExecutingStatus => 'その選択からポゼッションがどう続くか見ます。';
+  String get scanPassPossessionExecutingStatus => '選んだ動きで攻撃がどう続くか見てみよう。';
 
   @override
-  String get scanPassPossessionReviewStatus => '全体のポゼッションを比較し、分岐点を確認しましょう。';
+  String get scanPassPossessionReviewStatus => '自分の攻撃とコーチの展開を比較しよう。';
 
   @override
   String get scanPassPossessionGuidedObjective =>
@@ -19416,7 +19542,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassPossessionTryIndependentAction => '自分で試す';
 
   @override
-  String get scanPassPossessionChangedCueAction => '変化した手掛かり';
+  String get scanPassPossessionChangedCueAction => '別の守備配置';
 
   @override
   String get scanPassPossessionReplayAction => '選択したポゼッションを再生';
@@ -19499,6 +19625,33 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassPossessionChoiceSupportBehindLabel => '6番をボールの後ろへ動かす';
+
+  @override
+  String scanPassPossessionNumberedChoice(
+      int number, String choice, String metres) {
+    return '$number. $choice · ${metres}m';
+  }
+
+  @override
+  String scanPassPossessionChoiceWithDistanceLabel(
+      int number, String choice, String metres) {
+    return '$number番の選択: $choice。移動距離 $metresメートル。';
+  }
+
+  @override
+  String scanPassPossessionRouteDistance(String number, String metres) {
+    return '$number · ${metres}m';
+  }
+
+  @override
+  String scanPassPossessionSelectedRouteDistance(String metres) {
+    return 'ボール · ${metres}m';
+  }
+
+  @override
+  String scanPassPossessionSelectedRunDistance(String metres) {
+    return '6番の移動 · ${metres}m';
+  }
 
   @override
   String get scanPassPossessionMomentReceive => '受ける';
