@@ -19421,7 +19421,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassPossessionSlowMotionTooltip => 'ゆっくり見る速度に切り替える';
 
   @override
-  String get scanPassPossessionLegendPassPath => 'パス';
+  String get scanPassPossessionLegendPassPath => 'ボール移動';
 
   @override
   String get scanPassPossessionLegendRunPath => '6番の移動';
@@ -19494,7 +19494,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassPossessionHelpBody =>
-      '状況を選び、6番が受ける前にプレッシャーを確認します。ファーストタッチ、パス、サポートの方向を選ぼう。実線はボール、破線は自分の移動と到着点です。攻撃全体をコーチの展開と比較し、一時停止やスロー再生で見直せます。';
+      '方向の矢印でファーストタッチを選び、味方の選手をタップしてパスします。ボールがないときは空いた場所をタップして6番を動かすか、位置を維持します。移動中に別の場所をタップすると目的地を変更できます。実線はボール、破線は選手の移動です。味方はリターンせず前進することもあります。攻撃の最後まで見てコーチの展開と比較しましょう。';
 
   @override
   String get scanPassPossessionGuidedStatus => '6番でプレー · プレッシャーを外して攻撃をつなぎましょう。';
@@ -19563,14 +19563,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassPossessionCoachShort => 'コーチ';
 
   @override
-  String get scanPassPossessionPromptFirstTouch =>
-      'ファーストタッチ：6番はどこに置くと次の動作が開きますか？';
+  String get scanPassPossessionPromptFirstTouch => 'ファーストタッチ · 方向の矢印をタップ。';
 
   @override
-  String get scanPassPossessionPromptNextAction => '次の動作：どの味方なら攻撃を続けられますか？';
+  String get scanPassPossessionPromptNextAction => 'パス · 受け手の選手をタップ。';
 
   @override
-  String get scanPassPossessionPromptSupport => 'サポート：6番はどこへ動くと再びつながれますか？';
+  String get scanPassPossessionPromptSupport => '移動 · 空いた場所をタップ、または位置を維持。';
 
   @override
   String get scanPassPossessionChoiceTouchAway => '外側へタッチ';
@@ -19600,7 +19599,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassPossessionChoiceSupportBehind => '後ろ';
 
   @override
-  String get scanPassPossessionChoiceTouchAwayLabel => '最初のタッチを画面下側の外のスペースへ';
+  String get scanPassPossessionChoiceSupportHold => '位置を維持';
+
+  @override
+  String get scanPassPossessionChoiceSupportCustom => '移動';
+
+  @override
+  String get scanPassPossessionChoiceTouchAwayLabel => 'プレッシャーから離れる方向にファーストタッチ';
 
   @override
   String get scanPassPossessionChoiceTurnForwardLabel => 'ファーストタッチで前を向く';
@@ -19618,13 +19623,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanPassPossessionChoiceRecycle4Label => '4番を使ってポゼッションを循環する';
 
   @override
-  String get scanPassPossessionChoiceSupportInsideLabel => '6番を内側のリターン角度へ動かす';
+  String get scanPassPossessionChoiceSupportInsideLabel => '6番を内側のサポート位置へ動かす';
 
   @override
-  String get scanPassPossessionChoiceSupportWideLabel => '6番を外側のリターン角度へ動かす';
+  String get scanPassPossessionChoiceSupportWideLabel => '6番を幅のあるサポート位置へ動かす';
 
   @override
   String get scanPassPossessionChoiceSupportBehindLabel => '6番をボールの後ろへ動かす';
+
+  @override
+  String get scanPassPossessionChoiceSupportHoldLabel => '6番を今のサポート位置に保つ';
+
+  @override
+  String get scanPassPossessionChoiceSupportCustomLabel => '選んだピッチ上の地点へ6番を動かす';
 
   @override
   String scanPassPossessionNumberedChoice(
@@ -19636,6 +19647,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String scanPassPossessionChoiceWithDistanceLabel(
       int number, String choice, String metres) {
     return '$number番の選択: $choice。移動距離 $metresメートル。';
+  }
+
+  @override
+  String scanPassPossessionChoiceDirectLabel(String choice, String distance) {
+    return '$choice。$distance。';
   }
 
   @override
@@ -19652,6 +19668,25 @@ class AppLocalizationsJa extends AppLocalizations {
   String scanPassPossessionSelectedRunDistance(String metres) {
     return '6番の移動 · ${metres}m';
   }
+
+  @override
+  String scanPassPossessionFirstTouchDistance(String metres) {
+    return 'ファーストタッチ ${metres}m';
+  }
+
+  @override
+  String scanPassPossessionMovementDistance(String metres) {
+    return '選手の移動 ${metres}m';
+  }
+
+  @override
+  String scanPassPossessionPassDistance(String metres) {
+    return 'パス ${metres}m';
+  }
+
+  @override
+  String get scanPassPossessionOpenPitchSupportLabel =>
+      '空いた場所をタップすると6番が移動します。キーボードでは方向ボタンまたは位置を維持を選べます。';
 
   @override
   String get scanPassPossessionMomentReceive => '受ける';
@@ -19731,7 +19766,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassPossessionFieldSemantics =>
-      '右へ攻撃するコーチ付きポゼッションです。6番が学習者で、ボールと選手は最後まで続き、別のボタンで次の判断を選びます。';
+      '右へ攻撃するコーチ付きポゼッションです。6番が学習者で、ピッチ上の操作で次のタッチ、パス、サポート移動を選びます。';
 
   @override
   String get scanPassPossessionPause => '一時停止';
@@ -19802,8 +19837,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String scanPassPossessionSupportForward(int player) {
+    return '移動後、$player番は6番に戻さず前進しました。';
+  }
+
+  @override
   String get scanPassPossessionReturnClosed =>
-      '6番へのリターンコースが閉じていたため、味方は別のつなぎ方を選びました。サポートではカバーする守備も確認しましょう。';
+      '6番へのリターンではなく後方への接続を選びました。リプレイでパスコースを比べましょう。';
 
   @override
   String scanPassPossessionShotResult(int player, String result) {
@@ -19812,4 +19852,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassPossessionLearnerLabel => '自分 · 6番';
+
+  @override
+  String get scanPassPossessionRetargetHint => '移動中 · 別の場所をタップして目的地を変更。';
+
+  @override
+  String scanPassPossessionSupportEvidence(
+      String metres, String before, String after, String continuation) {
+    return '移動 ${metres}m · 最も近い守備者まで ${before}m → ${after}m。$continuation';
+  }
+
+  @override
+  String scanPassPossessionShotDistance(String metres) {
+    return 'シュート ${metres}m';
+  }
 }

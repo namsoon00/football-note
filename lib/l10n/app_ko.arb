@@ -10925,7 +10925,7 @@
   "scanPassPossessionSpeedNormal": "1x",
   "scanPassPossessionSpeedSlow": "0.65x",
   "scanPassPossessionSlowMotionTooltip": "느리게 보기 전환",
-  "scanPassPossessionLegendPassPath": "패스",
+  "scanPassPossessionLegendPassPath": "공 이동",
   "scanPassPossessionLegendRunPath": "6번 이동",
   "scanPassPossessionScenarioTitle": "{situation} · {setup}",
   "@scanPassPossessionScenarioTitle": {
@@ -10965,7 +10965,7 @@
   "scanPassPossessionSituationThirdPlayerDescription": "8번과 9번의 움직임이 다음 패스와 리턴 길을 엽니다.",
   "scanPassPossessionSituationTransition": "전환 받기",
   "scanPassPossessionSituationTransitionDescription": "양 팀이 아직 대형을 회복하는 동안 6번이 공을 받습니다.",
-  "scanPassPossessionHelpBody": "상황을 고르고 6번이 받기 전 압박을 읽으세요. 첫 터치, 패스, 다시 움직일 방향을 선택합니다. 실선은 공, 점선은 내 선수의 이동과 도착 지점을 보여줍니다. 공격을 끝까지 본 뒤 코치의 전개와 비교하세요. 멈추거나 느리게 다시 볼 수도 있습니다.",
+  "scanPassPossessionHelpBody": "방향 화살표로 첫 터치를 고르고, 동료 선수를 눌러 패스하세요. 공이 없을 때는 빈 공간을 눌러 6번을 움직이거나 위치 유지를 선택합니다. 이동 중 다른 공간을 누르면 목적지를 바꿀 수 있습니다. 실선은 공, 점선은 선수의 이동입니다. 동료는 리턴 없이 전진할 수도 있습니다. 공격을 끝까지 본 뒤 코치의 전개와 비교하세요.",
   "scanPassPossessionGuidedStatus": "6번으로 플레이 · 압박을 풀고 공격을 이어가세요.",
   "scanPassPossessionObserveStatus": "선택하기 전에 6번이 받는 장면을 보세요.",
   "scanPassPossessionChangedObserveStatus": "다른 수비 상황입니다. 첫 수비와 8번 주변 공간을 다시 읽어 보세요.",
@@ -10987,9 +10987,9 @@
   "scanPassPossessionCoachBranch": "코치의 추천 전개",
   "scanPassPossessionMineShort": "내 선택",
   "scanPassPossessionCoachShort": "코치",
-  "scanPassPossessionPromptFirstTouch": "첫 터치: 6번은 어디에 두어야 다음 행동이 열릴까요?",
-  "scanPassPossessionPromptNextAction": "다음 행동: 어느 동료가 공격을 계속 살릴까요?",
-  "scanPassPossessionPromptSupport": "지원: 6번은 어디로 움직여 다시 연결될까요?",
+  "scanPassPossessionPromptFirstTouch": "첫 터치 · 방향 화살표를 누르세요.",
+  "scanPassPossessionPromptNextAction": "패스 · 공을 받을 동료를 누르세요.",
+  "scanPassPossessionPromptSupport": "이동 · 빈 공간을 누르거나 위치를 유지하세요.",
   "scanPassPossessionChoiceTouchAway": "바깥 터치",
   "scanPassPossessionChoiceTurnForward": "전진 턴",
   "scanPassPossessionChoiceLayoff": "원터치",
@@ -10999,15 +10999,19 @@
   "scanPassPossessionChoiceSupportInside": "안쪽",
   "scanPassPossessionChoiceSupportWide": "넓게",
   "scanPassPossessionChoiceSupportBehind": "뒤쪽",
-  "scanPassPossessionChoiceTouchAwayLabel": "첫 터치를 화면 아래쪽 바깥 공간으로 보내기",
+  "scanPassPossessionChoiceSupportHold": "위치 유지",
+  "scanPassPossessionChoiceSupportCustom": "이동",
+  "scanPassPossessionChoiceTouchAwayLabel": "압박에서 멀어지는 방향으로 첫 터치하기",
   "scanPassPossessionChoiceTurnForwardLabel": "첫 터치로 전방을 향해 돌기",
   "scanPassPossessionChoiceLayoffLabel": "4번에게 원터치 리턴 패스",
   "scanPassPossessionChoicePass8Label": "8번에게 패스",
   "scanPassPossessionChoicePass9Label": "9번에게 패스",
   "scanPassPossessionChoiceRecycle4Label": "4번을 통해 소유 순환",
-  "scanPassPossessionChoiceSupportInsideLabel": "6번을 안쪽 리턴 각도로 움직이기",
-  "scanPassPossessionChoiceSupportWideLabel": "6번을 넓은 리턴 각도로 움직이기",
+  "scanPassPossessionChoiceSupportInsideLabel": "6번을 안쪽 지원 공간으로 움직이기",
+  "scanPassPossessionChoiceSupportWideLabel": "6번을 넓은 지원 공간으로 움직이기",
   "scanPassPossessionChoiceSupportBehindLabel": "6번을 공 뒤쪽으로 움직이기",
+  "scanPassPossessionChoiceSupportHoldLabel": "6번을 현재 지원 위치에 두기",
+  "scanPassPossessionChoiceSupportCustomLabel": "선택한 피치 지점으로 6번 이동",
   "scanPassPossessionNumberedChoice": "{number}. {choice} · {metres}m",
   "@scanPassPossessionNumberedChoice": {
     "placeholders": {
@@ -11032,6 +11036,17 @@
         "type": "String"
       },
       "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionChoiceDirectLabel": "{choice}. {distance}.",
+  "@scanPassPossessionChoiceDirectLabel": {
+    "placeholders": {
+      "choice": {
+        "type": "String"
+      },
+      "distance": {
         "type": "String"
       }
     }
@@ -11063,6 +11078,31 @@
       }
     }
   },
+  "scanPassPossessionFirstTouchDistance": "첫 터치 {metres}m",
+  "@scanPassPossessionFirstTouchDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionMovementDistance": "선수 이동 {metres}m",
+  "@scanPassPossessionMovementDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionPassDistance": "패스 {metres}m",
+  "@scanPassPossessionPassDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionOpenPitchSupportLabel": "빈 공간을 누르면 6번이 그곳으로 이동합니다. 키보드로는 방향 버튼이나 위치 유지를 선택할 수 있습니다.",
   "scanPassPossessionMomentReceive": "받기",
   "scanPassPossessionMomentTouch": "터치",
   "scanPassPossessionMomentLink": "연결",
@@ -11094,7 +11134,7 @@
       }
     }
   },
-  "scanPassPossessionFieldSemantics": "오른쪽으로 공격하는 코칭 소유 장면입니다. 6번은 학습자이고, 공과 선수들은 전체 경로를 이어 가며 별도 버튼으로 다음 결정을 고릅니다.",
+  "scanPassPossessionFieldSemantics": "오른쪽으로 공격하는 코칭 소유 장면입니다. 6번은 학습자이고, 피치 위 조작으로 다음 터치, 패스, 지원 이동을 고릅니다.",
   "scanPassPossessionPause": "일시정지",
   "scanPassPossessionResume": "이어 보기",
   "scanPassPossessionMotionPass": "{passer}번 → {receiver}번 · 공을 받은 뒤의 연결을 보세요.",
@@ -11199,7 +11239,15 @@
       }
     }
   },
-  "scanPassPossessionReturnClosed": "6번에게 돌아오는 길이 막혀 다른 연결을 선택했습니다. 지원할 때 수비의 커버 범위도 확인하세요.",
+  "scanPassPossessionSupportForward": "내 이동 이후 {player}번이 6번에게 돌려주지 않고 전진했습니다.",
+  "@scanPassPossessionSupportForward": {
+    "placeholders": {
+      "player": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionReturnClosed": "6번에게 리턴하는 대신 후방 연결을 선택했습니다. 다시 보기에서 각 패스길을 비교해 보세요.",
   "scanPassPossessionShotResult": "{player}번의 슈팅까지 연결했습니다. {result}",
   "@scanPassPossessionShotResult": {
     "placeholders": {
@@ -11211,5 +11259,31 @@
       }
     }
   },
-  "scanPassPossessionLearnerLabel": "내 선수 · 6번"
+  "scanPassPossessionLearnerLabel": "내 선수 · 6번",
+  "scanPassPossessionRetargetHint": "이동 중 · 다른 공간을 누르면 목적지가 바뀝니다.",
+  "scanPassPossessionSupportEvidence": "선수 이동 {metres}m · 가장 가까운 수비까지 {before}m → {after}m. {continuation}",
+  "@scanPassPossessionSupportEvidence": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      },
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      },
+      "continuation": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionShotDistance": "슈팅 {metres}m",
+  "@scanPassPossessionShotDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  }
 }

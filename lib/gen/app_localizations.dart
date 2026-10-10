@@ -34402,7 +34402,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPossessionLegendPassPath.
   ///
   /// In en, this message translates to:
-  /// **'Pass'**
+  /// **'Ball movement'**
   String get scanPassPossessionLegendPassPath;
 
   /// No description provided for @scanPassPossessionLegendRunPath.
@@ -34522,7 +34522,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPossessionHelpBody.
   ///
   /// In en, this message translates to:
-  /// **'Choose a situation, read the pressure before number 6 receives, then choose a first touch, pass and supporting run. Solid lines show the ball; dashed lines show your run and arrival. Compare the full attack with the coach, or use pause and slow playback to look again.'**
+  /// **'Tap a direction arrow for your first touch, then tap a teammate to pass. Without the ball, tap open space to move number 6, or choose Hold position. Tap another space during your run to change destination. Solid lines show ball travel; dashed lines show player movement. Teammates can continue forward without returning the ball. Watch the attack finish and compare it with the coach route.'**
   String get scanPassPossessionHelpBody;
 
   /// No description provided for @scanPassPossessionGuidedStatus.
@@ -34654,19 +34654,19 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPossessionPromptFirstTouch.
   ///
   /// In en, this message translates to:
-  /// **'First touch: where does number 6 create the next action?'**
+  /// **'First touch · tap a direction arrow.'**
   String get scanPassPossessionPromptFirstTouch;
 
   /// No description provided for @scanPassPossessionPromptNextAction.
   ///
   /// In en, this message translates to:
-  /// **'Next action: which teammate can keep the attack moving?'**
+  /// **'Pass · tap the receiving teammate.'**
   String get scanPassPossessionPromptNextAction;
 
   /// No description provided for @scanPassPossessionPromptSupport.
   ///
   /// In en, this message translates to:
-  /// **'Support: where should number 6 move to connect again?'**
+  /// **'Move · tap open space, or hold your position.'**
   String get scanPassPossessionPromptSupport;
 
   /// No description provided for @scanPassPossessionChoiceTouchAway.
@@ -34723,10 +34723,22 @@ abstract class AppLocalizations {
   /// **'Behind'**
   String get scanPassPossessionChoiceSupportBehind;
 
+  /// No description provided for @scanPassPossessionChoiceSupportHold.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold position'**
+  String get scanPassPossessionChoiceSupportHold;
+
+  /// No description provided for @scanPassPossessionChoiceSupportCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get scanPassPossessionChoiceSupportCustom;
+
   /// No description provided for @scanPassPossessionChoiceTouchAwayLabel.
   ///
   /// In en, this message translates to:
-  /// **'Take the first touch into the lower outside space'**
+  /// **'Take the first touch away from pressure'**
   String get scanPassPossessionChoiceTouchAwayLabel;
 
   /// No description provided for @scanPassPossessionChoiceTurnForwardLabel.
@@ -34762,13 +34774,13 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPossessionChoiceSupportInsideLabel.
   ///
   /// In en, this message translates to:
-  /// **'Move number 6 into the inside return angle'**
+  /// **'Move number 6 into an inside support position'**
   String get scanPassPossessionChoiceSupportInsideLabel;
 
   /// No description provided for @scanPassPossessionChoiceSupportWideLabel.
   ///
   /// In en, this message translates to:
-  /// **'Move number 6 into the wide return angle'**
+  /// **'Move number 6 into a wide support position'**
   String get scanPassPossessionChoiceSupportWideLabel;
 
   /// No description provided for @scanPassPossessionChoiceSupportBehindLabel.
@@ -34776,6 +34788,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move number 6 behind the ball'**
   String get scanPassPossessionChoiceSupportBehindLabel;
+
+  /// No description provided for @scanPassPossessionChoiceSupportHoldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold number 6 in the current support position'**
+  String get scanPassPossessionChoiceSupportHoldLabel;
+
+  /// No description provided for @scanPassPossessionChoiceSupportCustomLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Move number 6 to the selected pitch point'**
+  String get scanPassPossessionChoiceSupportCustomLabel;
 
   /// No description provided for @scanPassPossessionNumberedChoice.
   ///
@@ -34790,6 +34814,12 @@ abstract class AppLocalizations {
   /// **'Option {number}: {choice}. Route distance {metres} metres.'**
   String scanPassPossessionChoiceWithDistanceLabel(
       int number, String choice, String metres);
+
+  /// No description provided for @scanPassPossessionChoiceDirectLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{choice}. {distance}.'**
+  String scanPassPossessionChoiceDirectLabel(String choice, String distance);
 
   /// No description provided for @scanPassPossessionRouteDistance.
   ///
@@ -34808,6 +34838,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'#6 run · {metres}m'**
   String scanPassPossessionSelectedRunDistance(String metres);
+
+  /// No description provided for @scanPassPossessionFirstTouchDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch {metres} m'**
+  String scanPassPossessionFirstTouchDistance(String metres);
+
+  /// No description provided for @scanPassPossessionMovementDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Player movement {metres} m'**
+  String scanPassPossessionMovementDistance(String metres);
+
+  /// No description provided for @scanPassPossessionPassDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass {metres} m'**
+  String scanPassPossessionPassDistance(String metres);
+
+  /// No description provided for @scanPassPossessionOpenPitchSupportLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap open space to move number 6 there. Use the direction buttons or hold position with a keyboard.'**
+  String get scanPassPossessionOpenPitchSupportLabel;
 
   /// No description provided for @scanPassPossessionMomentReceive.
   ///
@@ -34938,7 +34992,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanPassPossessionFieldSemantics.
   ///
   /// In en, this message translates to:
-  /// **'A coached football possession attacking to the right. Number 6 is the learner, the ball and players continue through the full route, and separate buttons choose the next decision.'**
+  /// **'A coached football possession attacking to the right. Number 6 is the learner, and on-pitch controls choose the next touch, pass or support movement.'**
   String get scanPassPossessionFieldSemantics;
 
   /// No description provided for @scanPassPossessionPause.
@@ -35031,10 +35085,16 @@ abstract class AppLocalizations {
   /// **'#{player} → #6 connected. The support position became the starting point for the next attack.'**
   String scanPassPossessionReturnConnected(int player);
 
+  /// No description provided for @scanPassPossessionSupportForward.
+  ///
+  /// In en, this message translates to:
+  /// **'After your movement, number {player} continued forward without a return to number 6.'**
+  String scanPassPossessionSupportForward(int player);
+
   /// No description provided for @scanPassPossessionReturnClosed.
   ///
   /// In en, this message translates to:
-  /// **'The return lane to #6 was closed, so the teammate chose another connection. Read the cover defender when supporting.'**
+  /// **'The team chose a reset instead of a return to number 6. Compare the passing lanes in the replay.'**
   String get scanPassPossessionReturnClosed;
 
   /// No description provided for @scanPassPossessionShotResult.
@@ -35048,6 +35108,25 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You · #6'**
   String get scanPassPossessionLearnerLabel;
+
+  /// No description provided for @scanPassPossessionRetargetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Moving · tap another space to change destination.'**
+  String get scanPassPossessionRetargetHint;
+
+  /// No description provided for @scanPassPossessionSupportEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved {metres}m · nearest defender: {before}m → {after}m. {continuation}'**
+  String scanPassPossessionSupportEvidence(
+      String metres, String before, String after, String continuation);
+
+  /// No description provided for @scanPassPossessionShotDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Shot {metres}m'**
+  String scanPassPossessionShotDistance(String metres);
 }
 
 class _AppLocalizationsDelegate

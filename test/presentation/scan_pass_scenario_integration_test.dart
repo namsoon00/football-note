@@ -6,6 +6,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 
 void main() {
+  WidgetController.hitTestWarningShouldBeFatal = true;
   const engine = ScanPassPossessionLessonEngine();
   testWidgets(
       'all catalog cards open their actual distinct spatial configuration',
@@ -58,17 +59,22 @@ void main() {
           expect(routes[i].distanceMetres, closeTo(expected, 1e-8));
           expect(
               routes[i].label as String, contains(expected.toStringAsFixed(1)));
-          final finder =
-              find.byKey(ValueKey('possession-dock-${point.choices[i].name}'));
+          final finder = find
+              .byKey(ValueKey('possession-action-${point.choices[i].name}'));
+          final labels = tester
+              .widgetList<Semantics>(
+                  find.descendant(of: finder, matching: find.byType(Semantics)))
+              .map((widget) => widget.properties.label)
+              .whereType<String>();
           expect(
-              find.descendant(
-                  of: finder,
-                  matching: find.textContaining(expected.toStringAsFixed(1))),
-              findsOneWidget);
+              labels
+                  .any((label) => label.contains(expected.toStringAsFixed(1))),
+              isTrue);
         }
         return;
       }
-      await tester.tap(find.byKey(ValueKey('possession-dock-${choice.name}')));
+      await tester
+          .tap(find.byKey(ValueKey('possession-action-${choice.name}')));
       await tester.pumpAndSettle();
       point = engine.choose(point, choice).nextPoint!;
     }
@@ -86,7 +92,8 @@ void main() {
     var point = engine.firstPhase(scene);
     for (final choice in engine.recommendedBranch(scene).decisions) {
       final result = engine.choose(point, choice);
-      await tester.tap(find.byKey(ValueKey('possession-dock-${choice.name}')));
+      await tester
+          .tap(find.byKey(ValueKey('possession-action-${choice.name}')));
       await tester.pump();
       if (point.kind == ScanPassPossessionDecisionKind.support) {
         await tester.pump(Duration(
@@ -132,13 +139,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('possession-speed-toggle')));
     await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('possession-dock-touchAway')));
+    await tester.tap(find.byKey(const ValueKey('possession-action-touchAway')));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     expect(find.byKey(const ValueKey('possession-pause')), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 500));
-    expect(
-        find.byKey(const ValueKey('possession-dock-passTo9')), findsOneWidget);
+    expect(find.byKey(const ValueKey('possession-action-passTo9')),
+        findsOneWidget);
   });
 
   testWidgets(
@@ -148,7 +155,7 @@ void main() {
     await tester.pumpAndSettle();
     await _tapCard(tester);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('possession-dock-touchAway')));
+    await tester.tap(find.byKey(const ValueKey('possession-action-touchAway')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 150));
     final before = (_pitch(tester).displayState as AttackState).elapsed;
@@ -170,10 +177,10 @@ void main() {
     await _tapCard(tester);
     await tester.pumpAndSettle();
     await tester
-        .tap(find.byKey(const ValueKey('possession-dock-oneTouchLayoff')));
+        .tap(find.byKey(const ValueKey('possession-action-oneTouchLayoff')));
     await tester.pumpAndSettle();
     await tester
-        .tap(find.byKey(const ValueKey('possession-dock-supportBehind')));
+        .tap(find.byKey(const ValueKey('possession-action-supportBehind')));
     await tester.pumpAndSettle();
     final mine = _pitch(tester).displayState as AttackState;
     await tester.tap(find.byKey(const ValueKey('possession-compare-coach')));
@@ -201,9 +208,9 @@ void main() {
       await _tapCard(tester);
       await tester.pumpAndSettle();
       for (final key in [
-        'possession-dock-touchAway',
-        'possession-dock-turnForward',
-        'possession-dock-oneTouchLayoff'
+        'possession-action-touchAway',
+        'possession-action-turnForward',
+        'possession-action-oneTouchLayoff'
       ]) {
         final f = find.byKey(ValueKey(key));
         expect(f.hitTestable(), findsOneWidget);

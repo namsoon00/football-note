@@ -20186,7 +20186,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Toggle slower viewing speed';
 
   @override
-  String get scanPassPossessionLegendPassPath => 'Pass';
+  String get scanPassPossessionLegendPassPath => 'Ball movement';
 
   @override
   String get scanPassPossessionLegendRunPath => '#6 run';
@@ -20259,7 +20259,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassPossessionHelpBody =>
-      'Choose a situation, read the pressure before number 6 receives, then choose a first touch, pass and supporting run. Solid lines show the ball; dashed lines show your run and arrival. Compare the full attack with the coach, or use pause and slow playback to look again.';
+      'Tap a direction arrow for your first touch, then tap a teammate to pass. Without the ball, tap open space to move number 6, or choose Hold position. Tap another space during your run to change destination. Solid lines show ball travel; dashed lines show player movement. Teammates can continue forward without returning the ball. Watch the attack finish and compare it with the coach route.';
 
   @override
   String get scanPassPossessionGuidedStatus =>
@@ -20337,15 +20337,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassPossessionPromptFirstTouch =>
-      'First touch: where does number 6 create the next action?';
+      'First touch · tap a direction arrow.';
 
   @override
   String get scanPassPossessionPromptNextAction =>
-      'Next action: which teammate can keep the attack moving?';
+      'Pass · tap the receiving teammate.';
 
   @override
   String get scanPassPossessionPromptSupport =>
-      'Support: where should number 6 move to connect again?';
+      'Move · tap open space, or hold your position.';
 
   @override
   String get scanPassPossessionChoiceTouchAway => 'Outside touch';
@@ -20375,8 +20375,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassPossessionChoiceSupportBehind => 'Behind';
 
   @override
+  String get scanPassPossessionChoiceSupportHold => 'Hold position';
+
+  @override
+  String get scanPassPossessionChoiceSupportCustom => 'Move';
+
+  @override
   String get scanPassPossessionChoiceTouchAwayLabel =>
-      'Take the first touch into the lower outside space';
+      'Take the first touch away from pressure';
 
   @override
   String get scanPassPossessionChoiceTurnForwardLabel =>
@@ -20398,15 +20404,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassPossessionChoiceSupportInsideLabel =>
-      'Move number 6 into the inside return angle';
+      'Move number 6 into an inside support position';
 
   @override
   String get scanPassPossessionChoiceSupportWideLabel =>
-      'Move number 6 into the wide return angle';
+      'Move number 6 into a wide support position';
 
   @override
   String get scanPassPossessionChoiceSupportBehindLabel =>
       'Move number 6 behind the ball';
+
+  @override
+  String get scanPassPossessionChoiceSupportHoldLabel =>
+      'Hold number 6 in the current support position';
+
+  @override
+  String get scanPassPossessionChoiceSupportCustomLabel =>
+      'Move number 6 to the selected pitch point';
 
   @override
   String scanPassPossessionNumberedChoice(
@@ -20418,6 +20432,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String scanPassPossessionChoiceWithDistanceLabel(
       int number, String choice, String metres) {
     return 'Option $number: $choice. Route distance $metres metres.';
+  }
+
+  @override
+  String scanPassPossessionChoiceDirectLabel(String choice, String distance) {
+    return '$choice. $distance.';
   }
 
   @override
@@ -20434,6 +20453,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String scanPassPossessionSelectedRunDistance(String metres) {
     return '#6 run · ${metres}m';
   }
+
+  @override
+  String scanPassPossessionFirstTouchDistance(String metres) {
+    return 'First touch $metres m';
+  }
+
+  @override
+  String scanPassPossessionMovementDistance(String metres) {
+    return 'Player movement $metres m';
+  }
+
+  @override
+  String scanPassPossessionPassDistance(String metres) {
+    return 'Pass $metres m';
+  }
+
+  @override
+  String get scanPassPossessionOpenPitchSupportLabel =>
+      'Tap open space to move number 6 there. Use the direction buttons or hold position with a keyboard.';
 
   @override
   String get scanPassPossessionMomentReceive => 'Receive';
@@ -20513,7 +20551,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassPossessionFieldSemantics =>
-      'A coached football possession attacking to the right. Number 6 is the learner, the ball and players continue through the full route, and separate buttons choose the next decision.';
+      'A coached football possession attacking to the right. Number 6 is the learner, and on-pitch controls choose the next touch, pass or support movement.';
 
   @override
   String get scanPassPossessionPause => 'Pause';
@@ -20585,8 +20623,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String scanPassPossessionSupportForward(int player) {
+    return 'After your movement, number $player continued forward without a return to number 6.';
+  }
+
+  @override
   String get scanPassPossessionReturnClosed =>
-      'The return lane to #6 was closed, so the teammate chose another connection. Read the cover defender when supporting.';
+      'The team chose a reset instead of a return to number 6. Compare the passing lanes in the replay.';
 
   @override
   String scanPassPossessionShotResult(int player, String result) {
@@ -20595,4 +20638,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassPossessionLearnerLabel => 'You · #6';
+
+  @override
+  String get scanPassPossessionRetargetHint =>
+      'Moving · tap another space to change destination.';
+
+  @override
+  String scanPassPossessionSupportEvidence(
+      String metres, String before, String after, String continuation) {
+    return 'Moved ${metres}m · nearest defender: ${before}m → ${after}m. $continuation';
+  }
+
+  @override
+  String scanPassPossessionShotDistance(String metres) {
+    return 'Shot ${metres}m';
+  }
 }

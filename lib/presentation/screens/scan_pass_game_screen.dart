@@ -4024,6 +4024,23 @@ class _PitchGeometry {
   }
 
   Offset toOffset(ScanPassPoint point) => Offset(x(point.x), y(point.y));
+
+  ScanPassPoint fromOffset(Offset offset) {
+    final local = frame;
+    final xValue = ((offset.dx - fieldRect.left) / fieldRect.width)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final yValue = ((offset.dy - fieldRect.top) / fieldRect.height)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    if (local == null || space) {
+      return ScanPassPoint(xValue * (space ? 1 : _maxX), yValue);
+    }
+    return ScanPassPoint(
+      local.minX + (local.maxX - local.minX) * xValue,
+      local.minY + (local.maxY - local.minY) * yValue,
+    );
+  }
 }
 
 class _PitchFrame {

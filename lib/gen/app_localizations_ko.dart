@@ -19484,7 +19484,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassPossessionSlowMotionTooltip => '느리게 보기 전환';
 
   @override
-  String get scanPassPossessionLegendPassPath => '패스';
+  String get scanPassPossessionLegendPassPath => '공 이동';
 
   @override
   String get scanPassPossessionLegendRunPath => '6번 이동';
@@ -19557,7 +19557,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassPossessionHelpBody =>
-      '상황을 고르고 6번이 받기 전 압박을 읽으세요. 첫 터치, 패스, 다시 움직일 방향을 선택합니다. 실선은 공, 점선은 내 선수의 이동과 도착 지점을 보여줍니다. 공격을 끝까지 본 뒤 코치의 전개와 비교하세요. 멈추거나 느리게 다시 볼 수도 있습니다.';
+      '방향 화살표로 첫 터치를 고르고, 동료 선수를 눌러 패스하세요. 공이 없을 때는 빈 공간을 눌러 6번을 움직이거나 위치 유지를 선택합니다. 이동 중 다른 공간을 누르면 목적지를 바꿀 수 있습니다. 실선은 공, 점선은 선수의 이동입니다. 동료는 리턴 없이 전진할 수도 있습니다. 공격을 끝까지 본 뒤 코치의 전개와 비교하세요.';
 
   @override
   String get scanPassPossessionGuidedStatus => '6번으로 플레이 · 압박을 풀고 공격을 이어가세요.';
@@ -19629,14 +19629,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassPossessionCoachShort => '코치';
 
   @override
-  String get scanPassPossessionPromptFirstTouch =>
-      '첫 터치: 6번은 어디에 두어야 다음 행동이 열릴까요?';
+  String get scanPassPossessionPromptFirstTouch => '첫 터치 · 방향 화살표를 누르세요.';
 
   @override
-  String get scanPassPossessionPromptNextAction => '다음 행동: 어느 동료가 공격을 계속 살릴까요?';
+  String get scanPassPossessionPromptNextAction => '패스 · 공을 받을 동료를 누르세요.';
 
   @override
-  String get scanPassPossessionPromptSupport => '지원: 6번은 어디로 움직여 다시 연결될까요?';
+  String get scanPassPossessionPromptSupport => '이동 · 빈 공간을 누르거나 위치를 유지하세요.';
 
   @override
   String get scanPassPossessionChoiceTouchAway => '바깥 터치';
@@ -19666,8 +19665,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassPossessionChoiceSupportBehind => '뒤쪽';
 
   @override
-  String get scanPassPossessionChoiceTouchAwayLabel =>
-      '첫 터치를 화면 아래쪽 바깥 공간으로 보내기';
+  String get scanPassPossessionChoiceSupportHold => '위치 유지';
+
+  @override
+  String get scanPassPossessionChoiceSupportCustom => '이동';
+
+  @override
+  String get scanPassPossessionChoiceTouchAwayLabel => '압박에서 멀어지는 방향으로 첫 터치하기';
 
   @override
   String get scanPassPossessionChoiceTurnForwardLabel => '첫 터치로 전방을 향해 돌기';
@@ -19685,13 +19689,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassPossessionChoiceRecycle4Label => '4번을 통해 소유 순환';
 
   @override
-  String get scanPassPossessionChoiceSupportInsideLabel => '6번을 안쪽 리턴 각도로 움직이기';
+  String get scanPassPossessionChoiceSupportInsideLabel =>
+      '6번을 안쪽 지원 공간으로 움직이기';
 
   @override
-  String get scanPassPossessionChoiceSupportWideLabel => '6번을 넓은 리턴 각도로 움직이기';
+  String get scanPassPossessionChoiceSupportWideLabel => '6번을 넓은 지원 공간으로 움직이기';
 
   @override
   String get scanPassPossessionChoiceSupportBehindLabel => '6번을 공 뒤쪽으로 움직이기';
+
+  @override
+  String get scanPassPossessionChoiceSupportHoldLabel => '6번을 현재 지원 위치에 두기';
+
+  @override
+  String get scanPassPossessionChoiceSupportCustomLabel => '선택한 피치 지점으로 6번 이동';
 
   @override
   String scanPassPossessionNumberedChoice(
@@ -19703,6 +19714,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String scanPassPossessionChoiceWithDistanceLabel(
       int number, String choice, String metres) {
     return '$number번 선택: $choice. 이동 거리 $metres미터.';
+  }
+
+  @override
+  String scanPassPossessionChoiceDirectLabel(String choice, String distance) {
+    return '$choice. $distance.';
   }
 
   @override
@@ -19719,6 +19735,25 @@ class AppLocalizationsKo extends AppLocalizations {
   String scanPassPossessionSelectedRunDistance(String metres) {
     return '6번 이동 · ${metres}m';
   }
+
+  @override
+  String scanPassPossessionFirstTouchDistance(String metres) {
+    return '첫 터치 ${metres}m';
+  }
+
+  @override
+  String scanPassPossessionMovementDistance(String metres) {
+    return '선수 이동 ${metres}m';
+  }
+
+  @override
+  String scanPassPossessionPassDistance(String metres) {
+    return '패스 ${metres}m';
+  }
+
+  @override
+  String get scanPassPossessionOpenPitchSupportLabel =>
+      '빈 공간을 누르면 6번이 그곳으로 이동합니다. 키보드로는 방향 버튼이나 위치 유지를 선택할 수 있습니다.';
 
   @override
   String get scanPassPossessionMomentReceive => '받기';
@@ -19797,7 +19832,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassPossessionFieldSemantics =>
-      '오른쪽으로 공격하는 코칭 소유 장면입니다. 6번은 학습자이고, 공과 선수들은 전체 경로를 이어 가며 별도 버튼으로 다음 결정을 고릅니다.';
+      '오른쪽으로 공격하는 코칭 소유 장면입니다. 6번은 학습자이고, 피치 위 조작으로 다음 터치, 패스, 지원 이동을 고릅니다.';
 
   @override
   String get scanPassPossessionPause => '일시정지';
@@ -19868,8 +19903,13 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String scanPassPossessionSupportForward(int player) {
+    return '내 이동 이후 $player번이 6번에게 돌려주지 않고 전진했습니다.';
+  }
+
+  @override
   String get scanPassPossessionReturnClosed =>
-      '6번에게 돌아오는 길이 막혀 다른 연결을 선택했습니다. 지원할 때 수비의 커버 범위도 확인하세요.';
+      '6번에게 리턴하는 대신 후방 연결을 선택했습니다. 다시 보기에서 각 패스길을 비교해 보세요.';
 
   @override
   String scanPassPossessionShotResult(int player, String result) {
@@ -19878,4 +19918,18 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassPossessionLearnerLabel => '내 선수 · 6번';
+
+  @override
+  String get scanPassPossessionRetargetHint => '이동 중 · 다른 공간을 누르면 목적지가 바뀝니다.';
+
+  @override
+  String scanPassPossessionSupportEvidence(
+      String metres, String before, String after, String continuation) {
+    return '선수 이동 ${metres}m · 가장 가까운 수비까지 ${before}m → ${after}m. $continuation';
+  }
+
+  @override
+  String scanPassPossessionShotDistance(String metres) {
+    return '슈팅 ${metres}m';
+  }
 }
