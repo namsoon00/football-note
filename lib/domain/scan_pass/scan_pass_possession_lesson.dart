@@ -6,6 +6,22 @@ import 'package:football_note/domain/scan_pass/scan_pass_game.dart'
 
 enum ScanPassPossessionVariant { pressure, cover }
 
+enum ScanPassPossessionSituation {
+  centralReceive,
+  halfSpace,
+  touchline,
+  layoff,
+  thirdPlayer,
+  transition
+}
+
+class ScanPassPossessionScenario {
+  final String id;
+  final ScanPassPossessionSituation situation;
+  final ScanPassPossessionVariant variant;
+  const ScanPassPossessionScenario(this.id, this.situation, this.variant);
+}
+
 enum ScanPassPossessionDecisionKind { firstTouch, nextAction, support }
 
 enum ScanPassPossessionChoice {
@@ -57,12 +73,14 @@ class ScanPassPossessionSpotlight {
 
 class ScanPassPossessionScene {
   final ScanPassPossessionVariant variant;
+  final ScanPassPossessionSituation situation;
   final AttackState initial;
   final AttackState reception;
   final List<ScanPassPossessionSpotlight> spotlights;
 
   ScanPassPossessionScene({
     required this.variant,
+    this.situation = ScanPassPossessionSituation.centralReceive,
     required this.initial,
     required this.reception,
     required List<ScanPassPossessionSpotlight> spotlights,
@@ -72,7 +90,7 @@ class ScanPassPossessionScene {
         before: initial,
         after: reception,
         action: const AttackAction.pass(6),
-        duration: 1.35,
+        duration: reception.elapsed - initial.elapsed,
         ballEnd: reception.ball,
       );
 }
@@ -193,135 +211,208 @@ class ScanPassPossessionBranch {
 class ScanPassPossessionLessonEngine {
   const ScanPassPossessionLessonEngine();
 
+  static const double pitchLengthMetres = 105;
+  static const double pitchWidthMetres = 68;
+  static double distanceMetres(ScanPassPoint a, ScanPassPoint b) =>
+      _metres(b - a).distance;
+  static ScanPassPoint _metres(ScanPassPoint p) =>
+      ScanPassPoint(p.x * pitchLengthMetres, p.y * pitchWidthMetres);
+  static ScanPassPoint _normalized(ScanPassPoint p) =>
+      ScanPassPoint(p.x / pitchLengthMetres, p.y / pitchWidthMetres);
+
+  static const catalog = <ScanPassPossessionScenario>[
+    ScanPassPossessionScenario(
+        'centralReceive-pressure',
+        ScanPassPossessionSituation.centralReceive,
+        ScanPassPossessionVariant.pressure),
+    ScanPassPossessionScenario(
+        'centralReceive-cover',
+        ScanPassPossessionSituation.centralReceive,
+        ScanPassPossessionVariant.cover),
+    ScanPassPossessionScenario(
+        'halfSpace-pressure',
+        ScanPassPossessionSituation.halfSpace,
+        ScanPassPossessionVariant.pressure),
+    ScanPassPossessionScenario('halfSpace-cover',
+        ScanPassPossessionSituation.halfSpace, ScanPassPossessionVariant.cover),
+    ScanPassPossessionScenario(
+        'touchline-pressure',
+        ScanPassPossessionSituation.touchline,
+        ScanPassPossessionVariant.pressure),
+    ScanPassPossessionScenario('touchline-cover',
+        ScanPassPossessionSituation.touchline, ScanPassPossessionVariant.cover),
+    ScanPassPossessionScenario('layoff-pressure',
+        ScanPassPossessionSituation.layoff, ScanPassPossessionVariant.pressure),
+    ScanPassPossessionScenario('layoff-cover',
+        ScanPassPossessionSituation.layoff, ScanPassPossessionVariant.cover),
+    ScanPassPossessionScenario(
+        'thirdPlayer-pressure',
+        ScanPassPossessionSituation.thirdPlayer,
+        ScanPassPossessionVariant.pressure),
+    ScanPassPossessionScenario(
+        'thirdPlayer-cover',
+        ScanPassPossessionSituation.thirdPlayer,
+        ScanPassPossessionVariant.cover),
+    ScanPassPossessionScenario(
+        'transition-pressure',
+        ScanPassPossessionSituation.transition,
+        ScanPassPossessionVariant.pressure),
+    ScanPassPossessionScenario(
+        'transition-cover',
+        ScanPassPossessionSituation.transition,
+        ScanPassPossessionVariant.cover),
+  ];
+
   ScanPassPossessionScene scene({
     ScanPassPossessionVariant variant = ScanPassPossessionVariant.pressure,
+    ScanPassPossessionSituation situation =
+        ScanPassPossessionSituation.centralReceive,
   }) {
-    final initialAttackers = <AttackPlayer>[
-      const AttackPlayer(
-        number: 4,
-        position: ScanPassPoint(.20, .58),
-        facingRadians: -.10,
-      ),
-      const AttackPlayer(
-        number: 6,
-        position: ScanPassPoint(.39, .54),
-        facingRadians: math.pi,
-      ),
-      const AttackPlayer(
-        number: 8,
-        position: ScanPassPoint(.54, .34),
-        facingRadians: .26,
-        velocity: ScanPassPoint(.030, .035),
-      ),
-      const AttackPlayer(
-        number: 9,
-        position: ScanPassPoint(.72, .49),
-        facingRadians: .04,
-        velocity: ScanPassPoint(.030, -.012),
-      ),
+    // Six spatial problems, each with the same initial attacking shape in its
+    // two defensive variations. Geometry, not the name, drives later policy.
+    final (origin, supportOffset, strikerOffset) = switch (situation) {
+      ScanPassPossessionSituation.centralReceive => (
+          const ScanPassPoint(.43, .55),
+          const ScanPassPoint(.16, -.16),
+          const ScanPassPoint(.32, -.02)
+        ),
+      ScanPassPossessionSituation.halfSpace => (
+          const ScanPassPoint(.55, .32),
+          const ScanPassPoint(.14, .16),
+          const ScanPassPoint(.24, -.05)
+        ),
+      ScanPassPossessionSituation.touchline => (
+          const ScanPassPoint(.48, .82),
+          const ScanPassPoint(.15, -.23),
+          const ScanPassPoint(.31, -.30)
+        ),
+      ScanPassPossessionSituation.layoff => (
+          const ScanPassPoint(.58, .48),
+          const ScanPassPoint(.09, .22),
+          const ScanPassPoint(.21, -.13)
+        ),
+      ScanPassPossessionSituation.thirdPlayer => (
+          const ScanPassPoint(.60, .65),
+          const ScanPassPoint(.10, -.17),
+          const ScanPassPoint(.20, .06)
+        ),
+      ScanPassPossessionSituation.transition => (
+          const ScanPassPoint(.56, .47),
+          const ScanPassPoint(.19, -.22),
+          const ScanPassPoint(.28, .16)
+        ),
+    };
+    final side = supportOffset.y < 0 ? -1.0 : 1.0;
+    final a8 = _field(origin + supportOffset);
+    final a9 = _field(origin + strikerOffset);
+    final a4 = _field(origin + ScanPassPoint(-.17, -side * .045));
+    final d2 = variant == ScanPassPossessionVariant.pressure
+        ? origin + _normalized(ScanPassPoint(2.7, side * 1.5))
+        : origin + _normalized(ScanPassPoint(8.0, side * 6.0));
+    final d3 = variant == ScanPassPossessionVariant.pressure
+        ? a8 + _normalized(ScanPassPoint(4.8, side * 4.5))
+        : origin.lerp(a8, .70) + _normalized(const ScanPassPoint(1.0, 0));
+    final d5 = a9 + _normalized(ScanPassPoint(5.0, -side * 4.5));
+    AttackPlayer player(int n, ScanPassPoint pos,
+            {bool opponent = false, bool keeper = false}) =>
+        AttackPlayer(
+            number: n,
+            position: _field(pos),
+            opponent: opponent,
+            goalkeeper: keeper,
+            facingRadians: opponent ? math.pi : 0);
+    final receptionAttackers = [
+      player(4, a4),
+      player(6, origin),
+      player(8, a8),
+      player(9, a9)
     ];
-    final initialDefenders = <AttackPlayer>[
-      AttackPlayer(
-        number: 2,
-        opponent: true,
-        position: const ScanPassPoint(.50, .40),
-        facingRadians: math.pi,
-        velocity: variant == ScanPassPossessionVariant.pressure
-            ? const ScanPassPoint(-.042, .070)
-            : const ScanPassPoint(.052, -.018),
-      ),
-      const AttackPlayer(
-        number: 3,
-        opponent: true,
-        position: ScanPassPoint(.64, .31),
-        facingRadians: math.pi,
-        velocity: ScanPassPoint(-.018, .042),
-      ),
-      const AttackPlayer(
-        number: 5,
-        opponent: true,
-        position: ScanPassPoint(.86, .64),
-        facingRadians: math.pi,
-        velocity: ScanPassPoint(-.018, -.018),
-      ),
-      const AttackPlayer(
-        number: 1,
-        opponent: true,
-        goalkeeper: true,
-        position: ScanPassPoint(.955, .50),
-        facingRadians: math.pi,
-      ),
+    final receptionDefenders = [
+      player(2, d2, opponent: true),
+      player(3, d3, opponent: true),
+      player(5, d5, opponent: true),
+      player(1, const ScanPassPoint(.965, .5), opponent: true, keeper: true)
     ];
+    final initialAttackers = [
+      for (final p in receptionAttackers)
+        p.copyWith(
+            position: p.number == 6
+                ? _field(p.position - _normalized(const ScanPassPoint(1.0, 0)))
+                : p.number == 8
+                    ? _field(
+                        p.position + _normalized(ScanPassPoint(2, -side * 1.5)))
+                    : p.number == 9
+                        ? _field(
+                            p.position - _normalized(ScanPassPoint(2.0, side)))
+                        : p.position)
+    ];
+    final initialDefenders = [
+      for (final p in receptionDefenders)
+        p.copyWith(
+            position: p.number == 2
+                ? _field(p.position +
+                    _normalized(ScanPassPoint(
+                        variant == ScanPassPossessionVariant.pressure
+                            ? 3.0
+                            : -2.0,
+                        -side)))
+                : p.number == 3
+                    ? _field(p.position +
+                        _normalized(ScanPassPoint(1.5, side * 1.5)))
+                    : p.position)
+    ];
+    final duration =
+        distanceMetres(initialAttackers.first.position, origin) / 19;
     final initial = AttackState(
-      attackers: initialAttackers,
-      defenders: initialDefenders,
-      ball: initialAttackers.first.position,
-      carrierNumber: 4,
-    );
-
-    final pressureTo = variant == ScanPassPossessionVariant.pressure
-        ? const ScanPassPoint(.445, .49)
-        : const ScanPassPoint(.56, .38);
-    final coverTo = variant == ScanPassPossessionVariant.pressure
-        ? const ScanPassPoint(.65, .30)
-        : const ScanPassPoint(.605, .365);
+        attackers: initialAttackers,
+        defenders: initialDefenders,
+        ball: initialAttackers.first.position,
+        carrierNumber: 4);
     final reception = AttackState(
-      attackers: <AttackPlayer>[
-        _moved(initialAttackers[0], const ScanPassPoint(.225, .575), 1.35),
-        _moved(initialAttackers[1], const ScanPassPoint(.405, .54), 1.35),
-        _moved(initialAttackers[2], const ScanPassPoint(.58, .385), 1.35),
-        _moved(initialAttackers[3], const ScanPassPoint(.755, .475), 1.35),
-      ],
-      defenders: <AttackPlayer>[
-        _moved(initialDefenders[0], pressureTo, 1.35),
-        _moved(initialDefenders[1], coverTo, 1.35),
-        _moved(initialDefenders[2], const ScanPassPoint(.84, .615), 1.35),
-        initialDefenders[3],
-      ],
-      ball: const ScanPassPoint(.405, .54),
-      carrierNumber: 6,
-      elapsed: 1.35,
-      completedPasses: 1,
-      furthestX: .405,
-      cue: AttackCue.received,
-    );
+        attackers: [
+          for (var i = 0; i < 4; i++)
+            _moved(
+                initialAttackers[i], receptionAttackers[i].position, duration)
+        ],
+        defenders: [
+          for (var i = 0; i < 4; i++)
+            _moved(
+                initialDefenders[i], receptionDefenders[i].position, duration)
+        ],
+        ball: origin,
+        carrierNumber: 6,
+        elapsed: duration,
+        completedPasses: 1,
+        furthestX: origin.x,
+        cue: AttackCue.received);
     return ScanPassPossessionScene(
-      variant: variant,
-      initial: initial,
-      reception: reception,
-      spotlights: <ScanPassPossessionSpotlight>[
-        ScanPassPossessionSpotlight(
-          kind: ScanPassPossessionSpotlightKind.pressure,
-          actorNumber: 2,
-          opponent: true,
-          from: initialDefenders[0].position,
-          to: pressureTo,
-          focus: pressureTo,
-        ),
-        ScanPassPossessionSpotlight(
-          kind: ScanPassPossessionSpotlightKind.support,
-          actorNumber: 8,
-          opponent: false,
-          from: initialAttackers[2].position,
-          to: const ScanPassPoint(.58, .385),
-          focus: const ScanPassPoint(.58, .385),
-        ),
-        ScanPassPossessionSpotlight(
-          kind: ScanPassPossessionSpotlightKind.futureSpace,
-          actorNumber: 6,
-          opponent: false,
-          from: reception.attackers
-              .firstWhere((player) => player.number == 6)
-              .position,
-          to: variant == ScanPassPossessionVariant.pressure
-              ? const ScanPassPoint(.64, .49)
-              : const ScanPassPoint(.66, .36),
-          focus: variant == ScanPassPossessionVariant.pressure
-              ? const ScanPassPoint(.64, .49)
-              : const ScanPassPoint(.66, .36),
-        ),
-      ],
-    );
+        variant: variant,
+        situation: situation,
+        initial: initial,
+        reception: reception,
+        spotlights: [
+          ScanPassPossessionSpotlight(
+              kind: ScanPassPossessionSpotlightKind.pressure,
+              actorNumber: 2,
+              opponent: true,
+              from: initialDefenders[0].position,
+              to: d2,
+              focus: d2),
+          ScanPassPossessionSpotlight(
+              kind: ScanPassPossessionSpotlightKind.support,
+              actorNumber: 8,
+              opponent: false,
+              from: initialAttackers[2].position,
+              to: a8,
+              focus: a8),
+          ScanPassPossessionSpotlight(
+              kind: ScanPassPossessionSpotlightKind.futureSpace,
+              actorNumber: 6,
+              opponent: false,
+              from: origin,
+              to: _field(origin + _normalized(ScanPassPoint(7, -side * 4))),
+              focus: _field(origin + _normalized(ScanPassPoint(7, -side * 4))))
+        ]);
   }
 
   ScanPassPossessionDecisionPoint firstPhase(
@@ -355,11 +446,11 @@ class ScanPassPossessionLessonEngine {
       ScanPassPossessionChoice.passTo8 => _attacker(state, 8).position,
       ScanPassPossessionChoice.passTo9 => _attacker(state, 9).position,
       ScanPassPossessionChoice.supportInside =>
-        _supportTarget(point.scene, ScanPassPossessionChoice.supportInside),
+        _supportTarget(point.state, ScanPassPossessionChoice.supportInside),
       ScanPassPossessionChoice.supportWide =>
-        _supportTarget(point.scene, ScanPassPossessionChoice.supportWide),
+        _supportTarget(point.state, ScanPassPossessionChoice.supportWide),
       ScanPassPossessionChoice.supportBehind =>
-        _supportTarget(point.scene, ScanPassPossessionChoice.supportBehind),
+        _supportTarget(point.state, ScanPassPossessionChoice.supportBehind),
     };
   }
 
@@ -523,7 +614,7 @@ class ScanPassPossessionLessonEngine {
       var receiving = pass.after;
       if (receiving.ball.x < .69) {
         final carry = _carryTransition(
-            receiving, _field(receiving.ball + const ScanPassPoint(.10, 0)),
+            receiving, _field(receiving.ball + const ScanPassPoint(.045, 0)),
             duration: .8);
         path.add(carry);
         receiving = carry.after;
@@ -532,7 +623,7 @@ class ScanPassPossessionLessonEngine {
       final shot = _shotTransition(point.scene, receiving);
       path.add(shot);
       final value = receiving.ball.x * 20 +
-          _pressureGap(receiving) * 10 +
+          _pressureGap(receiving).clamp(0, 8) * .8 +
           (shot.after.end == AttackEnd.goal ? 2 : 0);
       if (value > bestValue) {
         bestValue = value;
@@ -558,7 +649,7 @@ class ScanPassPossessionLessonEngine {
             ? ScanPassPossessionOutcomeKind.turnover
             : ScanPassPossessionOutcomeKind.recycled;
     final first = all.first;
-    final escaped = !first.after.finished && _pressureGap(first.after) > .075;
+    final escaped = !first.after.finished && _pressureGap(first.after) > 3.0;
     final evidence = <ScanPassPossessionEvidence>[
       escaped
           ? ScanPassPossessionEvidence.pressureEscaped
@@ -615,7 +706,7 @@ class ScanPassPossessionLessonEngine {
 
   double _pressureGap(AttackState state) => state.defenders
       .where((p) => !p.goalkeeper)
-      .map((p) => p.position.distanceTo(state.ball))
+      .map((p) => distanceMetres(p.position, state.ball))
       .reduce(math.min);
 
   ScanPassPossessionBranch _branch(
@@ -642,160 +733,166 @@ class ScanPassPossessionLessonEngine {
 
   AttackTransition _touchTransition(ScanPassPossessionScene scene,
           AttackState before, ScanPassPoint target) =>
-      _carryTransition(before, target, duration: .72);
+      _carryTransition(before, target, duration: .7);
 
   AttackTransition _carryTransition(AttackState before, ScanPassPoint target,
-      {required double duration}) {
-    final attackers = _attackingTargets(before, duration);
-    attackers[before.carrierNumber] = target;
-    return _resolve(
-        before,
-        const AttackAction.carry(AttackCarryDirection.forward),
-        duration,
-        attackers,
-        _defendingTargets(before, duration, pressTarget: target),
-        target,
-        before.carrierNumber);
-  }
+          {required double duration}) =>
+      _simulate(
+          before,
+          const AttackAction.carry(AttackCarryDirection.forward),
+          distanceMetres(before.ball, target) / 4.2 + .22,
+          target,
+          before.carrierNumber,
+          learnerTarget: target);
 
   AttackTransition _passTransition(
       ScanPassPossessionScene scene, AttackState before, int targetNumber,
       {required double duration}) {
-    // Flight duration and arrival are derived together from the receiver's run.
-    var flight =
-        before.ball.distanceTo(_attacker(before, targetNumber).position) / .52;
-    var targets = _attackingTargets(before, flight);
+    final receiver = _attacker(before, targetNumber);
+    var flight = distanceMetres(before.ball, receiver.position) / 19;
+    var target = receiver.position;
     for (var i = 0; i < 3; i++) {
-      flight = (before.ball.distanceTo(targets[targetNumber]!) / .52)
-          .clamp(.28, 1.65);
-      targets = _attackingTargets(before, flight);
+      // The receiver comes to the ball or runs across/beyond the line. The
+      // release-time offside snapshot is checked independently of the run.
+      final aim = _attackingAim(before, receiver,
+          receiving: true, releasing: before.carrierNumber);
+      target = _towardMetres(receiver.position, aim,
+          math.min(4.8 * flight, distanceMetres(receiver.position, aim)));
+      flight = (distanceMetres(before.ball, target) / 19).clamp(.18, 2.7);
     }
-    return _resolve(
-        before,
-        AttackAction.pass(targetNumber),
-        flight,
-        targets,
-        _defendingTargets(before, flight),
-        targets[targetNumber]!,
-        targetNumber);
+    return _simulate(
+        before, AttackAction.pass(targetNumber), flight, target, targetNumber,
+        receiverTarget: target);
   }
 
   AttackTransition _supportRun(ScanPassPossessionScene scene,
       AttackState before, ScanPassPossessionChoice support) {
-    final target = _supportTarget(scene, support);
-    final duration = (_attacker(before, 6).position.distanceTo(target) / .19)
-        .clamp(.45, 1.5)
-        .toDouble();
-    final targets = _attackingTargets(before, duration);
-    targets[6] = target;
-    // The ball follows its carrier while the learner moves without it.
-    return _resolve(
-        before,
-        const AttackAction.hold(),
-        duration,
-        targets,
-        _defendingTargets(before, duration),
-        targets[before.carrierNumber]!,
-        before.carrierNumber);
+    final target = _supportTarget(before, support);
+    final duration =
+        distanceMetres(_attacker(before, 6).position, target) / 4.8 + .25;
+    return _simulate(before, const AttackAction.hold(), duration, before.ball,
+        before.carrierNumber,
+        learnerTarget: target);
   }
 
   AttackTransition _shotTransition(
       ScanPassPossessionScene scene, AttackState before) {
     final keeper = _defender(before, 1);
-    final y = keeper.position.y <= .50 ? .585 : .415;
-    final target = ScanPassPoint(1.025, y);
-    final duration =
-        (before.ball.distanceTo(target) / .85).clamp(.25, .65).toDouble();
-    return _resolve(
+    final target = ScanPassPoint(1.008, keeper.position.y <= .5 ? .542 : .458);
+    return _simulate(
         before,
         AttackAction.shoot(
-            y > .5 ? AttackShotTarget.lower : AttackShotTarget.upper),
-        duration,
-        _attackingTargets(before, duration),
-        _defendingTargets(before, duration, shotTarget: target),
+            target.y > .5 ? AttackShotTarget.lower : AttackShotTarget.upper),
+        distanceMetres(before.ball, target) / 25,
         target,
         before.carrierNumber);
   }
 
-  Map<int, ScanPassPoint> _attackingTargets(
-      AttackState before, double duration) {
-    final line = const AttackEngine().offsideLine(before);
-    return {
-      for (final player in before.attackers)
-        player.number: player.number == 6
-            ? player.position
-            : player.number == 4
-                ? _field(player.position + ScanPassPoint(.008 * duration, 0))
-                : _field(ScanPassPoint(
-                    math.min(player.position.x + .035 * duration,
-                        math.max(player.position.x, line - .025)),
-                    player.position.y +
-                        (player.number == 8 ? .008 : -.004) * duration)),
-    };
-  }
-
-  Map<int, ScanPassPoint> _defendingTargets(AttackState before, double duration,
-      {ScanPassPoint? shotTarget, ScanPassPoint? pressTarget}) {
-    final nearest = before.defenders.where((p) => !p.goalkeeper).reduce((a,
-            b) =>
-        a.position.distanceTo(before.ball) < b.position.distanceTo(before.ball)
-            ? a
-            : b);
-    return {
-      for (final p in before.defenders)
-        p.number: p.goalkeeper
-            ? _toward(
-                p.position,
-                ScanPassPoint(
-                    .955, shotTarget?.y ?? (.5 + (before.ball.y - .5) * .3)),
-                .095 * duration)
-            : p.number == nearest.number
-                ? _toward(p.position, pressTarget ?? before.ball,
-                    (pressTarget == null ? .034 : .065) * duration)
-                : _toward(
-                    p.position,
-                    p.number == 5
-                        ? ScanPassPoint(_attacker(before, 9).position.x + .035,
-                            _attacker(before, 9).position.y)
-                        : p.number == 3
-                            ? ScanPassPoint(
-                                _attacker(before, 8).position.x + .035,
-                                _attacker(before, 8).position.y)
-                            : ScanPassPoint(
-                                before.ball.x + .055, before.ball.y),
-                    .022 * duration),
-    };
-  }
-
-  AttackTransition _resolve(
-      AttackState before,
-      AttackAction action,
-      double duration,
-      Map<int, ScanPassPoint> attackers,
-      Map<int, ScanPassPoint> defenders,
-      ScanPassPoint destination,
-      int receiver) {
+  /// A single trajectory is used for collision tests AND rendered frames.
+  /// Roles react every 25 ms; nobody teleports to a new authored formation.
+  AttackTransition _simulate(AttackState before, AttackAction action,
+      double duration, ScanPassPoint destination, int receiver,
+      {ScanPassPoint? learnerTarget, ScanPassPoint? receiverTarget}) {
     final offside = action.kind == AttackActionKind.pass
         ? const AttackEngine().checkOffside(before, receiver)
         : null;
-    var fraction = 1.0;
+    final samples = <AttackState>[before];
+    var current = before;
     int? interceptor;
-    for (var i = 1; i <= 80; i++) {
-      final t = i / 80;
-      final ball = before.ball.lerp(destination, t);
-      for (final d in before.defenders) {
-        if (d.goalkeeper && action.kind != AttackActionKind.shoot) continue;
-        final pos = d.position.lerp(defenders[d.number] ?? d.position, t);
-        final radius = d.goalkeeper
-            ? .040
-            : (action.kind == AttackActionKind.hold ? .020 : .022);
-        if (ball.distanceTo(pos) <= radius) {
-          fraction = t;
-          interceptor = d.number;
-          break;
+    final steps = math.max(1, (duration / .025).ceil());
+    final dt = duration / steps;
+    // Keep the presser committed to the receiver during a pass, with cover
+    // behind. The others track separate threats, not a swarm toward the ball.
+    final pressurePoint =
+        action.kind == AttackActionKind.pass ? destination : before.ball;
+    final presser = before.defenders
+        .where((p) => !p.goalkeeper)
+        .reduce((a, b) => distanceMetres(a.position, pressurePoint) <
+                distanceMetres(b.position, pressurePoint)
+            ? a
+            : b)
+        .number;
+    for (var step = 1; step <= steps; step++) {
+      final t = step / steps;
+      final attackers = <AttackPlayer>[];
+      for (final p in current.attackers) {
+        final start = _attacker(before, p.number);
+        final planned = p.number ==
+                    (action.kind == AttackActionKind.carry
+                        ? before.carrierNumber
+                        : 6) &&
+                learnerTarget != null
+            ? learnerTarget
+            : p.number == receiver && receiverTarget != null
+                ? receiverTarget
+                : null;
+        if (planned != null) {
+          final pos = _plannedPosition(start, planned, t, duration);
+          attackers.add(_moved(p, pos, dt));
+        } else if (p.number == 6 && action.kind != AttackActionKind.pass) {
+          attackers.add(_advance(p, p.position, dt, maxSpeed: 5.8));
+        } else {
+          final aim = _attackingAim(current, p,
+              releasing: before.carrierNumber,
+              carrying: action.kind == AttackActionKind.hold &&
+                  p.number == before.carrierNumber);
+          attackers
+              .add(_advance(p, aim, dt, maxSpeed: p.number == 9 ? 7.0 : 6.2));
         }
       }
-      if (interceptor != null) break;
+      final ball = action.kind == AttackActionKind.pass ||
+              action.kind == AttackActionKind.shoot
+          ? before.ball.lerp(destination, t)
+          : attackers
+              .firstWhere((p) => p.number == before.carrierNumber)
+              .position;
+      final defenders = <AttackPlayer>[];
+      for (final p in current.defenders) {
+        final reacting =
+            step * dt > (action.kind == AttackActionKind.shoot ? .16 : .12);
+        final aim = !reacting
+            ? p.position + p.velocity * .14
+            : _defendingAim(current, p, presser, action, destination, ball);
+        defenders.add(_advance(p, aim, dt,
+            maxSpeed: p.goalkeeper
+                ? 4.7
+                : p.number == presser
+                    ? 7.0
+                    : 6.0));
+      }
+      var next = current.copyWith(
+          attackers: attackers,
+          defenders: defenders,
+          ball: ball,
+          elapsed: before.elapsed + duration * t);
+      double collision = 2;
+      for (final d in current.defenders) {
+        if (d.goalkeeper && action.kind != AttackActionKind.shoot) continue;
+        final endD = defenders.firstWhere((p) => p.number == d.number);
+        final startRelative = _metres(current.ball - d.position);
+        final endRelative = _metres(ball - endD.position);
+        final delta = endRelative - startRelative;
+        final fraction = delta.distance < .00001
+            ? 0.0
+            : (-(startRelative.x * delta.x + startRelative.y * delta.y) /
+                    (delta.distance * delta.distance))
+                .clamp(0.0, 1.0);
+        final closest = startRelative.lerp(endRelative, fraction).distance;
+        final radius = d.goalkeeper ? 1.5 : .90;
+        if (closest <= radius && fraction < collision) {
+          collision = fraction;
+          interceptor = d.number;
+        }
+      }
+      if (interceptor != null) {
+        // Interpolate the collision instant, not just a sampled end point.
+        next = _interpolateStates(current, next, collision);
+        current = next;
+        samples.add(next);
+        break;
+      }
+      current = next;
+      samples.add(next);
     }
     if (interceptor == null && offside?.offside == true) {
       return AttackTransition(
@@ -818,24 +915,15 @@ class ScanPassPossessionLessonEngine {
         : action.kind == AttackActionKind.shoot
             ? AttackEnd.goal
             : null;
-    final elapsed = duration * fraction;
-    final finalBall = before.ball.lerp(destination, fraction);
-    final after = _stateAfterMovement(before,
-        duration: elapsed,
-        attackerTargets: {
-          for (final p in before.attackers)
-            p.number:
-                p.position.lerp(attackers[p.number] ?? p.position, fraction)
-        },
-        defenderTargets: {
-          for (final p in before.defenders)
-            p.number:
-                p.position.lerp(defenders[p.number] ?? p.position, fraction)
-        },
-        ball: finalBall,
-        carrierNumber: interceptor == null ? receiver : before.carrierNumber,
+    final after = current.copyWith(
+        carrierNumber: end == null && action.kind == AttackActionKind.pass
+            ? receiver
+            : before.carrierNumber,
         completedPasses: before.completedPasses +
             (action.kind == AttackActionKind.pass && end == null ? 1 : 0),
+        actionCount: before.actionCount + 1,
+        furthestX: math.max(before.furthestX, current.ball.x),
+        end: end,
         cue: switch (end) {
           AttackEnd.intercepted => AttackCue.intercepted,
           AttackEnd.saved => AttackCue.saved,
@@ -844,69 +932,217 @@ class ScanPassPossessionLessonEngine {
           _ => action.kind == AttackActionKind.pass
               ? AttackCue.received
               : AttackCue.carried
-        },
-        end: end);
+        });
+    samples[samples.length - 1] = after;
     return AttackTransition(
         before: before,
         after: after,
         action: action,
-        duration: elapsed,
-        ballEnd: finalBall,
+        duration: after.elapsed - before.elapsed,
+        ballEnd: after.ball,
         offside: offside,
-        interceptorNumber: interceptor);
+        interceptorNumber: interceptor,
+        motionSamples: List.unmodifiable(samples));
   }
 
-  AttackState _stateAfterMovement(
-    AttackState before, {
-    required double duration,
-    required Map<int, ScanPassPoint> attackerTargets,
-    required Map<int, ScanPassPoint> defenderTargets,
-    required ScanPassPoint ball,
-    required int carrierNumber,
-    required AttackCue cue,
-    int? completedPasses,
-    AttackEnd? end,
-  }) {
-    final attackers = <AttackPlayer>[
-      for (final player in before.attackers)
-        _moved(player, attackerTargets[player.number] ?? player.position,
-            duration),
-    ];
-    final defenders = <AttackPlayer>[
-      for (final player in before.defenders)
-        _moved(player, defenderTargets[player.number] ?? player.position,
-            duration),
-    ];
-    return before.copyWith(
-      attackers: attackers,
-      defenders: defenders,
-      ball: ball,
-      carrierNumber: carrierNumber,
-      elapsed: before.elapsed + duration,
-      actionCount: before.actionCount + 1,
-      completedPasses: completedPasses ?? before.completedPasses,
-      furthestX: math.max(before.furthestX, ball.x),
-      end: end,
-      cue: cue,
-    );
+  ScanPassPoint _attackingAim(AttackState state, AttackPlayer player,
+      {bool receiving = false, bool carrying = false, int? releasing}) {
+    final ball = state.ball;
+    final nearest = state.defenders.where((p) => !p.goalkeeper).reduce((a, b) =>
+        distanceMetres(a.position, player.position) <
+                distanceMetres(b.position, player.position)
+            ? a
+            : b);
+    final side = player.position.y >= .5 ? 1.0 : -1.0;
+    if (carrying) {
+      final away = _metres(player.position - nearest.position);
+      final direction = away.distance < .01
+          ? const ScanPassPoint(1, 0)
+          : away * (1 / away.distance);
+      return _field(player.position +
+          _normalized(ScanPassPoint(direction.x * 4 + 1, direction.y * 4)));
+    }
+    if (player.number == 4) {
+      return _field(
+          ball + _normalized(ScanPassPoint(-14, ball.y > .5 ? -7 : 7)));
+    }
+    if (player.number == 6) {
+      if (receiving) {
+        return _field(
+            player.position + _normalized(ScanPassPoint(1.2, -side * 1.2)));
+      }
+      if (releasing == 6) {
+        return _field(
+            player.position + _normalized(ScanPassPoint(3, -side * 2)));
+      }
+      return player.position;
+    }
+    if (player.number == 8) {
+      // An angle below the striker supports a bounce pass; when the ball is
+      // behind, check toward it instead of always drifting straight forward.
+      final x = receiving
+          ? player.position.x - .022
+          : math.max(ball.x + .09, player.position.x - .015);
+      final y = ball.y + (player.position.y < ball.y ? -.16 : .16);
+      return _field(ScanPassPoint(x, y));
+    }
+    final line = const AttackEngine().offsideLine(state);
+    final ready = receiving || state.carrierNumber == 6 && ball.x > .60;
+    final x = ready
+        ? player.position.x + .10
+        : math.min(line - .012, math.max(ball.x + .18, player.position.x));
+    // Diagonal, onside checking runs rather than a static striker or a
+    // guaranteed offside trap. Once a pass is released the target can break.
+    final y = player.position.y +
+        (player.position.y < nearest.position.y ? -.055 : .055);
+    return _field(ScanPassPoint(x, y));
   }
 
-  ScanPassPoint _touchAwayTarget(ScanPassPossessionScene scene) =>
-      _field(scene.reception.ball + const ScanPassPoint(.057, .075));
+  ScanPassPoint _defendingAim(
+      AttackState state,
+      AttackPlayer player,
+      int presser,
+      AttackAction action,
+      ScanPassPoint destination,
+      ScanPassPoint travellingBall) {
+    if (player.goalkeeper) {
+      final y = action.kind == AttackActionKind.shoot
+          ? destination.y
+          : .5 + (travellingBall.y - .5) * .28;
+      return ScanPassPoint(.965, y.clamp(.445, .555));
+    }
+    if (player.number == presser) {
+      // Anticipate a short distance along the flight; recover toward goal
+      // when the ball has beaten the first line.
+      final target = action.kind == AttackActionKind.pass
+          ? travellingBall.lerp(destination, .22)
+          : travellingBall;
+      return _field(target);
+    }
+    final covers = state.defenders
+        .where((p) => !p.goalkeeper && p.number != presser)
+        .toList()
+      ..sort((a, b) => b.position.x.compareTo(a.position.x));
+    final threatNumber = player.number == covers.first.number ? 9 : 8;
+    final threat = _attacker(state, threatNumber).position;
+    final lane = travellingBall.lerp(threat, .72);
+    final goalSide = threat + _normalized(const ScanPassPoint(2.5, 0));
+    final cover = lane.lerp(goalSide, .38);
+    // Ball-side compactness and staggered depth: retain a cover position
+    // between receiver and goal rather than stand beside the pressing player.
+    return _field(
+        ScanPassPoint(math.max(cover.x, travellingBall.x + .027), cover.y));
+  }
+
+  AttackPlayer _advance(AttackPlayer p, ScanPassPoint target, double dt,
+      {required double maxSpeed}) {
+    final delta = _metres(target - p.position);
+    final old = _metres(p.velocity);
+    const acceleration = 5.5;
+    final speed =
+        math.min(maxSpeed, math.sqrt(2 * acceleration * delta.distance));
+    final desired = delta.distance < .025
+        ? const ScanPassPoint(0, 0)
+        : delta * (speed / delta.distance);
+    final change = desired - old;
+    final velocity = old +
+        (change.distance <= acceleration * dt
+            ? change
+            : change * (acceleration * dt / change.distance));
+    final bounded = velocity;
+    final pos = _field(p.position + _normalized(bounded * dt));
+    return _moved(p, pos, dt);
+  }
+
+  ScanPassPoint _plannedPosition(
+      AttackPlayer p, ScanPassPoint target, double t, double duration) {
+    final delta = _metres(target - p.position);
+    final distance = delta.distance;
+    if (distance < .001) return target;
+    final old = _metres(p.velocity);
+    final direction = delta * (1 / distance);
+    final startSpeed = (old.x * direction.x + old.y * direction.y)
+        .clamp(0.0, math.min(3.5, distance / duration));
+    final endSpeed = math.min(2.0, distance / duration);
+    final t2 = t * t, t3 = t2 * t;
+    final progress = (startSpeed * duration * (t3 - 2 * t2 + t) +
+            distance * (-2 * t3 + 3 * t2) +
+            endSpeed * duration * (t3 - t2)) /
+        distance;
+    // The displayed run vector and metre label are the exact travelled path.
+    return _field(p.position.lerp(target, progress));
+  }
+
+  static AttackState _interpolateStates(
+          AttackState a, AttackState b, double t) =>
+      a.copyWith(
+          attackers: [
+            for (final p in a.attackers)
+              p.copyWith(
+                  position: p.position.lerp(
+                      b.attackers
+                          .firstWhere((q) => q.number == p.number)
+                          .position,
+                      t),
+                  velocity: p.velocity.lerp(
+                      b.attackers
+                          .firstWhere((q) => q.number == p.number)
+                          .velocity,
+                      t))
+          ],
+          defenders: [
+            for (final p in a.defenders)
+              p.copyWith(
+                  position: p.position.lerp(
+                      b.defenders
+                          .firstWhere((q) => q.number == p.number)
+                          .position,
+                      t),
+                  velocity: p.velocity.lerp(
+                      b.defenders
+                          .firstWhere((q) => q.number == p.number)
+                          .velocity,
+                      t))
+          ],
+          ball: a.ball.lerp(b.ball, t),
+          elapsed: a.elapsed + (b.elapsed - a.elapsed) * t);
+
+  ScanPassPoint _touchAwayTarget(ScanPassPossessionScene scene) {
+    final state = scene.reception;
+    final defender = state.defenders.where((p) => !p.goalkeeper).reduce(
+        (a, b) => distanceMetres(a.position, state.ball) <
+                distanceMetres(b.position, state.ball)
+            ? a
+            : b);
+    final away = _metres(state.ball - defender.position);
+    final direction = ScanPassPoint(.65, away.y >= 0 ? 1 : -1);
+    return _field(
+        state.ball + _normalized(direction * (2.8 / direction.distance)));
+  }
 
   ScanPassPoint _turnForwardTarget(ScanPassPossessionScene scene) =>
-      _field(scene.reception.ball + const ScanPassPoint(.10, -.035));
+      _field(scene.reception.ball + _normalized(const ScanPassPoint(3.2, 0)));
 
   ScanPassPoint _supportTarget(
-          ScanPassPossessionScene scene, ScanPassPossessionChoice support) =>
-      switch (support) {
-        ScanPassPossessionChoice.supportInside =>
-          const ScanPassPoint(.642, .488),
-        ScanPassPossessionChoice.supportWide => const ScanPassPoint(.662, .350),
-        ScanPassPossessionChoice.supportBehind =>
-          const ScanPassPoint(.505, .610),
-        _ => throw StateError('Not a support choice: $support'),
-      };
+      AttackState state, ScanPassPossessionChoice choice) {
+    final origin = _attacker(state, 6).position;
+    final side = origin.y >= .5 ? 1.0 : -1.0;
+    final delta = switch (choice) {
+      ScanPassPossessionChoice.supportInside => ScanPassPoint(7, -side * 4),
+      ScanPassPossessionChoice.supportWide => ScanPassPoint(5, side * 6),
+      ScanPassPossessionChoice.supportBehind => ScanPassPoint(-4, -side * 4),
+      _ => throw StateError('Not a support choice: $choice')
+    };
+    return _field(origin + _normalized(delta));
+  }
+
+  static ScanPassPoint _towardMetres(
+      ScanPassPoint from, ScanPassPoint to, double distance) {
+    final delta = _metres(to - from);
+    return delta.distance <= distance || delta.distance < .00001
+        ? _field(to)
+        : _field(from + _normalized(delta * (distance / delta.distance)));
+  }
 
   static AttackPlayer _attacker(AttackState state, int number) =>
       state.attackers.firstWhere((player) => player.number == number);
@@ -930,18 +1166,6 @@ class ScanPassPossessionLessonEngine {
     );
   }
 
-  static ScanPassPoint _toward(
-    ScanPassPoint from,
-    ScanPassPoint to,
-    double distance,
-  ) {
-    final delta = to - from;
-    if (delta.distance <= distance || delta.distance < .00001) {
-      return _field(to);
-    }
-    return _field(from + delta * (distance / delta.distance));
-  }
-
   static ScanPassPoint _field(ScanPassPoint point) =>
-      point.clampToField(minX: .055, maxX: 1.025, minY: .08, maxY: .92);
+      point.clampToField(minX: .055, maxX: .975, minY: .08, maxY: .92);
 }

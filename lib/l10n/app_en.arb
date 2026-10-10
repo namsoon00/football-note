@@ -10866,18 +10866,112 @@
   "scanPassJudgmentCoachShort": "Coach",
   "scanPassPossessionModeGuided": "Guided",
   "scanPassPossessionModeIndependent": "Independent",
-  "scanPassPossessionModeChangedCue": "Changed cue",
-  "scanPassPossessionPracticeAction": "Practice",
-  "scanPassPossessionPracticeTooltip": "Open Scan Pass practice options",
-  "scanPassPossessionPracticeTitle": "Practice options",
+  "scanPassPossessionModeChangedCue": "Different defensive setup",
+  "scanPassPossessionPracticeAction": "Situations",
+  "scanPassPossessionPracticeTooltip": "Open Scan Pass situations",
+  "scanPassPossessionPracticeTitle": "Situations",
   "scanPassPossessionJudgmentPracticeAction": "48-scene judgment practice",
-  "scanPassPossessionHelpBody": "Read the pressure before number 6 receives, choose the first touch, connect the next player, then move number 6 again to support the attack. The model shows the full possession outcome and compares your route with a coach route from the same start.",
+  "scanPassPossessionCatalogTitle": "Choose an attacking situation",
+  "scanPassPossessionCatalogIntro": "Choose a situation and play through the attack. Compare your route with the coach afterwards.",
+  "scanPassPossessionCatalogReturnAction": "Return to the situation catalog",
+  "scanPassPossessionCatalogReturnShort": "Situations",
+  "scanPassPossessionCatalogCardProgress": "{current}/{total}",
+  "@scanPassPossessionCatalogCardProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionSceneProgressTitle": "{current}/{total} · {title}",
+  "@scanPassPossessionSceneProgressTitle": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionScenarioStatus": "{current}/{total} · {title} · {status}",
+  "@scanPassPossessionScenarioStatus": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "title": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionStartScenarioAction": "Play",
+  "scanPassPossessionNextScenarioAction": "Next situation",
+  "scanPassPossessionCoachDemoAction": "Coach demo",
+  "scanPassPossessionFreeAttackDescription": "Continue an attack with open choices outside the situation sequence.",
+  "scanPassPossessionOpenFreeAttackAction": "Open",
+  "scanPassPossessionSpeedNormal": "1x",
+  "scanPassPossessionSpeedSlow": "0.65x",
+  "scanPassPossessionSlowMotionTooltip": "Toggle slower viewing speed",
+  "scanPassPossessionLegendPassPath": "Pass",
+  "scanPassPossessionLegendRunPath": "#6 run",
+  "scanPassPossessionScenarioTitle": "{situation} · {setup}",
+  "@scanPassPossessionScenarioTitle": {
+    "placeholders": {
+      "situation": {
+        "type": "String"
+      },
+      "setup": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionScenarioDescription": "{situation} {setup}",
+  "@scanPassPossessionScenarioDescription": {
+    "placeholders": {
+      "situation": {
+        "type": "String"
+      },
+      "setup": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionVariantPressure": "Pressure setup",
+  "scanPassPossessionVariantCover": "Passing-lane cover",
+  "scanPassPossessionVariantPressureDescription": "The closest defender steps toward #6 as the ball arrives.",
+  "scanPassPossessionVariantCoverDescription": "The first defender protects space while the cover line shifts.",
+  "scanPassPossessionSituationCentralReceive": "Central receive",
+  "scanPassPossessionSituationCentralReceiveDescription": "Number 6 receives centrally with support ahead and behind.",
+  "scanPassPossessionSituationHalfSpace": "Half-space receive",
+  "scanPassPossessionSituationHalfSpaceDescription": "#6 receives on the inside channel with #8 ahead.",
+  "scanPassPossessionSituationTouchline": "Touchline receive",
+  "scanPassPossessionSituationTouchlineDescription": "#6 receives near the side with limited outside room.",
+  "scanPassPossessionSituationLayoff": "Layoff angle",
+  "scanPassPossessionSituationLayoffDescription": "Number 6 receives between angled passing options, with number 4 behind as a return option.",
+  "scanPassPossessionSituationThirdPlayer": "Third-player link",
+  "scanPassPossessionSituationThirdPlayerDescription": "#8 and #9 move so the next pass can unlock a return lane.",
+  "scanPassPossessionSituationTransition": "Transition receive",
+  "scanPassPossessionSituationTransitionDescription": "#6 receives while both teams are still recovering into shape.",
+  "scanPassPossessionHelpBody": "Choose a situation, read the pressure before number 6 receives, then choose a first touch, pass and supporting run. Solid lines show the ball; dashed lines show your run and arrival. Compare the full attack with the coach, or use pause and slow playback to look again.",
   "scanPassPossessionGuidedStatus": "Play as #6 · Escape pressure and connect the attack.",
   "scanPassPossessionObserveStatus": "Watch number 6 receive before choosing.",
-  "scanPassPossessionChangedObserveStatus": "The movement has changed. Read the first defender and the space around #8 again.",
-  "scanPassPossessionChooseStatus": "Goal: escape pressure and give the next receiver room to advance.",
-  "scanPassPossessionExecutingStatus": "Watch the possession continue from that choice.",
-  "scanPassPossessionReviewStatus": "Compare the full possession and inspect the turning point.",
+  "scanPassPossessionChangedObserveStatus": "Different defensive setup: read the first defender and the space around #8 again.",
+  "scanPassPossessionChooseStatus": "Escape pressure and open the next pass.",
+  "scanPassPossessionExecutingStatus": "Watch how your movement develops the attack.",
+  "scanPassPossessionReviewStatus": "Compare your attack with the coach’s route.",
   "scanPassPossessionGuidedObjective": "Objective: break first pressure and give the next receiver time to advance.",
   "scanPassPossessionCuePressure": "Defender #2 approaches #6. Watch which side is closing.",
   "scanPassPossessionCuePressureRetreats": "#2 retreats while #3 covers the space near #8.",
@@ -10886,7 +10980,7 @@
   "scanPassPossessionNextCueAction": "Next cue",
   "scanPassPossessionPlayCoachRouteAction": "Play route",
   "scanPassPossessionTryIndependentAction": "Try it",
-  "scanPassPossessionChangedCueAction": "Changed cue",
+  "scanPassPossessionChangedCueAction": "Different defensive setup",
   "scanPassPossessionReplayAction": "Replay selected possession",
   "scanPassPossessionGuidedBranch": "Guided read",
   "scanPassPossessionMineBranch": "My attack",
@@ -10914,6 +11008,61 @@
   "scanPassPossessionChoiceSupportInsideLabel": "Move number 6 into the inside return angle",
   "scanPassPossessionChoiceSupportWideLabel": "Move number 6 into the wide return angle",
   "scanPassPossessionChoiceSupportBehindLabel": "Move number 6 behind the ball",
+  "scanPassPossessionNumberedChoice": "{number}. {choice} · {metres}m",
+  "@scanPassPossessionNumberedChoice": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "choice": {
+        "type": "String"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionChoiceWithDistanceLabel": "Option {number}: {choice}. Route distance {metres} metres.",
+  "@scanPassPossessionChoiceWithDistanceLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "choice": {
+        "type": "String"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionRouteDistance": "{number} · {metres}m",
+  "@scanPassPossessionRouteDistance": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionSelectedRouteDistance": "Ball · {metres} m",
+  "@scanPassPossessionSelectedRouteDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionSelectedRunDistance": "#6 run · {metres}m",
+  "@scanPassPossessionSelectedRunDistance": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
   "scanPassPossessionMomentReceive": "Receive",
   "scanPassPossessionMomentTouch": "Touch",
   "scanPassPossessionMomentLink": "Link",

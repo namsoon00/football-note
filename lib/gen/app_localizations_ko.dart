@@ -19414,23 +19414,150 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassPossessionModeIndependent => '혼자 읽기';
 
   @override
-  String get scanPassPossessionModeChangedCue => '바뀐 단서';
+  String get scanPassPossessionModeChangedCue => '다른 수비 상황';
 
   @override
-  String get scanPassPossessionPracticeAction => '연습';
+  String get scanPassPossessionPracticeAction => '상황';
 
   @override
-  String get scanPassPossessionPracticeTooltip => '스캔 패스 연습 옵션 열기';
+  String get scanPassPossessionPracticeTooltip => '스캔 패스 상황 열기';
 
   @override
-  String get scanPassPossessionPracticeTitle => '연습 옵션';
+  String get scanPassPossessionPracticeTitle => '상황';
 
   @override
   String get scanPassPossessionJudgmentPracticeAction => '48장면 판단 연습';
 
   @override
+  String get scanPassPossessionCatalogTitle => '공격 상황 선택';
+
+  @override
+  String get scanPassPossessionCatalogIntro =>
+      '상황을 골라 첫 터치부터 공격을 이어가세요. 끝나면 내 선택과 코치의 전개를 비교할 수 있습니다.';
+
+  @override
+  String get scanPassPossessionCatalogReturnAction => '상황 목록으로 돌아가기';
+
+  @override
+  String get scanPassPossessionCatalogReturnShort => '상황';
+
+  @override
+  String scanPassPossessionCatalogCardProgress(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String scanPassPossessionSceneProgressTitle(
+      int current, int total, String title) {
+    return '$current/$total · $title';
+  }
+
+  @override
+  String scanPassPossessionScenarioStatus(
+      int current, int total, String title, String status) {
+    return '$current/$total · $title · $status';
+  }
+
+  @override
+  String get scanPassPossessionStartScenarioAction => '시작';
+
+  @override
+  String get scanPassPossessionNextScenarioAction => '다음 상황';
+
+  @override
+  String get scanPassPossessionCoachDemoAction => '코치 시범';
+
+  @override
+  String get scanPassPossessionFreeAttackDescription =>
+      '정해진 상황 순서 없이 자유롭게 공격을 이어갑니다.';
+
+  @override
+  String get scanPassPossessionOpenFreeAttackAction => '열기';
+
+  @override
+  String get scanPassPossessionSpeedNormal => '1x';
+
+  @override
+  String get scanPassPossessionSpeedSlow => '0.65x';
+
+  @override
+  String get scanPassPossessionSlowMotionTooltip => '느리게 보기 전환';
+
+  @override
+  String get scanPassPossessionLegendPassPath => '패스';
+
+  @override
+  String get scanPassPossessionLegendRunPath => '6번 이동';
+
+  @override
+  String scanPassPossessionScenarioTitle(String situation, String setup) {
+    return '$situation · $setup';
+  }
+
+  @override
+  String scanPassPossessionScenarioDescription(String situation, String setup) {
+    return '$situation $setup';
+  }
+
+  @override
+  String get scanPassPossessionVariantPressure => '압박 수비';
+
+  @override
+  String get scanPassPossessionVariantCover => '패스길 차단';
+
+  @override
+  String get scanPassPossessionVariantPressureDescription =>
+      '공이 도착할 때 가장 가까운 수비가 6번 쪽으로 좁혀 옵니다.';
+
+  @override
+  String get scanPassPossessionVariantCoverDescription =>
+      '첫 수비가 공간을 지키고 뒤쪽 커버 라인이 함께 움직입니다.';
+
+  @override
+  String get scanPassPossessionSituationCentralReceive => '중앙 받기';
+
+  @override
+  String get scanPassPossessionSituationCentralReceiveDescription =>
+      '6번이 중앙에서 받고 앞뒤에 동료가 지원합니다.';
+
+  @override
+  String get scanPassPossessionSituationHalfSpace => '하프스페이스 받기';
+
+  @override
+  String get scanPassPossessionSituationHalfSpaceDescription =>
+      '6번이 안쪽 채널에서 받고 앞쪽에는 8번이 움직입니다.';
+
+  @override
+  String get scanPassPossessionSituationTouchline => '터치라인 받기';
+
+  @override
+  String get scanPassPossessionSituationTouchlineDescription =>
+      '6번이 측면 가까이에서 받아 바깥 공간이 제한됩니다.';
+
+  @override
+  String get scanPassPossessionSituationLayoff => '리턴 각도';
+
+  @override
+  String get scanPassPossessionSituationLayoffDescription =>
+      '6번이 대각선 패스길 사이에서 받습니다. 뒤에는 4번이 리턴 패스를 준비합니다.';
+
+  @override
+  String get scanPassPossessionSituationThirdPlayer => '제3자 연결';
+
+  @override
+  String get scanPassPossessionSituationThirdPlayerDescription =>
+      '8번과 9번의 움직임이 다음 패스와 리턴 길을 엽니다.';
+
+  @override
+  String get scanPassPossessionSituationTransition => '전환 받기';
+
+  @override
+  String get scanPassPossessionSituationTransitionDescription =>
+      '양 팀이 아직 대형을 회복하는 동안 6번이 공을 받습니다.';
+
+  @override
   String get scanPassPossessionHelpBody =>
-      '6번이 받기 전 압박을 읽고, 첫 터치를 고른 뒤 다음 선수를 연결하고, 다시 6번이 움직여 공격을 돕습니다. 모델은 전체 소유 흐름의 결과를 보여 주고 같은 시작점의 코치 경로와 비교합니다.';
+      '상황을 고르고 6번이 받기 전 압박을 읽으세요. 첫 터치, 패스, 다시 움직일 방향을 선택합니다. 실선은 공, 점선은 내 선수의 이동과 도착 지점을 보여줍니다. 공격을 끝까지 본 뒤 코치의 전개와 비교하세요. 멈추거나 느리게 다시 볼 수도 있습니다.';
 
   @override
   String get scanPassPossessionGuidedStatus => '6번으로 플레이 · 압박을 풀고 공격을 이어가세요.';
@@ -19440,18 +19567,17 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassPossessionChangedObserveStatus =>
-      '움직임이 달라졌습니다. 첫 수비와 8번 주변을 다시 살펴보세요.';
+      '다른 수비 상황입니다. 첫 수비와 8번 주변 공간을 다시 읽어 보세요.';
 
   @override
-  String get scanPassPossessionChooseStatus =>
-      '목표: 압박을 풀고 다음 동료에게 전진할 여유를 만드세요.';
+  String get scanPassPossessionChooseStatus => '압박을 벗어나 다음 패스길을 만드세요.';
 
   @override
   String get scanPassPossessionExecutingStatus =>
-      '그 선택에서 소유 흐름이 어떻게 이어지는지 봅니다.';
+      '선택한 움직임으로 공격이 어떻게 이어지는지 보세요.';
 
   @override
-  String get scanPassPossessionReviewStatus => '전체 소유 흐름을 비교하고 전환점을 확인하세요.';
+  String get scanPassPossessionReviewStatus => '내 공격과 코치의 전개를 비교하세요.';
 
   @override
   String get scanPassPossessionGuidedObjective =>
@@ -19482,7 +19608,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scanPassPossessionTryIndependentAction => '직접 해보기';
 
   @override
-  String get scanPassPossessionChangedCueAction => '바뀐 단서';
+  String get scanPassPossessionChangedCueAction => '다른 수비 상황';
 
   @override
   String get scanPassPossessionReplayAction => '선택한 소유 흐름 다시 보기';
@@ -19566,6 +19692,33 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassPossessionChoiceSupportBehindLabel => '6번을 공 뒤쪽으로 움직이기';
+
+  @override
+  String scanPassPossessionNumberedChoice(
+      int number, String choice, String metres) {
+    return '$number. $choice · ${metres}m';
+  }
+
+  @override
+  String scanPassPossessionChoiceWithDistanceLabel(
+      int number, String choice, String metres) {
+    return '$number번 선택: $choice. 이동 거리 $metres미터.';
+  }
+
+  @override
+  String scanPassPossessionRouteDistance(String number, String metres) {
+    return '$number · ${metres}m';
+  }
+
+  @override
+  String scanPassPossessionSelectedRouteDistance(String metres) {
+    return '공 이동 · ${metres}m';
+  }
+
+  @override
+  String scanPassPossessionSelectedRunDistance(String metres) {
+    return '6번 이동 · ${metres}m';
+  }
 
   @override
   String get scanPassPossessionMomentReceive => '받기';

@@ -20113,25 +20113,153 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassPossessionModeIndependent => 'Independent';
 
   @override
-  String get scanPassPossessionModeChangedCue => 'Changed cue';
+  String get scanPassPossessionModeChangedCue => 'Different defensive setup';
 
   @override
-  String get scanPassPossessionPracticeAction => 'Practice';
+  String get scanPassPossessionPracticeAction => 'Situations';
 
   @override
-  String get scanPassPossessionPracticeTooltip =>
-      'Open Scan Pass practice options';
+  String get scanPassPossessionPracticeTooltip => 'Open Scan Pass situations';
 
   @override
-  String get scanPassPossessionPracticeTitle => 'Practice options';
+  String get scanPassPossessionPracticeTitle => 'Situations';
 
   @override
   String get scanPassPossessionJudgmentPracticeAction =>
       '48-scene judgment practice';
 
   @override
+  String get scanPassPossessionCatalogTitle => 'Choose an attacking situation';
+
+  @override
+  String get scanPassPossessionCatalogIntro =>
+      'Choose a situation and play through the attack. Compare your route with the coach afterwards.';
+
+  @override
+  String get scanPassPossessionCatalogReturnAction =>
+      'Return to the situation catalog';
+
+  @override
+  String get scanPassPossessionCatalogReturnShort => 'Situations';
+
+  @override
+  String scanPassPossessionCatalogCardProgress(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String scanPassPossessionSceneProgressTitle(
+      int current, int total, String title) {
+    return '$current/$total · $title';
+  }
+
+  @override
+  String scanPassPossessionScenarioStatus(
+      int current, int total, String title, String status) {
+    return '$current/$total · $title · $status';
+  }
+
+  @override
+  String get scanPassPossessionStartScenarioAction => 'Play';
+
+  @override
+  String get scanPassPossessionNextScenarioAction => 'Next situation';
+
+  @override
+  String get scanPassPossessionCoachDemoAction => 'Coach demo';
+
+  @override
+  String get scanPassPossessionFreeAttackDescription =>
+      'Continue an attack with open choices outside the situation sequence.';
+
+  @override
+  String get scanPassPossessionOpenFreeAttackAction => 'Open';
+
+  @override
+  String get scanPassPossessionSpeedNormal => '1x';
+
+  @override
+  String get scanPassPossessionSpeedSlow => '0.65x';
+
+  @override
+  String get scanPassPossessionSlowMotionTooltip =>
+      'Toggle slower viewing speed';
+
+  @override
+  String get scanPassPossessionLegendPassPath => 'Pass';
+
+  @override
+  String get scanPassPossessionLegendRunPath => '#6 run';
+
+  @override
+  String scanPassPossessionScenarioTitle(String situation, String setup) {
+    return '$situation · $setup';
+  }
+
+  @override
+  String scanPassPossessionScenarioDescription(String situation, String setup) {
+    return '$situation $setup';
+  }
+
+  @override
+  String get scanPassPossessionVariantPressure => 'Pressure setup';
+
+  @override
+  String get scanPassPossessionVariantCover => 'Passing-lane cover';
+
+  @override
+  String get scanPassPossessionVariantPressureDescription =>
+      'The closest defender steps toward #6 as the ball arrives.';
+
+  @override
+  String get scanPassPossessionVariantCoverDescription =>
+      'The first defender protects space while the cover line shifts.';
+
+  @override
+  String get scanPassPossessionSituationCentralReceive => 'Central receive';
+
+  @override
+  String get scanPassPossessionSituationCentralReceiveDescription =>
+      'Number 6 receives centrally with support ahead and behind.';
+
+  @override
+  String get scanPassPossessionSituationHalfSpace => 'Half-space receive';
+
+  @override
+  String get scanPassPossessionSituationHalfSpaceDescription =>
+      '#6 receives on the inside channel with #8 ahead.';
+
+  @override
+  String get scanPassPossessionSituationTouchline => 'Touchline receive';
+
+  @override
+  String get scanPassPossessionSituationTouchlineDescription =>
+      '#6 receives near the side with limited outside room.';
+
+  @override
+  String get scanPassPossessionSituationLayoff => 'Layoff angle';
+
+  @override
+  String get scanPassPossessionSituationLayoffDescription =>
+      'Number 6 receives between angled passing options, with number 4 behind as a return option.';
+
+  @override
+  String get scanPassPossessionSituationThirdPlayer => 'Third-player link';
+
+  @override
+  String get scanPassPossessionSituationThirdPlayerDescription =>
+      '#8 and #9 move so the next pass can unlock a return lane.';
+
+  @override
+  String get scanPassPossessionSituationTransition => 'Transition receive';
+
+  @override
+  String get scanPassPossessionSituationTransitionDescription =>
+      '#6 receives while both teams are still recovering into shape.';
+
+  @override
   String get scanPassPossessionHelpBody =>
-      'Read the pressure before number 6 receives, choose the first touch, connect the next player, then move number 6 again to support the attack. The model shows the full possession outcome and compares your route with a coach route from the same start.';
+      'Choose a situation, read the pressure before number 6 receives, then choose a first touch, pass and supporting run. Solid lines show the ball; dashed lines show your run and arrival. Compare the full attack with the coach, or use pause and slow playback to look again.';
 
   @override
   String get scanPassPossessionGuidedStatus =>
@@ -20143,19 +20271,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassPossessionChangedObserveStatus =>
-      'The movement has changed. Read the first defender and the space around #8 again.';
+      'Different defensive setup: read the first defender and the space around #8 again.';
 
   @override
   String get scanPassPossessionChooseStatus =>
-      'Goal: escape pressure and give the next receiver room to advance.';
+      'Escape pressure and open the next pass.';
 
   @override
   String get scanPassPossessionExecutingStatus =>
-      'Watch the possession continue from that choice.';
+      'Watch how your movement develops the attack.';
 
   @override
   String get scanPassPossessionReviewStatus =>
-      'Compare the full possession and inspect the turning point.';
+      'Compare your attack with the coach’s route.';
 
   @override
   String get scanPassPossessionGuidedObjective =>
@@ -20187,7 +20315,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanPassPossessionTryIndependentAction => 'Try it';
 
   @override
-  String get scanPassPossessionChangedCueAction => 'Changed cue';
+  String get scanPassPossessionChangedCueAction => 'Different defensive setup';
 
   @override
   String get scanPassPossessionReplayAction => 'Replay selected possession';
@@ -20279,6 +20407,33 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get scanPassPossessionChoiceSupportBehindLabel =>
       'Move number 6 behind the ball';
+
+  @override
+  String scanPassPossessionNumberedChoice(
+      int number, String choice, String metres) {
+    return '$number. $choice · ${metres}m';
+  }
+
+  @override
+  String scanPassPossessionChoiceWithDistanceLabel(
+      int number, String choice, String metres) {
+    return 'Option $number: $choice. Route distance $metres metres.';
+  }
+
+  @override
+  String scanPassPossessionRouteDistance(String number, String metres) {
+    return '$number · ${metres}m';
+  }
+
+  @override
+  String scanPassPossessionSelectedRouteDistance(String metres) {
+    return 'Ball · $metres m';
+  }
+
+  @override
+  String scanPassPossessionSelectedRunDistance(String metres) {
+    return '#6 run · ${metres}m';
+  }
 
   @override
   String get scanPassPossessionMomentReceive => 'Receive';

@@ -175,6 +175,7 @@ class AttackTransition {
   final ScanPassPoint ballEnd;
   final AttackOffsideSnapshot? offside;
   final int? interceptorNumber;
+  final List<AttackState> motionSamples;
 
   const AttackTransition(
       {required this.before,
@@ -183,13 +184,44 @@ class AttackTransition {
       required this.duration,
       required this.ballEnd,
       this.offside,
-      this.interceptorNumber});
+      this.interceptorNumber,
+      this.motionSamples = const []});
 
   AttackState frame(double progress) {
     final t = progress.clamp(0.0, 1.0).toDouble();
     // The offside learning view deliberately freezes the release moment.
     if (after.end == AttackEnd.offside) return t >= 1 ? after : before;
     if (t >= 1) return after;
+    if (motionSamples.length > 1) {
+      final elapsed = before.elapsed + duration * t;
+      var index = 1;
+      while (index < motionSamples.length - 1 &&
+          motionSamples[index].elapsed < elapsed) {
+        index++;
+      }
+      final start = motionSamples[index - 1];
+      final finish = motionSamples[index];
+      final span = finish.elapsed - start.elapsed;
+      final local =
+          span <= 0 ? 0.0 : ((elapsed - start.elapsed) / span).clamp(0.0, 1.0);
+      List<AttackPlayer> sample(List<AttackPlayer> a, List<AttackPlayer> b) => [
+            for (final p in a)
+              p.copyWith(
+                  position: p.position.lerp(
+                      b.firstWhere((q) => q.number == p.number).position,
+                      local),
+                  velocity: p.velocity.lerp(
+                      b.firstWhere((q) => q.number == p.number).velocity,
+                      local),
+                  facingRadians:
+                      b.firstWhere((q) => q.number == p.number).facingRadians)
+          ];
+      return start.copyWith(
+          attackers: sample(start.attackers, finish.attackers),
+          defenders: sample(start.defenders, finish.defenders),
+          ball: start.ball.lerp(finish.ball, local),
+          elapsed: elapsed);
+    }
     List<AttackPlayer> interpolate(
             List<AttackPlayer> start, List<AttackPlayer> finish) =>
         [
