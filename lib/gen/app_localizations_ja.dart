@@ -19343,4 +19343,320 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scanPassJudgmentCoachShort => 'コーチ';
+
+  @override
+  String get scanPassPossessionModeGuided => 'ガイド';
+
+  @override
+  String get scanPassPossessionModeIndependent => '自分で読む';
+
+  @override
+  String get scanPassPossessionModeChangedCue => '変化した手掛かり';
+
+  @override
+  String get scanPassPossessionPracticeAction => '練習';
+
+  @override
+  String get scanPassPossessionPracticeTooltip => 'スキャンパスの練習オプションを開く';
+
+  @override
+  String get scanPassPossessionPracticeTitle => '練習オプション';
+
+  @override
+  String get scanPassPossessionJudgmentPracticeAction => '48場面の判断練習';
+
+  @override
+  String get scanPassPossessionHelpBody =>
+      '6番が受ける前にプレッシャーを読み、ファーストタッチを選び、次の味方へつなぎ、もう一度6番が動いて攻撃を支えます。モデルはポゼッション全体の結果を示し、同じ開始地点からのコーチルートと比較します。';
+
+  @override
+  String get scanPassPossessionGuidedStatus => '6番でプレー · プレッシャーを外して攻撃をつなぎましょう。';
+
+  @override
+  String get scanPassPossessionObserveStatus => '選ぶ前に6番が受ける場面を見ましょう。';
+
+  @override
+  String get scanPassPossessionChangedObserveStatus =>
+      '動きが変わりました。最初の守備と8番の周囲をもう一度見ましょう。';
+
+  @override
+  String get scanPassPossessionChooseStatus =>
+      '目標：プレッシャーを外し、次の受け手に前進する余裕を作りましょう。';
+
+  @override
+  String get scanPassPossessionExecutingStatus => 'その選択からポゼッションがどう続くか見ます。';
+
+  @override
+  String get scanPassPossessionReviewStatus => '全体のポゼッションを比較し、分岐点を確認しましょう。';
+
+  @override
+  String get scanPassPossessionGuidedObjective =>
+      '目標：最初のプレッシャーを外し、次の受け手に前進する時間を与える。';
+
+  @override
+  String get scanPassPossessionCuePressure =>
+      '守備の2番が6番へ接近します。どちら側を閉じているか見ましょう。';
+
+  @override
+  String get scanPassPossessionCuePressureRetreats => '2番が下がり、3番が8番の近くをカバーします。';
+
+  @override
+  String get scanPassPossessionCueSupport => '8番の動きと近くの守備を一緒に見ましょう。';
+
+  @override
+  String get scanPassPossessionCueFutureSpace => 'パス後に6番が動き直して再接続できるスペースがあります。';
+
+  @override
+  String get scanPassPossessionNextCueAction => '次の手掛かり';
+
+  @override
+  String get scanPassPossessionPlayCoachRouteAction => 'ルート再生';
+
+  @override
+  String get scanPassPossessionTryIndependentAction => '自分で試す';
+
+  @override
+  String get scanPassPossessionChangedCueAction => '変化した手掛かり';
+
+  @override
+  String get scanPassPossessionReplayAction => '選択したポゼッションを再生';
+
+  @override
+  String get scanPassPossessionGuidedBranch => 'ガイド読み';
+
+  @override
+  String get scanPassPossessionMineBranch => '自分の攻撃';
+
+  @override
+  String get scanPassPossessionCoachBranch => 'コーチの推奨展開';
+
+  @override
+  String get scanPassPossessionMineShort => '自分';
+
+  @override
+  String get scanPassPossessionCoachShort => 'コーチ';
+
+  @override
+  String get scanPassPossessionPromptFirstTouch =>
+      'ファーストタッチ：6番はどこに置くと次の動作が開きますか？';
+
+  @override
+  String get scanPassPossessionPromptNextAction => '次の動作：どの味方なら攻撃を続けられますか？';
+
+  @override
+  String get scanPassPossessionPromptSupport => 'サポート：6番はどこへ動くと再びつながれますか？';
+
+  @override
+  String get scanPassPossessionChoiceTouchAway => '外側へタッチ';
+
+  @override
+  String get scanPassPossessionChoiceTurnForward => '前を向く';
+
+  @override
+  String get scanPassPossessionChoiceLayoff => '落とす';
+
+  @override
+  String get scanPassPossessionChoicePass8 => '8番へ';
+
+  @override
+  String get scanPassPossessionChoicePass9 => '9番へ';
+
+  @override
+  String get scanPassPossessionChoiceRecycle4 => '4番へ循環';
+
+  @override
+  String get scanPassPossessionChoiceSupportInside => '内側';
+
+  @override
+  String get scanPassPossessionChoiceSupportWide => '外側';
+
+  @override
+  String get scanPassPossessionChoiceSupportBehind => '後ろ';
+
+  @override
+  String get scanPassPossessionChoiceTouchAwayLabel => '最初のタッチを画面下側の外のスペースへ';
+
+  @override
+  String get scanPassPossessionChoiceTurnForwardLabel => 'ファーストタッチで前を向く';
+
+  @override
+  String get scanPassPossessionChoiceLayoffLabel => '4番へワンタッチで落とす';
+
+  @override
+  String get scanPassPossessionChoicePass8Label => '8番へパス';
+
+  @override
+  String get scanPassPossessionChoicePass9Label => '9番へパス';
+
+  @override
+  String get scanPassPossessionChoiceRecycle4Label => '4番を使ってポゼッションを循環する';
+
+  @override
+  String get scanPassPossessionChoiceSupportInsideLabel => '6番を内側のリターン角度へ動かす';
+
+  @override
+  String get scanPassPossessionChoiceSupportWideLabel => '6番を外側のリターン角度へ動かす';
+
+  @override
+  String get scanPassPossessionChoiceSupportBehindLabel => '6番をボールの後ろへ動かす';
+
+  @override
+  String get scanPassPossessionMomentReceive => '受ける';
+
+  @override
+  String get scanPassPossessionMomentTouch => 'タッチ';
+
+  @override
+  String get scanPassPossessionMomentLink => '接続';
+
+  @override
+  String get scanPassPossessionMomentSupport => '支援';
+
+  @override
+  String get scanPassPossessionMomentFinish => '仕上げ';
+
+  @override
+  String get scanPassPossessionReviewReceive =>
+      '重要な手掛かりは、6番のファーストタッチ前に守備者が受ける場所へ詰めていることです。';
+
+  @override
+  String get scanPassPossessionReviewReceiveChanged =>
+      '2番が下がり6番の前にスペースができましたが、3番は8番側をカバーしています。';
+
+  @override
+  String get scanPassPossessionReviewTouchEscaped =>
+      'ファーストタッチで直近のプレッシャーを外し、次のパスを残しました。';
+
+  @override
+  String get scanPassPossessionReviewTouchTrapped =>
+      'ファーストタッチ後もプレッシャーが近く、次の選択時間が減りました。';
+
+  @override
+  String get scanPassPossessionReviewReceiverConnected =>
+      'パス成功だけでなく、受け手に次の接続がありました。';
+
+  @override
+  String get scanPassPossessionReviewReceiverIsolated =>
+      'パスは届きましたが、受け手が孤立して循環する必要がありました。';
+
+  @override
+  String get scanPassPossessionReviewSupportConnected =>
+      '6番のサポートランがリターン角度を作り、攻撃を続けました。';
+
+  @override
+  String get scanPassPossessionReviewSupportLate =>
+      'サポート角度が遅いかプレーの後ろに残り、攻撃が止まりました。';
+
+  @override
+  String get scanPassPossessionReviewChance =>
+      'ルートは実際のフィニッシュ機会を作りましたが、シュート結果は保証されません。';
+
+  @override
+  String get scanPassPossessionReviewRecycle =>
+      'ポゼッションは続きましたが、チャンスまでは進まず循環しました。';
+
+  @override
+  String get scanPassPossessionReviewTurnover =>
+      'プレッシャーまたはカバーが先にコースへ届き、ポゼッションが終わりました。';
+
+  @override
+  String get scanPassPossessionOutcomeChance => 'チャンス創出';
+
+  @override
+  String get scanPassPossessionOutcomeRecycle => 'ポゼッション循環';
+
+  @override
+  String get scanPassPossessionOutcomeTurnover => 'ボールロスト';
+
+  @override
+  String get scanPassPossessionDetailTitle => 'この判断で変わったこと';
+
+  @override
+  String scanPassPossessionDetailBody(String outcome, String reason) {
+    return '$outcome\n$reason\n\n推奨展開は同じ開始状況から、コーチのその後の選択も含めて再生します。';
+  }
+
+  @override
+  String get scanPassPossessionFieldSemantics =>
+      '右へ攻撃するコーチ付きポゼッションです。6番が学習者で、ボールと選手は最後まで続き、別のボタンで次の判断を選びます。';
+
+  @override
+  String get scanPassPossessionPause => '一時停止';
+
+  @override
+  String get scanPassPossessionResume => '再開';
+
+  @override
+  String scanPassPossessionMotionPass(int passer, int receiver) {
+    return '$passer番 → $receiver番 · 受けた後のつながりを見ましょう。';
+  }
+
+  @override
+  String scanPassPossessionMotionCarry(int player) {
+    return '$player番のタッチ · 守備との距離を見ましょう。';
+  }
+
+  @override
+  String get scanPassPossessionMotionSupport => '6番がサポートへ · リターンパスのコースを見ましょう。';
+
+  @override
+  String scanPassPossessionMotionShot(int player) {
+    return '$player番のシュート · 攻撃の結末を見ましょう。';
+  }
+
+  @override
+  String scanPassPossessionTouchLost(int opponent) {
+    return '$opponent番が最初のタッチのコースに到達しました。受ける前に守備の接近方向を確認しましょう。';
+  }
+
+  @override
+  String scanPassPossessionTouchSpace(int opponent) {
+    return '$opponent番との距離を確保し、次のプレーの余裕ができました。';
+  }
+
+  @override
+  String scanPassPossessionTouchPressed(int opponent) {
+    return '$opponent番が近く、次のプレーの余裕が少ない状態です。';
+  }
+
+  @override
+  String get scanPassPossessionTouchLayoff =>
+      '4番へ直接つなぎました。次は6番が再び受けられる場所へ移動します。';
+
+  @override
+  String scanPassPossessionPassStopped(int opponent, int receiver) {
+    return '$opponent番が$receiver番へのパスコースに先に到達しました。';
+  }
+
+  @override
+  String scanPassPossessionPassConnected(int receiver, String options) {
+    return '$receiver番につながりました。次にパスできる味方：$options番。';
+  }
+
+  @override
+  String scanPassPossessionPassIsolated(int receiver) {
+    return '$receiver番に届きましたが、次のパスコースがありません。受け手の周囲も確認しましょう。';
+  }
+
+  @override
+  String scanPassPossessionSupportPressed(int opponent, int player) {
+    return '6番が移動する間に、$opponent番がボールを持つ$player番に到達しました。';
+  }
+
+  @override
+  String scanPassPossessionReturnConnected(int player) {
+    return '$player番 → 6番のリターンがつながりました。パス後の移動先が次の攻撃の起点になりました。';
+  }
+
+  @override
+  String get scanPassPossessionReturnClosed =>
+      '6番へのリターンコースが閉じていたため、味方は別のつなぎ方を選びました。サポートではカバーする守備も確認しましょう。';
+
+  @override
+  String scanPassPossessionShotResult(int player, String result) {
+    return '$player番のシュートまでつながりました。$result';
+  }
+
+  @override
+  String get scanPassPossessionLearnerLabel => '自分 · 6番';
 }

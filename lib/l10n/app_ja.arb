@@ -10863,5 +10863,204 @@
       }
     }
   },
-  "scanPassJudgmentCoachShort": "コーチ"
+  "scanPassJudgmentCoachShort": "コーチ",
+  "scanPassPossessionModeGuided": "ガイド",
+  "scanPassPossessionModeIndependent": "自分で読む",
+  "scanPassPossessionModeChangedCue": "変化した手掛かり",
+  "scanPassPossessionPracticeAction": "練習",
+  "scanPassPossessionPracticeTooltip": "スキャンパスの練習オプションを開く",
+  "scanPassPossessionPracticeTitle": "練習オプション",
+  "scanPassPossessionJudgmentPracticeAction": "48場面の判断練習",
+  "scanPassPossessionHelpBody": "6番が受ける前にプレッシャーを読み、ファーストタッチを選び、次の味方へつなぎ、もう一度6番が動いて攻撃を支えます。モデルはポゼッション全体の結果を示し、同じ開始地点からのコーチルートと比較します。",
+  "scanPassPossessionGuidedStatus": "6番でプレー · プレッシャーを外して攻撃をつなぎましょう。",
+  "scanPassPossessionObserveStatus": "選ぶ前に6番が受ける場面を見ましょう。",
+  "scanPassPossessionChangedObserveStatus": "動きが変わりました。最初の守備と8番の周囲をもう一度見ましょう。",
+  "scanPassPossessionChooseStatus": "目標：プレッシャーを外し、次の受け手に前進する余裕を作りましょう。",
+  "scanPassPossessionExecutingStatus": "その選択からポゼッションがどう続くか見ます。",
+  "scanPassPossessionReviewStatus": "全体のポゼッションを比較し、分岐点を確認しましょう。",
+  "scanPassPossessionGuidedObjective": "目標：最初のプレッシャーを外し、次の受け手に前進する時間を与える。",
+  "scanPassPossessionCuePressure": "守備の2番が6番へ接近します。どちら側を閉じているか見ましょう。",
+  "scanPassPossessionCuePressureRetreats": "2番が下がり、3番が8番の近くをカバーします。",
+  "scanPassPossessionCueSupport": "8番の動きと近くの守備を一緒に見ましょう。",
+  "scanPassPossessionCueFutureSpace": "パス後に6番が動き直して再接続できるスペースがあります。",
+  "scanPassPossessionNextCueAction": "次の手掛かり",
+  "scanPassPossessionPlayCoachRouteAction": "ルート再生",
+  "scanPassPossessionTryIndependentAction": "自分で試す",
+  "scanPassPossessionChangedCueAction": "変化した手掛かり",
+  "scanPassPossessionReplayAction": "選択したポゼッションを再生",
+  "scanPassPossessionGuidedBranch": "ガイド読み",
+  "scanPassPossessionMineBranch": "自分の攻撃",
+  "scanPassPossessionCoachBranch": "コーチの推奨展開",
+  "scanPassPossessionMineShort": "自分",
+  "scanPassPossessionCoachShort": "コーチ",
+  "scanPassPossessionPromptFirstTouch": "ファーストタッチ：6番はどこに置くと次の動作が開きますか？",
+  "scanPassPossessionPromptNextAction": "次の動作：どの味方なら攻撃を続けられますか？",
+  "scanPassPossessionPromptSupport": "サポート：6番はどこへ動くと再びつながれますか？",
+  "scanPassPossessionChoiceTouchAway": "外側へタッチ",
+  "scanPassPossessionChoiceTurnForward": "前を向く",
+  "scanPassPossessionChoiceLayoff": "落とす",
+  "scanPassPossessionChoicePass8": "8番へ",
+  "scanPassPossessionChoicePass9": "9番へ",
+  "scanPassPossessionChoiceRecycle4": "4番へ循環",
+  "scanPassPossessionChoiceSupportInside": "内側",
+  "scanPassPossessionChoiceSupportWide": "外側",
+  "scanPassPossessionChoiceSupportBehind": "後ろ",
+  "scanPassPossessionChoiceTouchAwayLabel": "最初のタッチを画面下側の外のスペースへ",
+  "scanPassPossessionChoiceTurnForwardLabel": "ファーストタッチで前を向く",
+  "scanPassPossessionChoiceLayoffLabel": "4番へワンタッチで落とす",
+  "scanPassPossessionChoicePass8Label": "8番へパス",
+  "scanPassPossessionChoicePass9Label": "9番へパス",
+  "scanPassPossessionChoiceRecycle4Label": "4番を使ってポゼッションを循環する",
+  "scanPassPossessionChoiceSupportInsideLabel": "6番を内側のリターン角度へ動かす",
+  "scanPassPossessionChoiceSupportWideLabel": "6番を外側のリターン角度へ動かす",
+  "scanPassPossessionChoiceSupportBehindLabel": "6番をボールの後ろへ動かす",
+  "scanPassPossessionMomentReceive": "受ける",
+  "scanPassPossessionMomentTouch": "タッチ",
+  "scanPassPossessionMomentLink": "接続",
+  "scanPassPossessionMomentSupport": "支援",
+  "scanPassPossessionMomentFinish": "仕上げ",
+  "scanPassPossessionReviewReceive": "重要な手掛かりは、6番のファーストタッチ前に守備者が受ける場所へ詰めていることです。",
+  "scanPassPossessionReviewReceiveChanged": "2番が下がり6番の前にスペースができましたが、3番は8番側をカバーしています。",
+  "scanPassPossessionReviewTouchEscaped": "ファーストタッチで直近のプレッシャーを外し、次のパスを残しました。",
+  "scanPassPossessionReviewTouchTrapped": "ファーストタッチ後もプレッシャーが近く、次の選択時間が減りました。",
+  "scanPassPossessionReviewReceiverConnected": "パス成功だけでなく、受け手に次の接続がありました。",
+  "scanPassPossessionReviewReceiverIsolated": "パスは届きましたが、受け手が孤立して循環する必要がありました。",
+  "scanPassPossessionReviewSupportConnected": "6番のサポートランがリターン角度を作り、攻撃を続けました。",
+  "scanPassPossessionReviewSupportLate": "サポート角度が遅いかプレーの後ろに残り、攻撃が止まりました。",
+  "scanPassPossessionReviewChance": "ルートは実際のフィニッシュ機会を作りましたが、シュート結果は保証されません。",
+  "scanPassPossessionReviewRecycle": "ポゼッションは続きましたが、チャンスまでは進まず循環しました。",
+  "scanPassPossessionReviewTurnover": "プレッシャーまたはカバーが先にコースへ届き、ポゼッションが終わりました。",
+  "scanPassPossessionOutcomeChance": "チャンス創出",
+  "scanPassPossessionOutcomeRecycle": "ポゼッション循環",
+  "scanPassPossessionOutcomeTurnover": "ボールロスト",
+  "scanPassPossessionDetailTitle": "この判断で変わったこと",
+  "scanPassPossessionDetailBody": "{outcome}\n{reason}\n\n推奨展開は同じ開始状況から、コーチのその後の選択も含めて再生します。",
+  "@scanPassPossessionDetailBody": {
+    "placeholders": {
+      "outcome": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionFieldSemantics": "右へ攻撃するコーチ付きポゼッションです。6番が学習者で、ボールと選手は最後まで続き、別のボタンで次の判断を選びます。",
+  "scanPassPossessionPause": "一時停止",
+  "scanPassPossessionResume": "再開",
+  "scanPassPossessionMotionPass": "{passer}番 → {receiver}番 · 受けた後のつながりを見ましょう。",
+  "@scanPassPossessionMotionPass": {
+    "placeholders": {
+      "passer": {
+        "type": "int"
+      },
+      "receiver": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionMotionCarry": "{player}番のタッチ · 守備との距離を見ましょう。",
+  "@scanPassPossessionMotionCarry": {
+    "placeholders": {
+      "player": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionMotionSupport": "6番がサポートへ · リターンパスのコースを見ましょう。",
+  "scanPassPossessionMotionShot": "{player}番のシュート · 攻撃の結末を見ましょう。",
+  "@scanPassPossessionMotionShot": {
+    "placeholders": {
+      "player": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionTouchLost": "{opponent}番が最初のタッチのコースに到達しました。受ける前に守備の接近方向を確認しましょう。",
+  "@scanPassPossessionTouchLost": {
+    "placeholders": {
+      "opponent": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionTouchSpace": "{opponent}番との距離を確保し、次のプレーの余裕ができました。",
+  "@scanPassPossessionTouchSpace": {
+    "placeholders": {
+      "opponent": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionTouchPressed": "{opponent}番が近く、次のプレーの余裕が少ない状態です。",
+  "@scanPassPossessionTouchPressed": {
+    "placeholders": {
+      "opponent": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionTouchLayoff": "4番へ直接つなぎました。次は6番が再び受けられる場所へ移動します。",
+  "scanPassPossessionPassStopped": "{opponent}番が{receiver}番へのパスコースに先に到達しました。",
+  "@scanPassPossessionPassStopped": {
+    "placeholders": {
+      "opponent": {
+        "type": "int"
+      },
+      "receiver": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionPassConnected": "{receiver}番につながりました。次にパスできる味方：{options}番。",
+  "@scanPassPossessionPassConnected": {
+    "placeholders": {
+      "receiver": {
+        "type": "int"
+      },
+      "options": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionPassIsolated": "{receiver}番に届きましたが、次のパスコースがありません。受け手の周囲も確認しましょう。",
+  "@scanPassPossessionPassIsolated": {
+    "placeholders": {
+      "receiver": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionSupportPressed": "6番が移動する間に、{opponent}番がボールを持つ{player}番に到達しました。",
+  "@scanPassPossessionSupportPressed": {
+    "placeholders": {
+      "opponent": {
+        "type": "int"
+      },
+      "player": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionReturnConnected": "{player}番 → 6番のリターンがつながりました。パス後の移動先が次の攻撃の起点になりました。",
+  "@scanPassPossessionReturnConnected": {
+    "placeholders": {
+      "player": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPassPossessionReturnClosed": "6番へのリターンコースが閉じていたため、味方は別のつなぎ方を選びました。サポートではカバーする守備も確認しましょう。",
+  "scanPassPossessionShotResult": "{player}番のシュートまでつながりました。{result}",
+  "@scanPassPossessionShotResult": {
+    "placeholders": {
+      "player": {
+        "type": "int"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "scanPassPossessionLearnerLabel": "自分 · 6番"
 }

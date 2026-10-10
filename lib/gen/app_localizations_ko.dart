@@ -19406,4 +19406,323 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scanPassJudgmentCoachShort => '코칭';
+
+  @override
+  String get scanPassPossessionModeGuided => '함께 보기';
+
+  @override
+  String get scanPassPossessionModeIndependent => '혼자 읽기';
+
+  @override
+  String get scanPassPossessionModeChangedCue => '바뀐 단서';
+
+  @override
+  String get scanPassPossessionPracticeAction => '연습';
+
+  @override
+  String get scanPassPossessionPracticeTooltip => '스캔 패스 연습 옵션 열기';
+
+  @override
+  String get scanPassPossessionPracticeTitle => '연습 옵션';
+
+  @override
+  String get scanPassPossessionJudgmentPracticeAction => '48장면 판단 연습';
+
+  @override
+  String get scanPassPossessionHelpBody =>
+      '6번이 받기 전 압박을 읽고, 첫 터치를 고른 뒤 다음 선수를 연결하고, 다시 6번이 움직여 공격을 돕습니다. 모델은 전체 소유 흐름의 결과를 보여 주고 같은 시작점의 코치 경로와 비교합니다.';
+
+  @override
+  String get scanPassPossessionGuidedStatus => '6번으로 플레이 · 압박을 풀고 공격을 이어가세요.';
+
+  @override
+  String get scanPassPossessionObserveStatus => '선택하기 전에 6번이 받는 장면을 보세요.';
+
+  @override
+  String get scanPassPossessionChangedObserveStatus =>
+      '움직임이 달라졌습니다. 첫 수비와 8번 주변을 다시 살펴보세요.';
+
+  @override
+  String get scanPassPossessionChooseStatus =>
+      '목표: 압박을 풀고 다음 동료에게 전진할 여유를 만드세요.';
+
+  @override
+  String get scanPassPossessionExecutingStatus =>
+      '그 선택에서 소유 흐름이 어떻게 이어지는지 봅니다.';
+
+  @override
+  String get scanPassPossessionReviewStatus => '전체 소유 흐름을 비교하고 전환점을 확인하세요.';
+
+  @override
+  String get scanPassPossessionGuidedObjective =>
+      '목표: 첫 압박을 벗기고 다음 받는 선수에게 전진할 시간을 줍니다.';
+
+  @override
+  String get scanPassPossessionCuePressure =>
+      '수비 2번이 6번에게 접근합니다. 어느 쪽을 막는지 보세요.';
+
+  @override
+  String get scanPassPossessionCuePressureRetreats =>
+      '2번은 물러나고, 3번은 8번 쪽을 덮습니다.';
+
+  @override
+  String get scanPassPossessionCueSupport => '8번의 움직임과 주변 수비를 함께 보세요.';
+
+  @override
+  String get scanPassPossessionCueFutureSpace =>
+      '패스 뒤 6번이 다시 움직여 연결될 공간이 있습니다.';
+
+  @override
+  String get scanPassPossessionNextCueAction => '다음 단서';
+
+  @override
+  String get scanPassPossessionPlayCoachRouteAction => '경로 보기';
+
+  @override
+  String get scanPassPossessionTryIndependentAction => '직접 해보기';
+
+  @override
+  String get scanPassPossessionChangedCueAction => '바뀐 단서';
+
+  @override
+  String get scanPassPossessionReplayAction => '선택한 소유 흐름 다시 보기';
+
+  @override
+  String get scanPassPossessionGuidedBranch => '함께 읽기';
+
+  @override
+  String get scanPassPossessionMineBranch => '내 공격';
+
+  @override
+  String get scanPassPossessionCoachBranch => '코치의 추천 전개';
+
+  @override
+  String get scanPassPossessionMineShort => '내 선택';
+
+  @override
+  String get scanPassPossessionCoachShort => '코치';
+
+  @override
+  String get scanPassPossessionPromptFirstTouch =>
+      '첫 터치: 6번은 어디에 두어야 다음 행동이 열릴까요?';
+
+  @override
+  String get scanPassPossessionPromptNextAction => '다음 행동: 어느 동료가 공격을 계속 살릴까요?';
+
+  @override
+  String get scanPassPossessionPromptSupport => '지원: 6번은 어디로 움직여 다시 연결될까요?';
+
+  @override
+  String get scanPassPossessionChoiceTouchAway => '바깥 터치';
+
+  @override
+  String get scanPassPossessionChoiceTurnForward => '전진 턴';
+
+  @override
+  String get scanPassPossessionChoiceLayoff => '원터치';
+
+  @override
+  String get scanPassPossessionChoicePass8 => '8번 패스';
+
+  @override
+  String get scanPassPossessionChoicePass9 => '9번 패스';
+
+  @override
+  String get scanPassPossessionChoiceRecycle4 => '4번 순환';
+
+  @override
+  String get scanPassPossessionChoiceSupportInside => '안쪽';
+
+  @override
+  String get scanPassPossessionChoiceSupportWide => '넓게';
+
+  @override
+  String get scanPassPossessionChoiceSupportBehind => '뒤쪽';
+
+  @override
+  String get scanPassPossessionChoiceTouchAwayLabel =>
+      '첫 터치를 화면 아래쪽 바깥 공간으로 보내기';
+
+  @override
+  String get scanPassPossessionChoiceTurnForwardLabel => '첫 터치로 전방을 향해 돌기';
+
+  @override
+  String get scanPassPossessionChoiceLayoffLabel => '4번에게 원터치 리턴 패스';
+
+  @override
+  String get scanPassPossessionChoicePass8Label => '8번에게 패스';
+
+  @override
+  String get scanPassPossessionChoicePass9Label => '9번에게 패스';
+
+  @override
+  String get scanPassPossessionChoiceRecycle4Label => '4번을 통해 소유 순환';
+
+  @override
+  String get scanPassPossessionChoiceSupportInsideLabel => '6번을 안쪽 리턴 각도로 움직이기';
+
+  @override
+  String get scanPassPossessionChoiceSupportWideLabel => '6번을 넓은 리턴 각도로 움직이기';
+
+  @override
+  String get scanPassPossessionChoiceSupportBehindLabel => '6번을 공 뒤쪽으로 움직이기';
+
+  @override
+  String get scanPassPossessionMomentReceive => '받기';
+
+  @override
+  String get scanPassPossessionMomentTouch => '터치';
+
+  @override
+  String get scanPassPossessionMomentLink => '연결';
+
+  @override
+  String get scanPassPossessionMomentSupport => '지원';
+
+  @override
+  String get scanPassPossessionMomentFinish => '마무리';
+
+  @override
+  String get scanPassPossessionReviewReceive =>
+      '핵심 단서는 6번의 첫 터치 전에 수비가 받는 공간으로 좁혀 오는 움직임입니다.';
+
+  @override
+  String get scanPassPossessionReviewReceiveChanged =>
+      '2번이 물러나 6번 앞에 공간이 생겼지만, 3번은 8번 쪽을 덮고 있습니다.';
+
+  @override
+  String get scanPassPossessionReviewTouchEscaped =>
+      '첫 터치가 즉시 압박을 해결하고 다음 패스를 남겼습니다.';
+
+  @override
+  String get scanPassPossessionReviewTouchTrapped =>
+      '첫 터치 뒤 압박이 가까워 이후 선택 시간이 줄었습니다.';
+
+  @override
+  String get scanPassPossessionReviewReceiverConnected =>
+      '패스 성공만이 아니라 받는 선수에게 다음 연결이 있었습니다.';
+
+  @override
+  String get scanPassPossessionReviewReceiverIsolated =>
+      '패스는 도착했지만 받는 선수가 고립되어 순환해야 했습니다.';
+
+  @override
+  String get scanPassPossessionReviewSupportConnected =>
+      '6번의 지원 움직임이 리턴 각도를 만들어 공격을 살렸습니다.';
+
+  @override
+  String get scanPassPossessionReviewSupportLate =>
+      '지원 각도가 늦거나 플레이 뒤에 남아 공격이 멈췄습니다.';
+
+  @override
+  String get scanPassPossessionReviewChance =>
+      '경로가 실제 마무리 기회를 만들었지만 슛 결과는 보장되지 않습니다.';
+
+  @override
+  String get scanPassPossessionReviewRecycle => '소유는 유지했지만 기회까지 가지 못하고 순환했습니다.';
+
+  @override
+  String get scanPassPossessionReviewTurnover =>
+      '압박이나 커버가 먼저 길에 도달해 소유가 끝났습니다.';
+
+  @override
+  String get scanPassPossessionOutcomeChance => '기회 창출';
+
+  @override
+  String get scanPassPossessionOutcomeRecycle => '소유 순환';
+
+  @override
+  String get scanPassPossessionOutcomeTurnover => '소유권 상실';
+
+  @override
+  String get scanPassPossessionDetailTitle => '이 판단이 만든 차이';
+
+  @override
+  String scanPassPossessionDetailBody(String outcome, String reason) {
+    return '$outcome\n$reason\n\n추천 전개는 같은 시작에서 코치의 후속 선택까지 이어서 보여줍니다.';
+  }
+
+  @override
+  String get scanPassPossessionFieldSemantics =>
+      '오른쪽으로 공격하는 코칭 소유 장면입니다. 6번은 학습자이고, 공과 선수들은 전체 경로를 이어 가며 별도 버튼으로 다음 결정을 고릅니다.';
+
+  @override
+  String get scanPassPossessionPause => '일시정지';
+
+  @override
+  String get scanPassPossessionResume => '이어 보기';
+
+  @override
+  String scanPassPossessionMotionPass(int passer, int receiver) {
+    return '$passer번 → $receiver번 · 공을 받은 뒤의 연결을 보세요.';
+  }
+
+  @override
+  String scanPassPossessionMotionCarry(int player) {
+    return '$player번의 터치 · 수비와의 거리를 보세요.';
+  }
+
+  @override
+  String get scanPassPossessionMotionSupport => '6번의 지원 이동 · 돌아오는 패스 길을 보세요.';
+
+  @override
+  String scanPassPossessionMotionShot(int player) {
+    return '$player번의 슈팅 · 공격의 결말을 확인하세요.';
+  }
+
+  @override
+  String scanPassPossessionTouchLost(int opponent) {
+    return '$opponent번이 첫 터치 경로에 도달했습니다. 받기 전에 수비의 접근 방향을 확인하세요.';
+  }
+
+  @override
+  String scanPassPossessionTouchSpace(int opponent) {
+    return '$opponent번과 거리를 확보해 다음 행동을 할 여유가 남았습니다.';
+  }
+
+  @override
+  String scanPassPossessionTouchPressed(int opponent) {
+    return '$opponent번이 가까워 다음 행동의 여유가 적습니다.';
+  }
+
+  @override
+  String get scanPassPossessionTouchLayoff =>
+      '4번에게 바로 연결했습니다. 이제 6번이 다시 받을 공간으로 이동해야 합니다.';
+
+  @override
+  String scanPassPossessionPassStopped(int opponent, int receiver) {
+    return '$opponent번이 $receiver번으로 가는 패스 길에 먼저 도달했습니다.';
+  }
+
+  @override
+  String scanPassPossessionPassConnected(int receiver, String options) {
+    return '$receiver번에게 연결했습니다. 다음 패스가 가능한 동료: $options번.';
+  }
+
+  @override
+  String scanPassPossessionPassIsolated(int receiver) {
+    return '$receiver번에게 도착했지만 다음 패스 길이 없습니다. 받는 동료 주변도 확인하세요.';
+  }
+
+  @override
+  String scanPassPossessionSupportPressed(int opponent, int player) {
+    return '6번이 이동하는 동안 $opponent번이 공을 가진 $player번에게 도달했습니다.';
+  }
+
+  @override
+  String scanPassPossessionReturnConnected(int player) {
+    return '$player번 → 6번 리턴이 연결됐습니다. 패스 후 이동한 위치가 다음 공격의 출발점이 됐습니다.';
+  }
+
+  @override
+  String get scanPassPossessionReturnClosed =>
+      '6번에게 돌아오는 길이 막혀 다른 연결을 선택했습니다. 지원할 때 수비의 커버 범위도 확인하세요.';
+
+  @override
+  String scanPassPossessionShotResult(int player, String result) {
+    return '$player번의 슈팅까지 연결했습니다. $result';
+  }
+
+  @override
+  String get scanPassPossessionLearnerLabel => '내 선수 · 6번';
 }

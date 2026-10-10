@@ -11,10 +11,12 @@ import '../../domain/scan_pass/scan_pass_chain.dart';
 import '../../domain/scan_pass/scan_pass_decision.dart';
 import '../../domain/scan_pass/scan_pass_game.dart' show ScanPassPoint;
 import '../../domain/scan_pass/scan_pass_judgment.dart';
+import '../../domain/scan_pass/scan_pass_possession_lesson.dart';
 import '../../domain/scan_pass/scan_pass_space.dart';
 import '../theme/app_motion.dart';
 import '../widgets/app_bar_action_button.dart';
 
+part 'scan_pass_possession_lesson_screen.dart';
 part 'scan_pass_judgment_training.dart';
 part 'scan_pass_space_training.dart';
 part 'scan_pass_chain_training.dart';
@@ -45,7 +47,7 @@ class ScanPassGameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return JudgmentEpisodeTrainingScreen(
+    return ScanPassPossessionLessonScreen(
       seed: seed,
       observationDuration: previewDuration,
       executionDuration: passAnimationDuration,
@@ -56,6 +58,19 @@ class ScanPassGameScreen extends StatelessWidget {
         choiceDuration: choiceDuration,
         passAnimationDuration: passAnimationDuration,
         initialAttack: initialAttack,
+      ),
+      judgmentPracticeBuilder: (context) => JudgmentEpisodeTrainingScreen(
+        seed: seed,
+        observationDuration: previewDuration,
+        executionDuration: passAnimationDuration,
+        freeAttackBuilder: (context) => ScanPassFreeAttackScreen(
+          optionRepository: optionRepository,
+          seed: seed,
+          previewDuration: previewDuration,
+          choiceDuration: choiceDuration,
+          passAnimationDuration: passAnimationDuration,
+          initialAttack: initialAttack,
+        ),
       ),
     );
   }
@@ -2925,6 +2940,7 @@ class _AttackPitchPainter extends CustomPainter {
   final Brightness brightness;
   final String? fontFamily;
   final int? learnerNumber;
+  final String? learnerLabel;
   final _PitchFrame? focusFrame;
   final ScanPassPoint? decisionCueFrom;
   final ScanPassPoint? decisionCueTo;
@@ -2948,6 +2964,7 @@ class _AttackPitchPainter extends CustomPainter {
     required this.brightness,
     required this.fontFamily,
     this.learnerNumber,
+    this.learnerLabel,
     this.focusFrame,
     this.decisionCueFrom,
     this.decisionCueTo,
@@ -3473,6 +3490,15 @@ class _AttackPitchPainter extends CustomPainter {
       );
     }
 
+    if (learnerLabel != null &&
+        !current &&
+        !player.opponent &&
+        player.number == learnerNumber) {
+      _drawText(canvas, learnerLabel!, center + Offset(0, r * 2.1),
+          color: _accent,
+          fontSize: math.max(10, geometry.size.shortestSide * .024),
+          anchorMode: _TextAnchor.center);
+    }
     final shadow = Paint()..color = _shadow;
     canvas.drawOval(
       Rect.fromCenter(
@@ -3918,6 +3944,7 @@ class _AttackPitchPainter extends CustomPainter {
         oldDelegate.brightness != brightness ||
         oldDelegate.fontFamily != fontFamily ||
         oldDelegate.learnerNumber != learnerNumber ||
+        oldDelegate.learnerLabel != learnerLabel ||
         oldDelegate.focusFrame != focusFrame ||
         oldDelegate.decisionCueFrom != decisionCueFrom ||
         oldDelegate.decisionCueTo != decisionCueTo ||

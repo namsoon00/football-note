@@ -11,7 +11,7 @@ import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('default entry opens judgment episodes and links free attack',
+  testWidgets('default entry opens possession lesson and links free attack',
       (tester) async {
     await tester.pumpWidget(_app(
       home: ScanPassGameScreen(
@@ -24,13 +24,16 @@ void main() {
     await tester.pump();
 
     expect(
-        find.byKey(const ValueKey<String>('judgment-pitch')), findsOneWidget);
+        find.byKey(const ValueKey<String>('possession-pitch')), findsOneWidget);
     expect(find.byKey(const ValueKey<String>('chain-pitch')), findsNothing);
     expect(find.byKey(const ValueKey<String>('decision-commit')), findsNothing);
     expect(find.byKey(const ValueKey<String>('attack-start')), findsNothing);
 
     await tester
-        .tap(find.byKey(const ValueKey<String>('judgment-free-attack')));
+        .tap(find.byKey(const ValueKey<String>('possession-practice-menu')));
+    await tester.pumpAndSettle();
+    await tester
+        .tap(find.byKey(const ValueKey<String>('possession-open-free-attack')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey<String>('attack-pitch')), findsOneWidget);

@@ -20105,4 +20105,339 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPassJudgmentCoachShort => 'Coach';
+
+  @override
+  String get scanPassPossessionModeGuided => 'Guided';
+
+  @override
+  String get scanPassPossessionModeIndependent => 'Independent';
+
+  @override
+  String get scanPassPossessionModeChangedCue => 'Changed cue';
+
+  @override
+  String get scanPassPossessionPracticeAction => 'Practice';
+
+  @override
+  String get scanPassPossessionPracticeTooltip =>
+      'Open Scan Pass practice options';
+
+  @override
+  String get scanPassPossessionPracticeTitle => 'Practice options';
+
+  @override
+  String get scanPassPossessionJudgmentPracticeAction =>
+      '48-scene judgment practice';
+
+  @override
+  String get scanPassPossessionHelpBody =>
+      'Read the pressure before number 6 receives, choose the first touch, connect the next player, then move number 6 again to support the attack. The model shows the full possession outcome and compares your route with a coach route from the same start.';
+
+  @override
+  String get scanPassPossessionGuidedStatus =>
+      'Play as #6 · Escape pressure and connect the attack.';
+
+  @override
+  String get scanPassPossessionObserveStatus =>
+      'Watch number 6 receive before choosing.';
+
+  @override
+  String get scanPassPossessionChangedObserveStatus =>
+      'The movement has changed. Read the first defender and the space around #8 again.';
+
+  @override
+  String get scanPassPossessionChooseStatus =>
+      'Goal: escape pressure and give the next receiver room to advance.';
+
+  @override
+  String get scanPassPossessionExecutingStatus =>
+      'Watch the possession continue from that choice.';
+
+  @override
+  String get scanPassPossessionReviewStatus =>
+      'Compare the full possession and inspect the turning point.';
+
+  @override
+  String get scanPassPossessionGuidedObjective =>
+      'Objective: break first pressure and give the next receiver time to advance.';
+
+  @override
+  String get scanPassPossessionCuePressure =>
+      'Defender #2 approaches #6. Watch which side is closing.';
+
+  @override
+  String get scanPassPossessionCuePressureRetreats =>
+      '#2 retreats while #3 covers the space near #8.';
+
+  @override
+  String get scanPassPossessionCueSupport =>
+      'Read #8’s movement together with the nearby defender.';
+
+  @override
+  String get scanPassPossessionCueFutureSpace =>
+      'Number 6 can move again after the pass to reconnect.';
+
+  @override
+  String get scanPassPossessionNextCueAction => 'Next cue';
+
+  @override
+  String get scanPassPossessionPlayCoachRouteAction => 'Play route';
+
+  @override
+  String get scanPassPossessionTryIndependentAction => 'Try it';
+
+  @override
+  String get scanPassPossessionChangedCueAction => 'Changed cue';
+
+  @override
+  String get scanPassPossessionReplayAction => 'Replay selected possession';
+
+  @override
+  String get scanPassPossessionGuidedBranch => 'Guided read';
+
+  @override
+  String get scanPassPossessionMineBranch => 'My attack';
+
+  @override
+  String get scanPassPossessionCoachBranch => 'Coach’s suggested attack';
+
+  @override
+  String get scanPassPossessionMineShort => 'Mine';
+
+  @override
+  String get scanPassPossessionCoachShort => 'Coach';
+
+  @override
+  String get scanPassPossessionPromptFirstTouch =>
+      'First touch: where does number 6 create the next action?';
+
+  @override
+  String get scanPassPossessionPromptNextAction =>
+      'Next action: which teammate can keep the attack moving?';
+
+  @override
+  String get scanPassPossessionPromptSupport =>
+      'Support: where should number 6 move to connect again?';
+
+  @override
+  String get scanPassPossessionChoiceTouchAway => 'Outside touch';
+
+  @override
+  String get scanPassPossessionChoiceTurnForward => 'Turn forward';
+
+  @override
+  String get scanPassPossessionChoiceLayoff => 'Layoff';
+
+  @override
+  String get scanPassPossessionChoicePass8 => 'Pass #8';
+
+  @override
+  String get scanPassPossessionChoicePass9 => 'Pass #9';
+
+  @override
+  String get scanPassPossessionChoiceRecycle4 => 'Recycle #4';
+
+  @override
+  String get scanPassPossessionChoiceSupportInside => 'Inside';
+
+  @override
+  String get scanPassPossessionChoiceSupportWide => 'Wide';
+
+  @override
+  String get scanPassPossessionChoiceSupportBehind => 'Behind';
+
+  @override
+  String get scanPassPossessionChoiceTouchAwayLabel =>
+      'Take the first touch into the lower outside space';
+
+  @override
+  String get scanPassPossessionChoiceTurnForwardLabel =>
+      'Turn forward with the first touch';
+
+  @override
+  String get scanPassPossessionChoiceLayoffLabel =>
+      'Play a one-touch layoff to number 4';
+
+  @override
+  String get scanPassPossessionChoicePass8Label => 'Pass to number 8';
+
+  @override
+  String get scanPassPossessionChoicePass9Label => 'Pass to number 9';
+
+  @override
+  String get scanPassPossessionChoiceRecycle4Label =>
+      'Recycle possession through number 4';
+
+  @override
+  String get scanPassPossessionChoiceSupportInsideLabel =>
+      'Move number 6 into the inside return angle';
+
+  @override
+  String get scanPassPossessionChoiceSupportWideLabel =>
+      'Move number 6 into the wide return angle';
+
+  @override
+  String get scanPassPossessionChoiceSupportBehindLabel =>
+      'Move number 6 behind the ball';
+
+  @override
+  String get scanPassPossessionMomentReceive => 'Receive';
+
+  @override
+  String get scanPassPossessionMomentTouch => 'Touch';
+
+  @override
+  String get scanPassPossessionMomentLink => 'Link';
+
+  @override
+  String get scanPassPossessionMomentSupport => 'Support';
+
+  @override
+  String get scanPassPossessionMomentFinish => 'Finish';
+
+  @override
+  String get scanPassPossessionReviewReceive =>
+      'The key cue is the defender closing the receiving space before number 6\'s first touch.';
+
+  @override
+  String get scanPassPossessionReviewReceiveChanged =>
+      '#2 retreated, leaving space in front of #6, while #3 covers the route toward #8.';
+
+  @override
+  String get scanPassPossessionReviewTouchEscaped =>
+      'The first touch solved the immediate pressure and preserved the next pass.';
+
+  @override
+  String get scanPassPossessionReviewTouchTrapped =>
+      'The first touch kept pressure close, so later options had less time.';
+
+  @override
+  String get scanPassPossessionReviewReceiverConnected =>
+      'The receiver had a usable next connection, not just a completed pass.';
+
+  @override
+  String get scanPassPossessionReviewReceiverIsolated =>
+      'The pass arrived, but the receiver was isolated and had to recycle.';
+
+  @override
+  String get scanPassPossessionReviewSupportConnected =>
+      'Number 6\'s support run created the return angle that kept the attack alive.';
+
+  @override
+  String get scanPassPossessionReviewSupportLate =>
+      'The support angle arrived too late or behind the play, so the attack stalled.';
+
+  @override
+  String get scanPassPossessionReviewChance =>
+      'The route created a real final chance; the shot outcome is still not guaranteed.';
+
+  @override
+  String get scanPassPossessionReviewRecycle =>
+      'Possession stayed alive, but the attack recycled instead of reaching a chance.';
+
+  @override
+  String get scanPassPossessionReviewTurnover =>
+      'Pressure or cover reached the lane first and ended the possession.';
+
+  @override
+  String get scanPassPossessionOutcomeChance => 'Chance created';
+
+  @override
+  String get scanPassPossessionOutcomeRecycle => 'Recycled possession';
+
+  @override
+  String get scanPassPossessionOutcomeTurnover => 'Possession lost';
+
+  @override
+  String get scanPassPossessionDetailTitle => 'What this decision changed';
+
+  @override
+  String scanPassPossessionDetailBody(String outcome, String reason) {
+    return '$outcome\n$reason\n\nThe suggested attack starts from the same situation and also includes the coach’s later choices.';
+  }
+
+  @override
+  String get scanPassPossessionFieldSemantics =>
+      'A coached football possession attacking to the right. Number 6 is the learner, the ball and players continue through the full route, and separate buttons choose the next decision.';
+
+  @override
+  String get scanPassPossessionPause => 'Pause';
+
+  @override
+  String get scanPassPossessionResume => 'Resume';
+
+  @override
+  String scanPassPossessionMotionPass(int passer, int receiver) {
+    return '#$passer → #$receiver · Watch the receiver’s next connection.';
+  }
+
+  @override
+  String scanPassPossessionMotionCarry(int player) {
+    return '#$player’s touch · Watch the distance to the defender.';
+  }
+
+  @override
+  String get scanPassPossessionMotionSupport =>
+      '#6 moves to support · Watch the return passing lane.';
+
+  @override
+  String scanPassPossessionMotionShot(int player) {
+    return '#$player shoots · Watch how the attack ends.';
+  }
+
+  @override
+  String scanPassPossessionTouchLost(int opponent) {
+    return '#$opponent reached the first-touch path. Read the defender’s approach before receiving.';
+  }
+
+  @override
+  String scanPassPossessionTouchSpace(int opponent) {
+    return 'There is space from #$opponent for the next action.';
+  }
+
+  @override
+  String scanPassPossessionTouchPressed(int opponent) {
+    return '#$opponent is close, leaving little room for the next action.';
+  }
+
+  @override
+  String get scanPassPossessionTouchLayoff =>
+      'You connected directly with #4. Now move #6 to receive again.';
+
+  @override
+  String scanPassPossessionPassStopped(int opponent, int receiver) {
+    return '#$opponent reached the passing lane to #$receiver first.';
+  }
+
+  @override
+  String scanPassPossessionPassConnected(int receiver, String options) {
+    return 'Connected to #$receiver. Next available receivers: $options.';
+  }
+
+  @override
+  String scanPassPossessionPassIsolated(int receiver) {
+    return 'The pass reached #$receiver, but no next passing lane remains. Read the receiver’s surroundings too.';
+  }
+
+  @override
+  String scanPassPossessionSupportPressed(int opponent, int player) {
+    return 'While #6 moved, #$opponent reached ball carrier #$player.';
+  }
+
+  @override
+  String scanPassPossessionReturnConnected(int player) {
+    return '#$player → #6 connected. The support position became the starting point for the next attack.';
+  }
+
+  @override
+  String get scanPassPossessionReturnClosed =>
+      'The return lane to #6 was closed, so the teammate chose another connection. Read the cover defender when supporting.';
+
+  @override
+  String scanPassPossessionShotResult(int player, String result) {
+    return 'The attack reached a shot by #$player. $result';
+  }
+
+  @override
+  String get scanPassPossessionLearnerLabel => 'You · #6';
 }
