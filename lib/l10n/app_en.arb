@@ -11285,5 +11285,300 @@
         "type": "String"
       }
     }
-  }
+  },
+  "practiceTitle": "Read the game",
+  "practiceIntro": "Start with two attackers. Read pressure, choose your next action, then review why it worked.",
+  "practiceStage": "{attackers} attackers · {defenders} defenders",
+  "@practiceStage": {
+    "placeholders": {
+      "attackers": {
+        "type": "int"
+      },
+      "defenders": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceCondition": "Situation {number}",
+  "@practiceCondition": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceGateRule": "Carry the ball through either cone gate under control.",
+  "practiceNoOffside": "No offside in this introductory drill",
+  "practiceOffside": "Offside judged when the pass is released",
+  "practiceGoalFirstTouch": "Set up your next action with the first touch.",
+  "practiceGoalDrawDefender": "Read whether the defender follows the ball or protects the passing lane.",
+  "practiceGoalThroughPass": "Match the pass to the runner’s movement and available space.",
+  "practiceGoalSupportAngle": "After passing, move out of the defender’s cover shadow.",
+  "practiceGoalThirdPlayer": "Find an indirect connection when the direct lane is blocked.",
+  "practiceGoalSwitchPlay": "Notice when the far side opens as defenders shift.",
+  "practiceSkillFirstTouch": "First touch and pressure",
+  "practiceSkillDrawDefender": "Carry or release",
+  "practiceSkillThroughPass": "Read the run in behind",
+  "practiceSkillSupportAngle": "Support after passing",
+  "practiceSkillThirdPlayer": "Connect through a third player",
+  "practiceSkillSwitchPlay": "Find the far side",
+  "practiceObserve": "Watch the defender and the runner before receiving.",
+  "practiceChooseTouch": "First touch · tap a direction arrow.",
+  "practiceChooseBall": "Jersey: pass to feet · arrow ahead: through pass · space: carry",
+  "practiceChooseSupport": "You are #6 · tap space to move, or hold your position.",
+  "practiceExecuting": "Watch how the space and passing lanes change.",
+  "practiceTouch": "First touch · {metres} m",
+  "@practiceTouch": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceCarry": "Carry · {metres} m",
+  "@practiceCarry": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceMove": "Move #6 · {metres} m",
+  "@practiceMove": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practicePass": "Pass to #{number}",
+  "@practicePass": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceThrough": "Through pass to #{number}",
+  "@practiceThrough": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceWait": "Wait briefly",
+  "practiceHold": "Hold position",
+  "practiceGate": "Cone gate {number}",
+  "@practiceGate": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceReview": "Review the decision",
+  "practiceDecision": "Decision {current} / {total}",
+  "@practiceDecision": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceRead": "What to read",
+  "practiceEffect": "What your choice changed",
+  "practiceNextFocus": "On your next attempt",
+  "practiceUseful": "Useful decision",
+  "practiceReconsider": "Reconsider this choice",
+  "practicePressureEvidence": "Ball carrier’s nearest defender: {before} m → {after} m",
+  "@practicePressureEvidence": {
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceLaneEvidence": "Same teammate–#6 passing line, nearest defender: {before} m → {after} m",
+  "@practiceLaneEvidence": {
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceOptionsEvidence": "Available connections: {before} → {after}",
+  "@practiceOptionsEvidence": {
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceReplayMine": "Replay my play",
+  "practiceCompare": "Compare another choice",
+  "practiceCompareLabel": "Another choice from the same moment",
+  "practiceCompareNote": "The same players and positions. Several choices can be useful.",
+  "practiceCoach": "Watch an example",
+  "practiceRetry": "Try again",
+  "practicePair": "Different defensive movement",
+  "practiceNext": "Next situation",
+  "practiceBackReview": "Back to my review",
+  "practiceCompleted": "Attempted situation",
+  "practiceGateReached": "Controlled dribble through the gate",
+  "practiceRetained": "Possession retained · review the choices",
+  "practiceIntercepted": "Defender recovered the ball",
+  "practiceOffsideEnd": "Offside at the pass release",
+  "practiceHelp": "Read, decide, compare",
+  "practiceHelpBody": "You always control #6. Tap an arrow for the first touch, a jersey for a pass to feet, or the forward arrow for a through pass. Tap space to carry or support. Decisions pause the action; Wait advances the movement briefly. Ball paths are solid, player runs are dashed. Gates count only when a player carries the ball through. Review each choice and replay an alternative from exactly the same moment. These small-sided situations simplify a match; they do not measure real-match ability.",
+  "practiceCuePressureSide": "The defender’s approach relative to your first-touch direction.",
+  "practiceCueDefenderCommitment": "Whether the defender closes the ball or stays in the passing lane.",
+  "practiceCueRunnerTiming": "The runner’s direction, the space ahead and position at pass release.",
+  "practiceCuePassingLane": "The defender between the ball and the receiving space.",
+  "practiceCueSupportLane": "Whether the defender hides you from the teammate on the ball.",
+  "practiceCueThirdPlayerLane": "The direct passing lane and the route through another teammate.",
+  "practiceCueFarSideSpace": "Where the covering defenders gather and who is free on the far side.",
+  "practiceReasonTouchOpensView": "The touch leaves space for the next action.",
+  "practiceReasonTouchIntoPressure": "The touch takes the ball into the defender’s reach.",
+  "practiceReasonDefenderDrawn": "Carrying the ball drew the defender; a usable connection remains.",
+  "practiceReasonCarryIntoCover": "The defender can cover the chosen carrying route.",
+  "practiceReasonRunnerMetInStride": "The pass reaches the moving teammate in the space ahead.",
+  "practiceReasonPassToFeet": "The pass connects to the teammate’s feet.",
+  "practiceReasonPassLaneClosed": "The defender reaches the passing lane.",
+  "practiceReasonSupportLaneOpened": "Your movement makes a passing connection available.",
+  "practiceReasonSupportStillHidden": "The support position does not open a usable connection.",
+  "practiceReasonThirdPlayerConnected": "The attack connects through another teammate.",
+  "practiceReasonFarSideOpened": "The ball reaches the less crowded side.",
+  "practiceReasonHoldCreatesWindow": "Waiting preserves possession while the next option develops.",
+  "practiceReasonHoldUnderPressure": "Waiting allows the pressure to reach you.",
+  "practiceReasonControlledGate": "A player and the controlled ball crossed between the cones.",
+  "practiceReasonOffsideAtKick": "The receiver is offside when the pass is released.",
+  "practicePreviousDecision": "Previous decision",
+  "practiceReasonRunnerNotReady": "The receiver is not yet moving into the space targeted by the pass.",
+  "practiceReasonPossessionSecured": "The ball is retained and the next connection remains available.",
+  "practiceRuleSummary": "{players} · {rule}",
+  "@practiceRuleSummary": {
+    "placeholders": {
+      "players": {
+        "type": "String"
+      },
+      "rule": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceConditionUpperPressure": "Pressure from your left as you face forward",
+  "practiceConditionLowerPressure": "Pressure from your right as you face forward",
+  "practiceConditionBallPressure": "The defender steps toward the ball",
+  "practiceConditionTrackRunner": "The defender follows the runner",
+  "practiceConditionForwardRun": "The teammate is running in behind",
+  "practiceConditionCheckingRun": "The teammate comes short first",
+  "practiceConditionLowerCover": "The near defender shifts to the right channel",
+  "practiceConditionUpperCover": "The near defender shifts to the left channel",
+  "practiceConditionStayUpper": "Cover holds the left channel",
+  "practiceConditionShiftLower": "Cover shifts toward the right channel",
+  "practiceReasonReceivedUnderPressure": "The pass arrived, but the receiver has little room for the next action.",
+  "practiceContinueAlternative": "Watch the continuation",
+  "practiceContinuationNote": "Later decisions are an example; compare them as well as the first choice.",
+  "practiceEvidenceUpper": "Facing the attacking direction, defender #{number} was to your left, {metres} m away.",
+  "@practiceEvidenceUpper": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceEvidenceLower": "Facing the attacking direction, defender #{number} was to your right, {metres} m away.",
+  "@practiceEvidenceLower": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceEvidenceLevel": "Defender #{number} was {metres} m away, near the same channel.",
+  "@practiceEvidenceLevel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceEvidenceForwardRun": "#{number} was moving forward at the moment of your choice.",
+  "@practiceEvidenceForwardRun": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceEvidenceCheckingRun": "#{number} was coming back toward the ball when you chose.",
+  "@practiceEvidenceCheckingRun": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceEvidenceWaitingRun": "#{number} had not started a forward run when you chose.",
+  "@practiceEvidenceWaitingRun": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceEvidenceSupport": "Before moving, the defender was {metres} m from the passing line between you and the ball carrier.",
+  "@practiceEvidenceSupport": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceEvidenceFarSide": "{number} defenders were on the same side as the ball.",
+  "@practiceEvidenceFarSide": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceEvidenceConnections": "The ball carrier had {number} usable passing connections.",
+  "@practiceEvidenceConnections": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceAdviceTouch": "Check the pressure before receiving, then leave a route for your next action.",
+  "practiceAdviceCarry": "Watch the defender’s response to your carry before choosing to release the ball.",
+  "practiceAdvicePass": "Check the passing lane and the receiver’s next action, not only the receiver’s position.",
+  "practiceAdviceThrough": "Watch the start and direction of the run. Send the ball to reachable space in front.",
+  "practiceAdviceSupport": "Move so your teammate can see a clear passing line; a return pass is optional.",
+  "practiceAdviceOffside": "Check the runner against the ball and second-last defender at the kick, then release earlier or use another option.",
+  "practiceAttackUp": "Attack upwards",
+  "practiceLearningEvidence": "This choice demonstrates the lesson objective"
 }

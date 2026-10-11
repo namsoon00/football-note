@@ -20653,4 +20653,443 @@ class AppLocalizationsEn extends AppLocalizations {
   String scanPassPossessionShotDistance(String metres) {
     return 'Shot ${metres}m';
   }
+
+  @override
+  String get practiceTitle => 'Read the game';
+
+  @override
+  String get practiceIntro =>
+      'Start with two attackers. Read pressure, choose your next action, then review why it worked.';
+
+  @override
+  String practiceStage(int attackers, int defenders) {
+    return '$attackers attackers · $defenders defenders';
+  }
+
+  @override
+  String practiceCondition(int number) {
+    return 'Situation $number';
+  }
+
+  @override
+  String get practiceGateRule =>
+      'Carry the ball through either cone gate under control.';
+
+  @override
+  String get practiceNoOffside => 'No offside in this introductory drill';
+
+  @override
+  String get practiceOffside => 'Offside judged when the pass is released';
+
+  @override
+  String get practiceGoalFirstTouch =>
+      'Set up your next action with the first touch.';
+
+  @override
+  String get practiceGoalDrawDefender =>
+      'Read whether the defender follows the ball or protects the passing lane.';
+
+  @override
+  String get practiceGoalThroughPass =>
+      'Match the pass to the runner’s movement and available space.';
+
+  @override
+  String get practiceGoalSupportAngle =>
+      'After passing, move out of the defender’s cover shadow.';
+
+  @override
+  String get practiceGoalThirdPlayer =>
+      'Find an indirect connection when the direct lane is blocked.';
+
+  @override
+  String get practiceGoalSwitchPlay =>
+      'Notice when the far side opens as defenders shift.';
+
+  @override
+  String get practiceSkillFirstTouch => 'First touch and pressure';
+
+  @override
+  String get practiceSkillDrawDefender => 'Carry or release';
+
+  @override
+  String get practiceSkillThroughPass => 'Read the run in behind';
+
+  @override
+  String get practiceSkillSupportAngle => 'Support after passing';
+
+  @override
+  String get practiceSkillThirdPlayer => 'Connect through a third player';
+
+  @override
+  String get practiceSkillSwitchPlay => 'Find the far side';
+
+  @override
+  String get practiceObserve =>
+      'Watch the defender and the runner before receiving.';
+
+  @override
+  String get practiceChooseTouch => 'First touch · tap a direction arrow.';
+
+  @override
+  String get practiceChooseBall =>
+      'Jersey: pass to feet · arrow ahead: through pass · space: carry';
+
+  @override
+  String get practiceChooseSupport =>
+      'You are #6 · tap space to move, or hold your position.';
+
+  @override
+  String get practiceExecuting =>
+      'Watch how the space and passing lanes change.';
+
+  @override
+  String practiceTouch(String metres) {
+    return 'First touch · $metres m';
+  }
+
+  @override
+  String practiceCarry(String metres) {
+    return 'Carry · $metres m';
+  }
+
+  @override
+  String practiceMove(String metres) {
+    return 'Move #6 · $metres m';
+  }
+
+  @override
+  String practicePass(int number) {
+    return 'Pass to #$number';
+  }
+
+  @override
+  String practiceThrough(int number) {
+    return 'Through pass to #$number';
+  }
+
+  @override
+  String get practiceWait => 'Wait briefly';
+
+  @override
+  String get practiceHold => 'Hold position';
+
+  @override
+  String practiceGate(int number) {
+    return 'Cone gate $number';
+  }
+
+  @override
+  String get practiceReview => 'Review the decision';
+
+  @override
+  String practiceDecision(int current, int total) {
+    return 'Decision $current / $total';
+  }
+
+  @override
+  String get practiceRead => 'What to read';
+
+  @override
+  String get practiceEffect => 'What your choice changed';
+
+  @override
+  String get practiceNextFocus => 'On your next attempt';
+
+  @override
+  String get practiceUseful => 'Useful decision';
+
+  @override
+  String get practiceReconsider => 'Reconsider this choice';
+
+  @override
+  String practicePressureEvidence(String before, String after) {
+    return 'Ball carrier’s nearest defender: $before m → $after m';
+  }
+
+  @override
+  String practiceLaneEvidence(String before, String after) {
+    return 'Same teammate–#6 passing line, nearest defender: $before m → $after m';
+  }
+
+  @override
+  String practiceOptionsEvidence(String before, String after) {
+    return 'Available connections: $before → $after';
+  }
+
+  @override
+  String get practiceReplayMine => 'Replay my play';
+
+  @override
+  String get practiceCompare => 'Compare another choice';
+
+  @override
+  String get practiceCompareLabel => 'Another choice from the same moment';
+
+  @override
+  String get practiceCompareNote =>
+      'The same players and positions. Several choices can be useful.';
+
+  @override
+  String get practiceCoach => 'Watch an example';
+
+  @override
+  String get practiceRetry => 'Try again';
+
+  @override
+  String get practicePair => 'Different defensive movement';
+
+  @override
+  String get practiceNext => 'Next situation';
+
+  @override
+  String get practiceBackReview => 'Back to my review';
+
+  @override
+  String get practiceCompleted => 'Attempted situation';
+
+  @override
+  String get practiceGateReached => 'Controlled dribble through the gate';
+
+  @override
+  String get practiceRetained => 'Possession retained · review the choices';
+
+  @override
+  String get practiceIntercepted => 'Defender recovered the ball';
+
+  @override
+  String get practiceOffsideEnd => 'Offside at the pass release';
+
+  @override
+  String get practiceHelp => 'Read, decide, compare';
+
+  @override
+  String get practiceHelpBody =>
+      'You always control #6. Tap an arrow for the first touch, a jersey for a pass to feet, or the forward arrow for a through pass. Tap space to carry or support. Decisions pause the action; Wait advances the movement briefly. Ball paths are solid, player runs are dashed. Gates count only when a player carries the ball through. Review each choice and replay an alternative from exactly the same moment. These small-sided situations simplify a match; they do not measure real-match ability.';
+
+  @override
+  String get practiceCuePressureSide =>
+      'The defender’s approach relative to your first-touch direction.';
+
+  @override
+  String get practiceCueDefenderCommitment =>
+      'Whether the defender closes the ball or stays in the passing lane.';
+
+  @override
+  String get practiceCueRunnerTiming =>
+      'The runner’s direction, the space ahead and position at pass release.';
+
+  @override
+  String get practiceCuePassingLane =>
+      'The defender between the ball and the receiving space.';
+
+  @override
+  String get practiceCueSupportLane =>
+      'Whether the defender hides you from the teammate on the ball.';
+
+  @override
+  String get practiceCueThirdPlayerLane =>
+      'The direct passing lane and the route through another teammate.';
+
+  @override
+  String get practiceCueFarSideSpace =>
+      'Where the covering defenders gather and who is free on the far side.';
+
+  @override
+  String get practiceReasonTouchOpensView =>
+      'The touch leaves space for the next action.';
+
+  @override
+  String get practiceReasonTouchIntoPressure =>
+      'The touch takes the ball into the defender’s reach.';
+
+  @override
+  String get practiceReasonDefenderDrawn =>
+      'Carrying the ball drew the defender; a usable connection remains.';
+
+  @override
+  String get practiceReasonCarryIntoCover =>
+      'The defender can cover the chosen carrying route.';
+
+  @override
+  String get practiceReasonRunnerMetInStride =>
+      'The pass reaches the moving teammate in the space ahead.';
+
+  @override
+  String get practiceReasonPassToFeet =>
+      'The pass connects to the teammate’s feet.';
+
+  @override
+  String get practiceReasonPassLaneClosed =>
+      'The defender reaches the passing lane.';
+
+  @override
+  String get practiceReasonSupportLaneOpened =>
+      'Your movement makes a passing connection available.';
+
+  @override
+  String get practiceReasonSupportStillHidden =>
+      'The support position does not open a usable connection.';
+
+  @override
+  String get practiceReasonThirdPlayerConnected =>
+      'The attack connects through another teammate.';
+
+  @override
+  String get practiceReasonFarSideOpened =>
+      'The ball reaches the less crowded side.';
+
+  @override
+  String get practiceReasonHoldCreatesWindow =>
+      'Waiting preserves possession while the next option develops.';
+
+  @override
+  String get practiceReasonHoldUnderPressure =>
+      'Waiting allows the pressure to reach you.';
+
+  @override
+  String get practiceReasonControlledGate =>
+      'A player and the controlled ball crossed between the cones.';
+
+  @override
+  String get practiceReasonOffsideAtKick =>
+      'The receiver is offside when the pass is released.';
+
+  @override
+  String get practicePreviousDecision => 'Previous decision';
+
+  @override
+  String get practiceReasonRunnerNotReady =>
+      'The receiver is not yet moving into the space targeted by the pass.';
+
+  @override
+  String get practiceReasonPossessionSecured =>
+      'The ball is retained and the next connection remains available.';
+
+  @override
+  String practiceRuleSummary(String players, String rule) {
+    return '$players · $rule';
+  }
+
+  @override
+  String get practiceConditionUpperPressure =>
+      'Pressure from your left as you face forward';
+
+  @override
+  String get practiceConditionLowerPressure =>
+      'Pressure from your right as you face forward';
+
+  @override
+  String get practiceConditionBallPressure =>
+      'The defender steps toward the ball';
+
+  @override
+  String get practiceConditionTrackRunner => 'The defender follows the runner';
+
+  @override
+  String get practiceConditionForwardRun => 'The teammate is running in behind';
+
+  @override
+  String get practiceConditionCheckingRun => 'The teammate comes short first';
+
+  @override
+  String get practiceConditionLowerCover =>
+      'The near defender shifts to the right channel';
+
+  @override
+  String get practiceConditionUpperCover =>
+      'The near defender shifts to the left channel';
+
+  @override
+  String get practiceConditionStayUpper => 'Cover holds the left channel';
+
+  @override
+  String get practiceConditionShiftLower =>
+      'Cover shifts toward the right channel';
+
+  @override
+  String get practiceReasonReceivedUnderPressure =>
+      'The pass arrived, but the receiver has little room for the next action.';
+
+  @override
+  String get practiceContinueAlternative => 'Watch the continuation';
+
+  @override
+  String get practiceContinuationNote =>
+      'Later decisions are an example; compare them as well as the first choice.';
+
+  @override
+  String practiceEvidenceUpper(int number, String metres) {
+    return 'Facing the attacking direction, defender #$number was to your left, $metres m away.';
+  }
+
+  @override
+  String practiceEvidenceLower(int number, String metres) {
+    return 'Facing the attacking direction, defender #$number was to your right, $metres m away.';
+  }
+
+  @override
+  String practiceEvidenceLevel(int number, String metres) {
+    return 'Defender #$number was $metres m away, near the same channel.';
+  }
+
+  @override
+  String practiceEvidenceForwardRun(int number) {
+    return '#$number was moving forward at the moment of your choice.';
+  }
+
+  @override
+  String practiceEvidenceCheckingRun(int number) {
+    return '#$number was coming back toward the ball when you chose.';
+  }
+
+  @override
+  String practiceEvidenceWaitingRun(int number) {
+    return '#$number had not started a forward run when you chose.';
+  }
+
+  @override
+  String practiceEvidenceSupport(String metres) {
+    return 'Before moving, the defender was $metres m from the passing line between you and the ball carrier.';
+  }
+
+  @override
+  String practiceEvidenceFarSide(int number) {
+    return '$number defenders were on the same side as the ball.';
+  }
+
+  @override
+  String practiceEvidenceConnections(int number) {
+    return 'The ball carrier had $number usable passing connections.';
+  }
+
+  @override
+  String get practiceAdviceTouch =>
+      'Check the pressure before receiving, then leave a route for your next action.';
+
+  @override
+  String get practiceAdviceCarry =>
+      'Watch the defender’s response to your carry before choosing to release the ball.';
+
+  @override
+  String get practiceAdvicePass =>
+      'Check the passing lane and the receiver’s next action, not only the receiver’s position.';
+
+  @override
+  String get practiceAdviceThrough =>
+      'Watch the start and direction of the run. Send the ball to reachable space in front.';
+
+  @override
+  String get practiceAdviceSupport =>
+      'Move so your teammate can see a clear passing line; a return pass is optional.';
+
+  @override
+  String get practiceAdviceOffside =>
+      'Check the runner against the ball and second-last defender at the kick, then release earlier or use another option.';
+
+  @override
+  String get practiceAttackUp => 'Attack upwards';
+
+  @override
+  String get practiceLearningEvidence =>
+      'This choice demonstrates the lesson objective';
 }
