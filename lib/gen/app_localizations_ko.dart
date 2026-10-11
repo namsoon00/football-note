@@ -19938,7 +19938,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get practiceIntro =>
-      '공격수 2명부터 시작합니다. 압박을 읽고 다음 행동을 선택한 뒤, 판단의 근거를 확인하세요.';
+      '공격수 수와 패스 방식을 고른 뒤 상황을 선택하세요. 압박을 읽고 공격수 전원의 행동을 직접 결정합니다.';
 
   @override
   String practiceStage(int attackers, int defenders) {
@@ -19999,7 +19999,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get practiceObserve => '공이 오기 전, 수비와 동료의 움직임을 보세요.';
 
   @override
-  String get practiceChooseTouch => '첫 터치 · 방향 화살표를 누르세요.';
+  String get practiceChooseTouch =>
+      '첫 터치 · 실선 끝의 도착 공을 확인하세요. 숫자는 선택 번호, 거리는 현재 공부터 도착 공까지입니다.';
 
   @override
   String get practiceChooseBall => '유니폼: 발밑 패스 · 앞쪽 화살표: 스루패스 · 빈 공간: 드리블';
@@ -20022,7 +20023,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String practiceMove(String metres) {
-    return '6번 이동 · ${metres}m';
+    return '선수 이동 · ${metres}m';
   }
 
   @override
@@ -20076,7 +20077,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String practiceLaneEvidence(String before, String after) {
-    return '같은 동료↔6번 패스 선에서 수비까지: ${before}m → ${after}m';
+    return '같은 두 선수의 패스 선에서 수비까지: ${before}m → ${after}m';
   }
 
   @override
@@ -20121,7 +20122,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get practiceRetained => '공 소유 유지 · 판단을 확인하세요';
 
   @override
-  String get practiceIntercepted => '수비가 공을 회수했습니다';
+  String get practiceIntercepted => '수비 팀이 공을 빼앗아 소유했습니다';
 
   @override
   String get practiceOffsideEnd => '패스 순간 오프사이드';
@@ -20131,7 +20132,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get practiceHelpBody =>
-      '내 선수는 항상 6번입니다. 첫 터치는 방향 화살표, 발밑 패스는 동료 유니폼, 스루패스는 동료 앞의 화살표를 누르세요. 빈 공간은 드리블 또는 지원 이동입니다. 판단할 때는 시간이 멈추며, 기다리기를 누르면 움직임이 잠깐 진행됩니다. 실선은 공, 점선은 선수 이동입니다. 콘 사이를 공과 함께 통과해야 완료됩니다. 각 판단을 확인하고 같은 순간의 다른 선택과 비교하세요. 실제 경기를 단순화한 소규모 훈련으로, 실전 능력을 측정하는 평가는 아닙니다.';
+      '시작 전에 공격수 2·3·4명과 패스 방식을 고릅니다. 시작 패스 이후 공격수의 모든 행동을 직접 결정합니다. 첫 터치 버튼과 같은 번호의 공이 실제 도착 지점이고, 거리는 현재 공부터의 거리입니다. 유니폼은 패스, 앞쪽 화살표는 스루패스, 빈 공간은 드리블입니다. 이동 지정 → 선수 → 빈 공간 순서로 동료의 경로를 지정하세요. 다음 패스·드리블·▶(0.5초 진행)와 함께 움직이며, 이동 지정에서 취소할 수 있습니다. 패스 후에는 받은 선수의 다음 행동을 직접 고릅니다. 패스 앤 무브에서는 다음 패스를 직전 패서에게 돌려줘야 하지만, 이동과 패스 타이밍은 직접 정합니다. 수비는 반응하며 공을 빼앗아 소유할 수 있습니다. 공과 함께 콘 사이를 통과한 뒤 판단을 돌아보세요. 경로 끝의 달리는 선수 아이콘을 누르면 해당 이동을 목표까지 진행합니다.';
 
   @override
   String get practiceCuePressureSide => '수비가 다가오는 쪽과 내 첫 터치 방향의 관계.';
@@ -20174,7 +20175,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get practiceReasonPassToFeet => '동료의 발밑으로 패스가 연결됐습니다.';
 
   @override
-  String get practiceReasonPassLaneClosed => '수비가 패스길에 도달했습니다.';
+  String get practiceReasonPassLaneClosed => '수비가 패스길에 들어와 공을 빼앗았습니다.';
 
   @override
   String get practiceReasonSupportLaneOpened => '내 이동 후 연결할 수 있는 패스길이 생겼습니다.';
@@ -20328,4 +20329,120 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get practiceLearningEvidence => '이 선택에서 학습 목표를 확인했습니다';
+
+  @override
+  String get practiceSetupPlayers => '공격수 수 선택';
+
+  @override
+  String practiceAttackers(int count) {
+    return '공격수 $count명';
+  }
+
+  @override
+  String get practiceSetupPassing => '패스 방식';
+
+  @override
+  String get practiceFreePlay => '자유 연결';
+
+  @override
+  String get practicePassAndMove => '패스 앤 무브';
+
+  @override
+  String get practiceFreePlayDescription =>
+      '공격수 전원의 이동과 패스를 직접 고릅니다. 수비수는 선택에 반응합니다.';
+
+  @override
+  String get practicePassAndMoveDescription =>
+      '다음 패스는 직전 패서에게 돌려줍니다. 패서가 1m 이상 위치를 옮겨 유효한 리턴을 받으면 목표 달성입니다. 타이밍은 직접 고르며 막힌 패스는 빼앗길 수 있습니다.';
+
+  @override
+  String get practiceTeamControl => '공격 직접 조작 · 수비 자동';
+
+  @override
+  String get practiceSetMovement => '이동 지정';
+
+  @override
+  String get practiceBackToBall => '공 선택으로';
+
+  @override
+  String practiceSelectPlayer(int number) {
+    return '$number번 선수 선택';
+  }
+
+  @override
+  String practiceChoosePlayerRun(int number) {
+    return '선수 선택 → 빈 공간에 이동 지정 · 선택: $number번';
+  }
+
+  @override
+  String get practiceRunPlanHint =>
+      '공이 없는 선수는 경로만 지정합니다. 패스·드리블·▶를 누르면 함께 움직입니다.';
+
+  @override
+  String practiceCancelRun(int number) {
+    return '$number번 이동 취소';
+  }
+
+  @override
+  String practiceRunsReady(int count) {
+    return '이동 $count개 지정됨 · 패스·드리블·▶로 실행';
+  }
+
+  @override
+  String practiceReturnTarget(int number) {
+    return '다음 패스 → $number번 · 먼저 돌려줄 길을 만드세요';
+  }
+
+  @override
+  String get practiceAdvance => '0.5초 진행';
+
+  @override
+  String practicePlayerMove(int number, String metres) {
+    return '$number번 이동 · ${metres}m';
+  }
+
+  @override
+  String practiceRunMarker(int number, String metres) {
+    return '$number번 · 목표까지 ${metres}m';
+  }
+
+  @override
+  String practiceMetres(String metres) {
+    return '${metres}m';
+  }
+
+  @override
+  String practiceTouchDestination(int number, String metres) {
+    return '첫 터치 $number · 같은 번호의 도착 공까지 ${metres}m';
+  }
+
+  @override
+  String practiceStolenBy(int number) {
+    return '수비 $number번이 공을 빼앗았습니다';
+  }
+
+  @override
+  String practiceChooseBallFor(int number) {
+    return '공: $number번 · 유니폼=패스 · 화살표=스루패스 · 빈 공간=드리블';
+  }
+
+  @override
+  String get practiceChangePlayer => '선수 바꾸기';
+
+  @override
+  String practiceChooseDestination(int number) {
+    return '$number번 · 경기장에서 이동할 지점을 누르세요';
+  }
+
+  @override
+  String get practiceReturnGoal => '패스 후 받을 공간으로 움직여 돌아오는 패스를 연결하세요.';
+
+  @override
+  String practiceStealEvidence(int number) {
+    return '이 경로에서 수비 $number번이 공에 닿아 소유권을 가져갔습니다.';
+  }
+
+  @override
+  String get practiceAdviceStealHold =>
+      '압박이 공에 닿기 전에 패스하거나 다른 방향으로 운반하세요. 동료의 이동을 기다리는 동안에도 공은 빼앗길 수 있습니다.';
 }

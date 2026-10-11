@@ -20659,7 +20659,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get practiceIntro =>
-      'Start with two attackers. Read pressure, choose your next action, then review why it worked.';
+      'Choose the number of attackers and the passing rule, then open a situation. Read pressure and choose every attacking action.';
 
   @override
   String practiceStage(int attackers, int defenders) {
@@ -20728,7 +20728,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Watch the defender and the runner before receiving.';
 
   @override
-  String get practiceChooseTouch => 'First touch · tap a direction arrow.';
+  String get practiceChooseTouch =>
+      'First touch · solid lines lead to the numbered balls. Distance is from the current ball to its destination.';
 
   @override
   String get practiceChooseBall =>
@@ -20754,7 +20755,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String practiceMove(String metres) {
-    return 'Move #6 · $metres m';
+    return 'Player movement · $metres m';
   }
 
   @override
@@ -20808,7 +20809,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String practiceLaneEvidence(String before, String after) {
-    return 'Same teammate–#6 passing line, nearest defender: $before m → $after m';
+    return 'Defender clearance from the same passing lane: $before m → $after m';
   }
 
   @override
@@ -20854,7 +20855,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get practiceRetained => 'Possession retained · review the choices';
 
   @override
-  String get practiceIntercepted => 'Defender recovered the ball';
+  String get practiceIntercepted => 'The defending team has possession';
 
   @override
   String get practiceOffsideEnd => 'Offside at the pass release';
@@ -20864,7 +20865,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get practiceHelpBody =>
-      'You always control #6. Tap an arrow for the first touch, a jersey for a pass to feet, or the forward arrow for a through pass. Tap space to carry or support. Decisions pause the action; Wait advances the movement briefly. Ball paths are solid, player runs are dashed. Gates count only when a player carries the ball through. Review each choice and replay an alternative from exactly the same moment. These small-sided situations simplify a match; they do not measure real-match ability.';
+      'Choose 2, 3 or 4 attackers before starting. After the opening pass, you control every attacking action. First-touch buttons match the numbered balls at the exact destination; distances are from the current ball. Tap a shirt to pass, the arrows for a through ball, or empty space to dribble. Use Set a run, choose a shirt, then tap space to queue an off-ball run. It starts with the next ball action or ▶ (0.5 seconds). Cancel a run in Set a run. After passing, control switches to the receiver and waits for your choice. Pass and move restricts the next pass to the previous passer; you still decide movement and timing. Defenders react and can take possession. Carry the ball through the cones, then review your decisions. The running-player icon at a queued destination executes that run through to the target.';
 
   @override
   String get practiceCuePressureSide =>
@@ -20920,7 +20921,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get practiceReasonPassLaneClosed =>
-      'The defender reaches the passing lane.';
+      'A defender reached the passing lane and stole the ball.';
 
   @override
   String get practiceReasonSupportLaneOpened =>
@@ -21092,4 +21093,121 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get practiceLearningEvidence =>
       'This choice demonstrates the lesson objective';
+
+  @override
+  String get practiceSetupPlayers => 'Choose attackers';
+
+  @override
+  String practiceAttackers(int count) {
+    return '$count attackers';
+  }
+
+  @override
+  String get practiceSetupPassing => 'Passing rule';
+
+  @override
+  String get practiceFreePlay => 'Free connection';
+
+  @override
+  String get practicePassAndMove => 'Pass and move';
+
+  @override
+  String get practiceFreePlayDescription =>
+      'You choose every attacking run and pass. Defenders react to your actions.';
+
+  @override
+  String get practicePassAndMoveDescription =>
+      'The next pass returns to the previous passer. Move that passer at least 1 m and complete a useful return to meet the goal. You choose the timing; blocked passes can be stolen.';
+
+  @override
+  String get practiceTeamControl => 'Attackers: manual · defenders: reactive';
+
+  @override
+  String get practiceSetMovement => 'Set a run';
+
+  @override
+  String get practiceBackToBall => 'Ball actions';
+
+  @override
+  String practiceSelectPlayer(int number) {
+    return 'Select player $number';
+  }
+
+  @override
+  String practiceChoosePlayerRun(int number) {
+    return 'Select a shirt, then tap a destination · selected: $number';
+  }
+
+  @override
+  String get practiceRunPlanHint =>
+      'Off-ball runs are queued. They start with your next ball action or ▶.';
+
+  @override
+  String practiceCancelRun(int number) {
+    return 'Cancel $number’s run';
+  }
+
+  @override
+  String practiceRunsReady(int count) {
+    return '$count runs queued · pass, dribble or ▶ to move';
+  }
+
+  @override
+  String practiceReturnTarget(int number) {
+    return 'Next pass → $number · create a return lane first';
+  }
+
+  @override
+  String get practiceAdvance => 'Advance 0.5 seconds';
+
+  @override
+  String practicePlayerMove(int number, String metres) {
+    return 'Move player $number · $metres m';
+  }
+
+  @override
+  String practiceRunMarker(int number, String metres) {
+    return '$number · $metres m to target';
+  }
+
+  @override
+  String practiceMetres(String metres) {
+    return '$metres m';
+  }
+
+  @override
+  String practiceTouchDestination(int number, String metres) {
+    return 'First touch $number · ball travels $metres m to the matching marker';
+  }
+
+  @override
+  String practiceStolenBy(int number) {
+    return 'Defender $number won the ball';
+  }
+
+  @override
+  String practiceChooseBallFor(int number) {
+    return 'Ball: $number · shirt = pass · arrows = through ball · space = dribble';
+  }
+
+  @override
+  String get practiceChangePlayer => 'Change player';
+
+  @override
+  String practiceChooseDestination(int number) {
+    return 'Player $number · tap the exact destination on the pitch';
+  }
+
+  @override
+  String get practiceReturnGoal =>
+      'After passing, move to open a return lane and receive again.';
+
+  @override
+  String practiceStealEvidence(int number) {
+    return 'Defender $number made contact with the ball on this path and took possession.';
+  }
+
+  @override
+  String get practiceAdviceStealHold =>
+      'Release the ball or carry away before pressure reaches it; a support run does not protect a stationary ball.';
 }

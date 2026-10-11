@@ -61,6 +61,7 @@ class AttackState {
   final List<AttackPlayer> defenders;
   final ScanPassPoint ball;
   final int carrierNumber;
+  final bool carrierIsDefender;
   final double elapsed;
   final int actionCount;
   final int completedPasses;
@@ -73,6 +74,7 @@ class AttackState {
     required List<AttackPlayer> defenders,
     required this.ball,
     required this.carrierNumber,
+    this.carrierIsDefender = false,
     this.elapsed = 0,
     this.actionCount = 0,
     this.completedPasses = 0,
@@ -83,8 +85,8 @@ class AttackState {
         defenders = List.unmodifiable(defenders),
         furthestX = furthestX ?? ball.x;
 
-  AttackPlayer get carrier =>
-      attackers.firstWhere((p) => p.number == carrierNumber);
+  AttackPlayer get carrier => (carrierIsDefender ? defenders : attackers)
+      .firstWhere((p) => p.number == carrierNumber);
   bool get finished => end != null;
   bool get canShoot => !finished && carrier.position.x >= .65;
 
@@ -93,6 +95,7 @@ class AttackState {
     List<AttackPlayer>? defenders,
     ScanPassPoint? ball,
     int? carrierNumber,
+    bool? carrierIsDefender,
     double? elapsed,
     int? actionCount,
     int? completedPasses,
@@ -105,6 +108,7 @@ class AttackState {
         defenders: defenders ?? this.defenders,
         ball: ball ?? this.ball,
         carrierNumber: carrierNumber ?? this.carrierNumber,
+        carrierIsDefender: carrierIsDefender ?? this.carrierIsDefender,
         elapsed: elapsed ?? this.elapsed,
         actionCount: actionCount ?? this.actionCount,
         completedPasses: completedPasses ?? this.completedPasses,

@@ -3,6 +3,16 @@ import 'dart:math' as math;
 import 'scan_pass_attack.dart';
 import 'scan_pass_game.dart' show ScanPassPoint;
 
+class PracticeSettings {
+  final bool controlAllAttackers;
+  final bool passAndMove;
+
+  const PracticeSettings({
+    this.controlAllAttackers = true,
+    this.passAndMove = false,
+  });
+}
+
 enum PracticeSkill {
   firstTouch,
   drawDefender,
@@ -94,7 +104,9 @@ class PracticeGate {
   /// Only a forward crossing while the same player controls the ball counts.
   /// A ball travelling through on its own is explicitly excluded.
   bool crossed(AttackState before, AttackState after) {
-    if (before.carrierNumber != after.carrierNumber ||
+    if (before.carrierIsDefender ||
+        after.carrierIsDefender ||
+        before.carrierNumber != after.carrierNumber ||
         before.ball.x >= center.x ||
         after.ball.x < center.x ||
         PracticeEngine.distanceMetres(before.ball, before.carrier.position) >
@@ -142,12 +154,14 @@ class PracticeAction {
   final PracticeActionKind kind;
   final ScanPassPoint target;
   final int? receiver;
+  final int? actorNumber;
 
   const PracticeAction({
     required this.id,
     required this.kind,
     required this.target,
     this.receiver,
+    this.actorNumber,
   });
 }
 
@@ -170,6 +184,9 @@ class PracticeDecision {
   final int? evidencePlayer;
   final int historyLengthBefore;
   final int decisionsLengthBefore;
+  final PracticeSettings settingsBefore;
+  final Map<int, ScanPassPoint> runTargetsBefore;
+  final int? returnTargetBefore;
 
   const PracticeDecision({
     required this.before,
@@ -190,6 +207,9 @@ class PracticeDecision {
     required this.evidencePlayer,
     required this.historyLengthBefore,
     required this.decisionsLengthBefore,
+    this.settingsBefore = const PracticeSettings(),
+    this.runTargetsBefore = const {},
+    this.returnTargetBefore,
   });
 
   AttackState get after => transitions.last.after;
@@ -203,6 +223,9 @@ class PracticeSession {
   final List<AttackTransition> history;
   final PracticeOutcome? outcome;
   final String? reachedGate;
+  final PracticeSettings settings;
+  final Map<int, ScanPassPoint> runTargets;
+  final int? returnTarget;
 
   const PracticeSession({
     required this.lesson,
@@ -212,10 +235,17 @@ class PracticeSession {
     this.history = const [],
     this.outcome,
     this.reachedGate,
+    this.settings = const PracticeSettings(),
+    this.runTargets = const {},
+    this.returnTarget,
   });
 
   bool get finished => phase == PracticePhase.finished;
+  int? get stolenBy => state.carrierIsDefender ? state.carrierNumber : null;
   bool get goalDemonstrated => decisions.any((d) => d.goalDemonstrated);
+  int get decisionLimit => settings.controlAllAttackers
+      ? PracticeEngine.manualDecisionLimit
+      : PracticeEngine.decisionLimit;
 }
 
 class PracticeStep {
@@ -237,6 +267,7 @@ class PracticeEngine {
   static const double fieldLength = 40;
   static const double fieldWidth = 28;
   static const int decisionLimit = 8;
+  static const int manualDecisionLimit = 16;
   static const double _step = .025;
   static final List<PracticeCase> catalog = List.unmodifiable([
     for (final skill in PracticeSkill.values)
@@ -245,8 +276,11 @@ class PracticeEngine {
 
   const PracticeEngine();
 
-  PracticeSession start(PracticeCase lesson) => PracticeSession(
+  PracticeSession start(PracticeCase lesson,
+          {PracticeSettings settings = const PracticeSettings()}) =>
+      PracticeSession(
         lesson: lesson,
+        settings: settings,
         state: lesson.reception,
         phase: PracticePhase.firstTouch,
         history: [lesson.observation],
@@ -258,6 +292,9 @@ class PracticeEngine {
       lesson: session.lesson,
       state: decision.before,
       phase: decision.phaseBefore,
+      settings: decision.settingsBefore,
+      runTargets: decision.runTargetsBefore,
+      returnTarget: decision.returnTargetBefore,
       decisions: List.unmodifiable(
           session.decisions.take(decision.decisionsLengthBefore)),
       history:
@@ -268,7 +305,9 @@ class PracticeEngine {
   List<PracticeAction> choices(PracticeSession session) {
     if (session.finished) return const [];
     final state = session.state;
-    final learner = _player(state, 6);
+    final learner = session.settings.controlAllAttackers
+        ? state.carrier
+        : _player(state, 6);
     if (session.phase == PracticePhase.firstTouch) {
       return [
         for (final entry in [
@@ -278,11 +317,13 @@ class PracticeEngine {
         ])
           PracticeAction(
               id: 'touch-${entry.$1}',
+              actorNumber: learner.number,
               kind: PracticeActionKind.touch,
               target: boundedTarget(learner.position + _normalized(entry.$2))),
       ];
     }
-    if (session.phase == PracticePhase.support) {
+    if (!session.settings.controlAllAttackers &&
+        session.phase == PracticePhase.support) {
       final carrier = state.carrier.position;
       return [
         for (final entry in [
@@ -301,48 +342,180 @@ class PracticeEngine {
             target: learner.position),
       ];
     }
-    return _ballChoices(session.lesson, state);
+    return _ballChoices(session.lesson, state,
+        returnTarget:
+            session.settings.passAndMove ? session.returnTarget : null,
+        runTargets: session.runTargets);
   }
 
-  PracticeStep moveTo(PracticeSession session, ScanPassPoint target) => choose(
-      session,
-      PracticeAction(
-          id: session.phase == PracticePhase.support
-              ? 'move-custom'
-              : 'carry-custom',
-          kind: session.phase == PracticePhase.support
-              ? PracticeActionKind.move
-              : PracticeActionKind.carry,
-          target: _toward(
-              _player(session.state, 6).position,
-              boundedTarget(target),
-              session.phase == PracticePhase.support ? 8 : 5.8)));
+  /// Plans change no time, history or possession. They execute only when the
+  /// user commits a ball action or explicitly lets time advance with hold.
+  PracticeSession planRun(
+      PracticeSession session, int playerNumber, ScanPassPoint target) {
+    _requireActiveAttacker(session, playerNumber);
+    if (playerNumber == session.state.carrierNumber) {
+      throw ArgumentError('A run plan is for an off-ball attacker');
+    }
+    _requireFinite(target);
+    return _withRunTargets(session, {
+      ...session.runTargets,
+      playerNumber: _toward(_player(session.state, playerNumber).position,
+          boundedTarget(target), 8),
+    });
+  }
+
+  PracticeSession cancelRun(PracticeSession session, int playerNumber) {
+    _requireActiveAttacker(session, playerNumber);
+    final targets = {...session.runTargets}..remove(playerNumber);
+    return _withRunTargets(session, targets);
+  }
+
+  PracticeSession _withRunTargets(
+          PracticeSession session, Map<int, ScanPassPoint> targets) =>
+      PracticeSession(
+        lesson: session.lesson,
+        state: session.state,
+        phase: session.phase,
+        settings: session.settings,
+        runTargets: Map.unmodifiable(targets),
+        returnTarget: session.returnTarget,
+        decisions: session.decisions,
+        history: session.history,
+        outcome: session.outcome,
+        reachedGate: session.reachedGate,
+      );
+
+  void _requireActiveAttacker(PracticeSession session, int number) {
+    if (session.finished) throw StateError('Exercise is already complete');
+    if (!session.state.attackers.any((p) => p.number == number)) {
+      throw ArgumentError.value(number, 'playerNumber', 'Unknown attacker');
+    }
+  }
+
+  static void _requireFinite(ScanPassPoint target) {
+    if (!target.x.isFinite || !target.y.isFinite) {
+      throw ArgumentError('Target must contain finite coordinates');
+    }
+  }
+
+  PracticeStep moveTo(PracticeSession session, ScanPassPoint target,
+      {int? playerNumber}) {
+    final number = playerNumber ??
+        (session.settings.controlAllAttackers
+            ? session.state.carrierNumber
+            : 6);
+    _requireActiveAttacker(session, number);
+    _requireFinite(target);
+    final offBall = number != session.state.carrierNumber;
+    return choose(
+        session,
+        PracticeAction(
+          id: offBall ? 'move-custom' : 'carry-custom',
+          kind: offBall ? PracticeActionKind.move : PracticeActionKind.carry,
+          actorNumber: number,
+          target: _toward(_player(session.state, number).position,
+              boundedTarget(target), offBall ? 8 : 5.8),
+        ));
+  }
+
+  PracticeAction _checkedAction(
+      PracticeSession session, PracticeAction action) {
+    _requireFinite(action.target);
+    final state = session.state;
+    final actor = action.actorNumber ??
+        (action.kind == PracticeActionKind.move ? 6 : state.carrierNumber);
+    _requireActiveAttacker(session, actor);
+    final isPass = action.kind == PracticeActionKind.pass ||
+        action.kind == PracticeActionKind.through;
+    if (action.kind == PracticeActionKind.move) {
+      if (actor == state.carrierNumber) {
+        throw ArgumentError('Use carry to move the ball carrier');
+      }
+    } else if (actor != state.carrierNumber &&
+        !(action.kind == PracticeActionKind.hold &&
+            session.settings.controlAllAttackers &&
+            session.runTargets.containsKey(actor))) {
+      throw ArgumentError('This action belongs to the current ball carrier');
+    }
+    if (session.phase == PracticePhase.firstTouch &&
+        action.kind != PracticeActionKind.touch) {
+      throw ArgumentError('Choose the first touch before the next action');
+    }
+    if (action.kind == PracticeActionKind.touch &&
+        session.phase != PracticePhase.firstTouch) {
+      throw ArgumentError('The first touch has already been chosen');
+    }
+    if (isPass) {
+      if (action.receiver == null ||
+          action.receiver == state.carrierNumber ||
+          !state.attackers.any((p) => p.number == action.receiver)) {
+        throw ArgumentError('A pass requires another current attacker');
+      }
+      if (session.settings.passAndMove &&
+          session.returnTarget != null &&
+          action.receiver != session.returnTarget) {
+        throw ArgumentError('The next pass must return to the previous passer');
+      }
+      if (action.kind == PracticeActionKind.pass &&
+          distanceMetres(
+                  action.target, _player(state, action.receiver!).position) >
+              .05) {
+        throw ArgumentError('Pass-to-feet target is stale');
+      }
+    }
+    final target = switch (action.kind) {
+      PracticeActionKind.move => _toward(
+          _player(state, actor).position, boundedTarget(action.target), 8),
+      PracticeActionKind.touch => _toward(
+          _player(state, actor).position, boundedTarget(action.target), 2.3),
+      PracticeActionKind.carry => _toward(
+          _player(state, actor).position, boundedTarget(action.target), 5.8),
+      PracticeActionKind.pass => _player(state, action.receiver!).position,
+      PracticeActionKind.through => _toward(
+          _player(state, action.receiver!).position,
+          boundedTarget(action.target),
+          8),
+      PracticeActionKind.hold => state.carrier.position,
+    };
+    return PracticeAction(
+        id: action.id,
+        kind: action.kind,
+        target: target,
+        receiver: action.receiver,
+        actorNumber: actor);
+  }
 
   PracticeStep choose(PracticeSession session, PracticeAction action) {
     if (session.finished) {
       throw StateError('Cannot choose after a completed exercise');
     }
-    if (action.kind == PracticeActionKind.move &&
+    action = _checkedAction(session, action);
+    if (!session.settings.controlAllAttackers &&
+        action.kind == PracticeActionKind.move &&
         session.phase != PracticePhase.support) {
       throw ArgumentError('Off-ball movement requires support phase');
     }
-    if (session.phase == PracticePhase.support &&
+    if (!session.settings.controlAllAttackers &&
+        session.phase == PracticePhase.support &&
         action.kind != PracticeActionKind.move &&
         action.kind != PracticeActionKind.hold) {
       throw ArgumentError(
           'Choose a learner movement while a teammate has ball');
     }
-    final result = _execute(session.lesson, session.state, action);
+    final result = _execute(session.lesson, session.state, action,
+        settings: session.settings, runTargets: session.runTargets);
     final transitions = <AttackTransition>[result.transition];
     var state = result.transition.after;
     var gate = result.gate;
     // A support choice grants the teammate one independent football decision.
     // The learner never receives a forced return and never runs automatically.
-    if (session.phase == PracticePhase.support &&
+    if (!session.settings.controlAllAttackers &&
+        session.phase == PracticePhase.support &&
         state.end == null &&
         gate == null) {
       final continuation = _teammateAction(session.lesson, state);
       final continued = _execute(session.lesson, state, continuation,
+          settings: session.settings,
           learnerTarget:
               action.kind == PracticeActionKind.move ? action.target : null);
       transitions.add(continued.transition);
@@ -357,15 +530,28 @@ class PracticeEngine {
             ? PracticeOutcome.intercepted
             : gate != null
                 ? PracticeOutcome.gateReached
-                : decisions.length >= decisionLimit
+                : decisions.length >= session.decisionLimit
                     ? PracticeOutcome.retained
                     : null;
     final updated = PracticeSession(
       lesson: session.lesson,
       state: state,
+      settings: session.settings,
+      runTargets: Map.unmodifiable({
+        for (final entry in session.runTargets.entries)
+          if (entry.key != state.carrierNumber &&
+              entry.key != action.receiver &&
+              distanceMetres(_player(state, entry.key).position, entry.value) >
+                  .08)
+            entry.key: entry.value,
+      }),
+      returnTarget: session.settings.passAndMove &&
+              state.completedPasses > session.state.completedPasses
+          ? session.state.carrierNumber
+          : session.returnTarget,
       phase: outcome != null
           ? PracticePhase.finished
-          : state.carrierNumber == 6
+          : session.settings.controlAllAttackers || state.carrierNumber == 6
               ? PracticePhase.onBall
               : PracticePhase.support,
       decisions: List.unmodifiable(decisions),
@@ -381,11 +567,34 @@ class PracticeEngine {
 
   List<PracticeAction> rankedChoices(PracticeSession session) {
     final scored = [
-      for (final action in choices(session))
+      for (final action in _analysisChoices(session))
         (action: action, value: _rankValue(session, choose(session, action))),
     ]..sort((a, b) => b.value.compareTo(a.value));
     return List.unmodifiable(scored.map((entry) => entry.action));
   }
+
+  List<PracticeAction> _analysisChoices(PracticeSession session) => [
+        ...choices(session),
+        // Coaching may propose one explicitly selected off-ball movement.
+        // This never changes the public carrier controls or runs automatically.
+        if (session.settings.controlAllAttackers &&
+            session.phase == PracticePhase.onBall &&
+            (session.settings.passAndMove
+                ? session.returnTarget != null
+                : session.lesson.skill == PracticeSkill.supportAngle))
+          for (final p in session.state.attackers.where((p) =>
+              p.number != session.state.carrierNumber &&
+              (!session.settings.passAndMove ||
+                  p.number == session.returnTarget)))
+            for (final direction in [-1, 1])
+              PracticeAction(
+                id: 'support-${p.number}-$direction',
+                kind: PracticeActionKind.move,
+                actorNumber: p.number,
+                target: boundedTarget(p.position +
+                    _normalized(ScanPassPoint(-.8, direction * 2.0))),
+              ),
+      ];
 
   double _rankValue(PracticeSession before, PracticeStep step) {
     final immediate = _learningValue(before, step);
@@ -405,8 +614,9 @@ class PracticeEngine {
   }
 
   /// A comparison from exactly the same world; no privileged physics or pass.
-  PracticeSession coachRun(PracticeCase lesson) {
-    var session = start(lesson);
+  PracticeSession coachRun(PracticeCase lesson,
+      {PracticeSettings settings = const PracticeSettings()}) {
+    var session = start(lesson, settings: settings);
     while (!session.finished) {
       session = choose(session, recommended(session)).session;
     }
@@ -417,12 +627,12 @@ class PracticeEngine {
     // A complete comparison is planned through actual trajectories. Bounded
     // beam search avoids presenting a short-sighted recommendation as the only
     // correct route, with no privileged movement or immunity to interceptions.
-    var beam = [(session: start(lesson), value: 0.0)];
-    for (var depth = 0; depth < decisionLimit; depth++) {
+    var beam = [(session: start(lesson, settings: settings), value: 0.0)];
+    for (var depth = 0; depth < session.decisionLimit; depth++) {
       final next = <({PracticeSession session, double value})>[];
       final completed = <({PracticeSession session, double value})>[];
       for (final branch in beam) {
-        for (final action in choices(branch.session)) {
+        for (final action in _analysisChoices(branch.session)) {
           final step = choose(branch.session, action);
           if (step.session.outcome == PracticeOutcome.intercepted ||
               step.session.outcome == PracticeOutcome.offside) {
@@ -480,31 +690,38 @@ class PracticeEngine {
     );
   }
 
-  List<PracticeAction> _ballChoices(PracticeCase lesson, AttackState state) => [
+  List<PracticeAction> _ballChoices(PracticeCase lesson, AttackState state,
+          {int? returnTarget, Map<int, ScanPassPoint> runTargets = const {}}) =>
+      [
         for (final gate in lesson.gates)
           PracticeAction(
             id: 'carry-${gate.id}',
+            actorNumber: state.carrierNumber,
             kind: PracticeActionKind.carry,
             target: _toward(state.carrier.position,
                 ScanPassPoint(gate.center.x + .045, gate.center.y), 5.8),
           ),
-        for (final p in state.attackers
-            .where((player) => player.number != state.carrierNumber)) ...[
+        for (final p in state.attackers.where((player) =>
+            player.number != state.carrierNumber &&
+            (returnTarget == null || player.number == returnTarget))) ...[
           PracticeAction(
               id: 'pass-${p.number}',
+              actorNumber: state.carrierNumber,
               kind: PracticeActionKind.pass,
               target: p.position,
               receiver: p.number),
           PracticeAction(
               id: 'through-${p.number}',
+              actorNumber: state.carrierNumber,
               kind: PracticeActionKind.through,
-              target: _throughTarget(state, p),
+              target: runTargets[p.number] ?? _throughTarget(state, p),
               receiver: p.number),
         ],
         PracticeAction(
             id: 'hold',
             kind: PracticeActionKind.hold,
-            target: state.carrier.position),
+            target: state.carrier.position,
+            actorNumber: state.carrierNumber),
       ];
 
   PracticeAction _teammateAction(PracticeCase lesson, AttackState state) {
@@ -512,7 +729,8 @@ class PracticeEngine {
     var best = candidates.last;
     var value = double.negativeInfinity;
     for (final action in candidates) {
-      final result = _execute(lesson, state, action);
+      final result = _execute(lesson, state, action,
+          settings: const PracticeSettings(controlAllAttackers: false));
       final after = result.transition.after;
       var score = _continuationValue(lesson, state, after, result.gate);
       if (action.kind == PracticeActionKind.pass ||
@@ -555,6 +773,31 @@ class PracticeEngine {
     var score = decision.useful ? 7.0 : 0.0;
     score +=
         (decision.pressureAfter.clamp(0, 5) - rubric.minimumPressureGap) * 1.3;
+    if (before.settings.passAndMove) {
+      if (decision.goalDemonstrated) score += 28;
+      final receiver = before.returnTarget;
+      if (receiver == null) {
+        if (after.completedPasses > before.state.completedPasses) score += 5;
+      } else {
+        final laneBefore = laneClearance(before.state, before.state.ball,
+            _player(before.state, receiver).position);
+        final laneAfter = laneClearance(
+            after,
+            _player(after, before.state.carrierNumber).position,
+            _player(after, receiver).position);
+        score += (laneAfter - laneBefore).clamp(-3, 3) * 3;
+        score += laneAfter.clamp(0, 4);
+        if (decision.action.kind == PracticeActionKind.move ||
+            decision.action.kind == PracticeActionKind.hold) {
+          score += distanceMetres(_player(before.state, receiver).position,
+                  _player(after, receiver).position)
+              .clamp(0, 2);
+        }
+      }
+      // Cone progress, unrelated passing options, and the authored free-play
+      // case goal do not define success in the return-and-move exercise.
+      return score;
+    }
     score += decision.optionsAfter * 2;
     score += (step.session.reachedGate != null ? 10 : 0);
     switch (before.lesson.skill) {
@@ -591,10 +834,23 @@ class PracticeEngine {
     // Evidence belongs to the learner's action, before a later teammate error.
     final immediate = transitions.first.after;
     final after = transitions.last.after;
-    final support = session.phase == PracticePhase.support;
-    final learnerBefore = _player(before, 6).position;
+    final queuedRunner = action.kind == PracticeActionKind.hold &&
+            session.settings.controlAllAttackers &&
+            session.runTargets.isNotEmpty
+        ? session.runTargets.containsKey(action.actorNumber)
+            ? action.actorNumber
+            : session.runTargets.keys.first
+        : null;
+    final support = action.kind == PracticeActionKind.move ||
+        queuedRunner != null ||
+        (!session.settings.controlAllAttackers &&
+            session.phase == PracticePhase.support);
+    final actor = support && !session.settings.controlAllAttackers
+        ? 6
+        : queuedRunner ?? action.actorNumber ?? before.carrierNumber;
+    final learnerBefore = _player(before, actor).position;
     final movementEnd = support ? transitions.last.after : immediate;
-    final learnerAfter = _player(movementEnd, 6).position;
+    final learnerAfter = _player(movementEnd, actor).position;
     final pressureBefore = nearestDefender(before, before.ball);
     final pressureAfter = nearestDefender(immediate, immediate.ball);
     final laneReceiver = action.receiver ??
@@ -634,14 +890,18 @@ class PracticeEngine {
           ? PracticeReason.passLaneClosed
           : action.kind == PracticeActionKind.touch
               ? PracticeReason.touchIntoPressure
-              : PracticeReason.carryIntoCover;
+              : action.kind == PracticeActionKind.hold
+                  ? PracticeReason.holdUnderPressure
+                  : PracticeReason.carryIntoCover;
       evidencePlayer = first.interceptorNumber;
       useful = false;
     } else if (support) {
+      evidencePlayer = actor;
       final angleOpened =
           laneAfter >= session.lesson.learning.rubric.minimumLaneClearance &&
               (laneAfter > laneBefore + .4 ||
-                  distanceMetres(learnerAfter, immediate.ball) >= 3);
+                  (!session.settings.controlAllAttackers &&
+                      distanceMetres(learnerAfter, immediate.ball) >= 3));
       useful = angleOpened;
       reason = angleOpened
           ? PracticeReason.supportLaneOpened
@@ -676,8 +936,13 @@ class PracticeEngine {
       evidencePlayer = receiver.number;
       final travelled = distanceMetres(
           receiver.position, _player(immediate, receiver.number).position);
-      final running = _metres(receiver.velocity).distance >= 1.6 &&
-          receiver.velocity.x > .015;
+      final runTarget = session.runTargets[receiver.number];
+      final plannedForwardRun = runTarget != null &&
+          (runTarget.x - receiver.position.x) * fieldLength >= 1 &&
+          distanceMetres(receiver.position, runTarget) >= 1.5;
+      final running = plannedForwardRun ||
+          (_metres(receiver.velocity).distance >= 1.6 &&
+              receiver.velocity.x > .015);
       if (action.kind == PracticeActionKind.through) {
         useful = useful && running && travelled >= 1.0;
         reason = running && travelled >= 1
@@ -689,6 +954,19 @@ class PracticeEngine {
             ? PracticeReason.passToFeet
             : PracticeReason.receivedUnderPressure;
         cue = PracticeCue.passingLane;
+      }
+      final previousPasses = session.history.where((t) =>
+          t.after.end == null &&
+          t.after.completedPasses > t.before.completedPasses);
+      if (previousPasses.isNotEmpty) {
+        final previous = previousPasses.last;
+        if (previous.after.carrierNumber == before.carrierNumber &&
+            previous.before.carrierNumber != immediate.carrierNumber &&
+            before.carrierNumber != immediate.carrierNumber &&
+            useful) {
+          reason = PracticeReason.thirdPlayerConnected;
+          cue = PracticeCue.thirdPlayerLane;
+        }
       }
       final lateralChange =
           (immediate.ball.y - before.ball.y).abs() * fieldWidth;
@@ -739,48 +1017,56 @@ class PracticeEngine {
       // Finishing the exercise is factual; usefulness remains criterion based.
       reason = PracticeReason.controlledGate;
     }
-    final goalDemonstrated = useful &&
-        switch (session.lesson.skill) {
-          PracticeSkill.firstTouch => action.kind == PracticeActionKind.touch,
-          PracticeSkill.drawDefender => reason ==
-                  PracticeReason.defenderDrawn ||
-              ((action.kind == PracticeActionKind.pass ||
-                      action.kind == PracticeActionKind.through) &&
-                  laneBefore >=
-                      session.lesson.learning.rubric.minimumLaneClearance &&
-                  (immediate.ball.x >
-                          before.defenders
-                                  .map((d) => d.position.x)
-                                  .reduce(math.max) +
-                              .02 ||
-                      before.defenders.any((d) {
-                        final initial = session.lesson.reception.defenders
-                            .firstWhere((p) => p.number == d.number);
-                        return distanceMetres(d.position, learnerBefore) + .6 <
-                            distanceMetres(initial.position, learnerBefore);
-                      }))),
-          PracticeSkill.throughPass =>
-            reason == PracticeReason.runnerMetInStride ||
-                (reason == PracticeReason.passToFeet &&
-                    action.receiver != null &&
-                    _player(before, action.receiver!).velocity.x <= .015),
-          PracticeSkill.supportAngle =>
-            reason == PracticeReason.supportLaneOpened,
-          PracticeSkill.thirdPlayer =>
-            reason == PracticeReason.thirdPlayerConnected ||
-                ((action.kind == PracticeActionKind.pass ||
-                        action.kind == PracticeActionKind.through) &&
-                    laneBefore >= 2.5 &&
-                    pressureAfter >= 3),
-          PracticeSkill.switchPlay => reason == PracticeReason.farSideOpened,
-        };
+    final goalDemonstrated = session.settings.passAndMove
+        ? _returnGoalDemonstrated(session, action, immediate, useful)
+        : useful &&
+            switch (session.lesson.skill) {
+              PracticeSkill.firstTouch =>
+                action.kind == PracticeActionKind.touch,
+              PracticeSkill.drawDefender => reason ==
+                      PracticeReason.defenderDrawn ||
+                  ((action.kind == PracticeActionKind.pass ||
+                          action.kind == PracticeActionKind.through) &&
+                      laneBefore >=
+                          session.lesson.learning.rubric.minimumLaneClearance &&
+                      (immediate.ball.x >
+                              before.defenders
+                                      .map((d) => d.position.x)
+                                      .reduce(math.max) +
+                                  .02 ||
+                          before.defenders.any((d) {
+                            final initial = session.lesson.reception.defenders
+                                .firstWhere((p) => p.number == d.number);
+                            return distanceMetres(d.position, learnerBefore) +
+                                    .6 <
+                                distanceMetres(initial.position, learnerBefore);
+                          }))),
+              PracticeSkill.throughPass =>
+                reason == PracticeReason.runnerMetInStride ||
+                    (reason == PracticeReason.passToFeet &&
+                        action.receiver != null &&
+                        _player(before, action.receiver!).velocity.x <= .015),
+              PracticeSkill.supportAngle =>
+                reason == PracticeReason.supportLaneOpened,
+              PracticeSkill.thirdPlayer =>
+                reason == PracticeReason.thirdPlayerConnected ||
+                    ((action.kind == PracticeActionKind.pass ||
+                            action.kind == PracticeActionKind.through) &&
+                        laneBefore >= 2.5 &&
+                        pressureAfter >= 3),
+              PracticeSkill.switchPlay =>
+                reason == PracticeReason.farSideOpened,
+            };
     var travelled = 0.0;
     for (final transition in support ? transitions : [transitions.first]) {
       final samples = transition.motionSamples;
       for (var i = 1; i < samples.length; i++) {
         travelled += distanceMetres(
-            support ? _player(samples[i - 1], 6).position : samples[i - 1].ball,
-            support ? _player(samples[i], 6).position : samples[i].ball);
+            support
+                ? _player(samples[i - 1], actor).position
+                : samples[i - 1].ball,
+            support ? _player(samples[i], actor).position : samples[i].ball);
+        if (samples[i].carrierIsDefender) break;
       }
     }
     return PracticeDecision(
@@ -802,12 +1088,47 @@ class PracticeEngine {
       evidencePlayer: evidencePlayer,
       historyLengthBefore: session.history.length,
       decisionsLengthBefore: session.decisions.length,
+      settingsBefore: session.settings,
+      runTargetsBefore: Map.unmodifiable(session.runTargets),
+      returnTargetBefore: session.returnTarget,
     );
+  }
+
+  bool _returnGoalDemonstrated(PracticeSession session, PracticeAction action,
+      AttackState after, bool useful) {
+    final receiver = session.returnTarget;
+    if (!useful ||
+        receiver == null ||
+        action.receiver != receiver ||
+        (action.kind != PracticeActionKind.pass &&
+            action.kind != PracticeActionKind.through) ||
+        after.end != null ||
+        after.carrierIsDefender ||
+        after.carrierNumber != receiver ||
+        after.completedPasses <= session.state.completedPasses ||
+        laneClearance(session.state, session.state.ball, action.target) <
+            session.lesson.learning.rubric.minimumLaneClearance) {
+      return false;
+    }
+    final outgoing = session.history.where((transition) =>
+        transition.before.carrierNumber == receiver &&
+        transition.after.carrierNumber == session.state.carrierNumber &&
+        transition.after.end == null &&
+        transition.after.completedPasses > transition.before.completedPasses);
+    if (outgoing.isEmpty) return false;
+    // Net relocation from the actual release position means receiving in a
+    // different space; walking around and returning to the old spot is not
+    // credited. An explicitly led return can complete the commanded run.
+    return distanceMetres(_player(outgoing.last.before, receiver).position,
+            _player(after, receiver).position) >=
+        1;
   }
 
   ({AttackTransition transition, String? gate}) _execute(
       PracticeCase lesson, AttackState before, PracticeAction action,
-      {ScanPassPoint? learnerTarget}) {
+      {ScanPassPoint? learnerTarget,
+      PracticeSettings settings = const PracticeSettings(),
+      Map<int, ScanPassPoint> runTargets = const {}}) {
     final isPass = action.kind == PracticeActionKind.pass ||
         action.kind == PracticeActionKind.through;
     final isMove = action.kind == PracticeActionKind.move;
@@ -838,24 +1159,32 @@ class PracticeEngine {
         gate: null,
       );
     }
-    final runNumber = isMove ? 6 : before.carrierNumber;
+    final runNumber = isMove ? action.actorNumber ?? 6 : before.carrierNumber;
     final flight = distanceMetres(before.ball, target) / 17;
     final runDistance =
         distanceMetres(_player(before, runNumber).position, target);
-    final duration = isPass
-        ? math.max(.22, flight + .85)
-        : isMove
-            ? .45
-            : moving
-                ? (runDistance /
-                            (isMove
-                                ? 5.8
-                                : action.kind == PracticeActionKind.touch
-                                    ? 4.6
-                                    : 5.2) +
-                        .4)
-                    .clamp(.45, 5.5)
-                : .5;
+    final controlledSpeed = isMove
+        ? 6.4
+        : action.kind == PracticeActionKind.touch
+            ? 4.0
+            : 6.0;
+    final duration = settings.controlAllAttackers && moving
+        ? (runDistance / controlledSpeed + controlledSpeed / 6.2 + .3)
+            .clamp(.5, 5.5)
+        : isPass
+            ? math.max(.22, flight + .85)
+            : isMove
+                ? .45
+                : moving
+                    ? (runDistance /
+                                (isMove
+                                    ? 5.8
+                                    : action.kind == PracticeActionKind.touch
+                                        ? 4.6
+                                        : 5.2) +
+                            .4)
+                        .clamp(.45, 5.5)
+                    : .5;
     final samples = <AttackState>[before];
     var current = before;
     var caught = false;
@@ -886,6 +1215,16 @@ class PracticeEngine {
         } else if (isPass && p.number == receiver) {
           aim = target;
           speed = 6.4;
+        } else if (settings.controlAllAttackers &&
+            runTargets.containsKey(p.number) &&
+            p.number != before.carrierNumber) {
+          aim = runTargets[p.number]!;
+          speed = 6.4;
+        } else if (settings.controlAllAttackers) {
+          // Only physical braking remains after the scripted observation or a
+          // user command. An attacker never invents a new run or shields away.
+          aim = p.position;
+          speed = 0;
         } else if (p.number == 6 && learnerTarget != null) {
           aim = learnerTarget;
           speed = 6.4;
@@ -900,7 +1239,8 @@ class PracticeEngine {
           aim = _attackingAim(current, p, lesson.gates, lesson.offsideEnabled);
           speed = 6.2;
         }
-        attackers.add(_advance(p, aim, dt, speed));
+        attackers.add(_advance(p, aim, dt, speed,
+            stopAtTarget: settings.controlAllAttackers));
       }
       final ball = isPass
           ? before.ball
@@ -955,9 +1295,16 @@ class PracticeEngine {
       current = next;
       samples.add(current);
       if (interceptor != null || gate != null) break;
+      if (settings.controlAllAttackers &&
+          moving &&
+          distanceMetres(_player(current, runNumber).position, target) < .008 &&
+          _metres(_player(current, runNumber).velocity).distance < .1) {
+        break;
+      }
       if (isPass &&
           elapsed >= flight &&
-          distanceMetres(_player(current, receiver).position, ball) <= .6) {
+          distanceMetres(_player(current, receiver).position, ball) <=
+              (settings.controlAllAttackers ? .008 : .6)) {
         caught = true;
         break;
       }
@@ -970,8 +1317,16 @@ class PracticeEngine {
         extra += _step;
         final attackers = [
           for (final p in current.attackers)
-            _advance(p, p.number == receiver ? target : p.position, _step,
-                p.number == receiver ? 6.4 : 0),
+            _advance(
+                p,
+                p.number == receiver
+                    ? target
+                    : runTargets[p.number] ?? p.position,
+                _step,
+                p.number == receiver || runTargets.containsKey(p.number)
+                    ? 6.4
+                    : 0,
+                stopAtTarget: settings.controlAllAttackers),
         ];
         final defenders = [
           for (final d in current.defenders) _advance(d, target, _step, 5.9),
@@ -993,13 +1348,47 @@ class PracticeEngine {
         if (interceptor != null) next = _interpolate(current, next, hitAt);
         current = next;
         samples.add(current);
-        caught =
-            distanceMetres(_player(current, receiver).position, target) <= .6;
+        caught = distanceMetres(_player(current, receiver).position, target) <=
+            (settings.controlAllAttackers ? .008 : .6);
+      }
+    }
+    if (interceptor != null) {
+      current = current.copyWith(
+          carrierNumber: interceptor,
+          carrierIsDefender: true,
+          end: AttackEnd.intercepted,
+          cue: AttackCue.intercepted);
+      samples[samples.length - 1] = current;
+      // Contact transfers possession at the real collision location. The ball
+      // then settles at the defender's foot continuously while they take it
+      // away; no attacker is falsely left as owner of a stolen ball.
+      final defender = current.carrier;
+      final collectOffset = current.ball - defender.position;
+      final collectionStart = current.elapsed;
+      final escape = boundedTarget(
+          defender.position + _normalized(const ScanPassPoint(-1.3, .35)));
+      for (var i = 1; i <= 16; i++) {
+        final defenders = [
+          for (final d in current.defenders)
+            _advance(d, d.number == interceptor ? escape : d.position, _step,
+                d.number == interceptor ? 4.0 : 0),
+        ];
+        final owner = defenders.firstWhere((d) => d.number == interceptor);
+        final remainingOffset = (1 - i * _step / .16).clamp(0.0, 1.0);
+        current = current.copyWith(
+          attackers: [
+            for (final p in current.attackers) _advance(p, p.position, _step, 0)
+          ],
+          defenders: defenders,
+          ball: owner.position + collectOffset * remainingOffset,
+          elapsed: collectionStart + i * _step,
+        );
+        samples.add(current);
       }
     }
     final after = current.copyWith(
-      carrierNumber:
-          caught && interceptor == null ? receiver : before.carrierNumber,
+      carrierNumber: interceptor ?? (caught ? receiver : before.carrierNumber),
+      carrierIsDefender: interceptor != null,
       completedPasses:
           before.completedPasses + (caught && interceptor == null ? 1 : 0),
       actionCount: before.actionCount + 1,
@@ -1289,7 +1678,8 @@ class PracticeEngine {
   }
 
   static AttackPlayer _advance(
-      AttackPlayer player, ScanPassPoint target, double dt, double maxSpeed) {
+      AttackPlayer player, ScanPassPoint target, double dt, double maxSpeed,
+      {bool stopAtTarget = false}) {
     final delta = _metres(target - player.position);
     final old = _metres(player.velocity);
     const acceleration = 6.2;
@@ -1304,7 +1694,15 @@ class PracticeEngine {
             ? change
             : change * (acceleration * dt / change.distance));
     var movement = velocity * dt;
-    if (movement.distance > delta.distance && movement.dot(delta) > 0) {
+    if (stopAtTarget &&
+        maxSpeed > 0 &&
+        ((movement.distance >= delta.distance && movement.dot(delta) > 0) ||
+            delta.distance < .005)) {
+      movement = delta;
+      velocity = const ScanPassPoint(0, 0);
+    } else if (!stopAtTarget &&
+        movement.distance > delta.distance &&
+        movement.dot(delta) > 0) {
       movement = delta;
       velocity = movement * (1 / dt);
     }

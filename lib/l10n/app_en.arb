@@ -11287,7 +11287,7 @@
     }
   },
   "practiceTitle": "Read the game",
-  "practiceIntro": "Start with two attackers. Read pressure, choose your next action, then review why it worked.",
+  "practiceIntro": "Choose the number of attackers and the passing rule, then open a situation. Read pressure and choose every attacking action.",
   "practiceStage": "{attackers} attackers · {defenders} defenders",
   "@practiceStage": {
     "placeholders": {
@@ -11323,7 +11323,7 @@
   "practiceSkillThirdPlayer": "Connect through a third player",
   "practiceSkillSwitchPlay": "Find the far side",
   "practiceObserve": "Watch the defender and the runner before receiving.",
-  "practiceChooseTouch": "First touch · tap a direction arrow.",
+  "practiceChooseTouch": "First touch · solid lines lead to the numbered balls. Distance is from the current ball to its destination.",
   "practiceChooseBall": "Jersey: pass to feet · arrow ahead: through pass · space: carry",
   "practiceChooseSupport": "You are #6 · tap space to move, or hold your position.",
   "practiceExecuting": "Watch how the space and passing lanes change.",
@@ -11343,7 +11343,7 @@
       }
     }
   },
-  "practiceMove": "Move #6 · {metres} m",
+  "practiceMove": "Player movement · {metres} m",
   "@practiceMove": {
     "placeholders": {
       "metres": {
@@ -11405,7 +11405,7 @@
       }
     }
   },
-  "practiceLaneEvidence": "Same teammate–#6 passing line, nearest defender: {before} m → {after} m",
+  "practiceLaneEvidence": "Defender clearance from the same passing lane: {before} m → {after} m",
   "@practiceLaneEvidence": {
     "placeholders": {
       "before": {
@@ -11439,10 +11439,10 @@
   "practiceCompleted": "Attempted situation",
   "practiceGateReached": "Controlled dribble through the gate",
   "practiceRetained": "Possession retained · review the choices",
-  "practiceIntercepted": "Defender recovered the ball",
+  "practiceIntercepted": "The defending team has possession",
   "practiceOffsideEnd": "Offside at the pass release",
   "practiceHelp": "Read, decide, compare",
-  "practiceHelpBody": "You always control #6. Tap an arrow for the first touch, a jersey for a pass to feet, or the forward arrow for a through pass. Tap space to carry or support. Decisions pause the action; Wait advances the movement briefly. Ball paths are solid, player runs are dashed. Gates count only when a player carries the ball through. Review each choice and replay an alternative from exactly the same moment. These small-sided situations simplify a match; they do not measure real-match ability.",
+  "practiceHelpBody": "Choose 2, 3 or 4 attackers before starting. After the opening pass, you control every attacking action. First-touch buttons match the numbered balls at the exact destination; distances are from the current ball. Tap a shirt to pass, the arrows for a through ball, or empty space to dribble. Use Set a run, choose a shirt, then tap space to queue an off-ball run. It starts with the next ball action or ▶ (0.5 seconds). Cancel a run in Set a run. After passing, control switches to the receiver and waits for your choice. Pass and move restricts the next pass to the previous passer; you still decide movement and timing. Defenders react and can take possession. Carry the ball through the cones, then review your decisions. The running-player icon at a queued destination executes that run through to the target.",
   "practiceCuePressureSide": "The defender’s approach relative to your first-touch direction.",
   "practiceCueDefenderCommitment": "Whether the defender closes the ball or stays in the passing lane.",
   "practiceCueRunnerTiming": "The runner’s direction, the space ahead and position at pass release.",
@@ -11456,7 +11456,7 @@
   "practiceReasonCarryIntoCover": "The defender can cover the chosen carrying route.",
   "practiceReasonRunnerMetInStride": "The pass reaches the moving teammate in the space ahead.",
   "practiceReasonPassToFeet": "The pass connects to the teammate’s feet.",
-  "practiceReasonPassLaneClosed": "The defender reaches the passing lane.",
+  "practiceReasonPassLaneClosed": "A defender reached the passing lane and stole the ball.",
   "practiceReasonSupportLaneOpened": "Your movement makes a passing connection available.",
   "practiceReasonSupportStillHidden": "The support position does not open a usable connection.",
   "practiceReasonThirdPlayerConnected": "The attack connects through another teammate.",
@@ -11580,5 +11580,140 @@
   "practiceAdviceSupport": "Move so your teammate can see a clear passing line; a return pass is optional.",
   "practiceAdviceOffside": "Check the runner against the ball and second-last defender at the kick, then release earlier or use another option.",
   "practiceAttackUp": "Attack upwards",
-  "practiceLearningEvidence": "This choice demonstrates the lesson objective"
+  "practiceLearningEvidence": "This choice demonstrates the lesson objective",
+  "practiceSetupPlayers": "Choose attackers",
+  "practiceAttackers": "{count} attackers",
+  "@practiceAttackers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceSetupPassing": "Passing rule",
+  "practiceFreePlay": "Free connection",
+  "practicePassAndMove": "Pass and move",
+  "practiceFreePlayDescription": "You choose every attacking run and pass. Defenders react to your actions.",
+  "practicePassAndMoveDescription": "The next pass returns to the previous passer. Move that passer at least 1 m and complete a useful return to meet the goal. You choose the timing; blocked passes can be stolen.",
+  "practiceTeamControl": "Attackers: manual · defenders: reactive",
+  "practiceSetMovement": "Set a run",
+  "practiceBackToBall": "Ball actions",
+  "practiceSelectPlayer": "Select player {number}",
+  "@practiceSelectPlayer": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceChoosePlayerRun": "Select a shirt, then tap a destination · selected: {number}",
+  "@practiceChoosePlayerRun": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceRunPlanHint": "Off-ball runs are queued. They start with your next ball action or ▶.",
+  "practiceCancelRun": "Cancel {number}’s run",
+  "@practiceCancelRun": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceRunsReady": "{count} runs queued · pass, dribble or ▶ to move",
+  "@practiceRunsReady": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceReturnTarget": "Next pass → {number} · create a return lane first",
+  "@practiceReturnTarget": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceAdvance": "Advance 0.5 seconds",
+  "practicePlayerMove": "Move player {number} · {metres} m",
+  "@practicePlayerMove": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceRunMarker": "{number} · {metres} m to target",
+  "@practiceRunMarker": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceMetres": "{metres} m",
+  "@practiceMetres": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceTouchDestination": "First touch {number} · ball travels {metres} m to the matching marker",
+  "@practiceTouchDestination": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceStolenBy": "Defender {number} won the ball",
+  "@practiceStolenBy": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceChooseBallFor": "Ball: {number} · shirt = pass · arrows = through ball · space = dribble",
+  "@practiceChooseBallFor": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceChangePlayer": "Change player",
+  "practiceChooseDestination": "Player {number} · tap the exact destination on the pitch",
+  "@practiceChooseDestination": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceReturnGoal": "After passing, move to open a return lane and receive again.",
+  "practiceStealEvidence": "Defender {number} made contact with the ball on this path and took possession.",
+  "@practiceStealEvidence": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceAdviceStealHold": "Release the ball or carry away before pressure reaches it; a support run does not protect a stationary ball."
 }

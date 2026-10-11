@@ -1,7 +1,7 @@
 part of 'scan_pass_game_screen.dart';
 
-/// A decision-first training surface. The simulation pauses at decisions;
-/// technical execution is automatic and the learner always controls number 6.
+/// Decisions pause time. Every attacking run and ball action is player-owned;
+/// only the opposition reacts automatically after the opening observation.
 class ScanPassCurriculumScreen extends StatefulWidget {
   final Duration? observationDuration;
   final Duration executionDuration;
@@ -27,6 +27,11 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
   VoidCallback? _afterMotion;
   int _index = 0;
   int _reviewIndex = 0;
+  int _attackerCount = 2;
+  int _selectedPlayer = 6;
+  bool _passAndMove = false;
+  bool _positioning = false;
+  bool _placingRun = false;
   bool _catalog = true;
   bool _busy = false;
   bool _review = false;
@@ -42,6 +47,13 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
 
   AppLocalizations get _l => AppLocalizations.of(context)!;
   PracticeCase get _lesson => _session.lesson;
+  String get _goalText => _session.settings.passAndMove
+      ? _l.practiceReturnGoal
+      : _skillGoal(_l, _lesson.skill);
+  List<int> get _caseIndices => [
+        for (var i = 0; i < PracticeEngine.catalog.length; i++)
+          if (PracticeEngine.catalog[i].stage == _attackerCount) i
+      ];
   PracticeDecision? get _decision => _session.decisions.isEmpty
       ? null
       : _session
@@ -86,7 +98,12 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
     _controller.stop();
     setState(() {
       _index = index;
-      _session = _engine.start(PracticeEngine.catalog[index]);
+      _session = _engine.start(PracticeEngine.catalog[index],
+          settings: PracticeSettings(passAndMove: _passAndMove));
+      _attackerCount = _lesson.stage;
+      _selectedPlayer = _session.state.carrierNumber;
+      _positioning = false;
+      _placingRun = false;
       _catalog = false;
       _review = false;
       _paused = false;
@@ -163,6 +180,19 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
     return _session.state;
   }
 
+  Map<int, ScanPassPoint> get _visibleRunTargets {
+    if (_busy) {
+      // A whole-play replay spans several past plans. Showing the final live
+      // plan over those earlier frames would invent a command before it existed.
+      if (_intent == null) return const {};
+      return _comparison?.decision.runTargetsBefore ?? _session.runTargets;
+    }
+    if (_continuation != null) return const {};
+    return _review
+        ? (_comparison?.decision ?? _decision)?.runTargetsBefore ?? const {}
+        : _session.runTargets;
+  }
+
   void _choose(PracticeAction action) {
     if (_busy || _review || _catalog) return;
     _execute(_engine.choose(_session, action), action);
@@ -173,12 +203,17 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
     _animate(step.transitions, () {
       setState(() {
         _session = step.session;
+        _selectedPlayer = _session.state.carrierNumber;
+        _positioning = false;
+        _placingRun = false;
         _intent = null;
         if (_session.outcome != null ||
             _session.phase == PracticePhase.finished) {
           _review = true;
-          _reviewIndex = 0;
-          _before = true;
+          _reviewIndex = _session.outcome == PracticeOutcome.intercepted
+              ? _session.decisions.length - 1
+              : 0;
+          _before = _session.outcome != PracticeOutcome.intercepted;
           _reviewed.add(_lesson.id);
         }
       });
@@ -192,7 +227,17 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
         _session.phase == PracticePhase.firstTouch) {
       return;
     }
-    final step = _engine.moveTo(_session, target);
+    if (_positioning && _selectedPlayer != _session.state.carrierNumber) {
+      setState(() {
+        _session = _engine.planRun(_session, _selectedPlayer, target);
+        _positioning = false;
+        _placingRun = false;
+        _selectedPlayer = _session.state.carrierNumber;
+      });
+      return;
+    }
+    final step = _engine.moveTo(_session, target,
+        playerNumber: _positioning ? _selectedPlayer : null);
     _execute(step, step.decision.action);
   }
 
@@ -248,7 +293,11 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
       backgroundColor: colors.background,
       appBar: AppBar(
         title: Text(
-            _catalog ? _l.practiceTitle : _skillTitle(_l, _lesson.skill),
+            _catalog
+                ? _l.practiceTitle
+                : _session.settings.passAndMove
+                    ? _l.practicePassAndMove
+                    : _skillTitle(_l, _lesson.skill),
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
         actions: [
           if (!_catalog)
@@ -287,9 +336,40 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
                   style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 10),
               Text(_l.practiceGateRule),
+              const SizedBox(height: 18),
+              Text(_l.practiceSetupPlayers,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 6),
+              Wrap(spacing: 8, children: [
+                for (final count in [2, 3, 4])
+                  ChoiceChip(
+                    key: ValueKey('practice-count-$count'),
+                    label: Text(_l.practiceAttackers(count)),
+                    selected: _attackerCount == count,
+                    onSelected: (_) => setState(() => _attackerCount = count),
+                  ),
+              ]),
+              const SizedBox(height: 12),
+              Text(_l.practiceSetupPassing,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
+              Wrap(spacing: 8, children: [
+                ChoiceChip(
+                    key: const ValueKey('practice-mode-free'),
+                    label: Text(_l.practiceFreePlay),
+                    selected: !_passAndMove,
+                    onSelected: (_) => setState(() => _passAndMove = false)),
+                ChoiceChip(
+                    key: const ValueKey('practice-mode-return'),
+                    label: Text(_l.practicePassAndMove),
+                    selected: _passAndMove,
+                    onSelected: (_) => setState(() => _passAndMove = true)),
+              ]),
+              Text(_passAndMove
+                  ? _l.practicePassAndMoveDescription
+                  : _l.practiceFreePlayDescription),
               const SizedBox(height: 20),
               Wrap(spacing: 14, runSpacing: 14, children: [
-                for (var i = 0; i < PracticeEngine.catalog.length; i++)
+                for (final i in _caseIndices)
                   SizedBox(
                       width: wide
                           ? (math.min(1180, constraints.maxWidth - 36) - 28) / 3
@@ -330,7 +410,10 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
                             const Icon(Icons.check_circle_outline, size: 18)),
                 ]),
                 const SizedBox(height: 8),
-                Text(_skillTitle(_l, lesson.skill),
+                Text(
+                    _passAndMove
+                        ? _l.practicePassAndMove
+                        : _skillTitle(_l, lesson.skill),
                     style: const TextStyle(
                         fontSize: 17, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
@@ -352,7 +435,10 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
                                 ?.fontFamily,
                             miniature: true))),
                 const SizedBox(height: 12),
-                Text(_skillGoal(_l, lesson.skill),
+                Text(
+                    _passAndMove
+                        ? _l.practiceReturnGoal
+                        : _skillGoal(_l, lesson.skill),
                     style: const TextStyle(height: 1.4)),
               ],
             )),
@@ -372,7 +458,8 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
             final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
             final hudHeight = landscape
                 ? math.max(64.0, 52 * textScale + 12)
-                : math.max(116.0, 86 * textScale + 30);
+                : math.max(116.0, 86 * textScale + 30) +
+                    (constraints.maxWidth < 360 && textScale > 1.1 ? 26 : 0);
             final panelHeight = !landscape && showReview
                 ? math.min(constraints.maxHeight * .46, 320.0)
                 : 0.0;
@@ -382,18 +469,48 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
                 constraints.maxWidth - panelWidth,
                 math.max(120, constraints.maxHeight - hudHeight - panelHeight));
             final size = pitch.size;
-            final geometry = _PracticeGeometry(size);
-            final actions = !_busy && !_review
-                ? _engine
-                    .choices(_session)
-                    .where((a) =>
+            final portrait = constraints.maxHeight > constraints.maxWidth * 1.1;
+            final geometry = _PracticeGeometry(size, portrait: portrait);
+            final canMove = !_busy &&
+                !_review &&
+                _session.phase != PracticePhase.firstTouch;
+            final actions = !_busy && !_review && !_positioning
+                ? [
+                    ..._engine.choices(_session).where((a) =>
                         _session.phase == PracticePhase.firstTouch ||
                         a.kind == PracticeActionKind.pass ||
                         a.kind == PracticeActionKind.through ||
-                        a.kind == PracticeActionKind.hold)
-                    .toList()
+                        a.kind == PracticeActionKind.hold),
+                    for (final run in _session.runTargets.entries)
+                      PracticeAction(
+                          id: 'run-${run.key}',
+                          kind: PracticeActionKind.move,
+                          actorNumber: run.key,
+                          target: run.value),
+                  ]
                 : <PracticeAction>[];
-            final centers = _practiceActionCenters(actions, geometry, _display);
+            final reserved = <Rect>[
+              if (canMove) const Rect.fromLTWH(6, 4, 124, 44),
+              ..._practiceRunLabels(_session.runTargets, geometry).values,
+              if (_positioning &&
+                  _session.runTargets.containsKey(_selectedPlayer))
+                Rect.fromLTWH(size.width - 136, 4, 130, 44),
+            ];
+            final centers = _practiceActionCenters(actions, geometry, _display,
+                reserved: reserved);
+            final selectors = _positioning && !_placingRun
+                ? [
+                    for (final p in _display.attackers)
+                      PracticeAction(
+                          id: 'select-${p.number}',
+                          kind: PracticeActionKind.pass,
+                          target: p.position,
+                          receiver: p.number),
+                  ]
+                : <PracticeAction>[];
+            final selectorCenters = _practiceActionCenters(
+                selectors, geometry, _display,
+                reserved: reserved);
             return ColoredBox(
               color: Theme.of(context).brightness == Brightness.dark
                   ? const Color(0xFF162E29)
@@ -422,6 +539,17 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
                                   active: _active?.transition,
                                   progress: _active?.progress ?? 0,
                                   intent: _intent,
+                                  selectedPlayer: _positioning
+                                      ? _selectedPlayer
+                                      : _display.carrierNumber,
+                                  portrait: portrait,
+                                  runTargets: _visibleRunTargets,
+                                  touchOptions: _session.phase ==
+                                              PracticePhase.firstTouch &&
+                                          !_busy &&
+                                          !_review
+                                      ? actions
+                                      : const [],
                                   review: _review && !_busy
                                       ? (_comparison?.decision ?? _decision)
                                       : null,
@@ -440,11 +568,69 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
                                                           actions[i].receiver)
                                                       .position
                                                   : actions[i].target)
-                                        )
+                                        ),
+                                    for (var i = 0; i < selectors.length; i++)
+                                      (
+                                        from: selectorCenters[i],
+                                        to: geometry
+                                            .toOffset(selectors[i].target)
+                                      ),
                                   ],
                                 ))),
                         for (var i = 0; i < actions.length; i++)
                           _actionButton(actions[i], centers[i], geometry),
+                        if (canMove)
+                          Positioned(
+                              left: 6,
+                              top: 4,
+                              width: 124,
+                              height: 44,
+                              child: FilledButton.tonalIcon(
+                                key: const ValueKey('practice-position-mode'),
+                                style: FilledButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8)),
+                                onPressed: () => setState(() {
+                                  if (_placingRun) {
+                                    _placingRun = false;
+                                  } else {
+                                    _positioning = !_positioning;
+                                    _selectedPlayer =
+                                        _session.state.carrierNumber;
+                                  }
+                                }),
+                                icon: Icon(
+                                    _positioning
+                                        ? Icons.sports_soccer
+                                        : Icons.open_with,
+                                    size: 17),
+                                label: FittedBox(
+                                    child: Text(_placingRun
+                                        ? _l.practiceChangePlayer
+                                        : _positioning
+                                            ? _l.practiceBackToBall
+                                            : _l.practiceSetMovement)),
+                              )),
+                        for (var i = 0; i < selectors.length; i++)
+                          _playerSelector(
+                              selectors[i].receiver!, selectorCenters[i]),
+                        if (_positioning &&
+                            _session.runTargets.containsKey(_selectedPlayer))
+                          Positioned(
+                              right: 6,
+                              top: 4,
+                              width: 130,
+                              height: 44,
+                              child: FilledButton.tonal(
+                                key: const ValueKey('practice-cancel-run'),
+                                onPressed: () => setState(() {
+                                  _session = _engine.cancelRun(
+                                      _session, _selectedPlayer);
+                                }),
+                                child: FittedBox(
+                                    child: Text(
+                                        _l.practiceCancelRun(_selectedPlayer))),
+                              )),
                       ]),
                     )),
                 Positioned(
@@ -477,12 +663,17 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
             ? (_comparison != null
                 ? _l.practiceCompareLabel
                 : _l.practiceReview)
-            : switch (_session.phase) {
-                PracticePhase.firstTouch => _l.practiceChooseTouch,
-                PracticePhase.onBall => _l.practiceChooseBall,
-                PracticePhase.support => _l.practiceChooseSupport,
-                PracticePhase.finished => _l.practiceReview,
-              };
+            : _positioning
+                ? _placingRun
+                    ? _l.practiceChooseDestination(_selectedPlayer)
+                    : _l.practiceChoosePlayerRun(_selectedPlayer)
+                : switch (_session.phase) {
+                    PracticePhase.firstTouch => _l.practiceChooseTouch,
+                    PracticePhase.onBall =>
+                      _l.practiceChooseBallFor(_session.state.carrierNumber),
+                    PracticePhase.support => _l.practiceChooseSupport,
+                    PracticePhase.finished => _l.practiceReview,
+                  };
     return Material(
         color: colors.surface,
         child: Padding(
@@ -494,7 +685,10 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                  Text(_skillGoal(_l, _lesson.skill),
+                  Text(
+                      compact && _session.returnTarget != null
+                          ? _l.practiceReturnTarget(_session.returnTarget!)
+                          : _goalText,
                       style: TextStyle(
                           fontSize: compact ? 12 : 13, color: colors.muted)),
                   const SizedBox(height: 4),
@@ -506,9 +700,17 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
                     Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
-                            _intent == null
-                                ? _l.practiceGateRule
-                                : _actionLabel(_intent!),
+                            _intent != null
+                                ? _actionLabel(_intent!)
+                                : _positioning
+                                    ? _l.practiceRunPlanHint
+                                    : _session.returnTarget != null
+                                        ? _l.practiceReturnTarget(
+                                            _session.returnTarget!)
+                                        : _session.runTargets.isNotEmpty
+                                            ? _l.practiceRunsReady(
+                                                _session.runTargets.length)
+                                            : _l.practiceTeamControl,
                             style:
                                 TextStyle(fontSize: 11, color: colors.muted))),
                 ]))),
@@ -564,8 +766,10 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
                       Semantics(label: label, child: Icon(icon, size: 21)))));
 
   String _actionLabel(PracticeAction action) {
-    final from =
-        _session.state.attackers.firstWhere((p) => p.number == 6).position;
+    final from = _session.state.attackers
+        .firstWhere((p) =>
+            p.number == (action.actorNumber ?? _session.state.carrierNumber))
+        .position;
     final metres = math
         .sqrt(math.pow((action.target.x - from.x) * 40, 2) +
             math.pow((action.target.y - from.y) * 28, 2))
@@ -573,23 +777,65 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
     return switch (action.kind) {
       PracticeActionKind.touch => _l.practiceTouch(metres),
       PracticeActionKind.carry => _l.practiceCarry(metres),
-      PracticeActionKind.move => _l.practiceMove(metres),
+      PracticeActionKind.move => _l.practicePlayerMove(
+          action.actorNumber ?? _session.state.carrierNumber, metres),
       PracticeActionKind.pass => _l.practicePass(action.receiver!),
       PracticeActionKind.through => _l.practiceThrough(action.receiver!),
-      PracticeActionKind.hold => _session.phase == PracticePhase.support
-          ? _l.practiceHold
-          : _l.practiceWait,
+      PracticeActionKind.hold => _l.practiceAdvance,
     };
   }
+
+  Widget _playerSelector(int number, Offset center) => Positioned(
+        left: center.dx - 24,
+        top: center.dy - 24,
+        width: 48,
+        height: 48,
+        child: Tooltip(
+          message: _l.practiceSelectPlayer(number),
+          child: OutlinedButton(
+            key: ValueKey('practice-player-$number'),
+            onPressed: () => setState(() {
+              _selectedPlayer = number;
+              _placingRun = true;
+            }),
+            style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.zero,
+              backgroundColor: _selectedPlayer == number
+                  ? const Color(0xFF155C72).withValues(alpha: .88)
+                  : Colors.transparent,
+              side: BorderSide(
+                  color: _selectedPlayer == number
+                      ? const Color(0xFFFADE84)
+                      : const Color(0xFF155C72),
+                  width: 2),
+              shape: const CircleBorder(),
+            ),
+            child: Semantics(
+                label: _l.practiceSelectPlayer(number),
+                selected: _selectedPlayer == number,
+                child: _selectedPlayer == number
+                    ? Text(number.toString(),
+                        style: const TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold))
+                    : const SizedBox.expand()),
+          ),
+        ),
+      );
 
   Widget _actionButton(
       PracticeAction action, Offset center, _PitchGeometry geometry) {
     final isPass = action.kind == PracticeActionKind.pass;
     final isHold = action.kind == PracticeActionKind.hold;
-    final player = _display.attackers.firstWhere((p) => p.number == 6);
+    final isTouch = action.kind == PracticeActionKind.touch;
+    final player = _display.attackers.firstWhere(
+        (p) => p.number == (action.actorNumber ?? _display.carrierNumber));
     final delta =
         geometry.toOffset(action.target) - geometry.toOffset(player.position);
-    final label = _actionLabel(action);
+    final metres = PracticeEngine.distanceMetres(player.position, action.target)
+        .toStringAsFixed(1);
+    final label = isTouch
+        ? _l.practiceTouchDestination(_touchNumber(action), metres)
+        : _actionLabel(action);
     return Positioned(
       left: center.dx - 24,
       top: center.dy - 24,
@@ -607,7 +853,9 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
                   padding: EdgeInsets.zero,
                   backgroundColor: isPass
                       ? Colors.transparent
-                      : const Color(0xFF183F42).withValues(alpha: .90),
+                      : isTouch
+                          ? _touchColor(action)
+                          : const Color(0xFF183F42).withValues(alpha: .90),
                   foregroundColor: Colors.white,
                   side: BorderSide(
                       color: isPass ? const Color(0xFF1B4E67) : Colors.white70,
@@ -616,14 +864,45 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
               child: isPass
                   ? const SizedBox.expand()
                   : isHold
-                      ? const Icon(Icons.pause, size: 21)
-                      : Transform.rotate(
-                          angle: math.atan2(delta.dy, delta.dx),
-                          child: Icon(
-                              action.kind == PracticeActionKind.through
-                                  ? Icons.double_arrow_rounded
-                                  : Icons.arrow_forward_rounded,
-                              size: 23)),
+                      ? const Icon(Icons.play_arrow_rounded, size: 25)
+                      : action.kind == PracticeActionKind.move
+                          ? const Icon(Icons.directions_run_rounded, size: 24)
+                          : isTouch
+                              ? FittedBox(
+                                  child: Padding(
+                                      padding: const EdgeInsets.all(3),
+                                      child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Text(
+                                                      _touchNumber(action)
+                                                          .toString(),
+                                                      style: const TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w800)),
+                                                  Transform.rotate(
+                                                      angle: math.atan2(
+                                                          delta.dy, delta.dx),
+                                                      child: const Icon(
+                                                          Icons
+                                                              .arrow_forward_rounded,
+                                                          size: 18)),
+                                                ]),
+                                            Text(_l.practiceMetres(metres),
+                                                style: const TextStyle(
+                                                    fontSize: 10)),
+                                          ])))
+                              : Transform.rotate(
+                                  angle: math.atan2(delta.dy, delta.dx),
+                                  child: Icon(
+                                      action.kind == PracticeActionKind.through
+                                          ? Icons.double_arrow_rounded
+                                          : Icons.arrow_forward_rounded,
+                                      size: 23)),
             ),
           )),
     );
@@ -642,7 +921,13 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
         padding: const EdgeInsets.all(12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           if (outcome != null)
-            Text(_outcomeLabel(_l, outcome),
+            Text(
+                outcome == PracticeOutcome.intercepted
+                    ? _l.practiceStolenBy((_continuation?.state ??
+                            _comparison?.session.state ??
+                            _session.state)
+                        .carrierNumber)
+                    : _outcomeLabel(_l, outcome),
                 style: TextStyle(fontSize: 12, color: colors.muted)),
           Row(children: [
             Expanded(
@@ -745,8 +1030,8 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
                 child: Text(_l.practicePair)),
             OutlinedButton(
                 key: const ValueKey('practice-next'),
-                onPressed: () =>
-                    _open((_index + 1) % PracticeEngine.catalog.length),
+                onPressed: () => _open(_caseIndices[
+                    (_caseIndices.indexOf(_index) + 1) % _caseIndices.length]),
                 child: Text(_l.practiceNext)),
           ]),
         ]),
@@ -769,7 +1054,8 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
   String _observation(PracticeDecision d) {
     if (d.cue == PracticeCue.pressureSide ||
         d.cue == PracticeCue.defenderCommitment) {
-      final me = d.before.attackers.firstWhere((p) => p.number == 6);
+      final me = d.before.attackers.firstWhere(
+          (p) => p.number == (d.action.actorNumber ?? d.before.carrierNumber));
       final defenders = [...d.before.defenders]
         ..sort((a, b) => PracticeEngine.distanceMetres(a.position, me.position)
             .compareTo(PracticeEngine.distanceMetres(b.position, me.position)));
@@ -786,14 +1072,20 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
               : _l.practiceEvidenceLevel(nearest.number, distance);
     }
     if (d.cue == PracticeCue.runnerTiming) {
-      final runners = d.before.attackers.where((p) => p.number != 6).toList()
+      final runners = d.before.attackers
+          .where((p) => p.number != d.before.carrierNumber)
+          .toList()
         ..sort((a, b) => b.velocity.x.compareTo(a.velocity.x));
       final runner = runners.firstWhere((p) => p.number == d.action.receiver,
           orElse: () => runners.first);
-      if (runner.velocity.x * PracticeEngine.fieldLength > .5) {
+      final planned = d.runTargetsBefore[runner.number];
+      final forward = planned == null
+          ? runner.velocity.x * PracticeEngine.fieldLength
+          : (planned.x - runner.position.x) * PracticeEngine.fieldLength;
+      if (forward > .5) {
         return _l.practiceEvidenceForwardRun(runner.number);
       }
-      if (runner.velocity.x * PracticeEngine.fieldLength < -.5) {
+      if (forward < -.5) {
         return _l.practiceEvidenceCheckingRun(runner.number);
       }
       return _l.practiceEvidenceWaitingRun(runner.number);
@@ -811,6 +1103,9 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
   }
 
   String _advice(PracticeDecision d) {
+    if (d.after.carrierIsDefender && d.action.kind == PracticeActionKind.hold) {
+      return _l.practiceAdviceStealHold;
+    }
     if (d.reason == PracticeReason.offsideAtKick) {
       return _l.practiceAdviceOffside;
     }
@@ -822,7 +1117,7 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
       PracticeActionKind.move => _l.practiceAdviceSupport,
       PracticeActionKind.hold => d.phaseBefore == PracticePhase.support
           ? _l.practiceAdviceSupport
-          : _skillGoal(_l, _lesson.skill),
+          : _goalText,
     };
   }
 
@@ -833,25 +1128,30 @@ class _ScanPassCurriculumScreenState extends State<ScanPassCurriculumScreen>
         _before = true;
       });
 
-  String _evidence(PracticeDecision d) => switch (d.cue) {
-        PracticeCue.pressureSide ||
-        PracticeCue.defenderCommitment =>
-          _l.practicePressureEvidence(d.pressureBefore.toStringAsFixed(1),
-              d.pressureAfter.toStringAsFixed(1)),
-        PracticeCue.runnerTiming ||
-        PracticeCue.passingLane ||
-        PracticeCue.supportLane =>
-          _l.practiceLaneEvidence(
-              d.laneBefore.toStringAsFixed(1), d.laneAfter.toStringAsFixed(1)),
-        PracticeCue.thirdPlayerLane ||
-        PracticeCue.farSideSpace =>
-          _l.practiceOptionsEvidence(
-              d.optionsBefore.toString(), d.optionsAfter.toString()),
-      };
+  String _evidence(PracticeDecision d) {
+    final defender = d.transitions.first.interceptorNumber;
+    if (defender != null) return _l.practiceStealEvidence(defender);
+    return switch (d.cue) {
+      PracticeCue.pressureSide ||
+      PracticeCue.defenderCommitment =>
+        _l.practicePressureEvidence(d.pressureBefore.toStringAsFixed(1),
+            d.pressureAfter.toStringAsFixed(1)),
+      PracticeCue.runnerTiming ||
+      PracticeCue.passingLane ||
+      PracticeCue.supportLane =>
+        _l.practiceLaneEvidence(
+            d.laneBefore.toStringAsFixed(1), d.laneAfter.toStringAsFixed(1)),
+      PracticeCue.thirdPlayerLane ||
+      PracticeCue.farSideSpace =>
+        _l.practiceOptionsEvidence(
+            d.optionsBefore.toString(), d.optionsAfter.toString()),
+    };
+  }
 }
 
 List<Offset> _practiceActionCenters(
-    List<PracticeAction> actions, _PitchGeometry geometry, AttackState state) {
+    List<PracticeAction> actions, _PitchGeometry geometry, AttackState state,
+    {List<Rect> reserved = const []}) {
   final placed = <Offset>[];
   final size = geometry.size;
   Offset bounded(Offset p) => Offset(
@@ -865,16 +1165,26 @@ List<Offset> _practiceActionCenters(
         .compareTo(actions[b].kind == PracticeActionKind.pass ? 0 : 1));
   for (final index in order) {
     final action = actions[index];
-    final raw = action.kind == PracticeActionKind.pass
-        ? geometry.toOffset(state.attackers
-                .firstWhere((p) => p.number == action.receiver)
-                .position) -
-            const Offset(0, 16.52)
-        : action.kind == PracticeActionKind.hold
-            ? Offset(34, size.height - 34)
-            : geometry.toOffset(action.target);
+    final touchDelta =
+        geometry.toOffset(action.target) - geometry.toOffset(state.ball);
+    final raw = action.kind == PracticeActionKind.touch
+        ? geometry.toOffset(state.ball) +
+            touchDelta /
+                math.max(.01, touchDelta.distance) *
+                math.max(78, touchDelta.distance + 48)
+        : action.kind == PracticeActionKind.pass
+            ? geometry.toOffset(state.attackers
+                    .firstWhere((p) => p.number == action.receiver)
+                    .position) -
+                const Offset(0, 16.52)
+            : action.kind == PracticeActionKind.hold
+                ? Offset(34, size.height - 34)
+                : geometry.toOffset(action.target);
     var candidate = bounded(raw);
-    bool clear(Offset p) => placed.every((q) => (p - q).distance >= 51);
+    bool clear(Offset p) =>
+        placed.every((q) => (p - q).distance >= 51) &&
+        reserved
+            .every((r) => !r.overlaps(Rect.fromCircle(center: p, radius: 27)));
     if (!clear(candidate)) {
       final candidates = <Offset>[];
       for (var radius = 52.0;
@@ -899,6 +1209,44 @@ List<Offset> _practiceActionCenters(
   }
   return centers;
 }
+
+Map<int, Rect> _practiceRunLabels(
+    Map<int, ScanPassPoint> targets, _PitchGeometry geometry) {
+  final placed = <int, Rect>{};
+  final width = math.min(148.0, geometry.size.width - 12);
+  for (final entry in targets.entries) {
+    final target = geometry.toOffset(entry.value);
+    Rect at(double shift) => Rect.fromCenter(
+        center: Offset(
+            target.dx.clamp(width / 2 + 6, geometry.size.width - width / 2 - 6),
+            (target.dy + 25 + shift)
+                .clamp(60.0, math.max(60, geometry.size.height - 24))),
+        width: width,
+        height: 22);
+    var rect = at(0);
+    for (final shift in [0.0, 28.0, -54.0, 56.0, -82.0]) {
+      final candidate = at(shift);
+      if (placed.values.every((r) => !r.inflate(3).overlaps(candidate))) {
+        rect = candidate;
+        break;
+      }
+    }
+    placed[entry.key] = rect;
+  }
+  return placed;
+}
+
+int _touchNumber(PracticeAction action) => switch (action.id) {
+      'touch-forward' => 1,
+      'touch-upper' => 2,
+      _ => 3,
+    };
+
+Color _touchColor(PracticeAction action) => switch (_touchNumber(action)) {
+      1 => const Color(0xFF176782),
+      2 => const Color(0xFF73559B),
+      _ => const Color(0xFF8B5B23),
+    };
 
 String _skillTitle(AppLocalizations l, PracticeSkill skill) => switch (skill) {
       PracticeSkill.firstTouch => l.practiceSkillFirstTouch,
@@ -950,8 +1298,11 @@ String _outcomeLabel(AppLocalizations l, PracticeOutcome outcome) =>
 /// Preserve metres on both axes. Portrait phones face up the pitch, rather
 /// than stretching a wide 40 x 28 m practice into a misleading tall rectangle.
 class _PracticeGeometry extends _PitchGeometry {
-  _PracticeGeometry(super.size) : super(space: true);
-  bool get portrait => size.height > size.width * 1.1;
+  final bool? _portrait;
+  _PracticeGeometry(super.size, {bool? portrait})
+      : _portrait = portrait,
+        super(space: true);
+  bool get portrait => _portrait ?? size.height > size.width * 1.1;
   late final Rect _practiceRect = _field();
   @override
   Rect get fieldRect => _practiceRect;
@@ -995,6 +1346,10 @@ class _CurriculumPitchPainter extends CustomPainter {
   final double progress;
   final PracticeAction? intent;
   final PracticeDecision? review;
+  final int? selectedPlayer;
+  final Map<int, ScanPassPoint> runTargets;
+  final List<PracticeAction> touchOptions;
+  final bool? portrait;
   final List<({Offset from, Offset to})> controlLinks;
 
   const _CurriculumPitchPainter(
@@ -1008,14 +1363,18 @@ class _CurriculumPitchPainter extends CustomPainter {
       this.progress = 0,
       this.intent,
       this.review,
+      this.selectedPlayer,
+      this.runTargets = const {},
+      this.touchOptions = const [],
+      this.portrait,
       this.controlLinks = const []});
 
   Offset offsetFor(ScanPassPoint point, Size size) =>
-      _PracticeGeometry(size).toOffset(point);
+      _PracticeGeometry(size, portrait: portrait).toOffset(point);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final g = _PracticeGeometry(size);
+    final g = _PracticeGeometry(size, portrait: portrait);
     final dark = brightness == Brightness.dark;
     final textColor = dark ? const Color(0xFFE8F1EE) : const Color(0xFF203A36);
     canvas.drawRect(
@@ -1089,31 +1448,77 @@ class _CurriculumPitchPainter extends CustomPainter {
             dashed: true);
       }
     }
+    final runLabels = _practiceRunLabels(runTargets, g);
+    for (final entry in runTargets.entries) {
+      final player = state.attackers.firstWhere((p) => p.number == entry.key);
+      final from = g.toOffset(player.position);
+      final target = g.toOffset(entry.value);
+      const color = Color(0xFF246C91);
+      _arrow(canvas, from, target, color, dashed: true);
+      canvas.drawCircle(
+          target, 9, Paint()..color = color.withValues(alpha: .12));
+      canvas.drawCircle(
+          target,
+          9,
+          Paint()
+            ..color = color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2);
+      final metres = PracticeEngine.distanceMetres(player.position, entry.value)
+          .toStringAsFixed(1);
+      final label = runLabels[entry.key]!;
+      canvas.drawRRect(
+          RRect.fromRectAndRadius(label, const Radius.circular(6)),
+          Paint()
+            ..color = (dark ? const Color(0xFF122D27) : Colors.white)
+                .withValues(alpha: .93));
+      _text(canvas, l10n.practiceRunMarker(entry.key, metres), label.center,
+          textColor, 11);
+    }
     final choice = intent;
-    if (choice != null) {
-      final from =
-          g.toOffset(state.attackers.firstWhere((p) => p.number == 6).position);
+    if (choice != null && choice.kind != PracticeActionKind.hold) {
+      final from = g.toOffset(state.attackers
+          .firstWhere((p) =>
+              p.number ==
+              (choice.actorNumber ??
+                  active?.before.carrierNumber ??
+                  state.carrierNumber))
+          .position);
       _arrow(canvas, from, g.toOffset(choice.target), const Color(0xFFE0AE4C),
           dashed: choice.kind == PracticeActionKind.move);
     }
     final decision = review;
     if (decision != null && !miniature) {
-      final from = g.toOffset(
-          decision.before.attackers.firstWhere((p) => p.number == 6).position);
-      _arrow(canvas, from, g.toOffset(decision.action.target),
-          const Color(0xFFC2923E),
-          dashed: decision.action.kind == PracticeActionKind.move);
+      final from = g.toOffset(decision.before.attackers
+          .firstWhere((p) =>
+              p.number ==
+              (decision.action.actorNumber ?? decision.before.carrierNumber))
+          .position);
+      if (decision.action.kind != PracticeActionKind.hold) {
+        _arrow(canvas, from, g.toOffset(decision.action.target),
+            const Color(0xFFC2923E),
+            dashed: decision.action.kind == PracticeActionKind.move);
+      }
       AttackPlayer? focus;
       final cue = decision.cue;
       if (cue == PracticeCue.runnerTiming ||
           cue == PracticeCue.thirdPlayerLane ||
           cue == PracticeCue.farSideSpace) {
-        final players = state.attackers.where((p) => p.number != 6).toList()
+        final players = state.attackers
+            .where((p) => p.number != decision.before.carrierNumber)
+            .toList()
           ..sort((a, b) => b.velocity.x.compareTo(a.velocity.x));
         focus = players.firstWhere((p) => p.number == decision.action.receiver,
             orElse: () => players.first);
       } else {
-        final me = state.attackers.firstWhere((p) => p.number == 6);
+        final me = state.attackers.firstWhere((p) =>
+            p.number ==
+            (cue == PracticeCue.supportLane
+                ? decision.evidencePlayer ??
+                    decision.action.actorNumber ??
+                    decision.before.carrierNumber
+                : decision.action.actorNumber ??
+                    decision.before.carrierNumber));
         final defenders = [
           ...state.defenders
         ]..sort((a, b) => PracticeEngine.distanceMetres(a.position, me.position)
@@ -1164,8 +1569,8 @@ class _CurriculumPitchPainter extends CustomPainter {
         labels: _PitchLabels.from(l10n),
         brightness: brightness,
         fontFamily: fontFamily,
-        learnerNumber: 6,
-        learnerLabel: miniature ? null : l10n.scanPassPossessionLearnerLabel);
+        learnerNumber: selectedPlayer,
+        learnerLabel: null);
     for (final p in [...state.defenders, ...state.attackers]) {
       people._drawPlayer(
           canvas,
@@ -1180,8 +1585,21 @@ class _CurriculumPitchPainter extends CustomPainter {
           shorts:
               p.opponent ? const Color(0xFF65392F) : const Color(0xFF21485E),
           textColor: Colors.white,
-          current:
-              !miniature && p.number == state.carrierNumber && !p.opponent);
+          current: !miniature &&
+              p.number == state.carrierNumber &&
+              p.opponent == state.carrierIsDefender);
+    }
+    if (!miniature && state.carrierIsDefender) {
+      final at = g.toOffset(state.carrier.position);
+      canvas.drawCircle(
+          at,
+          18,
+          Paint()
+            ..color = const Color(0xFFAD503D)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.5);
+      _text(canvas, l10n.practiceStolenBy(state.carrierNumber),
+          at + const Offset(0, 24), textColor, 12);
     }
     // Draw at the sampled ball coordinate, including controlled gate crossings.
     final ball = g.toOffset(state.ball);
@@ -1213,6 +1631,35 @@ class _CurriculumPitchPainter extends CustomPainter {
           ..color = Colors.black54
           ..style = PaintingStyle.stroke
           ..strokeWidth = .8);
+    // Selection controls can be offset for a finger-sized hitbox. The solid
+    // path and numbered football always end at the true world-space target.
+    for (final option in touchOptions) {
+      final target = g.toOffset(option.target);
+      final color = _touchColor(option);
+      _arrow(canvas, ball, target, color);
+      canvas.drawCircle(target, 8, Paint()..color = Colors.white);
+      canvas.drawCircle(
+          target,
+          8,
+          Paint()
+            ..color = color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2);
+      final patch = Path();
+      for (var i = 0; i < 5; i++) {
+        final angle = math.pi * 2 * i / 5;
+        final at = target + Offset(math.cos(angle), math.sin(angle)) * 3.4;
+        if (i == 0) {
+          patch.moveTo(at.dx, at.dy);
+        } else {
+          patch.lineTo(at.dx, at.dy);
+        }
+      }
+      canvas.drawPath(patch..close(), Paint()..color = color);
+      final badge = target + const Offset(9, -10);
+      canvas.drawCircle(badge, 7, Paint()..color = color);
+      _text(canvas, _touchNumber(option).toString(), badge, Colors.white, 10);
+    }
   }
 
   void _cone(Canvas c, Offset p, double r) {
