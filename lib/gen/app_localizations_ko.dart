@@ -20615,4 +20615,279 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get flowMoveInMotion => '이동 중 · 다음 드리블이나 패스를 미리 선택하세요.';
+
+  @override
+  String get matchMomentTitle => '스캔 패스';
+
+  @override
+  String get matchMomentContextLine => '야말 19 · EURO 2024 결승, 47분\n스페인 vs 잉글랜드';
+
+  @override
+  String get matchMomentFieldSemantics =>
+      '스페인과 잉글랜드의 넓은 전술 필드입니다. 스페인은 빨간 셔츠, 파란 반바지, 빨간 양말을 입고, 잉글랜드는 흰 셔츠, 흰 반바지, 흰 양말을 입습니다. 레슨은 19번 라민 야말을 따라갑니다.';
+
+  @override
+  String get matchMomentLeadInstruction => '카르바할의 공과 쇼의 압박 방향을 보세요.';
+
+  @override
+  String get matchMomentReceiveInstruction => '① 공 받기 · 야말이 받을 위치를 누르세요.';
+
+  @override
+  String get matchMomentFirstTouchInstruction => '② 첫 터치 · 공을 보낼 지점을 고르세요.';
+
+  @override
+  String get matchMomentNextActionInstruction => '③ 다음 공격 · 연결할 선수나 공간을 고르세요.';
+
+  @override
+  String matchMomentExecutingInstruction(Object choice, Object destination) {
+    return '$choice -> $destination. 공, 동료 움직임, 수비 움직임이 이어지는 모습을 보세요.';
+  }
+
+  @override
+  String get matchMomentReplayInstruction => '내 전체 선택을 다시 재생합니다.';
+
+  @override
+  String get matchMomentReferenceInstruction =>
+      '실제 플레이 재구성: 카르바할에서 야말, 안쪽 운반, 윌리암스 마무리.';
+
+  @override
+  String get matchMomentReviewInstruction => '내 장면을 돌아본 뒤 실제 플레이와 비교하세요.';
+
+  @override
+  String matchMomentChoiceSemantics(Object choice, Object destination) {
+    return '$choice. 도착 지점: $destination.';
+  }
+
+  @override
+  String get matchMomentChoiceReceiveInside => '안쪽에서 받기';
+
+  @override
+  String get matchMomentChoiceReceiveWide => '넓게 머물기';
+
+  @override
+  String get matchMomentChoiceReceiveCheck => '내려와 받기';
+
+  @override
+  String get matchMomentChoiceTouchInside => '첫 터치 · 안쪽';
+
+  @override
+  String get matchMomentChoiceTouchLine => '첫 터치 · 바깥';
+
+  @override
+  String get matchMomentChoiceTouchSet => '첫 터치 · 뒤쪽';
+
+  @override
+  String get matchMomentChoicePassWilliams => '운반 후 윌리엄스 17번';
+
+  @override
+  String get matchMomentChoicePassMorata => '모라타 7번';
+
+  @override
+  String get matchMomentChoiceCarryInside => '안쪽 운반';
+
+  @override
+  String get matchMomentDestinationReceiveInside => '오른쪽 하프스페이스';
+
+  @override
+  String get matchMomentDestinationReceiveWide => '터치라인 길';
+
+  @override
+  String get matchMomentDestinationReceiveCheck => '뒤쪽 빈 공간';
+
+  @override
+  String get matchMomentDestinationTouchInside => '쇼의 안쪽';
+
+  @override
+  String get matchMomentDestinationTouchLine => '쇼의 바깥쪽';
+
+  @override
+  String get matchMomentDestinationTouchSet => '카르바할 쪽';
+
+  @override
+  String get matchMomentDestinationPassWilliams => '왼쪽 채널';
+
+  @override
+  String get matchMomentDestinationPassMorata => '중앙 발밑';
+
+  @override
+  String get matchMomentDestinationCarryInside => '박스 앞';
+
+  @override
+  String get matchMomentReviewTitle => '내 선택 리뷰';
+
+  @override
+  String get matchMomentReviewObserveLabel => '보이는 상황';
+
+  @override
+  String get matchMomentReviewActionLabel => '선수의 행동';
+
+  @override
+  String get matchMomentReviewEffectLabel => '효과 / 다음 생각';
+
+  @override
+  String get matchMomentReviewObserveInside =>
+      '야말이 쇼의 안쪽으로 들어오며 잉글랜드 수비 라인을 가로지르는 패스 길을 살렸습니다.';
+
+  @override
+  String get matchMomentReviewObserveWide =>
+      '야말이 터치라인에 가까워져 쇼가 안쪽 공간을 덜 내주고 압박할 수 있었습니다.';
+
+  @override
+  String get matchMomentReviewObserveCheck =>
+      '야말이 내려와 공은 안전했지만, 반대편 윌리엄스까지의 길 사이에 더 많은 선수가 남았습니다.';
+
+  @override
+  String matchMomentReviewActionLine(Object touch, Object next) {
+    return '첫 터치: $touch\n다음 행동: $next';
+  }
+
+  @override
+  String get matchMomentReviewEffectGoal =>
+      '대각선 길이 충분히 열려 윌리엄스가 첫 터치 슈팅으로 마무리했습니다. 모라타와 올모가 센터백을 붙잡는 움직임을 실제 플레이에서 비교해 보세요.';
+
+  @override
+  String get matchMomentReviewEffectSaved =>
+      '윌리엄스까지 연결했지만 수비가 가까이 붙은 상태에서 슈팅했고, 픽퍼드가 막았습니다. 첫 터치 방향을 바꿨을 때 전달 각도가 어떻게 달라지는지 비교하세요.';
+
+  @override
+  String get matchMomentReviewEffectTurnover =>
+      '쇼가 야말의 운반 방향으로 따라와 공을 빼앗았습니다. 같은 위치에서 패스하면 압박을 벗어날 수 있는지 확인하세요.';
+
+  @override
+  String get matchMomentReviewEffectRetained =>
+      '스페인이 중앙에서 소유권을 지켰습니다. 무리한 어시스트보다 안전하지만 곧바로 슈팅할 기회는 좁아집니다.';
+
+  @override
+  String get matchMomentRetryDecision => '마지막 판단 다시';
+
+  @override
+  String get matchMomentReferenceAction => '야말과 비교';
+
+  @override
+  String get matchMomentReplayMine => '내 장면 다시 보기';
+
+  @override
+  String get matchMomentRestart => '에피소드 처음부터';
+
+  @override
+  String get matchMomentReferenceTitle => '실제 플레이 재구성';
+
+  @override
+  String get matchMomentReferenceBody =>
+      '이 2D 재구성은 공식 자료가 설명한 흐름을 보여줍니다. 비교한 뒤 내 리뷰로 돌아올 수 있습니다.';
+
+  @override
+  String get matchMomentReturnToReview => '내 리뷰로 돌아가기';
+
+  @override
+  String get matchMomentOfficialFootageTitle => '공식 영상';
+
+  @override
+  String get matchMomentOfficialFootageBody =>
+      '47분의 전개부터 야말의 패스와 윌리엄스의 마무리까지 실제 경기 영상으로 확인하세요.';
+
+  @override
+  String get matchMomentPlayOfficialHighlight => '여기서 공식 영상 보기';
+
+  @override
+  String get matchMomentOfficialHighlightTitle => '윌리엄스 득점 장면 공식 잉글랜드 하이라이트';
+
+  @override
+  String get matchMomentOpenUefaGoal => 'UEFA 영상 페이지 열기';
+
+  @override
+  String get matchMomentOpenEnglandHighlight => '공식 하이라이트 열기';
+
+  @override
+  String get matchMomentSourceUnavailable => '이 기기에서 공식 출처를 열 수 없습니다.';
+
+  @override
+  String get matchMomentSourcesTitle => '출처와 한계';
+
+  @override
+  String get matchMomentSourcesBody =>
+      '2024년 7월 14일, 베를린. UEFA 명단과 공식 영상으로 당시 선수·등번호·유니폼을 확인했습니다. 후반 시작에 로드리 대신 수비멘디 18번이 뛰었습니다. 움직임은 공식 전술 분석을 바탕으로 한 학습용 2D 재구성입니다. 정확한 전장 추적 자료가 아니며, 다른 선택의 결과는 시뮬레이션입니다.';
+
+  @override
+  String get matchMomentSourceLineup => 'UEFA · 선발 명단과 등번호';
+
+  @override
+  String get matchMomentSourceTechnical => 'UEFA · 결승전 전술 분석';
+
+  @override
+  String get matchMomentSourceRecord => 'UEFA · 스페인–잉글랜드 경기 기록';
+
+  @override
+  String get matchMomentPlayerUnaiSimon => '우나이 시몬';
+
+  @override
+  String get matchMomentPlayerDaniCarvajal => '다니 카르바할';
+
+  @override
+  String get matchMomentPlayerRobinLeNormand => '로뱅 르 노르망';
+
+  @override
+  String get matchMomentPlayerAlvaroMorata => '알바로 모라타';
+
+  @override
+  String get matchMomentPlayerFabianRuiz => '파비안 루이스';
+
+  @override
+  String get matchMomentPlayerDaniOlmo => '다니 올모';
+
+  @override
+  String get matchMomentPlayerAymericLaporte => '아이메릭 라포르트';
+
+  @override
+  String get matchMomentPlayerNicoWilliams => '니코 윌리엄스';
+
+  @override
+  String get matchMomentPlayerMartinZubimendi => '마르틴 수비멘디';
+
+  @override
+  String get matchMomentPlayerLamineYamal => '라민 야말';
+
+  @override
+  String get matchMomentPlayerMarcCucurella => '마르크 쿠쿠레야';
+
+  @override
+  String get matchMomentPlayerJordanPickford => '조던 픽퍼드';
+
+  @override
+  String get matchMomentPlayerKyleWalker => '카일 워커';
+
+  @override
+  String get matchMomentPlayerLukeShaw => '루크 쇼';
+
+  @override
+  String get matchMomentPlayerDeclanRice => '데클란 라이스';
+
+  @override
+  String get matchMomentPlayerJohnStones => '존 스톤스';
+
+  @override
+  String get matchMomentPlayerMarcGuehi => '마크 게히';
+
+  @override
+  String get matchMomentPlayerBukayoSaka => '부카요 사카';
+
+  @override
+  String get matchMomentPlayerHarryKane => '해리 케인';
+
+  @override
+  String get matchMomentPlayerJudeBellingham => '주드 벨링엄';
+
+  @override
+  String get matchMomentPlayerPhilFoden => '필 포든';
+
+  @override
+  String get matchMomentPlayerKobbieMainoo => '코비 마이누';
+
+  @override
+  String get matchMomentReviewEffectIntercepted =>
+      '라이스가 대각선 패스 길에 먼저 도착해 공을 끊었습니다. 공을 받은 위치와 첫 터치가 다음 패스 길을 어떻게 바꿨는지 비교하세요.';
+
+  @override
+  String get matchMomentReviewEffectCarrySaved =>
+      '야말이 직접 운반한 뒤 먼 거리에서 슈팅했고, 픽퍼드가 막았습니다. 반대편 윌리엄스에게 연결했을 때의 슈팅 위치와 비교하세요.';
 }

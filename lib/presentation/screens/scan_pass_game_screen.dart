@@ -4,12 +4,14 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:football_note/gen/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/repositories/option_repository.dart';
 import '../../domain/scan_pass/scan_pass_attack.dart';
 import '../../domain/scan_pass/scan_pass_chain.dart';
 import '../../domain/scan_pass/scan_pass_curriculum.dart';
 import '../../domain/scan_pass/scan_pass_flow.dart';
+import '../../domain/scan_pass/scan_pass_match_moment.dart';
 import '../../domain/scan_pass/scan_pass_decision.dart';
 import '../../domain/scan_pass/scan_pass_game.dart' show ScanPassPoint;
 import '../../domain/scan_pass/scan_pass_judgment.dart';
@@ -17,8 +19,10 @@ import '../../domain/scan_pass/scan_pass_possession_lesson.dart';
 import '../../domain/scan_pass/scan_pass_space.dart';
 import '../theme/app_motion.dart';
 import '../widgets/app_bar_action_button.dart';
+import '../widgets/match_moment_official_video.dart';
 
 part 'scan_pass_possession_lesson_screen.dart';
+part 'scan_pass_match_moment_screen.dart';
 part 'scan_pass_curriculum_screen.dart';
 part 'scan_pass_flow_screen.dart';
 part 'scan_pass_judgment_training.dart';
@@ -38,6 +42,7 @@ class ScanPassGameScreen extends StatelessWidget {
   final Duration choiceDuration;
   final Duration passAnimationDuration;
   final AttackState? initialAttack;
+  final MatchMomentSourceLauncher? matchMomentSourceLauncher;
 
   const ScanPassGameScreen({
     super.key,
@@ -47,13 +52,15 @@ class ScanPassGameScreen extends StatelessWidget {
     this.choiceDuration = const Duration(seconds: 12),
     this.passAnimationDuration = const Duration(milliseconds: 1000),
     this.initialAttack,
+    this.matchMomentSourceLauncher,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ScanPassFlowScreen(
-      observationDuration: previewDuration,
-      executionDuration: passAnimationDuration,
+    return ScanPassMatchMomentScreen(
+      leadInDuration: previewDuration ?? const Duration(milliseconds: 1200),
+      actionDuration: passAnimationDuration,
+      sourceLauncher: matchMomentSourceLauncher,
     );
   }
 }
