@@ -11,32 +11,22 @@ import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('default entry opens situation catalog and links free attack',
+  testWidgets('default entry opens learning cases without a goal-scoring mode',
       (tester) async {
     await tester.pumpWidget(_app(
       home: ScanPassGameScreen(
         optionRepository: _Options(),
-        seed: 7,
         previewDuration: Duration.zero,
         passAnimationDuration: Duration.zero,
       ),
     ));
     await tester.pump();
-
-    expect(find.byKey(const ValueKey<String>('possession-catalog')),
+    expect(find.byKey(const ValueKey('practice-catalog')), findsOneWidget);
+    expect(find.byKey(const ValueKey('practice-case-firstTouch-0')),
         findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('chain-pitch')), findsNothing);
-    expect(find.byKey(const ValueKey<String>('decision-commit')), findsNothing);
-    expect(find.byKey(const ValueKey<String>('attack-start')), findsNothing);
-
-    final freeAttack =
-        find.byKey(const ValueKey<String>('possession-free-attack-card'));
-    await tester.ensureVisible(freeAttack);
-    await tester.tap(freeAttack);
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const ValueKey<String>('attack-pitch')), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('attack-start')), findsOneWidget);
+    expect(find.byKey(const ValueKey('possession-free-attack-card')),
+        findsNothing);
+    expect(find.byKey(const ValueKey('attack-start')), findsNothing);
   });
 
   testWidgets('pre-reception selection queues without revealing a verdict',

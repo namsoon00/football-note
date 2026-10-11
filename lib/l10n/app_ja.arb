@@ -11285,5 +11285,300 @@
         "type": "String"
       }
     }
-  }
+  },
+  "practiceTitle": "ゲームを読む練習",
+  "practiceIntro": "攻撃者2人から開始。プレッシャーを読み、次の行動を選び、判断の根拠を確認します。",
+  "practiceStage": "攻撃{attackers}人・守備{defenders}人",
+  "@practiceStage": {
+    "placeholders": {
+      "attackers": {
+        "type": "int"
+      },
+      "defenders": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceCondition": "場面{number}",
+  "@practiceCondition": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceGateRule": "ボールをコントロールしてコーンの間をドリブルで通過。",
+  "practiceNoOffside": "基礎練習・オフサイドなし",
+  "practiceOffside": "パスを出す瞬間にオフサイドを判定",
+  "practiceGoalFirstTouch": "プレッシャーの方向を読み、次の動作につながるファーストタッチを。",
+  "practiceGoalDrawDefender": "守備がボールに寄るかパスコースを守るかを見極めましょう。",
+  "practiceGoalThroughPass": "味方の走り出しと背後のスペースにパスを合わせましょう。",
+  "practiceGoalSupportAngle": "パス後、守備の陰を外してサポートする角度を作りましょう。",
+  "practiceGoalThirdPlayer": "直接のパスコースが閉じたら、別の味方を経由する道を探しましょう。",
+  "practiceGoalSwitchPlay": "守備が片側に寄ったとき、逆側のスペースを見つけましょう。",
+  "practiceSkillFirstTouch": "ファーストタッチと圧力の方向",
+  "practiceSkillDrawDefender": "運ぶか、パスするか",
+  "practiceSkillThroughPass": "裏への動きを読むスルーパス",
+  "practiceSkillSupportAngle": "パス後のサポート角度",
+  "practiceSkillThirdPlayer": "3人目を使ってつなぐ",
+  "practiceSkillSwitchPlay": "逆側のスペースを探す",
+  "practiceObserve": "受ける前に、守備と味方の動きを見ましょう。",
+  "practiceChooseTouch": "ファーストタッチ・方向の矢印をタップ。",
+  "practiceChooseBall": "ユニフォーム：足元へ・前方の矢印：スルーパス・空間：ドリブル",
+  "practiceChooseSupport": "自分は6番・空間をタップして移動、または位置を保ちましょう。",
+  "practiceExecuting": "選択によってスペースとパスコースがどう変わるかを見ましょう。",
+  "practiceTouch": "ファーストタッチ・{metres}m",
+  "@practiceTouch": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceCarry": "ドリブル・{metres}m",
+  "@practiceCarry": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceMove": "6番の移動・{metres}m",
+  "@practiceMove": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practicePass": "{number}番の足元へ",
+  "@practicePass": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceThrough": "{number}番へスルーパス",
+  "@practiceThrough": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceWait": "少し待つ",
+  "practiceHold": "位置を保つ",
+  "practiceGate": "コーンゲート{number}",
+  "@practiceGate": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceReview": "判断を振り返る",
+  "practiceDecision": "判断{current} / {total}",
+  "@practiceDecision": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceRead": "読むべき状況",
+  "practiceEffect": "選択が変えたこと",
+  "practiceNextFocus": "次の挑戦では",
+  "practiceUseful": "有効な判断",
+  "practiceReconsider": "見直したい判断",
+  "practicePressureEvidence": "保持者に最も近い守備：{before}m → {after}m",
+  "@practicePressureEvidence": {
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceLaneEvidence": "同じ味方↔6番のパス線から守備まで：{before}m → {after}m",
+  "@practiceLaneEvidence": {
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceOptionsEvidence": "つながる味方：{before}人 → {after}人",
+  "@practiceOptionsEvidence": {
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceReplayMine": "自分のプレーを再生",
+  "practiceCompare": "同じ瞬間で別の選択",
+  "practiceCompareLabel": "同じ瞬間から始めた別の選択",
+  "practiceCompareNote": "選手と位置は同じです。有効な選択は一つとは限りません。",
+  "practiceCoach": "参考プレーを見る",
+  "practiceRetry": "もう一度判断",
+  "practicePair": "守備の動きを変える",
+  "practiceNext": "次の場面",
+  "practiceBackReview": "自分の振り返りへ",
+  "practiceCompleted": "挑戦した場面",
+  "practiceGateReached": "ボールを保ってゲートを通過",
+  "practiceRetained": "保持を継続・判断を確認しましょう",
+  "practiceIntercepted": "守備がボールを奪いました",
+  "practiceOffsideEnd": "パスを出す瞬間にオフサイド",
+  "practiceHelp": "観察して判断し、比べる",
+  "practiceHelpBody": "操作する選手は常に6番です。最初のタッチは方向矢印、足元へのパスは味方のユニフォーム、スルーパスは味方の前の矢印をタップ。空間をタップして運ぶかサポートします。判断中は時間が止まり、待つを選ぶと少し進みます。実線はボール、破線は選手の移動。ボールを持ってゲートを通過すると完了です。各判断を確認し、同じ瞬間の別の選択と比較しましょう。試合を簡略化した少人数練習で、実戦能力の測定ではありません。",
+  "practiceCuePressureSide": "守備の寄せる方向とファーストタッチの方向の関係。",
+  "practiceCueDefenderCommitment": "守備がボールに寄るか、味方へのコースを守るか。",
+  "practiceCueRunnerTiming": "味方の走る方向、その先の空間、パス時の守備との位置。",
+  "practiceCuePassingLane": "ボールと受けるスペースの間にいる守備。",
+  "practiceCueSupportLane": "ボールを持つ味方から見て、自分が守備の陰に隠れているか。",
+  "practiceCueThirdPlayerLane": "直接のパスコースと別の味方を経由するコース。",
+  "practiceCueFarSideSpace": "カバーする守備の集まる側と、逆側の味方の前の空間。",
+  "practiceReasonTouchOpensView": "タッチ後、次の動作をするスペースが残りました。",
+  "practiceReasonTouchIntoPressure": "タッチが守備の届く方向に向かいました。",
+  "practiceReasonDefenderDrawn": "運ぶことで守備を引きつけ、つなぐコースが残りました。",
+  "practiceReasonCarryIntoCover": "選んだドリブルコースを守備がカバーできます。",
+  "practiceReasonRunnerMetInStride": "動いている味方の前のスペースにパスがつながりました。",
+  "practiceReasonPassToFeet": "味方の足元にパスがつながりました。",
+  "practiceReasonPassLaneClosed": "守備がパスコースに到達しました。",
+  "practiceReasonSupportLaneOpened": "移動によってつながるパスコースができました。",
+  "practiceReasonSupportStillHidden": "移動先でも使えるパスコースが開きませんでした。",
+  "practiceReasonThirdPlayerConnected": "別の味方を経由して攻撃がつながりました。",
+  "practiceReasonFarSideOpened": "守備の少ない側にボールをつなぎました。",
+  "practiceReasonHoldCreatesWindow": "少し待って保持し、次の選択肢を探りました。",
+  "practiceReasonHoldUnderPressure": "待っている間にプレッシャーが近づきました。",
+  "practiceReasonControlledGate": "選手がボールを保ってコーンの間を通過しました。",
+  "practiceReasonOffsideAtKick": "パスの瞬間、受け手がオフサイドの位置にいました。",
+  "practicePreviousDecision": "前の判断",
+  "practiceReasonRunnerNotReady": "受け手の動きが、パスを出した前方のスペースにまだ合っていません。",
+  "practiceReasonPossessionSecured": "ボールを保ち、次につなぐ可能性を残しました。",
+  "practiceRuleSummary": "{players}・{rule}",
+  "@practiceRuleSummary": {
+    "placeholders": {
+      "players": {
+        "type": "String"
+      },
+      "rule": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceConditionUpperPressure": "攻撃方向に向かって左からの圧力",
+  "practiceConditionLowerPressure": "攻撃方向に向かって右からの圧力",
+  "practiceConditionBallPressure": "ボールに寄る守備",
+  "practiceConditionTrackRunner": "走る味方を追う守備",
+  "practiceConditionForwardRun": "裏へ走る味方",
+  "practiceConditionCheckingRun": "まず手前に受けに来る味方",
+  "practiceConditionLowerCover": "右側のコースへ動く近くの守備",
+  "practiceConditionUpperCover": "左側のコースへ動く近くの守備",
+  "practiceConditionStayUpper": "左側のコースを守るカバー",
+  "practiceConditionShiftLower": "右側のコースへ移るカバー",
+  "practiceReasonReceivedUnderPressure": "パスは届きましたが、受け手には次の動作の余裕がありません。",
+  "practiceContinueAlternative": "この選択の続きを見る",
+  "practiceContinuationNote": "その後の判断は参考例です。最初の選択と続く判断を併せて比べましょう。",
+  "practiceEvidenceUpper": "攻撃方向に向かって左に、守備{number}番が{metres}m離れていました。",
+  "@practiceEvidenceUpper": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceEvidenceLower": "攻撃方向に向かって右に、守備{number}番が{metres}m離れていました。",
+  "@practiceEvidenceLower": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceEvidenceLevel": "守備{number}番はほぼ同じ縦のコース上、{metres}m先にいました。",
+  "@practiceEvidenceLevel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceEvidenceForwardRun": "選択の瞬間、{number}番は前方へ動いていました。",
+  "@practiceEvidenceForwardRun": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceEvidenceCheckingRun": "選択の瞬間、{number}番はボールに近づく動きをしていました。",
+  "@practiceEvidenceCheckingRun": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceEvidenceWaitingRun": "選択の瞬間、{number}番はまだ前方への走り出しをしていませんでした。",
+  "@practiceEvidenceWaitingRun": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceEvidenceSupport": "移動前、保持者と自分を結ぶパス線から守備まで{metres}mでした。",
+  "@practiceEvidenceSupport": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceEvidenceFarSide": "守備{number}人がボールと同じ側にいました。",
+  "@practiceEvidenceFarSide": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceEvidenceConnections": "保持者につながる味方は{number}人いました。",
+  "@practiceEvidenceConnections": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceAdviceTouch": "受ける前に圧力の方向を確認し、タッチ後のコースを残しましょう。",
+  "practiceAdviceCarry": "運ぶ動きに守備がどう反応するかを見て、パスするかを決めましょう。",
+  "practiceAdvicePass": "味方の位置に加え、パスコースと受けた後の動作も確認しましょう。",
+  "practiceAdviceThrough": "走り出しと方向を見て、味方が届く前方の空間へ送りましょう。",
+  "practiceAdviceSupport": "味方とのパスコースが見えるように移動。リターンパスは必須ではありません。",
+  "practiceAdviceOffside": "蹴る瞬間の味方・ボール・後方から2人目の守備を確認。早めのパスや別のつなぎ方を比べましょう。",
+  "practiceAttackUp": "上へ攻撃",
+  "practiceLearningEvidence": "この選択で学習目標を確認できました"
 }

@@ -35127,6 +35127,690 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shot {metres}m'**
   String scanPassPossessionShotDistance(String metres);
+
+  /// No description provided for @practiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the game'**
+  String get practiceTitle;
+
+  /// No description provided for @practiceIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with two attackers. Read pressure, choose your next action, then review why it worked.'**
+  String get practiceIntro;
+
+  /// No description provided for @practiceStage.
+  ///
+  /// In en, this message translates to:
+  /// **'{attackers} attackers · {defenders} defenders'**
+  String practiceStage(int attackers, int defenders);
+
+  /// No description provided for @practiceCondition.
+  ///
+  /// In en, this message translates to:
+  /// **'Situation {number}'**
+  String practiceCondition(int number);
+
+  /// No description provided for @practiceGateRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry the ball through either cone gate under control.'**
+  String get practiceGateRule;
+
+  /// No description provided for @practiceNoOffside.
+  ///
+  /// In en, this message translates to:
+  /// **'No offside in this introductory drill'**
+  String get practiceNoOffside;
+
+  /// No description provided for @practiceOffside.
+  ///
+  /// In en, this message translates to:
+  /// **'Offside judged when the pass is released'**
+  String get practiceOffside;
+
+  /// No description provided for @practiceGoalFirstTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your next action with the first touch.'**
+  String get practiceGoalFirstTouch;
+
+  /// No description provided for @practiceGoalDrawDefender.
+  ///
+  /// In en, this message translates to:
+  /// **'Read whether the defender follows the ball or protects the passing lane.'**
+  String get practiceGoalDrawDefender;
+
+  /// No description provided for @practiceGoalThroughPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Match the pass to the runner’s movement and available space.'**
+  String get practiceGoalThroughPass;
+
+  /// No description provided for @practiceGoalSupportAngle.
+  ///
+  /// In en, this message translates to:
+  /// **'After passing, move out of the defender’s cover shadow.'**
+  String get practiceGoalSupportAngle;
+
+  /// No description provided for @practiceGoalThirdPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Find an indirect connection when the direct lane is blocked.'**
+  String get practiceGoalThirdPlayer;
+
+  /// No description provided for @practiceGoalSwitchPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Notice when the far side opens as defenders shift.'**
+  String get practiceGoalSwitchPlay;
+
+  /// No description provided for @practiceSkillFirstTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch and pressure'**
+  String get practiceSkillFirstTouch;
+
+  /// No description provided for @practiceSkillDrawDefender.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry or release'**
+  String get practiceSkillDrawDefender;
+
+  /// No description provided for @practiceSkillThroughPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the run in behind'**
+  String get practiceSkillThroughPass;
+
+  /// No description provided for @practiceSkillSupportAngle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support after passing'**
+  String get practiceSkillSupportAngle;
+
+  /// No description provided for @practiceSkillThirdPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect through a third player'**
+  String get practiceSkillThirdPlayer;
+
+  /// No description provided for @practiceSkillSwitchPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Find the far side'**
+  String get practiceSkillSwitchPlay;
+
+  /// No description provided for @practiceObserve.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the defender and the runner before receiving.'**
+  String get practiceObserve;
+
+  /// No description provided for @practiceChooseTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch · tap a direction arrow.'**
+  String get practiceChooseTouch;
+
+  /// No description provided for @practiceChooseBall.
+  ///
+  /// In en, this message translates to:
+  /// **'Jersey: pass to feet · arrow ahead: through pass · space: carry'**
+  String get practiceChooseBall;
+
+  /// No description provided for @practiceChooseSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'You are #6 · tap space to move, or hold your position.'**
+  String get practiceChooseSupport;
+
+  /// No description provided for @practiceExecuting.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch how the space and passing lanes change.'**
+  String get practiceExecuting;
+
+  /// No description provided for @practiceTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch · {metres} m'**
+  String practiceTouch(String metres);
+
+  /// No description provided for @practiceCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry · {metres} m'**
+  String practiceCarry(String metres);
+
+  /// No description provided for @practiceMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move #6 · {metres} m'**
+  String practiceMove(String metres);
+
+  /// No description provided for @practicePass.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass to #{number}'**
+  String practicePass(int number);
+
+  /// No description provided for @practiceThrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Through pass to #{number}'**
+  String practiceThrough(int number);
+
+  /// No description provided for @practiceWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait briefly'**
+  String get practiceWait;
+
+  /// No description provided for @practiceHold.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold position'**
+  String get practiceHold;
+
+  /// No description provided for @practiceGate.
+  ///
+  /// In en, this message translates to:
+  /// **'Cone gate {number}'**
+  String practiceGate(int number);
+
+  /// No description provided for @practiceReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the decision'**
+  String get practiceReview;
+
+  /// No description provided for @practiceDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Decision {current} / {total}'**
+  String practiceDecision(int current, int total);
+
+  /// No description provided for @practiceRead.
+  ///
+  /// In en, this message translates to:
+  /// **'What to read'**
+  String get practiceRead;
+
+  /// No description provided for @practiceEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'What your choice changed'**
+  String get practiceEffect;
+
+  /// No description provided for @practiceNextFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'On your next attempt'**
+  String get practiceNextFocus;
+
+  /// No description provided for @practiceUseful.
+  ///
+  /// In en, this message translates to:
+  /// **'Useful decision'**
+  String get practiceUseful;
+
+  /// No description provided for @practiceReconsider.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconsider this choice'**
+  String get practiceReconsider;
+
+  /// No description provided for @practicePressureEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball carrier’s nearest defender: {before} m → {after} m'**
+  String practicePressureEvidence(String before, String after);
+
+  /// No description provided for @practiceLaneEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Same teammate–#6 passing line, nearest defender: {before} m → {after} m'**
+  String practiceLaneEvidence(String before, String after);
+
+  /// No description provided for @practiceOptionsEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Available connections: {before} → {after}'**
+  String practiceOptionsEvidence(String before, String after);
+
+  /// No description provided for @practiceReplayMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay my play'**
+  String get practiceReplayMine;
+
+  /// No description provided for @practiceCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare another choice'**
+  String get practiceCompare;
+
+  /// No description provided for @practiceCompareLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Another choice from the same moment'**
+  String get practiceCompareLabel;
+
+  /// No description provided for @practiceCompareNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The same players and positions. Several choices can be useful.'**
+  String get practiceCompareNote;
+
+  /// No description provided for @practiceCoach.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch an example'**
+  String get practiceCoach;
+
+  /// No description provided for @practiceRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get practiceRetry;
+
+  /// No description provided for @practicePair.
+  ///
+  /// In en, this message translates to:
+  /// **'Different defensive movement'**
+  String get practicePair;
+
+  /// No description provided for @practiceNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next situation'**
+  String get practiceNext;
+
+  /// No description provided for @practiceBackReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to my review'**
+  String get practiceBackReview;
+
+  /// No description provided for @practiceCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Attempted situation'**
+  String get practiceCompleted;
+
+  /// No description provided for @practiceGateReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Controlled dribble through the gate'**
+  String get practiceGateReached;
+
+  /// No description provided for @practiceRetained.
+  ///
+  /// In en, this message translates to:
+  /// **'Possession retained · review the choices'**
+  String get practiceRetained;
+
+  /// No description provided for @practiceIntercepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Defender recovered the ball'**
+  String get practiceIntercepted;
+
+  /// No description provided for @practiceOffsideEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Offside at the pass release'**
+  String get practiceOffsideEnd;
+
+  /// No description provided for @practiceHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Read, decide, compare'**
+  String get practiceHelp;
+
+  /// No description provided for @practiceHelpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You always control #6. Tap an arrow for the first touch, a jersey for a pass to feet, or the forward arrow for a through pass. Tap space to carry or support. Decisions pause the action; Wait advances the movement briefly. Ball paths are solid, player runs are dashed. Gates count only when a player carries the ball through. Review each choice and replay an alternative from exactly the same moment. These small-sided situations simplify a match; they do not measure real-match ability.'**
+  String get practiceHelpBody;
+
+  /// No description provided for @practiceCuePressureSide.
+  ///
+  /// In en, this message translates to:
+  /// **'The defender’s approach relative to your first-touch direction.'**
+  String get practiceCuePressureSide;
+
+  /// No description provided for @practiceCueDefenderCommitment.
+  ///
+  /// In en, this message translates to:
+  /// **'Whether the defender closes the ball or stays in the passing lane.'**
+  String get practiceCueDefenderCommitment;
+
+  /// No description provided for @practiceCueRunnerTiming.
+  ///
+  /// In en, this message translates to:
+  /// **'The runner’s direction, the space ahead and position at pass release.'**
+  String get practiceCueRunnerTiming;
+
+  /// No description provided for @practiceCuePassingLane.
+  ///
+  /// In en, this message translates to:
+  /// **'The defender between the ball and the receiving space.'**
+  String get practiceCuePassingLane;
+
+  /// No description provided for @practiceCueSupportLane.
+  ///
+  /// In en, this message translates to:
+  /// **'Whether the defender hides you from the teammate on the ball.'**
+  String get practiceCueSupportLane;
+
+  /// No description provided for @practiceCueThirdPlayerLane.
+  ///
+  /// In en, this message translates to:
+  /// **'The direct passing lane and the route through another teammate.'**
+  String get practiceCueThirdPlayerLane;
+
+  /// No description provided for @practiceCueFarSideSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the covering defenders gather and who is free on the far side.'**
+  String get practiceCueFarSideSpace;
+
+  /// No description provided for @practiceReasonTouchOpensView.
+  ///
+  /// In en, this message translates to:
+  /// **'The touch leaves space for the next action.'**
+  String get practiceReasonTouchOpensView;
+
+  /// No description provided for @practiceReasonTouchIntoPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'The touch takes the ball into the defender’s reach.'**
+  String get practiceReasonTouchIntoPressure;
+
+  /// No description provided for @practiceReasonDefenderDrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Carrying the ball drew the defender; a usable connection remains.'**
+  String get practiceReasonDefenderDrawn;
+
+  /// No description provided for @practiceReasonCarryIntoCover.
+  ///
+  /// In en, this message translates to:
+  /// **'The defender can cover the chosen carrying route.'**
+  String get practiceReasonCarryIntoCover;
+
+  /// No description provided for @practiceReasonRunnerMetInStride.
+  ///
+  /// In en, this message translates to:
+  /// **'The pass reaches the moving teammate in the space ahead.'**
+  String get practiceReasonRunnerMetInStride;
+
+  /// No description provided for @practiceReasonPassToFeet.
+  ///
+  /// In en, this message translates to:
+  /// **'The pass connects to the teammate’s feet.'**
+  String get practiceReasonPassToFeet;
+
+  /// No description provided for @practiceReasonPassLaneClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'The defender reaches the passing lane.'**
+  String get practiceReasonPassLaneClosed;
+
+  /// No description provided for @practiceReasonSupportLaneOpened.
+  ///
+  /// In en, this message translates to:
+  /// **'Your movement makes a passing connection available.'**
+  String get practiceReasonSupportLaneOpened;
+
+  /// No description provided for @practiceReasonSupportStillHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'The support position does not open a usable connection.'**
+  String get practiceReasonSupportStillHidden;
+
+  /// No description provided for @practiceReasonThirdPlayerConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'The attack connects through another teammate.'**
+  String get practiceReasonThirdPlayerConnected;
+
+  /// No description provided for @practiceReasonFarSideOpened.
+  ///
+  /// In en, this message translates to:
+  /// **'The ball reaches the less crowded side.'**
+  String get practiceReasonFarSideOpened;
+
+  /// No description provided for @practiceReasonHoldCreatesWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting preserves possession while the next option develops.'**
+  String get practiceReasonHoldCreatesWindow;
+
+  /// No description provided for @practiceReasonHoldUnderPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting allows the pressure to reach you.'**
+  String get practiceReasonHoldUnderPressure;
+
+  /// No description provided for @practiceReasonControlledGate.
+  ///
+  /// In en, this message translates to:
+  /// **'A player and the controlled ball crossed between the cones.'**
+  String get practiceReasonControlledGate;
+
+  /// No description provided for @practiceReasonOffsideAtKick.
+  ///
+  /// In en, this message translates to:
+  /// **'The receiver is offside when the pass is released.'**
+  String get practiceReasonOffsideAtKick;
+
+  /// No description provided for @practicePreviousDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous decision'**
+  String get practicePreviousDecision;
+
+  /// No description provided for @practiceReasonRunnerNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'The receiver is not yet moving into the space targeted by the pass.'**
+  String get practiceReasonRunnerNotReady;
+
+  /// No description provided for @practiceReasonPossessionSecured.
+  ///
+  /// In en, this message translates to:
+  /// **'The ball is retained and the next connection remains available.'**
+  String get practiceReasonPossessionSecured;
+
+  /// No description provided for @practiceRuleSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{players} · {rule}'**
+  String practiceRuleSummary(String players, String rule);
+
+  /// No description provided for @practiceConditionUpperPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure from your left as you face forward'**
+  String get practiceConditionUpperPressure;
+
+  /// No description provided for @practiceConditionLowerPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure from your right as you face forward'**
+  String get practiceConditionLowerPressure;
+
+  /// No description provided for @practiceConditionBallPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'The defender steps toward the ball'**
+  String get practiceConditionBallPressure;
+
+  /// No description provided for @practiceConditionTrackRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'The defender follows the runner'**
+  String get practiceConditionTrackRunner;
+
+  /// No description provided for @practiceConditionForwardRun.
+  ///
+  /// In en, this message translates to:
+  /// **'The teammate is running in behind'**
+  String get practiceConditionForwardRun;
+
+  /// No description provided for @practiceConditionCheckingRun.
+  ///
+  /// In en, this message translates to:
+  /// **'The teammate comes short first'**
+  String get practiceConditionCheckingRun;
+
+  /// No description provided for @practiceConditionLowerCover.
+  ///
+  /// In en, this message translates to:
+  /// **'The near defender shifts to the right channel'**
+  String get practiceConditionLowerCover;
+
+  /// No description provided for @practiceConditionUpperCover.
+  ///
+  /// In en, this message translates to:
+  /// **'The near defender shifts to the left channel'**
+  String get practiceConditionUpperCover;
+
+  /// No description provided for @practiceConditionStayUpper.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover holds the left channel'**
+  String get practiceConditionStayUpper;
+
+  /// No description provided for @practiceConditionShiftLower.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover shifts toward the right channel'**
+  String get practiceConditionShiftLower;
+
+  /// No description provided for @practiceReasonReceivedUnderPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'The pass arrived, but the receiver has little room for the next action.'**
+  String get practiceReasonReceivedUnderPressure;
+
+  /// No description provided for @practiceContinueAlternative.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the continuation'**
+  String get practiceContinueAlternative;
+
+  /// No description provided for @practiceContinuationNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Later decisions are an example; compare them as well as the first choice.'**
+  String get practiceContinuationNote;
+
+  /// No description provided for @practiceEvidenceUpper.
+  ///
+  /// In en, this message translates to:
+  /// **'Facing the attacking direction, defender #{number} was to your left, {metres} m away.'**
+  String practiceEvidenceUpper(int number, String metres);
+
+  /// No description provided for @practiceEvidenceLower.
+  ///
+  /// In en, this message translates to:
+  /// **'Facing the attacking direction, defender #{number} was to your right, {metres} m away.'**
+  String practiceEvidenceLower(int number, String metres);
+
+  /// No description provided for @practiceEvidenceLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Defender #{number} was {metres} m away, near the same channel.'**
+  String practiceEvidenceLevel(int number, String metres);
+
+  /// No description provided for @practiceEvidenceForwardRun.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} was moving forward at the moment of your choice.'**
+  String practiceEvidenceForwardRun(int number);
+
+  /// No description provided for @practiceEvidenceCheckingRun.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} was coming back toward the ball when you chose.'**
+  String practiceEvidenceCheckingRun(int number);
+
+  /// No description provided for @practiceEvidenceWaitingRun.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} had not started a forward run when you chose.'**
+  String practiceEvidenceWaitingRun(int number);
+
+  /// No description provided for @practiceEvidenceSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Before moving, the defender was {metres} m from the passing line between you and the ball carrier.'**
+  String practiceEvidenceSupport(String metres);
+
+  /// No description provided for @practiceEvidenceFarSide.
+  ///
+  /// In en, this message translates to:
+  /// **'{number} defenders were on the same side as the ball.'**
+  String practiceEvidenceFarSide(int number);
+
+  /// No description provided for @practiceEvidenceConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'The ball carrier had {number} usable passing connections.'**
+  String practiceEvidenceConnections(int number);
+
+  /// No description provided for @practiceAdviceTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the pressure before receiving, then leave a route for your next action.'**
+  String get practiceAdviceTouch;
+
+  /// No description provided for @practiceAdviceCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the defender’s response to your carry before choosing to release the ball.'**
+  String get practiceAdviceCarry;
+
+  /// No description provided for @practiceAdvicePass.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the passing lane and the receiver’s next action, not only the receiver’s position.'**
+  String get practiceAdvicePass;
+
+  /// No description provided for @practiceAdviceThrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the start and direction of the run. Send the ball to reachable space in front.'**
+  String get practiceAdviceThrough;
+
+  /// No description provided for @practiceAdviceSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Move so your teammate can see a clear passing line; a return pass is optional.'**
+  String get practiceAdviceSupport;
+
+  /// No description provided for @practiceAdviceOffside.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the runner against the ball and second-last defender at the kick, then release earlier or use another option.'**
+  String get practiceAdviceOffside;
+
+  /// No description provided for @practiceAttackUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Attack upwards'**
+  String get practiceAttackUp;
+
+  /// No description provided for @practiceLearningEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'This choice demonstrates the lesson objective'**
+  String get practiceLearningEvidence;
 }
 
 class _AppLocalizationsDelegate

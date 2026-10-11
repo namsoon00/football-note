@@ -8,6 +8,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../domain/scan_pass/scan_pass_attack.dart';
 import '../../domain/scan_pass/scan_pass_chain.dart';
+import '../../domain/scan_pass/scan_pass_curriculum.dart';
 import '../../domain/scan_pass/scan_pass_decision.dart';
 import '../../domain/scan_pass/scan_pass_game.dart' show ScanPassPoint;
 import '../../domain/scan_pass/scan_pass_judgment.dart';
@@ -17,6 +18,7 @@ import '../theme/app_motion.dart';
 import '../widgets/app_bar_action_button.dart';
 
 part 'scan_pass_possession_lesson_screen.dart';
+part 'scan_pass_curriculum_screen.dart';
 part 'scan_pass_judgment_training.dart';
 part 'scan_pass_space_training.dart';
 part 'scan_pass_chain_training.dart';
@@ -47,20 +49,9 @@ class ScanPassGameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final legacyPreviewDuration =
-        previewDuration ?? const Duration(milliseconds: 2400);
-    return ScanPassPossessionLessonScreen(
-      seed: seed,
+    return ScanPassCurriculumScreen(
       observationDuration: previewDuration,
       executionDuration: passAnimationDuration,
-      freeAttackBuilder: (context) => ScanPassFreeAttackScreen(
-        optionRepository: optionRepository,
-        seed: seed,
-        previewDuration: legacyPreviewDuration,
-        choiceDuration: choiceDuration,
-        passAnimationDuration: passAnimationDuration,
-        initialAttack: initialAttack,
-      ),
     );
   }
 }
@@ -3456,10 +3447,14 @@ class _AttackPitchPainter extends CustomPainter {
     required Color shorts,
     required Color textColor,
     required bool current,
+    double? radius,
+    bool anchorAtFeet = false,
   }) {
-    final center = geometry.toOffset(player.position);
     final scale = player.goalkeeper ? 1.04 : 1.0;
-    final r = math.max(11.0, geometry.size.shortestSide * .037) * scale;
+    final r =
+        radius ?? math.max(11.0, geometry.size.shortestSide * .037) * scale;
+    final center = geometry.toOffset(player.position) -
+        (anchorAtFeet ? Offset(0, r * 1.18) : Offset.zero);
     if (current) {
       canvas.drawCircle(
         center,
@@ -3474,7 +3469,9 @@ class _AttackPitchPainter extends CustomPainter {
         labels.currentPlayer(player.number),
         center + Offset(0, r * 2.05),
         color: _text,
-        fontSize: math.max(10, geometry.size.shortestSide * .028),
+        fontSize: radius != null
+            ? math.max(10, r * .72)
+            : math.max(10, geometry.size.shortestSide * .028),
         anchorMode: _TextAnchor.center,
       );
     }
@@ -3485,7 +3482,9 @@ class _AttackPitchPainter extends CustomPainter {
         player.number == learnerNumber) {
       _drawText(canvas, learnerLabel!, center + Offset(0, r * 2.1),
           color: _accent,
-          fontSize: math.max(10, geometry.size.shortestSide * .024),
+          fontSize: radius != null
+              ? math.max(10, r * .72)
+              : math.max(10, geometry.size.shortestSide * .024),
           anchorMode: _TextAnchor.center);
     }
     final shadow = Paint()..color = _shadow;

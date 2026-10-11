@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/scan_pass/scan_pass_attack.dart';
 import 'package:football_note/domain/scan_pass/scan_pass_possession_lesson.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -10,13 +9,13 @@ void main() {
   WidgetController.hitTestWarningShouldBeFatal = true;
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('default entry opens the continuous situation catalog',
+  testWidgets(
+      'legacy continuous situation catalog remains internally available',
       (tester) async {
     await tester.pumpWidget(_app(
-      home: ScanPassGameScreen(
-        optionRepository: _Options(),
-        previewDuration: Duration.zero,
-        passAnimationDuration: Duration.zero,
+      home: const ScanPassPossessionLessonScreen(
+        observationDuration: Duration.zero,
+        executionDuration: Duration.zero,
       ),
     ));
     await tester.pump();
@@ -404,21 +403,4 @@ Future<void> _tapChoiceAndFinish(
   await tester
       .tap(find.byKey(ValueKey<String>('possession-action-${choice.name}')));
   await tester.pumpAndSettle(const Duration(milliseconds: 40));
-}
-
-class _Options implements OptionRepository {
-  @override
-  T? getValue<T>(String key) => null;
-
-  @override
-  List<String> getOptions(String key, List<String> defaults) => defaults;
-
-  @override
-  List<int> getIntOptions(String key, List<int> defaults) => defaults;
-
-  @override
-  Future<void> saveOptions(String key, List<dynamic> options) async {}
-
-  @override
-  Future<void> setValue(String key, dynamic value) async {}
 }

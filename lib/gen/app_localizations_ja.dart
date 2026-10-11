@@ -19866,4 +19866,393 @@ class AppLocalizationsJa extends AppLocalizations {
   String scanPassPossessionShotDistance(String metres) {
     return 'シュート ${metres}m';
   }
+
+  @override
+  String get practiceTitle => 'ゲームを読む練習';
+
+  @override
+  String get practiceIntro => '攻撃者2人から開始。プレッシャーを読み、次の行動を選び、判断の根拠を確認します。';
+
+  @override
+  String practiceStage(int attackers, int defenders) {
+    return '攻撃$attackers人・守備$defenders人';
+  }
+
+  @override
+  String practiceCondition(int number) {
+    return '場面$number';
+  }
+
+  @override
+  String get practiceGateRule => 'ボールをコントロールしてコーンの間をドリブルで通過。';
+
+  @override
+  String get practiceNoOffside => '基礎練習・オフサイドなし';
+
+  @override
+  String get practiceOffside => 'パスを出す瞬間にオフサイドを判定';
+
+  @override
+  String get practiceGoalFirstTouch => 'プレッシャーの方向を読み、次の動作につながるファーストタッチを。';
+
+  @override
+  String get practiceGoalDrawDefender => '守備がボールに寄るかパスコースを守るかを見極めましょう。';
+
+  @override
+  String get practiceGoalThroughPass => '味方の走り出しと背後のスペースにパスを合わせましょう。';
+
+  @override
+  String get practiceGoalSupportAngle => 'パス後、守備の陰を外してサポートする角度を作りましょう。';
+
+  @override
+  String get practiceGoalThirdPlayer => '直接のパスコースが閉じたら、別の味方を経由する道を探しましょう。';
+
+  @override
+  String get practiceGoalSwitchPlay => '守備が片側に寄ったとき、逆側のスペースを見つけましょう。';
+
+  @override
+  String get practiceSkillFirstTouch => 'ファーストタッチと圧力の方向';
+
+  @override
+  String get practiceSkillDrawDefender => '運ぶか、パスするか';
+
+  @override
+  String get practiceSkillThroughPass => '裏への動きを読むスルーパス';
+
+  @override
+  String get practiceSkillSupportAngle => 'パス後のサポート角度';
+
+  @override
+  String get practiceSkillThirdPlayer => '3人目を使ってつなぐ';
+
+  @override
+  String get practiceSkillSwitchPlay => '逆側のスペースを探す';
+
+  @override
+  String get practiceObserve => '受ける前に、守備と味方の動きを見ましょう。';
+
+  @override
+  String get practiceChooseTouch => 'ファーストタッチ・方向の矢印をタップ。';
+
+  @override
+  String get practiceChooseBall => 'ユニフォーム：足元へ・前方の矢印：スルーパス・空間：ドリブル';
+
+  @override
+  String get practiceChooseSupport => '自分は6番・空間をタップして移動、または位置を保ちましょう。';
+
+  @override
+  String get practiceExecuting => '選択によってスペースとパスコースがどう変わるかを見ましょう。';
+
+  @override
+  String practiceTouch(String metres) {
+    return 'ファーストタッチ・${metres}m';
+  }
+
+  @override
+  String practiceCarry(String metres) {
+    return 'ドリブル・${metres}m';
+  }
+
+  @override
+  String practiceMove(String metres) {
+    return '6番の移動・${metres}m';
+  }
+
+  @override
+  String practicePass(int number) {
+    return '$number番の足元へ';
+  }
+
+  @override
+  String practiceThrough(int number) {
+    return '$number番へスルーパス';
+  }
+
+  @override
+  String get practiceWait => '少し待つ';
+
+  @override
+  String get practiceHold => '位置を保つ';
+
+  @override
+  String practiceGate(int number) {
+    return 'コーンゲート$number';
+  }
+
+  @override
+  String get practiceReview => '判断を振り返る';
+
+  @override
+  String practiceDecision(int current, int total) {
+    return '判断$current / $total';
+  }
+
+  @override
+  String get practiceRead => '読むべき状況';
+
+  @override
+  String get practiceEffect => '選択が変えたこと';
+
+  @override
+  String get practiceNextFocus => '次の挑戦では';
+
+  @override
+  String get practiceUseful => '有効な判断';
+
+  @override
+  String get practiceReconsider => '見直したい判断';
+
+  @override
+  String practicePressureEvidence(String before, String after) {
+    return '保持者に最も近い守備：${before}m → ${after}m';
+  }
+
+  @override
+  String practiceLaneEvidence(String before, String after) {
+    return '同じ味方↔6番のパス線から守備まで：${before}m → ${after}m';
+  }
+
+  @override
+  String practiceOptionsEvidence(String before, String after) {
+    return 'つながる味方：$before人 → $after人';
+  }
+
+  @override
+  String get practiceReplayMine => '自分のプレーを再生';
+
+  @override
+  String get practiceCompare => '同じ瞬間で別の選択';
+
+  @override
+  String get practiceCompareLabel => '同じ瞬間から始めた別の選択';
+
+  @override
+  String get practiceCompareNote => '選手と位置は同じです。有効な選択は一つとは限りません。';
+
+  @override
+  String get practiceCoach => '参考プレーを見る';
+
+  @override
+  String get practiceRetry => 'もう一度判断';
+
+  @override
+  String get practicePair => '守備の動きを変える';
+
+  @override
+  String get practiceNext => '次の場面';
+
+  @override
+  String get practiceBackReview => '自分の振り返りへ';
+
+  @override
+  String get practiceCompleted => '挑戦した場面';
+
+  @override
+  String get practiceGateReached => 'ボールを保ってゲートを通過';
+
+  @override
+  String get practiceRetained => '保持を継続・判断を確認しましょう';
+
+  @override
+  String get practiceIntercepted => '守備がボールを奪いました';
+
+  @override
+  String get practiceOffsideEnd => 'パスを出す瞬間にオフサイド';
+
+  @override
+  String get practiceHelp => '観察して判断し、比べる';
+
+  @override
+  String get practiceHelpBody =>
+      '操作する選手は常に6番です。最初のタッチは方向矢印、足元へのパスは味方のユニフォーム、スルーパスは味方の前の矢印をタップ。空間をタップして運ぶかサポートします。判断中は時間が止まり、待つを選ぶと少し進みます。実線はボール、破線は選手の移動。ボールを持ってゲートを通過すると完了です。各判断を確認し、同じ瞬間の別の選択と比較しましょう。試合を簡略化した少人数練習で、実戦能力の測定ではありません。';
+
+  @override
+  String get practiceCuePressureSide => '守備の寄せる方向とファーストタッチの方向の関係。';
+
+  @override
+  String get practiceCueDefenderCommitment => '守備がボールに寄るか、味方へのコースを守るか。';
+
+  @override
+  String get practiceCueRunnerTiming => '味方の走る方向、その先の空間、パス時の守備との位置。';
+
+  @override
+  String get practiceCuePassingLane => 'ボールと受けるスペースの間にいる守備。';
+
+  @override
+  String get practiceCueSupportLane => 'ボールを持つ味方から見て、自分が守備の陰に隠れているか。';
+
+  @override
+  String get practiceCueThirdPlayerLane => '直接のパスコースと別の味方を経由するコース。';
+
+  @override
+  String get practiceCueFarSideSpace => 'カバーする守備の集まる側と、逆側の味方の前の空間。';
+
+  @override
+  String get practiceReasonTouchOpensView => 'タッチ後、次の動作をするスペースが残りました。';
+
+  @override
+  String get practiceReasonTouchIntoPressure => 'タッチが守備の届く方向に向かいました。';
+
+  @override
+  String get practiceReasonDefenderDrawn => '運ぶことで守備を引きつけ、つなぐコースが残りました。';
+
+  @override
+  String get practiceReasonCarryIntoCover => '選んだドリブルコースを守備がカバーできます。';
+
+  @override
+  String get practiceReasonRunnerMetInStride => '動いている味方の前のスペースにパスがつながりました。';
+
+  @override
+  String get practiceReasonPassToFeet => '味方の足元にパスがつながりました。';
+
+  @override
+  String get practiceReasonPassLaneClosed => '守備がパスコースに到達しました。';
+
+  @override
+  String get practiceReasonSupportLaneOpened => '移動によってつながるパスコースができました。';
+
+  @override
+  String get practiceReasonSupportStillHidden => '移動先でも使えるパスコースが開きませんでした。';
+
+  @override
+  String get practiceReasonThirdPlayerConnected => '別の味方を経由して攻撃がつながりました。';
+
+  @override
+  String get practiceReasonFarSideOpened => '守備の少ない側にボールをつなぎました。';
+
+  @override
+  String get practiceReasonHoldCreatesWindow => '少し待って保持し、次の選択肢を探りました。';
+
+  @override
+  String get practiceReasonHoldUnderPressure => '待っている間にプレッシャーが近づきました。';
+
+  @override
+  String get practiceReasonControlledGate => '選手がボールを保ってコーンの間を通過しました。';
+
+  @override
+  String get practiceReasonOffsideAtKick => 'パスの瞬間、受け手がオフサイドの位置にいました。';
+
+  @override
+  String get practicePreviousDecision => '前の判断';
+
+  @override
+  String get practiceReasonRunnerNotReady => '受け手の動きが、パスを出した前方のスペースにまだ合っていません。';
+
+  @override
+  String get practiceReasonPossessionSecured => 'ボールを保ち、次につなぐ可能性を残しました。';
+
+  @override
+  String practiceRuleSummary(String players, String rule) {
+    return '$players・$rule';
+  }
+
+  @override
+  String get practiceConditionUpperPressure => '攻撃方向に向かって左からの圧力';
+
+  @override
+  String get practiceConditionLowerPressure => '攻撃方向に向かって右からの圧力';
+
+  @override
+  String get practiceConditionBallPressure => 'ボールに寄る守備';
+
+  @override
+  String get practiceConditionTrackRunner => '走る味方を追う守備';
+
+  @override
+  String get practiceConditionForwardRun => '裏へ走る味方';
+
+  @override
+  String get practiceConditionCheckingRun => 'まず手前に受けに来る味方';
+
+  @override
+  String get practiceConditionLowerCover => '右側のコースへ動く近くの守備';
+
+  @override
+  String get practiceConditionUpperCover => '左側のコースへ動く近くの守備';
+
+  @override
+  String get practiceConditionStayUpper => '左側のコースを守るカバー';
+
+  @override
+  String get practiceConditionShiftLower => '右側のコースへ移るカバー';
+
+  @override
+  String get practiceReasonReceivedUnderPressure =>
+      'パスは届きましたが、受け手には次の動作の余裕がありません。';
+
+  @override
+  String get practiceContinueAlternative => 'この選択の続きを見る';
+
+  @override
+  String get practiceContinuationNote => 'その後の判断は参考例です。最初の選択と続く判断を併せて比べましょう。';
+
+  @override
+  String practiceEvidenceUpper(int number, String metres) {
+    return '攻撃方向に向かって左に、守備$number番が${metres}m離れていました。';
+  }
+
+  @override
+  String practiceEvidenceLower(int number, String metres) {
+    return '攻撃方向に向かって右に、守備$number番が${metres}m離れていました。';
+  }
+
+  @override
+  String practiceEvidenceLevel(int number, String metres) {
+    return '守備$number番はほぼ同じ縦のコース上、${metres}m先にいました。';
+  }
+
+  @override
+  String practiceEvidenceForwardRun(int number) {
+    return '選択の瞬間、$number番は前方へ動いていました。';
+  }
+
+  @override
+  String practiceEvidenceCheckingRun(int number) {
+    return '選択の瞬間、$number番はボールに近づく動きをしていました。';
+  }
+
+  @override
+  String practiceEvidenceWaitingRun(int number) {
+    return '選択の瞬間、$number番はまだ前方への走り出しをしていませんでした。';
+  }
+
+  @override
+  String practiceEvidenceSupport(String metres) {
+    return '移動前、保持者と自分を結ぶパス線から守備まで${metres}mでした。';
+  }
+
+  @override
+  String practiceEvidenceFarSide(int number) {
+    return '守備$number人がボールと同じ側にいました。';
+  }
+
+  @override
+  String practiceEvidenceConnections(int number) {
+    return '保持者につながる味方は$number人いました。';
+  }
+
+  @override
+  String get practiceAdviceTouch => '受ける前に圧力の方向を確認し、タッチ後のコースを残しましょう。';
+
+  @override
+  String get practiceAdviceCarry => '運ぶ動きに守備がどう反応するかを見て、パスするかを決めましょう。';
+
+  @override
+  String get practiceAdvicePass => '味方の位置に加え、パスコースと受けた後の動作も確認しましょう。';
+
+  @override
+  String get practiceAdviceThrough => '走り出しと方向を見て、味方が届く前方の空間へ送りましょう。';
+
+  @override
+  String get practiceAdviceSupport => '味方とのパスコースが見えるように移動。リターンパスは必須ではありません。';
+
+  @override
+  String get practiceAdviceOffside =>
+      '蹴る瞬間の味方・ボール・後方から2人目の守備を確認。早めのパスや別のつなぎ方を比べましょう。';
+
+  @override
+  String get practiceAttackUp => '上へ攻撃';
+
+  @override
+  String get practiceLearningEvidence => 'この選択で学習目標を確認できました';
 }
