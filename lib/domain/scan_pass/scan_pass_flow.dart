@@ -47,7 +47,8 @@ class FlowEngine {
     for (final focus in FlowFocus.values)
       for (var variant = 0; variant < 2; variant++) _createCase(focus, variant),
   ]);
-  static const _settings = PracticeSettings(freeFlow: true);
+  static const _settings =
+      PracticeSettings(freeFlow: true, automaticSupport: true);
   static const _engine = PracticeEngine();
 
   const FlowEngine();
@@ -117,6 +118,29 @@ class FlowEngine {
         planned,
         _engine.choose(
             planned,
+            PracticeAction(
+              id: through ? 'flow-through' : 'flow-pass',
+              kind: through
+                  ? PracticeActionKind.through
+                  : PracticeActionKind.pass,
+              actorNumber: session.state.carrierNumber,
+              receiver: receiver.number,
+              target: target,
+            )));
+  }
+
+  /// Public automatic-support pass. The receiver target is resolved from the
+  /// current sampled world; the old carrier's support run is chosen by physics.
+  PracticeStep pass(PracticeSession session, {bool through = false}) {
+    final receiver = _other(session);
+    final target = through ? throughTarget(session) : receiver.position;
+    if (target == null) {
+      throw ArgumentError('A through pass needs a visible receiver run');
+    }
+    return _result(
+        session,
+        _engine.choose(
+            session,
             PracticeAction(
               id: through ? 'flow-through' : 'flow-pass',
               kind: through

@@ -36013,25 +36013,25 @@ abstract class AppLocalizations {
   /// No description provided for @flowChooseTouch.
   ///
   /// In en, this message translates to:
-  /// **'Choose No. {number}’s first touch within the circle.'**
+  /// **'FIRST TOUCH · Choose where No. {number} takes the ball.'**
   String flowChooseTouch(int number);
 
   /// No description provided for @flowChooseBall.
   ///
   /// In en, this message translates to:
-  /// **'No. {number}: tap space to dribble, or No. {receiver} to pass.'**
+  /// **'No. {number}: tap space to dribble, or the Pass ring on No. {receiver}.'**
   String flowChooseBall(int number, int receiver);
 
   /// No description provided for @flowChooseRun.
   ///
   /// In en, this message translates to:
-  /// **'Choose where No. {number} will move after passing.'**
+  /// **'No. {number} supports automatically after the pass.'**
   String flowChooseRun(int number);
 
   /// No description provided for @flowQueued.
   ///
   /// In en, this message translates to:
-  /// **'Next move queued · tap another space to change it.'**
+  /// **'Next action queued.'**
   String get flowQueued;
 
   /// No description provided for @flowPlaying.
@@ -36052,11 +36052,23 @@ abstract class AppLocalizations {
   /// **'Keep the ball for a moment'**
   String get flowKeepBall;
 
+  /// No description provided for @flowPassLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass'**
+  String get flowPassLabel;
+
   /// No description provided for @flowThrough.
   ///
   /// In en, this message translates to:
   /// **'Pass into the planned run'**
   String get flowThrough;
+
+  /// No description provided for @flowFirstTouchBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'FIRST TOUCH'**
+  String get flowFirstTouchBadge;
 
   /// No description provided for @flowResult.
   ///
@@ -36139,7 +36151,7 @@ abstract class AppLocalizations {
   /// No description provided for @flowHelpBody.
   ///
   /// In en, this message translates to:
-  /// **'First touch: tap a direction around the ball. The circle shows the maximum first-touch distance; farther clicks use that direction at the circle’s edge.\n\nWith the ball: tap space once to move there, or tap your teammate to pass. Tap your own shirt to keep the ball briefly.\n\nAfter selecting a pass: tap where the passer should move. The pass and run begin together. A running teammate’s marked destination can receive a through pass.\n\nEvery reception gives you a new first touch. You can queue the next choice while a move plays; the cross cancels it. Only your chosen attacking actions execute.\n\nUse More to review your choices. Retry this decision returns to the same moment. Restart, replay and all 12 situations are also in More.\n\nCarry the ball through either cone gate to finish the attack.'**
+  /// **'First touch: tap a direction around the ball. The circle is the real 2.3 m range; farther clicks use that direction at the circle’s edge.\n\nWith the ball: tap space once to move there, tap the visible Pass ring on your teammate to pass, or tap your own shirt to keep the ball briefly. When players are close, use the hourglass connected to your player.\n\nYour teammate moves automatically to offer support. A visible running endpoint can receive an explicit through pass; an ordinary pass still resolves against the receiver’s current movement and can be stolen.\n\nEvery reception gives you a new first touch before any pass controls return. You can queue the next choice while a move plays; queued passes wait for the next on-ball stage.\n\nUse More to review your choices. Retry this decision returns to the same moment. Restart, replay and all 12 situations are also in More.\n\nCarry the ball through either cone gate to finish the attack.'**
   String get flowHelpBody;
 
   /// No description provided for @flowResultTouch.
@@ -36169,7 +36181,7 @@ abstract class AppLocalizations {
   /// No description provided for @flowAdvicePassRun.
   ///
   /// In en, this message translates to:
-  /// **'Change the passer’s support position and compare the return lane.'**
+  /// **'Compare your pass timing and target choice with the automatic support run that created the receiving space.'**
   String get flowAdvicePassRun;
 
   /// No description provided for @flowAdviceHold.

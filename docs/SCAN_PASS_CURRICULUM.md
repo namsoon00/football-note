@@ -5,14 +5,17 @@
 `scan_pass_flow.dart` is the public default. It opens a situation immediately:
 **two attackers (6 and 8), two reactive defenders (2 and 3), two cone gates**,
 and no pre-game player-count or mode selector. The player decides every attacking
-action; defenders press the ball and cover the other attacker. No attacking
-teammate decides to pass, carry or invent a run. There is no goalkeeper, shot,
-score or reaction-time reward. The pitch remains 40 × 28 m.
+on-ball action; defenders press the ball and cover the other attacker. The
+off-ball teammate now moves automatically to create a supporting angle, checking
+option or forward run, but never chooses a pass or carry for the player. There
+is no goalkeeper, shot, score or reaction-time reward. The pitch remains 40 ×
+28 m.
 
 `FlowEngine` reuses deterministic motion/collision sampling from `PracticeEngine`
-through the additive `PracticeSettings.freeFlow` flag. This flag defaults to
-false, so existing curriculum callers retain their original behavior. Flow case
-focus is typed data, not inferred from labels or case ids.
+through the additive `PracticeSettings.freeFlow` and
+`PracticeSettings.automaticSupport` flags. Both default to false for existing
+curriculum callers; the public 2v2 flow enables them explicitly. Flow case focus
+is typed data, not inferred from labels or case ids.
 
 ## The twelve 2v2 situations
 
@@ -26,8 +29,8 @@ Neither a third attacker nor a four-player switch rubric is required.
 | --- | --- | --- | --- |
 | `flow-firstTouch-0/1` | Approach side and pressure gap | Defender 2 approaches from ahead/outside or behind/outside | Touch within the visible range into usable space with pressure relief or an available next connection |
 | `flow-drawDefender-0/1` | First defender's commitment and second defender's cover | Defender 2 steps toward the carrier or starts nearer the diagonal connection | Actually draw a defender and improve a connection, or use an already-open pass beyond that first defender |
-| `flow-supportAngle-0/1` | Space available to the passer after release | Defender 3 starts higher or lower beside the receiver | Receive a useful later pass after relocating at least 1 m from the actual earlier release position; choosing a run endpoint alone is not success |
-| `flow-throughPass-0/1` | A player-commanded runner and the covering defender | Defender 3 covers deeper/wider or nearer the runner's inside shoulder | Complete a useful led pass to the commanded run endpoint while the receiver actually travels at least 1 m |
+| `flow-supportAngle-0/1` | Space available to the passer after release | Defender 3 starts higher or lower beside the receiver | Select and time a useful later pass into space created by automatic support; AI movement alone is not credited as the player's spatial choice |
+| `flow-throughPass-0/1` | A visible automatic runner and the covering defender | Defender 3 covers deeper/wider or nearer the runner's inside shoulder | Complete a useful led pass to the visible running endpoint while the receiver actually travels at least 1 m |
 | `flow-beatCover-0/1` | Both the pressing and covering defender | Defender 3 narrows the carrying channel or covers the other attacker's side | A touch/carry retains pressure clearance and opens a passing lane or creates measurable pressure relief |
 | `flow-changeLane-0/1` | The congested side and available lateral space | Defender 2 starts toward the touchline or the inside lane | Move the ball laterally at least 1.5 m while measurably improving clearance or pressure; this is a two-player lane change, not a three-player switch |
 
@@ -47,43 +50,46 @@ approximations, not a validated football intelligence score.
 3. A tap on open space carries the ball to that bounded field point. There is no
    hidden 5.8 m carry cap or 8 m run cap in flow mode. Execution reaches the
    requested point unless an actual steal or controlled gate crossing ends play.
-4. Selecting the other attacker's jersey pauses on a pending pass. One further
-   field tap supplies the **passer's support destination**. The pass and that
-   support run start together on the first simulated sample. Tapping the passer's
-   current position means staying there. No receiver or support run is chosen
-   by the computer.
+4. A visible, accessible **Pass** ring follows the teammate. Tapping it commits
+   the pass immediately. The old carrier's support run is selected
+   automatically from the current player/defender geometry and starts on the
+   first simulated sample of the pass.
 5. The action pauses as soon as the receiver physically collects the ball.
-   A support run that is not yet complete remains visible and continues during
-   subsequent touches, carries, passes or an explicit 0.5 s advance. The next
-   first-touch decision is made from this exact paused world.
-6. A **through pass** is available only to the other attacker's still-pending,
-   player-commanded destination. It never invents a lead target. A pass to feet
-   deliberately collects at the receiver's present position and replaces that
-   receiver's old run. There is no automatic or timed return requirement.
+   The old carrier becomes the automatic supporter, and any support run that is
+   not complete remains visible and continues during subsequent touches, carries,
+   passes or an explicit 0.5 s advance. The new carrier must choose a first
+   touch from this exact paused world before pass controls return.
+6. A **through pass** is available only to the other attacker's visible running
+   endpoint. It never invents a hidden distant target. An ordinary pass resolves
+   against the receiver's current movement with a short physical lead; it can
+   still be stolen and does not count as a through pass.
 7. A controlled cone crossing, actual defensive steal or 16 decisions ends the
    sequence. Offside is disabled for this deliberately constrained 2v2 exercise.
 
-The pass/run decision snapshot contains the committed support destination.
-`beforeDecision` restores that exact world, pending plans, settings and history;
-repeating the same gesture yields identical sampled motion. Choosing a different
-support point replaces the planned point without replaying or altering earlier
-history. Feedback uses positions **at actual reception**, not the distant target
-of a support run that is still in progress.
+The decision snapshot contains the automatic support settings and the visible
+support plan used at that moment. `beforeDecision` restores that exact world,
+pending plans, settings and history; repeating the same pass, touch, carry or
+hold gesture yields identical sampled motion. Feedback uses positions **at
+actual reception**, not the distant target of a support run that is still in
+progress, and does not credit the player's spatial skill for a run chosen solely
+by the support AI.
 
 All movement and contact share sampled trajectories (at most 25 ms apart).
 A steal transfers possession to the actual defender and includes a continuous
 0.4 s collection movement. Both ball and attacking carrier must cross the cone
 opening under control; a ball flying through on its own does not complete it.
-Only previously commanded movement and physical braking remain between choices.
+Only persistent support plans and physical braking remain between choices; there
+is no unbounded real-time tick while the player reads.
 
 Domain tests cover all 12 openings, safe first-touch exits, exact target/range
-agreement, full clicked carry/run destinations, simultaneous passing/support,
-reception pauses, persistent runs, commanded through passes, deterministic
-retries, both defenders reacting, actual theft and controlled cone crossings.
+agreement, full clicked carry destinations, automatic off-ball displacement
+before the first pass, simultaneous passing/support, reception pauses,
+persistent runs, through-pass endpoints, deterministic retries, defender-sensitive
+support targets, both defenders reacting, actual theft and controlled cone
+crossings.
 Each focus also has a reproducible example using only the public gestures: free
-touch, carrier movement, hold, and pass plus support destination. Through examples
-first launch a support run, receive and touch, then lead that still-pending run;
-none depends on an unavailable direct off-ball selection mode.
+touch, carrier movement, hold, pass, and explicit through pass when a visible
+automatic endpoint exists; none depends on direct off-ball selection.
 The existing limitations and design sources below still apply: this is a 2D
 teaching model, not a professional match simulator or evidence of transfer to a
 real match.
@@ -253,9 +259,10 @@ regression tests; it is not a public control option.
 `ScanPassGameScreen` opens `ScanPassFlowScreen` immediately in the first 2v2
 situation. Its on-field goal and current instruction stay in a fixed order.
 A free-space tap chooses the first touch (within the visible physical circle)
-or the carrier's complete dribble destination. Tapping the teammate selects
-a pass; the next space tap supplies the passer's support destination and
-launches both actions. A marked pending receiver endpoint offers a through pass.
+or the carrier's complete dribble destination. The **Pass** ring around the
+teammate commits a pass in one tap; automatic support handles the passer's run.
+A marked automatic receiver endpoint offers a through pass when the movement
+supports it.
 Tapping the carrier keeps possession for a short interval; defenders still react.
 
 One next command can be queued during a committed action, replaced or cancelled.
@@ -266,6 +273,14 @@ and explicit pause suspend playback. There is no reaction-time score.
 Review groups copy into **Result / Why / Try next** with two fixed footer actions:
 **Retry this decision** and **Next situation** (or **Continue play** during a
 mid-attack review). Retry restores the selected original snapshot; combined passes
-reopen support placement for a new destination. Replay, the prior attempt, before
-versus after frames, decision selection, restart and case selection live in More.
+return to the same automatic intent without reopening a manual support-placement
+step. Replay, the prior attempt, before versus after frames, decision selection,
+restart and case selection live in More.
 Prior-attempt replay uses that attempt's own feedback and returns to the new record.
+
+Pass controls retain priority at the receiving player's position. On compact
+screens, overlapping hold/through controls move to separate hit areas and have
+connector lines to the controlled player or actual run endpoint. A relocated
+hold uses an hourglass so it remains discoverable. Portrait and landscape
+pointer regressions verify that a nearby receiver's pass and hold commands stay
+independently tappable.

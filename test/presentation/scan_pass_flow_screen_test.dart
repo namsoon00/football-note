@@ -24,9 +24,45 @@ void main() {
     expect(find.byKey(const ValueKey('flow-review-actions')), findsNothing);
     expect(find.byKey(const ValueKey('flow-pitch')), findsOneWidget);
     expect(_painter(tester).touchOrigin, isNotNull);
+    expect(
+        find.byKey(const ValueKey('flow-first-touch-badge')), findsOneWidget);
+    expect(find.textContaining('FIRST TOUCH'), findsWidgets);
+    expect(find.textContaining('Choose where No. 6'), findsOneWidget);
+    expect(find.byKey(const ValueKey('flow-pass')), findsNothing);
     expect(find.textContaining('Goal ·'), findsOneWidget);
     expect(find.textContaining('Now ·'), findsOneWidget);
   });
+
+  for (final size in [const Size(568, 320), const Size(320, 568)]) {
+    for (final action in [PracticeActionKind.pass, PracticeActionKind.hold]) {
+      testWidgets(
+          'nearby receiver keeps $action independently tappable at $size',
+          (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(_app());
+        await tester.pumpAndSettle();
+        var session = engine.start(FlowEngine.catalog.first);
+        final touch = session.state.ball + const ScanPassPoint(2.3 / 40, 0);
+        await _tapSpace(tester, touch);
+        session = engine.touchTo(session, touch).session;
+        final pass = find.byKey(const ValueKey('flow-pass'));
+        final hold = find.byKey(const ValueKey('flow-hold'));
+        expect(tester.getRect(pass).overlaps(tester.getRect(hold)), isFalse);
+        expect(pass.hitTestable(), findsOneWidget);
+        expect(hold.hitTestable(), findsOneWidget);
+        final expected = action == PracticeActionKind.pass
+            ? engine.pass(session)
+            : engine.hold(session);
+        await tester.tap(action == PracticeActionKind.pass ? pass : hold);
+        await tester.pumpAndSettle();
+        _expectState(_state(tester), expected.session.state);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
 
   testWidgets('all twelve cases accept arbitrary first-touch coordinates',
       (tester) async {
@@ -45,19 +81,18 @@ void main() {
   });
 
   testWidgets(
-      'one support click launches the pass and run, then restores receiving control',
+      'visible pass ring launches one-tap automatic support and restores receiving control',
       (tester) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
     var session = await _touch(tester, engine.start(FlowEngine.catalog.first));
     final before = session.state;
+    expect(find.text('Pass'), findsOneWidget);
+    expect(
+        find.byKey(const ValueKey('flow-pass')).hitTestable(), findsOneWidget);
+    final expected = engine.pass(session);
     await tester.tap(find.byKey(const ValueKey('flow-pass')));
     await tester.pumpAndSettle();
-    _expectState(_state(tester), before);
-    expect(find.textContaining('move after passing'), findsOneWidget);
-    const destination = ScanPassPoint(.78, .83);
-    final expected = engine.passAndMove(session, runTarget: destination);
-    await _tapSpace(tester, destination);
     session = expected.session;
     _expectState(_state(tester), session.state);
     if (!session.finished) {
@@ -65,7 +100,7 @@ void main() {
       expect(_painter(tester).touchOrigin, isNotNull);
       final run = (_painter(tester).runTargets
           as Map<int, ScanPassPoint>)[before.carrierNumber];
-      expect(run!.distanceTo(destination), closeTo(0, .000001));
+      expect(run, isNotNull);
       expect(
           PracticeEngine.distanceMetres(
               before.carrier.position,
@@ -85,31 +120,32 @@ void main() {
                   .position),
           greaterThan(.1));
     }
+    expect(
+        find.byKey(const ValueKey('flow-pass')).hitTestable(), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
   testWidgets(
-      'retrying a pass restores its exact starting world and asks for a new support point',
+      'retrying an automatic pass restores the exact world without run placement',
       (tester) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
     var session = await _touch(tester, engine.start(FlowEngine.catalog.first));
+    session = engine.pass(session).session;
     await tester.tap(find.byKey(const ValueKey('flow-pass')));
     await tester.pumpAndSettle();
-    const destination = ScanPassPoint(.7, .86);
-    session = engine.passAndMove(session, runTarget: destination).session;
-    await _tapSpace(tester, destination);
     if (!session.finished) await _menu(tester, 'flow-review-now');
     final index = session.decisions.length - 1;
     final restored = engine.beforeDecision(session, index);
     await tester.tap(find.byKey(const ValueKey('flow-retry')));
     await tester.pumpAndSettle();
     _expectState(_state(tester), restored.state);
-    expect(find.textContaining('move after passing'), findsOneWidget);
     expect(find.byKey(const ValueKey('flow-feedback')), findsNothing);
-    const other = ScanPassPoint(.63, .16);
-    final second = engine.passAndMove(restored, runTarget: other).session;
-    await _tapSpace(tester, other);
+    expect(
+        find.byKey(const ValueKey('flow-pass')).hitTestable(), findsOneWidget);
+    final second = engine.pass(restored).session;
+    await tester.tap(find.byKey(const ValueKey('flow-pass')));
+    await tester.pumpAndSettle();
     _expectState(_state(tester), second.state);
     expect(tester.takeException(), isNull);
   });
@@ -172,7 +208,7 @@ void main() {
     await _tapSpace(tester, const ScanPassPoint(.22, .86), settle: false);
     const replaced = ScanPassPoint(.20, .80);
     await _tapSpace(tester, replaced, settle: false);
-    expect(find.textContaining('Next move queued'), findsOneWidget);
+    expect(find.textContaining('Next action queued'), findsOneWidget);
     await tester.pumpAndSettle();
     final expected = engine.moveTo(touched, replaced).session;
     _expectState(_state(tester), expected.state);
@@ -202,7 +238,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
   testWidgets(
-      'a through return points at the commanded endpoint and is playable on a phone',
+      'a through pass points at the visible automatic endpoint and is playable on a phone',
       (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
@@ -215,29 +251,18 @@ void main() {
     const first = ScanPassPoint(.3475, .65);
     session = engine.touchTo(session, first).session;
     await _tapSpace(tester, first);
-    await tester.tap(find.byKey(const ValueKey('flow-pass')));
-    await tester.pumpAndSettle();
-    const run = ScanPassPoint(.6475, .65);
-    session = engine.passAndMove(session, runTarget: run).session;
-    await _tapSpace(tester, run);
-    const second = ScanPassPoint(.5675, .38);
-    session = engine.touchTo(session, second).session;
-    await _tapSpace(tester, second);
+    final run = engine.throughTarget(session);
+    expect(run, isNotNull);
     expect(find.byKey(const ValueKey('flow-through')).hitTestable(),
         findsOneWidget);
+    final expected = engine.pass(session, through: true);
     await tester.tap(find.byKey(const ValueKey('flow-through')));
     await tester.pumpAndSettle();
-    expect(
-        (_painter(tester).pendingPassTarget as ScanPassPoint).distanceTo(run),
-        closeTo(0, .000001));
-    const nextRun = ScanPassPoint(.8675, .38);
-    session =
-        engine.passAndMove(session, runTarget: nextRun, through: true).session;
-    await _tapSpace(tester, nextRun);
+    session = expected.session;
     _expectState(_state(tester), session.state);
-    expect(session.goalDemonstrated, isTrue);
-    expect(session.state.completedPasses,
-        engine.start(FlowEngine.catalog[6]).state.completedPasses + 2);
+    expect(expected.decision.action.kind, PracticeActionKind.through);
+    expect(expected.decision.action.target.distanceTo(run!), closeTo(0, 1e-9));
+    expect(session.phase, PracticePhase.firstTouch);
     expect(tester.takeException(), isNull);
   });
 

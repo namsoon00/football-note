@@ -7,11 +7,13 @@ class PracticeSettings {
   final bool controlAllAttackers;
   final bool passAndMove;
   final bool freeFlow;
+  final bool automaticSupport;
 
   const PracticeSettings({
     this.controlAllAttackers = true,
     this.passAndMove = false,
     this.freeFlow = false,
+    this.automaticSupport = false,
   });
 }
 
@@ -280,14 +282,15 @@ class PracticeEngine {
   const PracticeEngine();
 
   PracticeSession start(PracticeCase lesson,
-          {PracticeSettings settings = const PracticeSettings()}) =>
-      PracticeSession(
+      {PracticeSettings settings = const PracticeSettings()}) {
+    final session = PracticeSession(
         lesson: lesson,
         settings: settings,
         state: lesson.reception,
         phase: PracticePhase.firstTouch,
-        history: [lesson.observation],
-      );
+        history: [lesson.observation]);
+    return _withAutomaticSupport(session);
+  }
 
   PracticeSession beforeDecision(PracticeSession session, int index) {
     final decision = session.decisions[index];
@@ -307,6 +310,7 @@ class PracticeEngine {
 
   List<PracticeAction> choices(PracticeSession session) {
     if (session.finished) return const [];
+    session = _withAutomaticSupport(session);
     final state = session.state;
     final learner = session.settings.controlAllAttackers
         ? state.carrier
@@ -349,7 +353,8 @@ class PracticeEngine {
         returnTarget:
             session.settings.passAndMove ? session.returnTarget : null,
         runTargets: session.runTargets,
-        allowUnplannedThrough: !session.settings.freeFlow);
+        allowUnplannedThrough: !session.settings.freeFlow,
+        leadPasses: session.settings.automaticSupport);
   }
 
   /// Plans change no time, history or possession. They execute only when the
@@ -390,6 +395,164 @@ class PracticeEngine {
         outcome: session.outcome,
         reachedGate: session.reachedGate,
       );
+
+  PracticeSession _withAutomaticSupport(PracticeSession session,
+      {PracticeAction? pendingAction}) {
+    if (!session.settings.automaticSupport ||
+        session.finished ||
+        session.state.carrierIsDefender) {
+      return session;
+    }
+    final state = session.state;
+    final actionIsPass = pendingAction?.kind == PracticeActionKind.pass ||
+        pendingAction?.kind == PracticeActionKind.through;
+    final targets = {
+      for (final entry in session.runTargets.entries)
+        if (state.attackers.any((p) => p.number == entry.key))
+          entry.key: boundedTarget(entry.value),
+    };
+    targets.removeWhere((number, target) {
+      final player = _player(state, number);
+      final isCarrier = number == state.carrierNumber;
+      if (isCarrier && !actionIsPass) return true;
+      return distanceMetres(player.position, target) <= .18 ||
+          !_supportTargetViable(state, player, target);
+    });
+    for (final player
+        in state.attackers.where((p) => p.number != state.carrierNumber)) {
+      final current = targets[player.number];
+      if (current == null ||
+          !_supportTargetViable(state, player, current) ||
+          distanceMetres(player.position, current) <= .18) {
+        targets[player.number] = _automaticSupportTarget(state, player,
+            previousTarget: session.runTargets[player.number]);
+      }
+    }
+    if (actionIsPass) {
+      final actor = pendingAction?.actorNumber ?? state.carrierNumber;
+      if (actor == state.carrierNumber) {
+        final existingManualTarget = session.runTargets[actor];
+        if (existingManualTarget != null) {
+          targets[actor] = boundedTarget(existingManualTarget);
+        } else {
+          final receiver = pendingAction?.receiver;
+          final anchor = receiver == null
+              ? state.ball
+              : pendingAction!.kind == PracticeActionKind.through
+                  ? boundedTarget(pendingAction.target)
+                  : _passTarget(state, receiver, targets);
+          targets[actor] = _automaticSupportTarget(
+            state,
+            state.carrier,
+            anchor: anchor,
+            previousTarget: session.runTargets[actor],
+          );
+        }
+      }
+    }
+    return _withRunTargets(session, targets);
+  }
+
+  static bool _supportTargetViable(
+      AttackState state, AttackPlayer player, ScanPassPoint target) {
+    final bounded = boundedTarget(target);
+    if (bounded.distanceTo(target) > .001) return false;
+    final fromCarrier = distanceMetres(state.ball, target);
+    if (fromCarrier < 2.2 || fromCarrier > 15.0) return false;
+    if (nearestDefender(state, target) < 1.15) return false;
+    for (final teammate in state.attackers) {
+      if (teammate.number == player.number) continue;
+      if (distanceMetres(teammate.position, target) < 1.3) return false;
+    }
+    final run = distanceMetres(player.position, target);
+    return run <= 7.2 || laneClearance(state, state.ball, target) >= 1.6;
+  }
+
+  static ScanPassPoint _automaticSupportTarget(
+      AttackState state, AttackPlayer player,
+      {ScanPassPoint? anchor, ScanPassPoint? previousTarget}) {
+    final ball = anchor ?? state.ball;
+    final nearest = state.defenders.reduce((a, b) =>
+        distanceMetres(a.position, player.position) <
+                distanceMetres(b.position, player.position)
+            ? a
+            : b);
+    final awayY = player.position.y <= nearest.position.y ? -1.0 : 1.0;
+    final boundaryAwareY = player.position.y < .18
+        ? 1.0
+        : player.position.y > .82
+            ? -1.0
+            : awayY;
+    final currentLane = laneClearance(state, ball, player.position);
+    final hiddenLane = currentLane < 1.15;
+    final baseOffsets = hiddenLane
+        ? const [
+            ScanPassPoint(-1.3, -4.0),
+            ScanPassPoint(-1.3, 4.0),
+            ScanPassPoint(2.6, -4.8),
+            ScanPassPoint(2.6, 4.8),
+            ScanPassPoint(4.8, -2.8),
+            ScanPassPoint(4.8, 2.8),
+          ]
+        : const [
+            ScanPassPoint(4.2, -2.4),
+            ScanPassPoint(4.2, 2.4),
+            ScanPassPoint(2.0, -4.2),
+            ScanPassPoint(2.0, 4.2),
+            ScanPassPoint(-1.6, -3.2),
+            ScanPassPoint(-1.6, 3.2),
+          ];
+    final candidates = <ScanPassPoint>[
+      if (previousTarget != null) previousTarget,
+      for (final offset in baseOffsets) ball + _normalized(offset),
+      player.position + _normalized(ScanPassPoint(3.6, boundaryAwareY * 2.4)),
+      player.position + _normalized(ScanPassPoint(-1.4, boundaryAwareY * 3.4)),
+      player.position + _normalized(ScanPassPoint(1.8, -boundaryAwareY * 3.0)),
+    ].map(boundedTarget).toList();
+    var best = player.position;
+    var value = double.negativeInfinity;
+    for (final candidate in candidates) {
+      final run = distanceMetres(player.position, candidate);
+      if (run < .35 || run > 8.2) continue;
+      if (nearestDefender(state, candidate) < 1.05) continue;
+      if (distanceMetres(candidate, ball) < 2.4) continue;
+      var crowded = false;
+      for (final teammate in state.attackers) {
+        if (teammate.number == player.number) continue;
+        if (distanceMetres(teammate.position, candidate) < 1.15) {
+          crowded = true;
+          break;
+        }
+      }
+      if (crowded) continue;
+      final lane = laneClearance(state, ball, candidate);
+      final pressure = nearestDefender(state, candidate);
+      final lateral = (candidate.y - ball.y).abs() * fieldWidth;
+      final distance = distanceMetres(ball, candidate);
+      final angleScore =
+          lateral >= 2.0 && lateral <= 9.0 && distance >= 4.0 ? 3.0 : 0.0;
+      final forward = math.max(0.0, (candidate.x - player.position.x) * 40);
+      final checking =
+          math.max(0.0, (player.position.x - candidate.x) * 40) * .25;
+      final stability = previousTarget == null
+          ? 0.0
+          : math.max(0.0, 1.8 - distanceMetres(previousTarget, candidate));
+      final runCost = (run - 3.2).abs() * .28;
+      final score = lane * 2.5 +
+          pressure * 1.2 +
+          angleScore +
+          forward.clamp(0, 5) * (hiddenLane ? .35 : .55) +
+          checking +
+          stability * 1.6 -
+          runCost -
+          (candidate.y < .11 || candidate.y > .89 ? 2.0 : 0.0);
+      if (score > value) {
+        value = score;
+        best = candidate;
+      }
+    }
+    return boundedTarget(best);
+  }
 
   void _requireActiveAttacker(PracticeSession session, int number) {
     if (session.finished) throw StateError('Exercise is already complete');
@@ -473,6 +636,7 @@ class PracticeEngine {
         throw ArgumentError('A through pass needs a commanded receiver run');
       }
       if (action.kind == PracticeActionKind.pass &&
+          !session.settings.automaticSupport &&
           distanceMetres(
                   action.target, _player(state, action.receiver!).position) >
               .05) {
@@ -490,7 +654,9 @@ class PracticeEngine {
           ? boundedTarget(action.target)
           : _toward(_player(state, actor).position,
               boundedTarget(action.target), 5.8),
-      PracticeActionKind.pass => _player(state, action.receiver!).position,
+      PracticeActionKind.pass => session.settings.automaticSupport
+          ? _passTarget(state, action.receiver!, session.runTargets)
+          : _player(state, action.receiver!).position,
       PracticeActionKind.through => session.settings.freeFlow
           ? boundedTarget(action.target)
           : _toward(_player(state, action.receiver!).position,
@@ -509,6 +675,7 @@ class PracticeEngine {
     if (session.finished) {
       throw StateError('Cannot choose after a completed exercise');
     }
+    session = _withAutomaticSupport(session, pendingAction: action);
     action = _checkedAction(session, action);
     if (!session.settings.controlAllAttackers &&
         action.kind == PracticeActionKind.move &&
@@ -553,7 +720,7 @@ class PracticeEngine {
                 : decisions.length >= session.decisionLimit
                     ? PracticeOutcome.retained
                     : null;
-    final updated = PracticeSession(
+    final updated = _withAutomaticSupport(PracticeSession(
       lesson: session.lesson,
       state: state,
       settings: session.settings,
@@ -581,7 +748,7 @@ class PracticeEngine {
       history: List.unmodifiable([...session.history, ...transitions]),
       outcome: outcome,
       reachedGate: gate,
-    );
+    ));
     return PracticeStep(
         session: updated,
         transitions: List.unmodifiable(transitions),
@@ -713,10 +880,22 @@ class PracticeEngine {
     );
   }
 
+  static ScanPassPoint _passTarget(
+      AttackState state, int receiver, Map<int, ScanPassPoint> runTargets) {
+    final player = _player(state, receiver);
+    final runTarget = runTargets[receiver];
+    if (runTarget == null) return player.position;
+    final distance = distanceMetres(player.position, runTarget);
+    if (distance < .45) return player.position;
+    final lead = math.min(1.6, math.max(.65, distance * .35));
+    return _toward(player.position, runTarget, lead);
+  }
+
   List<PracticeAction> _ballChoices(PracticeCase lesson, AttackState state,
           {int? returnTarget,
           Map<int, ScanPassPoint> runTargets = const {},
-          bool allowUnplannedThrough = true}) =>
+          bool allowUnplannedThrough = true,
+          bool leadPasses = false}) =>
       [
         for (final gate in lesson.gates)
           PracticeAction(
@@ -733,7 +912,9 @@ class PracticeEngine {
               id: 'pass-${p.number}',
               actorNumber: state.carrierNumber,
               kind: PracticeActionKind.pass,
-              target: p.position,
+              target: leadPasses
+                  ? _passTarget(state, p.number, runTargets)
+                  : p.position,
               receiver: p.number),
           if (allowUnplannedThrough || runTargets.containsKey(p.number))
             PracticeAction(

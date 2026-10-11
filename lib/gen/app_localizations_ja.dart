@@ -20395,21 +20395,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String flowChooseTouch(int number) {
-    return '$number番のファーストタッチを円の中で選んでください。';
+    return 'ファーストタッチ · $number番がボールを受ける方向を選んでください。';
   }
 
   @override
   String flowChooseBall(int number, int receiver) {
-    return '$number番：スペースをタップしてドリブル、$receiver番をタップしてパス。';
+    return '$number番：スペースでドリブル、$receiver番のパスリングでパス。';
   }
 
   @override
   String flowChooseRun(int number) {
-    return '$number番がパス後に受け直すスペースをタップしてください。';
+    return '$number番はパス後に自動でサポート位置を取ります。';
   }
 
   @override
-  String get flowQueued => '次の動きを予約済み・別のスペースで変更できます。';
+  String get flowQueued => '次のアクションを予約済み。';
 
   @override
   String get flowPlaying => '選んだ動きの展開を見てください。';
@@ -20421,7 +20421,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get flowKeepBall => '少しボールをキープ';
 
   @override
+  String get flowPassLabel => 'パス';
+
+  @override
   String get flowThrough => '味方が走るスペースへパス';
+
+  @override
+  String get flowFirstTouchBadge => 'ファーストタッチ';
 
   @override
   String get flowResult => '結果';
@@ -20464,7 +20470,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get flowHelpBody =>
-      'ファーストタッチ：ボール周辺の円で方向をタップします。円の外を選ぶと、その方向の円の端までタッチします。\n\nボール保持中：スペースを1回タップするとそこまでドリブルします。味方をタップするとパス、自分をタップすると少しキープします。\n\nパスを選んだ後：パサーが受け直す場所をタップします。パスと移動が同時に始まります。走る味方の到着マークをタップすると、そのスペースへスルーパスします。\n\n受けるたびにファーストタッチを選びます。移動中は次の判断を予約でき、×で取り消せます。攻撃側は選んだ動きだけを実行します。\n\nその他から判断を振り返れます。この判断から再挑戦を押すと同じ瞬間に戻ります。最初から、再生、12の状況選択もその他にあります。\n\nボールを持ったままどちらかのコーンゲートを通ると攻撃が終了します。';
+      'ファーストタッチ：ボール周辺で方向をタップします。円は実際の2.3m範囲で、円の外を選ぶとその方向の円の端までタッチします。\n\nボール保持中：スペースを1回タップするとそこまでドリブルします。味方の見えるパスリングをタップするとパス、自分をタップすると少しキープします。選手が近い場合は、自分の選手と線でつながった砂時計を押してください。\n\n味方は自動でサポート位置へ動きます。走る到着地点が見えるときだけスルーパスを明示的に選べます。通常のパスは動いている受け手の現在の受け場所で解決され、守備に奪われることがあります。\n\n受けるたびに先にファーストタッチを選ぶまで、パス操作は戻りません。移動中は次の判断を予約でき、予約パスは次のオンボール段階でだけ実行されます。\n\nその他から判断を振り返れます。この判断から再挑戦を押すと同じ瞬間に戻ります。最初から、再生、12の状況選択もその他にあります。\n\nボールを持ったままどちらかのコーンゲートを通ると攻撃が終了します。';
 
   @override
   String get flowResultTouch => 'ファーストタッチ後もボールを保持しました。';
@@ -20481,7 +20487,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get flowResultHold => '選手が動く間、ボールを保持しました。';
 
   @override
-  String get flowAdvicePassRun => 'パサーの移動先を変えてリターンパスの道を比べてください。';
+  String get flowAdvicePassRun =>
+      '自動サポートで生まれた受け場所と合わせて、自分のパスのタイミングと狙いを比べてください。';
 
   @override
   String get flowAdviceHold => '守備が近づく前にタッチやパスをした場合と比べてください。';
