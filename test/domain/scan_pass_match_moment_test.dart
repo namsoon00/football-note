@@ -132,6 +132,30 @@ void main() {
     );
   });
 
+  test('backward touch points toward Carvajal from every receiving position',
+      () {
+    for (final receive in [
+      MatchMomentChoiceId.receiveInside,
+      MatchMomentChoiceId.receiveWide,
+      MatchMomentChoiceId.receiveCheck
+    ]) {
+      final frame =
+          episode.applyChoice(episode.decisionStart, [], receive).after;
+      final option = episode
+          .choicesFor(MatchMomentBeat.firstTouch, frame)
+          .firstWhere((c) => c.id == MatchMomentChoiceId.touchSet);
+      final touch = option.target - frame.ball;
+      final support =
+          frame.actor(MatchMomentEpisode.spain2).position - frame.ball;
+      expect(touch.x * support.y - touch.y * support.x, closeTo(0, 1e-9));
+      expect(touch.x * support.x + touch.y * support.y, greaterThan(0));
+      expect(_metres(frame.ball, option.target), closeTo(1.5, 1e-8));
+      final executed =
+          episode.applyChoice(frame, [receive], MatchMomentChoiceId.touchSet);
+      expect(executed.after.ball.distanceTo(option.target), closeTo(0, 1e-9));
+    }
+  });
+
   test('authored actor movement stays within short-burst pace', () {
     for (final attempt in _allAttempts(episode)) {
       for (final segment in attempt.segments) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/scan_pass_history_service.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
+import 'package:football_note/domain/scan_pass/scan_pass_match_moment.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 
@@ -153,6 +154,31 @@ void main() {
     (size: const Size(844, 390), scale: 1.0, locale: const Locale('ko')),
     (size: const Size(1280, 800), scale: 1.0, locale: const Locale('ja')),
   ]) {
+    testWidgets('Yamal stays on the attacking right flank ${config.size}',
+        (tester) async {
+      tester.view.physicalSize = config.size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(_app(home: _matchScreen()));
+      await _settleOpening(tester);
+      final field = find.byKey(const ValueKey<String>('match-moment-pitch'));
+      final dynamic painter = tester.widget<CustomPaint>(field).painter;
+      final size = tester.getSize(field);
+      final frame = const MatchMomentEpisode().decisionStart;
+      final Offset yamal = painter.offsetFor(
+          frame.actor(MatchMomentEpisode.spain19).position, size);
+      final Offset williams = painter.offsetFor(
+          frame.actor(MatchMomentEpisode.spain17).position, size);
+      if (config.size.width < config.size.height) {
+        // Attacking upward: Spain's right winger belongs on screen right.
+        expect(yamal.dx, greaterThan(williams.dx));
+      } else {
+        // Attacking rightward: Spain's right winger belongs below the left one.
+        expect(yamal.dy, greaterThan(williams.dy));
+      }
+    });
+
     testWidgets('layout fits ${config.size} ${config.locale.languageCode}',
         (tester) async {
       tester.view.physicalSize = config.size;

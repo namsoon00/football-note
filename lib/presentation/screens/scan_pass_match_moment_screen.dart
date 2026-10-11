@@ -1799,12 +1799,14 @@ class _MatchPitchGeometry {
   _MatchPitchGeometry(this.size, {this.portrait});
 
   Offset toOffset(ScanPassPoint point) {
+    // Lateral episode coordinates run from Spain's right flank to its left.
+    // Preserve that football direction in both portrait and landscape views.
     if (vertical) {
-      return Offset(viewportRect.left + (point.y - minY) * 68 * scale,
+      return Offset(viewportRect.right - (point.y - minY) * 68 * scale,
           viewportRect.bottom - (point.x - minX) * 105 * scale);
     }
     return Offset(viewportRect.left + (point.x - minX) * 105 * scale,
-        viewportRect.top + (point.y - minY) * 68 * scale);
+        viewportRect.bottom - (point.y - minY) * 68 * scale);
   }
 
   Rect rectFor(double x1, double y1, double x2, double y2) {

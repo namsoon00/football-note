@@ -577,7 +577,7 @@ class MatchMomentEpisode {
             id: MatchMomentChoiceId.touchSet,
             beat: MatchMomentBeat.firstTouch,
             actorId: spain19,
-            target: _touchTarget(frame, const ScanPassPoint(-.010, .012)),
+            target: _retreatTouchTarget(frame),
           ),
         ],
       MatchMomentBeat.nextAction => [
@@ -722,7 +722,7 @@ class MatchMomentEpisode {
       MatchMomentChoiceId.touchSet => _touchBranch(
           before,
           choice,
-          target: _touchTarget(before, const ScanPassPoint(-.010, .012)),
+          target: _retreatTouchTarget(before),
           shawTarget: _shift(before, england3, const ScanPassPoint(.014, .018)),
           riceTarget:
               _shift(before, england4, const ScanPassPoint(-.006, .010)),
@@ -1345,6 +1345,19 @@ class MatchMomentEpisode {
   ) =>
       (frame.ball + offset)
           .clampToField(minX: .04, maxX: .98, minY: .08, maxY: .92);
+
+  static ScanPassPoint _retreatTouchTarget(MatchMomentFrame frame) {
+    final support = frame.actor(spain2).position;
+    final distance = _metres(frame.ball, support);
+    if (distance < .001) return frame.ball;
+    final fraction = math.min(1.0, 1.5 / distance);
+    return _touchTarget(
+        frame,
+        ScanPassPoint(
+          (support.x - frame.ball.x) * fraction,
+          (support.y - frame.ball.y) * fraction,
+        ));
+  }
 
   static ScanPassPoint _shift(
     MatchMomentFrame frame,
