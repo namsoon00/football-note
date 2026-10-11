@@ -6,6 +6,13 @@ import 'package:football_note/domain/scan_pass/scan_pass_game.dart'
 
 void main() {
   const engine = PracticeEngine();
+  // Regression coverage for the retained single-player assisted curriculum.
+  // The public all-attacker default is exercised in team_control_test.
+  const assisted = PracticeSettings(controlAllAttackers: false);
+  PracticeSession begin(PracticeCase lesson) =>
+      engine.start(lesson, settings: assisted);
+  PracticeSession example(PracticeCase lesson) =>
+      engine.coachRun(lesson, settings: assisted);
 
   test('twelve cases define six goals, paired variables and 2 to 4 attackers',
       () {
@@ -84,8 +91,8 @@ void main() {
   test(
       'pressure direction changes first touch without changing other attackers',
       () {
-    final upperPressure = engine.start(PracticeEngine.catalog[0]);
-    final lowerPressure = engine.start(PracticeEngine.catalog[1]);
+    final upperPressure = begin(PracticeEngine.catalog[0]);
+    final lowerPressure = begin(PracticeEngine.catalog[1]);
     final awayLower = engine.recommended(upperPressure);
     final awayUpper = engine.recommended(lowerPressure);
     expect(awayLower.id, 'touch-lower');
@@ -110,7 +117,7 @@ void main() {
     final runningCase = PracticeEngine.catalog[4];
     final checkingCase = PracticeEngine.catalog[5];
     PracticeSession onBall(PracticeCase lesson) {
-      final start = engine.start(lesson);
+      final start = begin(lesson);
       return engine
           .choose(start,
               engine.choices(start).firstWhere((a) => a.id == 'touch-forward'))
@@ -158,7 +165,7 @@ void main() {
     var advancedReturn = false;
     var teammateProgress = false;
     for (final lesson in PracticeEngine.catalog) {
-      final complete = engine.coachRun(lesson);
+      final complete = example(lesson);
       expect(complete.finished, isTrue, reason: lesson.id);
       expect(complete.decisions.length, lessThanOrEqualTo(8));
       expect(complete.outcome,
@@ -219,7 +226,7 @@ void main() {
   test(
       'rendered samples stop at exact controlled crossing and actual interception',
       () {
-    final complete = engine.coachRun(PracticeEngine.catalog.first);
+    final complete = example(PracticeEngine.catalog.first);
     expect(complete.outcome, PracticeOutcome.gateReached);
     final t = complete.history.last;
     final gate =
@@ -241,15 +248,17 @@ void main() {
             reason: '${p.number} ${b.elapsed}');
       }
     }
-    final initial = engine.start(PracticeEngine.catalog.first);
+    final initial = begin(PracticeEngine.catalog.first);
     final lost = engine.choose(initial,
         engine.choices(initial).firstWhere((a) => a.id == 'touch-upper'));
     expect(lost.session.outcome, PracticeOutcome.intercepted);
     final hit = lost.transitions.first;
-    final defender = hit.after.defenders
-        .firstWhere((p) => p.number == hit.interceptorNumber);
-    expect(PracticeEngine.distanceMetres(defender.position, hit.after.ball),
+    final contact = hit.motionSamples.firstWhere((s) => s.carrierIsDefender);
+    expect(
+        PracticeEngine.distanceMetres(contact.carrier.position, contact.ball),
         closeTo(.65, 1e-7));
+    expect(hit.after.carrierIsDefender, isTrue);
+    expect(hit.after.carrierNumber, hit.interceptorNumber);
     expect(hit.motionSamples.last, same(hit.after));
   });
 
@@ -279,7 +288,10 @@ void main() {
     final lesson = PracticeEngine.catalog.last;
     final before = world(.61);
     final session = PracticeSession(
-        lesson: lesson, state: before, phase: PracticePhase.onBall);
+        settings: assisted,
+        lesson: lesson,
+        state: before,
+        phase: PracticePhase.onBall);
     final legal = engine.choose(
         session,
         const PracticeAction(
@@ -292,7 +304,10 @@ void main() {
     expect(legal.session.state.attackers[1].position.x, greaterThan(.62));
     final illegal = engine.choose(
         PracticeSession(
-            lesson: lesson, state: world(.63), phase: PracticePhase.onBall),
+            settings: assisted,
+            lesson: lesson,
+            state: world(.63),
+            phase: PracticePhase.onBall),
         const PracticeAction(
             id: 'late',
             kind: PracticeActionKind.pass,
@@ -312,7 +327,10 @@ void main() {
         p.number == 6 ? p.copyWith(velocity: const ScanPassPoint(0, 0)) : p,
     ]);
     final session = PracticeSession(
-        lesson: lesson, state: stationary, phase: PracticePhase.onBall);
+        settings: assisted,
+        lesson: lesson,
+        state: stationary,
+        phase: PracticePhase.onBall);
     final action = engine.choices(session).firstWhere((a) => a.id == 'pass-8');
     final result = engine.choose(session, action);
     final origin =
@@ -342,7 +360,7 @@ void main() {
   test(
       'same-moment alternatives restore the exact world and leave history unchanged',
       () {
-    final original = engine.coachRun(PracticeEngine.catalog[8]);
+    final original = example(PracticeEngine.catalog[8]);
     final frozenHistory = original.history.length;
     final index = original.decisions.length > 3 ? 2 : 1;
     final restored = engine.beforeDecision(original, index);
@@ -377,7 +395,7 @@ void main() {
       observation: source.observation,
       learning: source.learning,
     );
-    final a = engine.start(source), b = engine.start(renamed);
+    final a = begin(source), b = begin(renamed);
     expect(engine.recommended(a).id, engine.recommended(b).id);
     final action = engine.choices(a)[1];
     final ra = engine.choose(a, action), rb = engine.choose(b, action);

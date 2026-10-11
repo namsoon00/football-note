@@ -11287,7 +11287,7 @@
     }
   },
   "practiceTitle": "경기를 읽는 연습",
-  "practiceIntro": "공격수 2명부터 시작합니다. 압박을 읽고 다음 행동을 선택한 뒤, 판단의 근거를 확인하세요.",
+  "practiceIntro": "공격수 수와 패스 방식을 고른 뒤 상황을 선택하세요. 압박을 읽고 공격수 전원의 행동을 직접 결정합니다.",
   "practiceStage": "공격 {attackers}명 · 수비 {defenders}명",
   "@practiceStage": {
     "placeholders": {
@@ -11323,7 +11323,7 @@
   "practiceSkillThirdPlayer": "세 번째 선수로 연결",
   "practiceSkillSwitchPlay": "반대편 공간 찾기",
   "practiceObserve": "공이 오기 전, 수비와 동료의 움직임을 보세요.",
-  "practiceChooseTouch": "첫 터치 · 방향 화살표를 누르세요.",
+  "practiceChooseTouch": "첫 터치 · 실선 끝의 도착 공을 확인하세요. 숫자는 선택 번호, 거리는 현재 공부터 도착 공까지입니다.",
   "practiceChooseBall": "유니폼: 발밑 패스 · 앞쪽 화살표: 스루패스 · 빈 공간: 드리블",
   "practiceChooseSupport": "내 선수는 6번 · 빈 공간을 눌러 움직이거나 위치를 유지하세요.",
   "practiceExecuting": "내 선택으로 공간과 패스길이 어떻게 변하는지 보세요.",
@@ -11343,7 +11343,7 @@
       }
     }
   },
-  "practiceMove": "6번 이동 · {metres}m",
+  "practiceMove": "선수 이동 · {metres}m",
   "@practiceMove": {
     "placeholders": {
       "metres": {
@@ -11405,7 +11405,7 @@
       }
     }
   },
-  "practiceLaneEvidence": "같은 동료↔6번 패스 선에서 수비까지: {before}m → {after}m",
+  "practiceLaneEvidence": "같은 두 선수의 패스 선에서 수비까지: {before}m → {after}m",
   "@practiceLaneEvidence": {
     "placeholders": {
       "before": {
@@ -11439,10 +11439,10 @@
   "practiceCompleted": "시도한 상황",
   "practiceGateReached": "공을 소유하며 콘 사이 통과",
   "practiceRetained": "공 소유 유지 · 판단을 확인하세요",
-  "practiceIntercepted": "수비가 공을 회수했습니다",
+  "practiceIntercepted": "수비 팀이 공을 빼앗아 소유했습니다",
   "practiceOffsideEnd": "패스 순간 오프사이드",
   "practiceHelp": "관찰하고 판단하고 비교하기",
-  "practiceHelpBody": "내 선수는 항상 6번입니다. 첫 터치는 방향 화살표, 발밑 패스는 동료 유니폼, 스루패스는 동료 앞의 화살표를 누르세요. 빈 공간은 드리블 또는 지원 이동입니다. 판단할 때는 시간이 멈추며, 기다리기를 누르면 움직임이 잠깐 진행됩니다. 실선은 공, 점선은 선수 이동입니다. 콘 사이를 공과 함께 통과해야 완료됩니다. 각 판단을 확인하고 같은 순간의 다른 선택과 비교하세요. 실제 경기를 단순화한 소규모 훈련으로, 실전 능력을 측정하는 평가는 아닙니다.",
+  "practiceHelpBody": "시작 전에 공격수 2·3·4명과 패스 방식을 고릅니다. 시작 패스 이후 공격수의 모든 행동을 직접 결정합니다. 첫 터치 버튼과 같은 번호의 공이 실제 도착 지점이고, 거리는 현재 공부터의 거리입니다. 유니폼은 패스, 앞쪽 화살표는 스루패스, 빈 공간은 드리블입니다. 이동 지정 → 선수 → 빈 공간 순서로 동료의 경로를 지정하세요. 다음 패스·드리블·▶(0.5초 진행)와 함께 움직이며, 이동 지정에서 취소할 수 있습니다. 패스 후에는 받은 선수의 다음 행동을 직접 고릅니다. 패스 앤 무브에서는 다음 패스를 직전 패서에게 돌려줘야 하지만, 이동과 패스 타이밍은 직접 정합니다. 수비는 반응하며 공을 빼앗아 소유할 수 있습니다. 공과 함께 콘 사이를 통과한 뒤 판단을 돌아보세요. 경로 끝의 달리는 선수 아이콘을 누르면 해당 이동을 목표까지 진행합니다.",
   "practiceCuePressureSide": "수비가 다가오는 쪽과 내 첫 터치 방향의 관계.",
   "practiceCueDefenderCommitment": "수비가 공 쪽으로 좁혀오는지, 동료에게 가는 길을 지키는지.",
   "practiceCueRunnerTiming": "동료가 뛰는 방향, 그 앞의 공간, 패스 순간 수비와의 위치.",
@@ -11456,7 +11456,7 @@
   "practiceReasonCarryIntoCover": "선택한 드리블 길을 수비가 커버할 수 있습니다.",
   "practiceReasonRunnerMetInStride": "움직이는 동료의 앞 공간으로 패스가 연결됐습니다.",
   "practiceReasonPassToFeet": "동료의 발밑으로 패스가 연결됐습니다.",
-  "practiceReasonPassLaneClosed": "수비가 패스길에 도달했습니다.",
+  "practiceReasonPassLaneClosed": "수비가 패스길에 들어와 공을 빼앗았습니다.",
   "practiceReasonSupportLaneOpened": "내 이동 후 연결할 수 있는 패스길이 생겼습니다.",
   "practiceReasonSupportStillHidden": "이동한 위치에서도 연결할 패스길이 열리지 않았습니다.",
   "practiceReasonThirdPlayerConnected": "다른 동료를 거치며 공격이 이어졌습니다.",
@@ -11580,5 +11580,140 @@
   "practiceAdviceSupport": "동료와 나 사이의 패스길이 보이도록 움직이세요. 리턴 패스는 꼭 필요하지 않습니다.",
   "practiceAdviceOffside": "공을 차는 순간 동료·공·뒤에서 두 번째 수비의 위치를 보세요. 더 이른 패스나 다른 연결을 비교하세요.",
   "practiceAttackUp": "위쪽으로 공격",
-  "practiceLearningEvidence": "이 선택에서 학습 목표를 확인했습니다"
+  "practiceLearningEvidence": "이 선택에서 학습 목표를 확인했습니다",
+  "practiceSetupPlayers": "공격수 수 선택",
+  "practiceAttackers": "공격수 {count}명",
+  "@practiceAttackers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceSetupPassing": "패스 방식",
+  "practiceFreePlay": "자유 연결",
+  "practicePassAndMove": "패스 앤 무브",
+  "practiceFreePlayDescription": "공격수 전원의 이동과 패스를 직접 고릅니다. 수비수는 선택에 반응합니다.",
+  "practicePassAndMoveDescription": "다음 패스는 직전 패서에게 돌려줍니다. 패서가 1m 이상 위치를 옮겨 유효한 리턴을 받으면 목표 달성입니다. 타이밍은 직접 고르며 막힌 패스는 빼앗길 수 있습니다.",
+  "practiceTeamControl": "공격 직접 조작 · 수비 자동",
+  "practiceSetMovement": "이동 지정",
+  "practiceBackToBall": "공 선택으로",
+  "practiceSelectPlayer": "{number}번 선수 선택",
+  "@practiceSelectPlayer": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceChoosePlayerRun": "선수 선택 → 빈 공간에 이동 지정 · 선택: {number}번",
+  "@practiceChoosePlayerRun": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceRunPlanHint": "공이 없는 선수는 경로만 지정합니다. 패스·드리블·▶를 누르면 함께 움직입니다.",
+  "practiceCancelRun": "{number}번 이동 취소",
+  "@practiceCancelRun": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceRunsReady": "이동 {count}개 지정됨 · 패스·드리블·▶로 실행",
+  "@practiceRunsReady": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceReturnTarget": "다음 패스 → {number}번 · 먼저 돌려줄 길을 만드세요",
+  "@practiceReturnTarget": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceAdvance": "0.5초 진행",
+  "practicePlayerMove": "{number}번 이동 · {metres}m",
+  "@practicePlayerMove": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceRunMarker": "{number}번 · 목표까지 {metres}m",
+  "@practiceRunMarker": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceMetres": "{metres}m",
+  "@practiceMetres": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceTouchDestination": "첫 터치 {number} · 같은 번호의 도착 공까지 {metres}m",
+  "@practiceTouchDestination": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceStolenBy": "수비 {number}번이 공을 빼앗았습니다",
+  "@practiceStolenBy": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceChooseBallFor": "공: {number}번 · 유니폼=패스 · 화살표=스루패스 · 빈 공간=드리블",
+  "@practiceChooseBallFor": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceChangePlayer": "선수 바꾸기",
+  "practiceChooseDestination": "{number}번 · 경기장에서 이동할 지점을 누르세요",
+  "@practiceChooseDestination": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceReturnGoal": "패스 후 받을 공간으로 움직여 돌아오는 패스를 연결하세요.",
+  "practiceStealEvidence": "이 경로에서 수비 {number}번이 공에 닿아 소유권을 가져갔습니다.",
+  "@practiceStealEvidence": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceAdviceStealHold": "압박이 공에 닿기 전에 패스하거나 다른 방향으로 운반하세요. 동료의 이동을 기다리는 동안에도 공은 빼앗길 수 있습니다."
 }

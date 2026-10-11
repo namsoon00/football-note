@@ -35137,7 +35137,7 @@ abstract class AppLocalizations {
   /// No description provided for @practiceIntro.
   ///
   /// In en, this message translates to:
-  /// **'Start with two attackers. Read pressure, choose your next action, then review why it worked.'**
+  /// **'Choose the number of attackers and the passing rule, then open a situation. Read pressure and choose every attacking action.'**
   String get practiceIntro;
 
   /// No description provided for @practiceStage.
@@ -35251,7 +35251,7 @@ abstract class AppLocalizations {
   /// No description provided for @practiceChooseTouch.
   ///
   /// In en, this message translates to:
-  /// **'First touch · tap a direction arrow.'**
+  /// **'First touch · solid lines lead to the numbered balls. Distance is from the current ball to its destination.'**
   String get practiceChooseTouch;
 
   /// No description provided for @practiceChooseBall.
@@ -35287,7 +35287,7 @@ abstract class AppLocalizations {
   /// No description provided for @practiceMove.
   ///
   /// In en, this message translates to:
-  /// **'Move #6 · {metres} m'**
+  /// **'Player movement · {metres} m'**
   String practiceMove(String metres);
 
   /// No description provided for @practicePass.
@@ -35371,7 +35371,7 @@ abstract class AppLocalizations {
   /// No description provided for @practiceLaneEvidence.
   ///
   /// In en, this message translates to:
-  /// **'Same teammate–#6 passing line, nearest defender: {before} m → {after} m'**
+  /// **'Defender clearance from the same passing lane: {before} m → {after} m'**
   String practiceLaneEvidence(String before, String after);
 
   /// No description provided for @practiceOptionsEvidence.
@@ -35455,7 +35455,7 @@ abstract class AppLocalizations {
   /// No description provided for @practiceIntercepted.
   ///
   /// In en, this message translates to:
-  /// **'Defender recovered the ball'**
+  /// **'The defending team has possession'**
   String get practiceIntercepted;
 
   /// No description provided for @practiceOffsideEnd.
@@ -35473,7 +35473,7 @@ abstract class AppLocalizations {
   /// No description provided for @practiceHelpBody.
   ///
   /// In en, this message translates to:
-  /// **'You always control #6. Tap an arrow for the first touch, a jersey for a pass to feet, or the forward arrow for a through pass. Tap space to carry or support. Decisions pause the action; Wait advances the movement briefly. Ball paths are solid, player runs are dashed. Gates count only when a player carries the ball through. Review each choice and replay an alternative from exactly the same moment. These small-sided situations simplify a match; they do not measure real-match ability.'**
+  /// **'Choose 2, 3 or 4 attackers before starting. After the opening pass, you control every attacking action. First-touch buttons match the numbered balls at the exact destination; distances are from the current ball. Tap a shirt to pass, the arrows for a through ball, or empty space to dribble. Use Set a run, choose a shirt, then tap space to queue an off-ball run. It starts with the next ball action or ▶ (0.5 seconds). Cancel a run in Set a run. After passing, control switches to the receiver and waits for your choice. Pass and move restricts the next pass to the previous passer; you still decide movement and timing. Defenders react and can take possession. Carry the ball through the cones, then review your decisions. The running-player icon at a queued destination executes that run through to the target.'**
   String get practiceHelpBody;
 
   /// No description provided for @practiceCuePressureSide.
@@ -35557,7 +35557,7 @@ abstract class AppLocalizations {
   /// No description provided for @practiceReasonPassLaneClosed.
   ///
   /// In en, this message translates to:
-  /// **'The defender reaches the passing lane.'**
+  /// **'A defender reached the passing lane and stole the ball.'**
   String get practiceReasonPassLaneClosed;
 
   /// No description provided for @practiceReasonSupportLaneOpened.
@@ -35811,6 +35811,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This choice demonstrates the lesson objective'**
   String get practiceLearningEvidence;
+
+  /// No description provided for @practiceSetupPlayers.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose attackers'**
+  String get practiceSetupPlayers;
+
+  /// No description provided for @practiceAttackers.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} attackers'**
+  String practiceAttackers(int count);
+
+  /// No description provided for @practiceSetupPassing.
+  ///
+  /// In en, this message translates to:
+  /// **'Passing rule'**
+  String get practiceSetupPassing;
+
+  /// No description provided for @practiceFreePlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Free connection'**
+  String get practiceFreePlay;
+
+  /// No description provided for @practicePassAndMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass and move'**
+  String get practicePassAndMove;
+
+  /// No description provided for @practiceFreePlayDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'You choose every attacking run and pass. Defenders react to your actions.'**
+  String get practiceFreePlayDescription;
+
+  /// No description provided for @practicePassAndMoveDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The next pass returns to the previous passer. Move that passer at least 1 m and complete a useful return to meet the goal. You choose the timing; blocked passes can be stolen.'**
+  String get practicePassAndMoveDescription;
+
+  /// No description provided for @practiceTeamControl.
+  ///
+  /// In en, this message translates to:
+  /// **'Attackers: manual · defenders: reactive'**
+  String get practiceTeamControl;
+
+  /// No description provided for @practiceSetMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a run'**
+  String get practiceSetMovement;
+
+  /// No description provided for @practiceBackToBall.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball actions'**
+  String get practiceBackToBall;
+
+  /// No description provided for @practiceSelectPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Select player {number}'**
+  String practiceSelectPlayer(int number);
+
+  /// No description provided for @practiceChoosePlayerRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a shirt, then tap a destination · selected: {number}'**
+  String practiceChoosePlayerRun(int number);
+
+  /// No description provided for @practiceRunPlanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Off-ball runs are queued. They start with your next ball action or ▶.'**
+  String get practiceRunPlanHint;
+
+  /// No description provided for @practiceCancelRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel {number}’s run'**
+  String practiceCancelRun(int number);
+
+  /// No description provided for @practiceRunsReady.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} runs queued · pass, dribble or ▶ to move'**
+  String practiceRunsReady(int count);
+
+  /// No description provided for @practiceReturnTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Next pass → {number} · create a return lane first'**
+  String practiceReturnTarget(int number);
+
+  /// No description provided for @practiceAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance 0.5 seconds'**
+  String get practiceAdvance;
+
+  /// No description provided for @practicePlayerMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move player {number} · {metres} m'**
+  String practicePlayerMove(int number, String metres);
+
+  /// No description provided for @practiceRunMarker.
+  ///
+  /// In en, this message translates to:
+  /// **'{number} · {metres} m to target'**
+  String practiceRunMarker(int number, String metres);
+
+  /// No description provided for @practiceMetres.
+  ///
+  /// In en, this message translates to:
+  /// **'{metres} m'**
+  String practiceMetres(String metres);
+
+  /// No description provided for @practiceTouchDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch {number} · ball travels {metres} m to the matching marker'**
+  String practiceTouchDestination(int number, String metres);
+
+  /// No description provided for @practiceStolenBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Defender {number} won the ball'**
+  String practiceStolenBy(int number);
+
+  /// No description provided for @practiceChooseBallFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball: {number} · shirt = pass · arrows = through ball · space = dribble'**
+  String practiceChooseBallFor(int number);
+
+  /// No description provided for @practiceChangePlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Change player'**
+  String get practiceChangePlayer;
+
+  /// No description provided for @practiceChooseDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Player {number} · tap the exact destination on the pitch'**
+  String practiceChooseDestination(int number);
+
+  /// No description provided for @practiceReturnGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'After passing, move to open a return lane and receive again.'**
+  String get practiceReturnGoal;
+
+  /// No description provided for @practiceStealEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Defender {number} made contact with the ball on this path and took possession.'**
+  String practiceStealEvidence(int number);
+
+  /// No description provided for @practiceAdviceStealHold.
+  ///
+  /// In en, this message translates to:
+  /// **'Release the ball or carry away before pressure reaches it; a support run does not protect a stationary ball.'**
+  String get practiceAdviceStealHold;
 }
 
 class _AppLocalizationsDelegate

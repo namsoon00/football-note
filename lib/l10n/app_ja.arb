@@ -11287,7 +11287,7 @@
     }
   },
   "practiceTitle": "ゲームを読む練習",
-  "practiceIntro": "攻撃者2人から開始。プレッシャーを読み、次の行動を選び、判断の根拠を確認します。",
+  "practiceIntro": "攻撃側の人数とパスのルールを選んで開始。プレッシャーを読み、全員の行動を決めます。",
   "practiceStage": "攻撃{attackers}人・守備{defenders}人",
   "@practiceStage": {
     "placeholders": {
@@ -11323,7 +11323,7 @@
   "practiceSkillThirdPlayer": "3人目を使ってつなぐ",
   "practiceSkillSwitchPlay": "逆側のスペースを探す",
   "practiceObserve": "受ける前に、守備と味方の動きを見ましょう。",
-  "practiceChooseTouch": "ファーストタッチ・方向の矢印をタップ。",
+  "practiceChooseTouch": "ファーストタッチ・実線の先がボールの到着位置。番号は選択肢、距離は今のボールからの距離です。",
   "practiceChooseBall": "ユニフォーム：足元へ・前方の矢印：スルーパス・空間：ドリブル",
   "practiceChooseSupport": "自分は6番・空間をタップして移動、または位置を保ちましょう。",
   "practiceExecuting": "選択によってスペースとパスコースがどう変わるかを見ましょう。",
@@ -11343,7 +11343,7 @@
       }
     }
   },
-  "practiceMove": "6番の移動・{metres}m",
+  "practiceMove": "選手の移動・{metres}m",
   "@practiceMove": {
     "placeholders": {
       "metres": {
@@ -11405,7 +11405,7 @@
       }
     }
   },
-  "practiceLaneEvidence": "同じ味方↔6番のパス線から守備まで：{before}m → {after}m",
+  "practiceLaneEvidence": "同じ2人のパスコースと守備の距離：{before}m → {after}m",
   "@practiceLaneEvidence": {
     "placeholders": {
       "before": {
@@ -11439,10 +11439,10 @@
   "practiceCompleted": "挑戦した場面",
   "practiceGateReached": "ボールを保ってゲートを通過",
   "practiceRetained": "保持を継続・判断を確認しましょう",
-  "practiceIntercepted": "守備がボールを奪いました",
+  "practiceIntercepted": "守備側がボールを奪って保持しました",
   "practiceOffsideEnd": "パスを出す瞬間にオフサイド",
   "practiceHelp": "観察して判断し、比べる",
-  "practiceHelpBody": "操作する選手は常に6番です。最初のタッチは方向矢印、足元へのパスは味方のユニフォーム、スルーパスは味方の前の矢印をタップ。空間をタップして運ぶかサポートします。判断中は時間が止まり、待つを選ぶと少し進みます。実線はボール、破線は選手の移動。ボールを持ってゲートを通過すると完了です。各判断を確認し、同じ瞬間の別の選択と比較しましょう。試合を簡略化した少人数練習で、実戦能力の測定ではありません。",
+  "practiceHelpBody": "開始前に攻撃側2・3・4人とパスのルールを選びます。最初のパス以降、攻撃側の行動はすべて自分で決めます。ファーストタッチはボタンと同じ番号のボールが実際の到着位置で、距離は今のボールから測ります。ユニフォームでパス、前方の矢印でスルーパス、空間でドリブル。移動を指定→選手→空間の順に経路を予約すると、次のボール操作か▶（0.5秒）で動きます。移動の指定から取消も可能です。パス後は受け手を操作します。パス＆ムーブでは次のパスを直前の出し手に返しますが、移動とタイミングは自分で決めます。守備は反応し、ボールを奪って保持します。コーンの間をボールと一緒に通過し、判断を振り返りましょう。 予約した経路の先の走る選手アイコンを押すと、その移動を目標まで進めます。",
   "practiceCuePressureSide": "守備の寄せる方向とファーストタッチの方向の関係。",
   "practiceCueDefenderCommitment": "守備がボールに寄るか、味方へのコースを守るか。",
   "practiceCueRunnerTiming": "味方の走る方向、その先の空間、パス時の守備との位置。",
@@ -11456,7 +11456,7 @@
   "practiceReasonCarryIntoCover": "選んだドリブルコースを守備がカバーできます。",
   "practiceReasonRunnerMetInStride": "動いている味方の前のスペースにパスがつながりました。",
   "practiceReasonPassToFeet": "味方の足元にパスがつながりました。",
-  "practiceReasonPassLaneClosed": "守備がパスコースに到達しました。",
+  "practiceReasonPassLaneClosed": "守備がパスコースに入り、ボールを奪いました。",
   "practiceReasonSupportLaneOpened": "移動によってつながるパスコースができました。",
   "practiceReasonSupportStillHidden": "移動先でも使えるパスコースが開きませんでした。",
   "practiceReasonThirdPlayerConnected": "別の味方を経由して攻撃がつながりました。",
@@ -11580,5 +11580,140 @@
   "practiceAdviceSupport": "味方とのパスコースが見えるように移動。リターンパスは必須ではありません。",
   "practiceAdviceOffside": "蹴る瞬間の味方・ボール・後方から2人目の守備を確認。早めのパスや別のつなぎ方を比べましょう。",
   "practiceAttackUp": "上へ攻撃",
-  "practiceLearningEvidence": "この選択で学習目標を確認できました"
+  "practiceLearningEvidence": "この選択で学習目標を確認できました",
+  "practiceSetupPlayers": "攻撃側の人数",
+  "practiceAttackers": "攻撃側 {count}人",
+  "@practiceAttackers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceSetupPassing": "パスのルール",
+  "practiceFreePlay": "自由につなぐ",
+  "practicePassAndMove": "パス＆ムーブ",
+  "practiceFreePlayDescription": "攻撃側の移動とパスはすべて自分で選びます。守備側はその動きに反応します。",
+  "practicePassAndMoveDescription": "次のパスは直前の出し手に返します。出し手が1m以上位置を変え、有効な返しを受ければ目標達成。タイミングは自分で選び、塞がれたパスは奪われます。",
+  "practiceTeamControl": "攻撃は手動・守備は自動",
+  "practiceSetMovement": "移動を指定",
+  "practiceBackToBall": "ボールの操作",
+  "practiceSelectPlayer": "{number}番を選択",
+  "@practiceSelectPlayer": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceChoosePlayerRun": "選手を選ぶ → 空間を押して移動を指定・選択中：{number}番",
+  "@practiceChoosePlayerRun": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceRunPlanHint": "ボールを持たない選手の経路を予約します。次のボール操作か▶で動き出します。",
+  "practiceCancelRun": "{number}番の移動を取消",
+  "@practiceCancelRun": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceRunsReady": "{count}人の移動を予約中・パス、ドリブル、▶で実行",
+  "@practiceRunsReady": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceReturnTarget": "次のパス → {number}番・返すコースを作ろう",
+  "@practiceReturnTarget": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceAdvance": "0.5秒進める",
+  "practicePlayerMove": "{number}番の移動・{metres}m",
+  "@practicePlayerMove": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceRunMarker": "{number}番・目標まで{metres}m",
+  "@practiceRunMarker": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceMetres": "{metres}m",
+  "@practiceMetres": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceTouchDestination": "ファーストタッチ{number}・同じ番号のボール位置まで{metres}m",
+  "@practiceTouchDestination": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceStolenBy": "守備{number}番がボールを奪いました",
+  "@practiceStolenBy": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceChooseBallFor": "ボール：{number}番・ユニフォーム＝パス・矢印＝スルーパス・空間＝ドリブル",
+  "@practiceChooseBallFor": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceChangePlayer": "選手を変更",
+  "practiceChooseDestination": "{number}番・ピッチ上の移動先を押してください",
+  "@practiceChooseDestination": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceReturnGoal": "パスを出したら、返しを受けるコースを作って受け直そう。",
+  "practiceStealEvidence": "この経路で守備{number}番がボールに触れ、奪いました。",
+  "@practiceStealEvidence": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceAdviceStealHold": "プレッシャーが届く前にパスするか、別方向へ運びましょう。味方の移動を待つ間もボールは奪われます。"
 }

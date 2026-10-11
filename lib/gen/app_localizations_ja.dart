@@ -19871,7 +19871,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get practiceTitle => 'ゲームを読む練習';
 
   @override
-  String get practiceIntro => '攻撃者2人から開始。プレッシャーを読み、次の行動を選び、判断の根拠を確認します。';
+  String get practiceIntro => '攻撃側の人数とパスのルールを選んで開始。プレッシャーを読み、全員の行動を決めます。';
 
   @override
   String practiceStage(int attackers, int defenders) {
@@ -19932,7 +19932,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get practiceObserve => '受ける前に、守備と味方の動きを見ましょう。';
 
   @override
-  String get practiceChooseTouch => 'ファーストタッチ・方向の矢印をタップ。';
+  String get practiceChooseTouch =>
+      'ファーストタッチ・実線の先がボールの到着位置。番号は選択肢、距離は今のボールからの距離です。';
 
   @override
   String get practiceChooseBall => 'ユニフォーム：足元へ・前方の矢印：スルーパス・空間：ドリブル';
@@ -19955,7 +19956,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String practiceMove(String metres) {
-    return '6番の移動・${metres}m';
+    return '選手の移動・${metres}m';
   }
 
   @override
@@ -20009,7 +20010,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String practiceLaneEvidence(String before, String after) {
-    return '同じ味方↔6番のパス線から守備まで：${before}m → ${after}m';
+    return '同じ2人のパスコースと守備の距離：${before}m → ${after}m';
   }
 
   @override
@@ -20054,7 +20055,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get practiceRetained => '保持を継続・判断を確認しましょう';
 
   @override
-  String get practiceIntercepted => '守備がボールを奪いました';
+  String get practiceIntercepted => '守備側がボールを奪って保持しました';
 
   @override
   String get practiceOffsideEnd => 'パスを出す瞬間にオフサイド';
@@ -20064,7 +20065,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get practiceHelpBody =>
-      '操作する選手は常に6番です。最初のタッチは方向矢印、足元へのパスは味方のユニフォーム、スルーパスは味方の前の矢印をタップ。空間をタップして運ぶかサポートします。判断中は時間が止まり、待つを選ぶと少し進みます。実線はボール、破線は選手の移動。ボールを持ってゲートを通過すると完了です。各判断を確認し、同じ瞬間の別の選択と比較しましょう。試合を簡略化した少人数練習で、実戦能力の測定ではありません。';
+      '開始前に攻撃側2・3・4人とパスのルールを選びます。最初のパス以降、攻撃側の行動はすべて自分で決めます。ファーストタッチはボタンと同じ番号のボールが実際の到着位置で、距離は今のボールから測ります。ユニフォームでパス、前方の矢印でスルーパス、空間でドリブル。移動を指定→選手→空間の順に経路を予約すると、次のボール操作か▶（0.5秒）で動きます。移動の指定から取消も可能です。パス後は受け手を操作します。パス＆ムーブでは次のパスを直前の出し手に返しますが、移動とタイミングは自分で決めます。守備は反応し、ボールを奪って保持します。コーンの間をボールと一緒に通過し、判断を振り返りましょう。 予約した経路の先の走る選手アイコンを押すと、その移動を目標まで進めます。';
 
   @override
   String get practiceCuePressureSide => '守備の寄せる方向とファーストタッチの方向の関係。';
@@ -20106,7 +20107,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get practiceReasonPassToFeet => '味方の足元にパスがつながりました。';
 
   @override
-  String get practiceReasonPassLaneClosed => '守備がパスコースに到達しました。';
+  String get practiceReasonPassLaneClosed => '守備がパスコースに入り、ボールを奪いました。';
 
   @override
   String get practiceReasonSupportLaneOpened => '移動によってつながるパスコースができました。';
@@ -20255,4 +20256,119 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get practiceLearningEvidence => 'この選択で学習目標を確認できました';
+
+  @override
+  String get practiceSetupPlayers => '攻撃側の人数';
+
+  @override
+  String practiceAttackers(int count) {
+    return '攻撃側 $count人';
+  }
+
+  @override
+  String get practiceSetupPassing => 'パスのルール';
+
+  @override
+  String get practiceFreePlay => '自由につなぐ';
+
+  @override
+  String get practicePassAndMove => 'パス＆ムーブ';
+
+  @override
+  String get practiceFreePlayDescription =>
+      '攻撃側の移動とパスはすべて自分で選びます。守備側はその動きに反応します。';
+
+  @override
+  String get practicePassAndMoveDescription =>
+      '次のパスは直前の出し手に返します。出し手が1m以上位置を変え、有効な返しを受ければ目標達成。タイミングは自分で選び、塞がれたパスは奪われます。';
+
+  @override
+  String get practiceTeamControl => '攻撃は手動・守備は自動';
+
+  @override
+  String get practiceSetMovement => '移動を指定';
+
+  @override
+  String get practiceBackToBall => 'ボールの操作';
+
+  @override
+  String practiceSelectPlayer(int number) {
+    return '$number番を選択';
+  }
+
+  @override
+  String practiceChoosePlayerRun(int number) {
+    return '選手を選ぶ → 空間を押して移動を指定・選択中：$number番';
+  }
+
+  @override
+  String get practiceRunPlanHint => 'ボールを持たない選手の経路を予約します。次のボール操作か▶で動き出します。';
+
+  @override
+  String practiceCancelRun(int number) {
+    return '$number番の移動を取消';
+  }
+
+  @override
+  String practiceRunsReady(int count) {
+    return '$count人の移動を予約中・パス、ドリブル、▶で実行';
+  }
+
+  @override
+  String practiceReturnTarget(int number) {
+    return '次のパス → $number番・返すコースを作ろう';
+  }
+
+  @override
+  String get practiceAdvance => '0.5秒進める';
+
+  @override
+  String practicePlayerMove(int number, String metres) {
+    return '$number番の移動・${metres}m';
+  }
+
+  @override
+  String practiceRunMarker(int number, String metres) {
+    return '$number番・目標まで${metres}m';
+  }
+
+  @override
+  String practiceMetres(String metres) {
+    return '${metres}m';
+  }
+
+  @override
+  String practiceTouchDestination(int number, String metres) {
+    return 'ファーストタッチ$number・同じ番号のボール位置まで${metres}m';
+  }
+
+  @override
+  String practiceStolenBy(int number) {
+    return '守備$number番がボールを奪いました';
+  }
+
+  @override
+  String practiceChooseBallFor(int number) {
+    return 'ボール：$number番・ユニフォーム＝パス・矢印＝スルーパス・空間＝ドリブル';
+  }
+
+  @override
+  String get practiceChangePlayer => '選手を変更';
+
+  @override
+  String practiceChooseDestination(int number) {
+    return '$number番・ピッチ上の移動先を押してください';
+  }
+
+  @override
+  String get practiceReturnGoal => 'パスを出したら、返しを受けるコースを作って受け直そう。';
+
+  @override
+  String practiceStealEvidence(int number) {
+    return 'この経路で守備$number番がボールに触れ、奪いました。';
+  }
+
+  @override
+  String get practiceAdviceStealHold =>
+      'プレッシャーが届く前にパスするか、別方向へ運びましょう。味方の移動を待つ間もボールは奪われます。';
 }
