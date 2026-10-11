@@ -36279,6 +36279,516 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Moving · Choose the next dribble or pass.'**
   String get flowMoveInMotion;
+
+  /// No description provided for @matchMomentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Pass'**
+  String get matchMomentTitle;
+
+  /// No description provided for @matchMomentContextLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Yamal 19 · EURO 2024 final, 47′\nSpain v England'**
+  String get matchMomentContextLine;
+
+  /// No description provided for @matchMomentFieldSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Wide tactical field for Spain against England. Spain wear red shirts, blue shorts, and red socks. England wear white shirts, white shorts, and white socks. The lesson follows Lamine Yamal number 19.'**
+  String get matchMomentFieldSemantics;
+
+  /// No description provided for @matchMomentLeadInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Carvajal on the ball and the direction of Shaw’s press.'**
+  String get matchMomentLeadInstruction;
+
+  /// No description provided for @matchMomentReceiveInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'1 · Receive: choose where Yamal meets the pass.'**
+  String get matchMomentReceiveInstruction;
+
+  /// No description provided for @matchMomentFirstTouchInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'2 · First touch: choose the ball’s next position.'**
+  String get matchMomentFirstTouchInstruction;
+
+  /// No description provided for @matchMomentNextActionInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'3 · Next attack: choose a teammate or space.'**
+  String get matchMomentNextActionInstruction;
+
+  /// No description provided for @matchMomentExecutingInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'{choice} to {destination}. Watch the ball, runners, and defenders continue.'**
+  String matchMomentExecutingInstruction(Object choice, Object destination);
+
+  /// No description provided for @matchMomentReplayInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaying your complete sequence.'**
+  String get matchMomentReplayInstruction;
+
+  /// No description provided for @matchMomentReferenceInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference reconstruction: Carvajal to Yamal, carry inside, Williams finish.'**
+  String get matchMomentReferenceInstruction;
+
+  /// No description provided for @matchMomentReviewInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review your sequence, then compare it with the real play.'**
+  String get matchMomentReviewInstruction;
+
+  /// No description provided for @matchMomentChoiceSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{choice}. Destination: {destination}.'**
+  String matchMomentChoiceSemantics(Object choice, Object destination);
+
+  /// No description provided for @matchMomentChoiceReceiveInside.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrive inside'**
+  String get matchMomentChoiceReceiveInside;
+
+  /// No description provided for @matchMomentChoiceReceiveWide.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay wide'**
+  String get matchMomentChoiceReceiveWide;
+
+  /// No description provided for @matchMomentChoiceReceiveCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check back'**
+  String get matchMomentChoiceReceiveCheck;
+
+  /// No description provided for @matchMomentChoiceTouchInside.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch inside'**
+  String get matchMomentChoiceTouchInside;
+
+  /// No description provided for @matchMomentChoiceTouchLine.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch outside'**
+  String get matchMomentChoiceTouchLine;
+
+  /// No description provided for @matchMomentChoiceTouchSet.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch back'**
+  String get matchMomentChoiceTouchSet;
+
+  /// No description provided for @matchMomentChoicePassWilliams.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry, pass Williams 17'**
+  String get matchMomentChoicePassWilliams;
+
+  /// No description provided for @matchMomentChoicePassMorata.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass Morata 7'**
+  String get matchMomentChoicePassMorata;
+
+  /// No description provided for @matchMomentChoiceCarryInside.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry inside'**
+  String get matchMomentChoiceCarryInside;
+
+  /// No description provided for @matchMomentDestinationReceiveInside.
+  ///
+  /// In en, this message translates to:
+  /// **'right half-space'**
+  String get matchMomentDestinationReceiveInside;
+
+  /// No description provided for @matchMomentDestinationReceiveWide.
+  ///
+  /// In en, this message translates to:
+  /// **'touchline lane'**
+  String get matchMomentDestinationReceiveWide;
+
+  /// No description provided for @matchMomentDestinationReceiveCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'support pocket'**
+  String get matchMomentDestinationReceiveCheck;
+
+  /// No description provided for @matchMomentDestinationTouchInside.
+  ///
+  /// In en, this message translates to:
+  /// **'inside Shaw'**
+  String get matchMomentDestinationTouchInside;
+
+  /// No description provided for @matchMomentDestinationTouchLine.
+  ///
+  /// In en, this message translates to:
+  /// **'outside Shaw'**
+  String get matchMomentDestinationTouchLine;
+
+  /// No description provided for @matchMomentDestinationTouchSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Carvajal side'**
+  String get matchMomentDestinationTouchSet;
+
+  /// No description provided for @matchMomentDestinationPassWilliams.
+  ///
+  /// In en, this message translates to:
+  /// **'left channel'**
+  String get matchMomentDestinationPassWilliams;
+
+  /// No description provided for @matchMomentDestinationPassMorata.
+  ///
+  /// In en, this message translates to:
+  /// **'central feet'**
+  String get matchMomentDestinationPassMorata;
+
+  /// No description provided for @matchMomentDestinationCarryInside.
+  ///
+  /// In en, this message translates to:
+  /// **'box edge'**
+  String get matchMomentDestinationCarryInside;
+
+  /// No description provided for @matchMomentReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Learner review'**
+  String get matchMomentReviewTitle;
+
+  /// No description provided for @matchMomentReviewObserveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Observable situation'**
+  String get matchMomentReviewObserveLabel;
+
+  /// No description provided for @matchMomentReviewActionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Player action'**
+  String get matchMomentReviewActionLabel;
+
+  /// No description provided for @matchMomentReviewEffectLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect / next idea'**
+  String get matchMomentReviewEffectLabel;
+
+  /// No description provided for @matchMomentReviewObserveInside.
+  ///
+  /// In en, this message translates to:
+  /// **'Yamal arrived just inside Shaw, keeping the passing lane across England\'s back line alive.'**
+  String get matchMomentReviewObserveInside;
+
+  /// No description provided for @matchMomentReviewObserveWide.
+  ///
+  /// In en, this message translates to:
+  /// **'Yamal stayed closer to the touchline, so Shaw could press without opening as much inside space.'**
+  String get matchMomentReviewObserveWide;
+
+  /// No description provided for @matchMomentReviewObserveCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Yamal checked back to secure the ball, but the far-side lane had more bodies between ball and Williams.'**
+  String get matchMomentReviewObserveCheck;
+
+  /// No description provided for @matchMomentReviewActionLine.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch: {touch}\nNext action: {next}'**
+  String matchMomentReviewActionLine(Object touch, Object next);
+
+  /// No description provided for @matchMomentReviewEffectGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'The diagonal lane stayed open long enough for Williams to finish first time. Replay the reference to see Morata and Olmo occupy the centre-backs.'**
+  String get matchMomentReviewEffectGoal;
+
+  /// No description provided for @matchMomentReviewEffectSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Williams received the ball with a defender close by and Pickford saved his shot. Compare how a different first touch changes the angle of the delivery.'**
+  String get matchMomentReviewEffectSaved;
+
+  /// No description provided for @matchMomentReviewEffectTurnover.
+  ///
+  /// In en, this message translates to:
+  /// **'Shaw followed Yamal’s carry and stole the ball. Try a pass from the same position to see whether it escapes the pressure.'**
+  String get matchMomentReviewEffectTurnover;
+
+  /// No description provided for @matchMomentReviewEffectRetained.
+  ///
+  /// In en, this message translates to:
+  /// **'Spain kept possession through the centre. It is safer than forcing the assist, but the immediate goal window narrows.'**
+  String get matchMomentReviewEffectRetained;
+
+  /// No description provided for @matchMomentRetryDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry last decision'**
+  String get matchMomentRetryDecision;
+
+  /// No description provided for @matchMomentReferenceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare with Yamal'**
+  String get matchMomentReferenceAction;
+
+  /// No description provided for @matchMomentReplayMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay my sequence'**
+  String get matchMomentReplayMine;
+
+  /// No description provided for @matchMomentRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart episode'**
+  String get matchMomentRestart;
+
+  /// No description provided for @matchMomentReferenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual-play reconstruction'**
+  String get matchMomentReferenceTitle;
+
+  /// No description provided for @matchMomentReferenceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This 2D reconstruction shows the official described line. It does not overwrite your learner sequence.'**
+  String get matchMomentReferenceBody;
+
+  /// No description provided for @matchMomentReturnToReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to my review'**
+  String get matchMomentReturnToReview;
+
+  /// No description provided for @matchMomentOfficialFootageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Official footage'**
+  String get matchMomentOfficialFootageTitle;
+
+  /// No description provided for @matchMomentOfficialFootageBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the 47th-minute build-up, Yamal’s assist and Williams’s finish in the official match footage.'**
+  String get matchMomentOfficialFootageBody;
+
+  /// No description provided for @matchMomentPlayOfficialHighlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Open official video here'**
+  String get matchMomentPlayOfficialHighlight;
+
+  /// No description provided for @matchMomentOfficialHighlightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Official England highlights at Williams goal'**
+  String get matchMomentOfficialHighlightTitle;
+
+  /// No description provided for @matchMomentOpenUefaGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Open UEFA video page'**
+  String get matchMomentOpenUefaGoal;
+
+  /// No description provided for @matchMomentOpenEnglandHighlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Open official highlight'**
+  String get matchMomentOpenEnglandHighlight;
+
+  /// No description provided for @matchMomentSourceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The official source could not be opened on this device.'**
+  String get matchMomentSourceUnavailable;
+
+  /// No description provided for @matchMomentSourcesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources and limits'**
+  String get matchMomentSourcesTitle;
+
+  /// No description provided for @matchMomentSourcesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Berlin, 14 July 2024. The UEFA lineup and official footage establish the players, shirt numbers and match kits. Zubimendi 18 replaced Rodri at half-time. Movement is a 2D learning reconstruction informed by official tactical analysis, not exact whole-pitch tracking. Alternative outcomes are simulations.'**
+  String get matchMomentSourcesBody;
+
+  /// No description provided for @matchMomentSourceLineup.
+  ///
+  /// In en, this message translates to:
+  /// **'UEFA · Starting lineup and shirt numbers'**
+  String get matchMomentSourceLineup;
+
+  /// No description provided for @matchMomentSourceTechnical.
+  ///
+  /// In en, this message translates to:
+  /// **'UEFA · Final tactical analysis'**
+  String get matchMomentSourceTechnical;
+
+  /// No description provided for @matchMomentSourceRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'UEFA · Spain–England match report'**
+  String get matchMomentSourceRecord;
+
+  /// No description provided for @matchMomentPlayerUnaiSimon.
+  ///
+  /// In en, this message translates to:
+  /// **'Unai Simon'**
+  String get matchMomentPlayerUnaiSimon;
+
+  /// No description provided for @matchMomentPlayerDaniCarvajal.
+  ///
+  /// In en, this message translates to:
+  /// **'Dani Carvajal'**
+  String get matchMomentPlayerDaniCarvajal;
+
+  /// No description provided for @matchMomentPlayerRobinLeNormand.
+  ///
+  /// In en, this message translates to:
+  /// **'Robin Le Normand'**
+  String get matchMomentPlayerRobinLeNormand;
+
+  /// No description provided for @matchMomentPlayerAlvaroMorata.
+  ///
+  /// In en, this message translates to:
+  /// **'Alvaro Morata'**
+  String get matchMomentPlayerAlvaroMorata;
+
+  /// No description provided for @matchMomentPlayerFabianRuiz.
+  ///
+  /// In en, this message translates to:
+  /// **'Fabian Ruiz'**
+  String get matchMomentPlayerFabianRuiz;
+
+  /// No description provided for @matchMomentPlayerDaniOlmo.
+  ///
+  /// In en, this message translates to:
+  /// **'Dani Olmo'**
+  String get matchMomentPlayerDaniOlmo;
+
+  /// No description provided for @matchMomentPlayerAymericLaporte.
+  ///
+  /// In en, this message translates to:
+  /// **'Aymeric Laporte'**
+  String get matchMomentPlayerAymericLaporte;
+
+  /// No description provided for @matchMomentPlayerNicoWilliams.
+  ///
+  /// In en, this message translates to:
+  /// **'Nico Williams'**
+  String get matchMomentPlayerNicoWilliams;
+
+  /// No description provided for @matchMomentPlayerMartinZubimendi.
+  ///
+  /// In en, this message translates to:
+  /// **'Martin Zubimendi'**
+  String get matchMomentPlayerMartinZubimendi;
+
+  /// No description provided for @matchMomentPlayerLamineYamal.
+  ///
+  /// In en, this message translates to:
+  /// **'Lamine Yamal'**
+  String get matchMomentPlayerLamineYamal;
+
+  /// No description provided for @matchMomentPlayerMarcCucurella.
+  ///
+  /// In en, this message translates to:
+  /// **'Marc Cucurella'**
+  String get matchMomentPlayerMarcCucurella;
+
+  /// No description provided for @matchMomentPlayerJordanPickford.
+  ///
+  /// In en, this message translates to:
+  /// **'Jordan Pickford'**
+  String get matchMomentPlayerJordanPickford;
+
+  /// No description provided for @matchMomentPlayerKyleWalker.
+  ///
+  /// In en, this message translates to:
+  /// **'Kyle Walker'**
+  String get matchMomentPlayerKyleWalker;
+
+  /// No description provided for @matchMomentPlayerLukeShaw.
+  ///
+  /// In en, this message translates to:
+  /// **'Luke Shaw'**
+  String get matchMomentPlayerLukeShaw;
+
+  /// No description provided for @matchMomentPlayerDeclanRice.
+  ///
+  /// In en, this message translates to:
+  /// **'Declan Rice'**
+  String get matchMomentPlayerDeclanRice;
+
+  /// No description provided for @matchMomentPlayerJohnStones.
+  ///
+  /// In en, this message translates to:
+  /// **'John Stones'**
+  String get matchMomentPlayerJohnStones;
+
+  /// No description provided for @matchMomentPlayerMarcGuehi.
+  ///
+  /// In en, this message translates to:
+  /// **'Marc Guehi'**
+  String get matchMomentPlayerMarcGuehi;
+
+  /// No description provided for @matchMomentPlayerBukayoSaka.
+  ///
+  /// In en, this message translates to:
+  /// **'Bukayo Saka'**
+  String get matchMomentPlayerBukayoSaka;
+
+  /// No description provided for @matchMomentPlayerHarryKane.
+  ///
+  /// In en, this message translates to:
+  /// **'Harry Kane'**
+  String get matchMomentPlayerHarryKane;
+
+  /// No description provided for @matchMomentPlayerJudeBellingham.
+  ///
+  /// In en, this message translates to:
+  /// **'Jude Bellingham'**
+  String get matchMomentPlayerJudeBellingham;
+
+  /// No description provided for @matchMomentPlayerPhilFoden.
+  ///
+  /// In en, this message translates to:
+  /// **'Phil Foden'**
+  String get matchMomentPlayerPhilFoden;
+
+  /// No description provided for @matchMomentPlayerKobbieMainoo.
+  ///
+  /// In en, this message translates to:
+  /// **'Kobbie Mainoo'**
+  String get matchMomentPlayerKobbieMainoo;
+
+  /// No description provided for @matchMomentReviewEffectIntercepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Rice reached the diagonal passing lane first and intercepted. Compare how the receiving position and first touch changed the next passing lane.'**
+  String get matchMomentReviewEffectIntercepted;
+
+  /// No description provided for @matchMomentReviewEffectCarrySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Yamal carried and shot from distance; Pickford saved. Compare that shooting position with the chance created by finding Williams on the opposite side.'**
+  String get matchMomentReviewEffectCarrySaved;
 }
 
 class _AppLocalizationsDelegate

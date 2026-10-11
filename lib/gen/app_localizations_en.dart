@@ -21388,4 +21388,289 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get flowMoveInMotion => 'Moving · Choose the next dribble or pass.';
+
+  @override
+  String get matchMomentTitle => 'Scan Pass';
+
+  @override
+  String get matchMomentContextLine =>
+      'Yamal 19 · EURO 2024 final, 47′\nSpain v England';
+
+  @override
+  String get matchMomentFieldSemantics =>
+      'Wide tactical field for Spain against England. Spain wear red shirts, blue shorts, and red socks. England wear white shirts, white shorts, and white socks. The lesson follows Lamine Yamal number 19.';
+
+  @override
+  String get matchMomentLeadInstruction =>
+      'Watch Carvajal on the ball and the direction of Shaw’s press.';
+
+  @override
+  String get matchMomentReceiveInstruction =>
+      '1 · Receive: choose where Yamal meets the pass.';
+
+  @override
+  String get matchMomentFirstTouchInstruction =>
+      '2 · First touch: choose the ball’s next position.';
+
+  @override
+  String get matchMomentNextActionInstruction =>
+      '3 · Next attack: choose a teammate or space.';
+
+  @override
+  String matchMomentExecutingInstruction(Object choice, Object destination) {
+    return '$choice to $destination. Watch the ball, runners, and defenders continue.';
+  }
+
+  @override
+  String get matchMomentReplayInstruction =>
+      'Replaying your complete sequence.';
+
+  @override
+  String get matchMomentReferenceInstruction =>
+      'Reference reconstruction: Carvajal to Yamal, carry inside, Williams finish.';
+
+  @override
+  String get matchMomentReviewInstruction =>
+      'Review your sequence, then compare it with the real play.';
+
+  @override
+  String matchMomentChoiceSemantics(Object choice, Object destination) {
+    return '$choice. Destination: $destination.';
+  }
+
+  @override
+  String get matchMomentChoiceReceiveInside => 'Arrive inside';
+
+  @override
+  String get matchMomentChoiceReceiveWide => 'Stay wide';
+
+  @override
+  String get matchMomentChoiceReceiveCheck => 'Check back';
+
+  @override
+  String get matchMomentChoiceTouchInside => 'First touch inside';
+
+  @override
+  String get matchMomentChoiceTouchLine => 'First touch outside';
+
+  @override
+  String get matchMomentChoiceTouchSet => 'First touch back';
+
+  @override
+  String get matchMomentChoicePassWilliams => 'Carry, pass Williams 17';
+
+  @override
+  String get matchMomentChoicePassMorata => 'Pass Morata 7';
+
+  @override
+  String get matchMomentChoiceCarryInside => 'Carry inside';
+
+  @override
+  String get matchMomentDestinationReceiveInside => 'right half-space';
+
+  @override
+  String get matchMomentDestinationReceiveWide => 'touchline lane';
+
+  @override
+  String get matchMomentDestinationReceiveCheck => 'support pocket';
+
+  @override
+  String get matchMomentDestinationTouchInside => 'inside Shaw';
+
+  @override
+  String get matchMomentDestinationTouchLine => 'outside Shaw';
+
+  @override
+  String get matchMomentDestinationTouchSet => 'Carvajal side';
+
+  @override
+  String get matchMomentDestinationPassWilliams => 'left channel';
+
+  @override
+  String get matchMomentDestinationPassMorata => 'central feet';
+
+  @override
+  String get matchMomentDestinationCarryInside => 'box edge';
+
+  @override
+  String get matchMomentReviewTitle => 'Learner review';
+
+  @override
+  String get matchMomentReviewObserveLabel => 'Observable situation';
+
+  @override
+  String get matchMomentReviewActionLabel => 'Player action';
+
+  @override
+  String get matchMomentReviewEffectLabel => 'Effect / next idea';
+
+  @override
+  String get matchMomentReviewObserveInside =>
+      'Yamal arrived just inside Shaw, keeping the passing lane across England\'s back line alive.';
+
+  @override
+  String get matchMomentReviewObserveWide =>
+      'Yamal stayed closer to the touchline, so Shaw could press without opening as much inside space.';
+
+  @override
+  String get matchMomentReviewObserveCheck =>
+      'Yamal checked back to secure the ball, but the far-side lane had more bodies between ball and Williams.';
+
+  @override
+  String matchMomentReviewActionLine(Object touch, Object next) {
+    return 'First touch: $touch\nNext action: $next';
+  }
+
+  @override
+  String get matchMomentReviewEffectGoal =>
+      'The diagonal lane stayed open long enough for Williams to finish first time. Replay the reference to see Morata and Olmo occupy the centre-backs.';
+
+  @override
+  String get matchMomentReviewEffectSaved =>
+      'Williams received the ball with a defender close by and Pickford saved his shot. Compare how a different first touch changes the angle of the delivery.';
+
+  @override
+  String get matchMomentReviewEffectTurnover =>
+      'Shaw followed Yamal’s carry and stole the ball. Try a pass from the same position to see whether it escapes the pressure.';
+
+  @override
+  String get matchMomentReviewEffectRetained =>
+      'Spain kept possession through the centre. It is safer than forcing the assist, but the immediate goal window narrows.';
+
+  @override
+  String get matchMomentRetryDecision => 'Retry last decision';
+
+  @override
+  String get matchMomentReferenceAction => 'Compare with Yamal';
+
+  @override
+  String get matchMomentReplayMine => 'Replay my sequence';
+
+  @override
+  String get matchMomentRestart => 'Restart episode';
+
+  @override
+  String get matchMomentReferenceTitle => 'Actual-play reconstruction';
+
+  @override
+  String get matchMomentReferenceBody =>
+      'This 2D reconstruction shows the official described line. It does not overwrite your learner sequence.';
+
+  @override
+  String get matchMomentReturnToReview => 'Return to my review';
+
+  @override
+  String get matchMomentOfficialFootageTitle => 'Official footage';
+
+  @override
+  String get matchMomentOfficialFootageBody =>
+      'Watch the 47th-minute build-up, Yamal’s assist and Williams’s finish in the official match footage.';
+
+  @override
+  String get matchMomentPlayOfficialHighlight => 'Open official video here';
+
+  @override
+  String get matchMomentOfficialHighlightTitle =>
+      'Official England highlights at Williams goal';
+
+  @override
+  String get matchMomentOpenUefaGoal => 'Open UEFA video page';
+
+  @override
+  String get matchMomentOpenEnglandHighlight => 'Open official highlight';
+
+  @override
+  String get matchMomentSourceUnavailable =>
+      'The official source could not be opened on this device.';
+
+  @override
+  String get matchMomentSourcesTitle => 'Sources and limits';
+
+  @override
+  String get matchMomentSourcesBody =>
+      'Berlin, 14 July 2024. The UEFA lineup and official footage establish the players, shirt numbers and match kits. Zubimendi 18 replaced Rodri at half-time. Movement is a 2D learning reconstruction informed by official tactical analysis, not exact whole-pitch tracking. Alternative outcomes are simulations.';
+
+  @override
+  String get matchMomentSourceLineup =>
+      'UEFA · Starting lineup and shirt numbers';
+
+  @override
+  String get matchMomentSourceTechnical => 'UEFA · Final tactical analysis';
+
+  @override
+  String get matchMomentSourceRecord => 'UEFA · Spain–England match report';
+
+  @override
+  String get matchMomentPlayerUnaiSimon => 'Unai Simon';
+
+  @override
+  String get matchMomentPlayerDaniCarvajal => 'Dani Carvajal';
+
+  @override
+  String get matchMomentPlayerRobinLeNormand => 'Robin Le Normand';
+
+  @override
+  String get matchMomentPlayerAlvaroMorata => 'Alvaro Morata';
+
+  @override
+  String get matchMomentPlayerFabianRuiz => 'Fabian Ruiz';
+
+  @override
+  String get matchMomentPlayerDaniOlmo => 'Dani Olmo';
+
+  @override
+  String get matchMomentPlayerAymericLaporte => 'Aymeric Laporte';
+
+  @override
+  String get matchMomentPlayerNicoWilliams => 'Nico Williams';
+
+  @override
+  String get matchMomentPlayerMartinZubimendi => 'Martin Zubimendi';
+
+  @override
+  String get matchMomentPlayerLamineYamal => 'Lamine Yamal';
+
+  @override
+  String get matchMomentPlayerMarcCucurella => 'Marc Cucurella';
+
+  @override
+  String get matchMomentPlayerJordanPickford => 'Jordan Pickford';
+
+  @override
+  String get matchMomentPlayerKyleWalker => 'Kyle Walker';
+
+  @override
+  String get matchMomentPlayerLukeShaw => 'Luke Shaw';
+
+  @override
+  String get matchMomentPlayerDeclanRice => 'Declan Rice';
+
+  @override
+  String get matchMomentPlayerJohnStones => 'John Stones';
+
+  @override
+  String get matchMomentPlayerMarcGuehi => 'Marc Guehi';
+
+  @override
+  String get matchMomentPlayerBukayoSaka => 'Bukayo Saka';
+
+  @override
+  String get matchMomentPlayerHarryKane => 'Harry Kane';
+
+  @override
+  String get matchMomentPlayerJudeBellingham => 'Jude Bellingham';
+
+  @override
+  String get matchMomentPlayerPhilFoden => 'Phil Foden';
+
+  @override
+  String get matchMomentPlayerKobbieMainoo => 'Kobbie Mainoo';
+
+  @override
+  String get matchMomentReviewEffectIntercepted =>
+      'Rice reached the diagonal passing lane first and intercepted. Compare how the receiving position and first touch changed the next passing lane.';
+
+  @override
+  String get matchMomentReviewEffectCarrySaved =>
+      'Yamal carried and shot from distance; Pickford saved. Compare that shooting position with the chance created by finding Williams on the opposite side.';
 }

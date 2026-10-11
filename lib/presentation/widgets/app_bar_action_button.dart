@@ -110,6 +110,8 @@ class AppBarActionMenuButton<T> extends StatelessWidget {
   final T? initialValue;
   final PopupMenuItemBuilder<T> itemBuilder;
   final PopupMenuItemSelected<T>? onSelected;
+  final VoidCallback? onOpened;
+  final VoidCallback? onCanceled;
   final EdgeInsetsGeometry margin;
 
   const AppBarActionMenuButton({
@@ -120,6 +122,8 @@ class AppBarActionMenuButton<T> extends StatelessWidget {
     this.enabled = true,
     this.initialValue,
     this.onSelected,
+    this.onOpened,
+    this.onCanceled,
     this.margin = const EdgeInsetsDirectional.only(end: AppSpacing.xs),
   });
 
@@ -131,6 +135,8 @@ class AppBarActionMenuButton<T> extends StatelessWidget {
         tooltip: tooltip,
         enabled: enabled,
         initialValue: initialValue,
+        onOpened: onOpened,
+        onCanceled: onCanceled,
         onSelected: onSelected,
         itemBuilder: itemBuilder,
         padding: EdgeInsets.zero,

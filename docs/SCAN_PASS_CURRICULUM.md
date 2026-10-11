@@ -1,21 +1,84 @@
-# Scan Pass: 2v2 space-and-support flow
+# Scan Pass: real-match decision lesson and retained 2v2 flow
 
 ## Current default
 
-`scan_pass_flow.dart` is the public default. It opens a situation immediately:
-**two attackers (6 and 8), two reactive defenders (2 and 3), two cone gates**,
-and no pre-game player-count or mode selector. The player decides every attacking
-on-ball action; defenders press the ball and cover the other attacker. The
-off-ball teammate now moves automatically to create a supporting angle, checking
-option or forward run, but never chooses a pass or carry for the player. There
-is no goalkeeper, shot, score or reaction-time reward. The pitch remains 40 ×
-28 m.
+`ScanPassGameScreen` now opens the public Scan Pass quick action directly into a
+real-match lesson: Lamine Yamal's assist to Nico Williams for Spain's opening
+goal against England in the UEFA EURO 2024 final, Berlin, 14 July 2024, 47'.
+There is no pre-game mode selector, timer, XP award, leaderboard or generic
+attacker/defender setup. The old 2v2 flow remains available internally for tests
+and compatibility, but it is no longer the public default.
+
+The first episode is a three-beat authored decision sequence centered on Spain
+19 Yamal:
+
+1. Move to receive Dani Carvajal's pass.
+2. Select the first touch from the resulting received state.
+3. Choose the next pass or carry from that exact first-touch state.
+
+Each beat is a single on-pitch tap on a visible target. The resulting player and
+ball movement is sampled continuously, and the final review compares the
+learner's complete branch with a separate 2D reconstruction of the historical
+Carvajal -> Yamal -> Williams line. Matching the original play is not the only
+useful outcome: alternatives can retain possession, produce a saved chance or
+turn the ball over depending on the branch.
+
+The lesson uses team-qualified player ids because Spain and England share shirt
+numbers. The 47' roster follows the official UEFA lineup with Spain 18 Martin
+Zubimendi on for Rodri after halftime, and no Oyarzabal or Merino on the field
+yet. The rendered kits are code-drawn match-specific approximations: Spain red
+shirts, yellow trim/numbers, blue shorts and red socks; England white outfield
+kit with navy/red trim; Pickford in yellow. No downloaded photos, crests or
+broadcast assets are bundled.
+
+Source and limitation details are shown in the lesson's collapsible source
+surface. The reconstruction is based on official lineup data, UEFA technical
+analysis and official video/source pages, but available public footage does not
+provide exact whole-pitch tracking. Positions, timings and alternative outcomes
+are therefore an authored analytical simulation rather than measured tracking,
+coach endorsement or a claim of real-life skill transfer. The official footage
+links are external fallbacks, with a web-only user-started embed for the verified
+official England highlights segment when the platform supports it.
+
+The receiving decision teaches reading Shaw's outside pressure and the inside
+receiving lane. The first-touch decision isolates a short contact with the ball
+from the later carry: its exact endpoint stays on the pitch while separated
+callouts show the movement direction. The final decision contrasts the diagonal
+carry and switch to Williams with a central possession option or a direct carry
+and shot. Feedback names the actual receiver, shooter or interceptor in the
+selected branch; retaining possession is not described as a wrong answer.
+
+Small screens crop the tactical camera to the attack without stretching field
+angles. Portrait orientation stays consistent through review, and reference
+playback uses the full field area before showing feedback. Shirt numbers remain
+visible above the ball at the player's feet. Pass rings and linked callouts are
+both selectable; decorative paths never intercept input. All 27 decision
+combinations use continuous clocks and bounded player movement, and the
+historical assist is checked against the moving defenders for an open lane.
+
+Primary sources currently documented in-app:
+
+- [UEFA official lineup PDF](https://www.uefa.com/newsfiles/EURO/2024/2036211_LU.pdf)
+  for Spain v England, match 2036211.
+- [UEFA EURO 2024 technical report](https://editorial.uefa.com/resources/028f-1b6f7f14a391-e1beafb781cc-1000/euro2024_mini-tech-report_v7.pdf)
+  pp. 6-7 for the tactical relationship:
+  Ruiz/Bellingham, Shaw pressing, Carvajal's outside-of-foot pass, Yamal's
+  diagonal carry, Morata/Olmo runs and Williams finishing.
+- [UEFA Nico Williams final video](https://www.uefa.com/uefaeuro/history/video/028f-1b5e7b0b2ccd-cd78a924f1bd-1000--spain-vs-england-player-of-the-match-nico-williams/).
+- [Official England highlights](https://www.youtube.com/watch?v=lBOS43RWfY0&t=110s),
+  also embedded by the [FA match centre](https://www.englandfootball.com/england/mens-senior-team/fixtures-results/2023-24/EURO-2024/spain-england-uefa-euro-2024-final-sunday-14-july).
+  The 110-128 second segment was checked in official public preview frames.
+  Embed availability was checked in metadata; live browser playback was not
+  verified on the development host.
+
+## Retained internal 2v2 flow
 
 `FlowEngine` reuses deterministic motion/collision sampling from `PracticeEngine`
 through the additive `PracticeSettings.freeFlow` and
 `PracticeSettings.automaticSupport` flags. Both default to false for existing
-curriculum callers; the public 2v2 flow enables them explicitly. Flow case focus
-is typed data, not inferred from labels or case ids.
+curriculum callers. The retained 2v2 flow enables them explicitly when reached
+by direct internal callers. Flow case focus is typed data, not inferred from
+labels or case ids.
 
 ## The twelve 2v2 situations
 
