@@ -11715,5 +11715,102 @@
       }
     }
   },
-  "practiceAdviceStealHold": "Release the ball or carry away before pressure reaches it; a support run does not protect a stationary ball."
+  "practiceAdviceStealHold": "Release the ball or carry away before pressure reaches it; a support run does not protect a stationary ball.",
+  "flowTitle": "2v2 · Read the space",
+  "flowMore": "More",
+  "flowGoalLine": "Goal · {goal}",
+  "@flowGoalLine": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "flowNowLine": "Now · {instruction}",
+  "@flowNowLine": {
+    "placeholders": {
+      "instruction": {
+        "type": "String"
+      }
+    }
+  },
+  "flowCaseNumber": "{current}/{total}",
+  "@flowCaseNumber": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "flowChooseTouch": "Choose No. {number}’s first touch within the circle.",
+  "@flowChooseTouch": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "flowChooseBall": "No. {number}: tap space to dribble, or No. {receiver} to pass.",
+  "@flowChooseBall": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "receiver": {
+        "type": "int"
+      }
+    }
+  },
+  "flowChooseRun": "Choose where No. {number} will move after passing.",
+  "@flowChooseRun": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "flowQueued": "Next move queued · tap another space to change it.",
+  "flowPlaying": "Watch how the play develops.",
+  "flowCancelChoice": "Cancel this choice",
+  "flowKeepBall": "Keep the ball for a moment",
+  "flowThrough": "Pass into the planned run",
+  "flowResult": "Result",
+  "flowWhy": "Why",
+  "flowTry": "Try next",
+  "flowRetry": "Retry this decision",
+  "flowContinue": "Continue play",
+  "flowReviewNow": "Review my choices",
+  "flowReplayPrevious": "Replay my previous attempt",
+  "flowBefore": "Before this choice",
+  "flowAfter": "After this choice",
+  "flowOtherDecisions": "Review another decision",
+  "flowRestart": "Restart this situation",
+  "flowChooseCase": "Choose a situation",
+  "flowHelpTitle": "How to play",
+  "flowHelpBody": "First touch: tap a direction around the ball. The circle shows the maximum first-touch distance; farther clicks use that direction at the circle’s edge.\n\nWith the ball: tap space once to move there, or tap your teammate to pass. Tap your own shirt to keep the ball briefly.\n\nAfter selecting a pass: tap where the passer should move. The pass and run begin together. A running teammate’s marked destination can receive a through pass.\n\nEvery reception gives you a new first touch. You can queue the next choice while a move plays; the cross cancels it. Only your chosen attacking actions execute.\n\nUse More to review your choices. Retry this decision returns to the same moment. Restart, replay and all 12 situations are also in More.\n\nCarry the ball through either cone gate to finish the attack.",
+  "flowResultTouch": "You kept the ball after the first touch.",
+  "flowResultMove": "You carried the ball into the chosen space.",
+  "flowResultPass": "The pass reached No. {number}.",
+  "@flowResultPass": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "flowResultHold": "You kept possession while the players moved.",
+  "flowAdvicePassRun": "Change the passer’s support position and compare the return lane.",
+  "flowAdviceHold": "Compare an earlier touch or pass before the defender closes in.",
+  "flowGoalFirstTouch": "Find a first touch that escapes pressure.",
+  "flowGoalDrawDefender": "Draw a defender and connect with your teammate.",
+  "flowGoalSupportAngle": "Open a return lane after your pass.",
+  "flowGoalThroughPass": "Lead your teammate’s run into space.",
+  "flowGoalBeatCover": "Read the covering defender and find an exit.",
+  "flowGoalChangeLane": "Change direction to reach an open cone gate.",
+  "flowAdviceTouch": "Try touching away from pressure and see whether the next pass opens.",
+  "flowAdviceCarry": "Try carrying into side space beyond the defender’s reach.",
+  "flowAdviceThrough": "Find where the runner and the arriving ball can meet."
 }

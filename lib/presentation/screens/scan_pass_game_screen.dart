@@ -9,6 +9,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../../domain/scan_pass/scan_pass_attack.dart';
 import '../../domain/scan_pass/scan_pass_chain.dart';
 import '../../domain/scan_pass/scan_pass_curriculum.dart';
+import '../../domain/scan_pass/scan_pass_flow.dart';
 import '../../domain/scan_pass/scan_pass_decision.dart';
 import '../../domain/scan_pass/scan_pass_game.dart' show ScanPassPoint;
 import '../../domain/scan_pass/scan_pass_judgment.dart';
@@ -19,6 +20,7 @@ import '../widgets/app_bar_action_button.dart';
 
 part 'scan_pass_possession_lesson_screen.dart';
 part 'scan_pass_curriculum_screen.dart';
+part 'scan_pass_flow_screen.dart';
 part 'scan_pass_judgment_training.dart';
 part 'scan_pass_space_training.dart';
 part 'scan_pass_chain_training.dart';
@@ -49,7 +51,7 @@ class ScanPassGameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScanPassCurriculumScreen(
+    return ScanPassFlowScreen(
       observationDuration: previewDuration,
       executionDuration: passAnimationDuration,
     );

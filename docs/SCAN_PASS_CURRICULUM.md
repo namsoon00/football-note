@@ -1,10 +1,101 @@
-# Scan Pass: small-sided decision curriculum
+# Scan Pass: 2v2 space-and-support flow
 
-The default game now uses `scan_pass_curriculum.dart`. Earlier possession/goal
-engines remain available for compatibility; they do not define these lessons.
-The exercise is a 40 × 28 m training area, progressing from two attackers to
-three and four. The learner controls every attacker. There are two cone gates and no
-goalkeeper, shooting decision, score or reaction-time reward.
+## Current default
+
+`scan_pass_flow.dart` is the public default. It opens a situation immediately:
+**two attackers (6 and 8), two reactive defenders (2 and 3), two cone gates**,
+and no pre-game player-count or mode selector. The player decides every attacking
+action; defenders press the ball and cover the other attacker. No attacking
+teammate decides to pass, carry or invent a run. There is no goalkeeper, shot,
+score or reaction-time reward. The pitch remains 40 × 28 m.
+
+`FlowEngine` reuses deterministic motion/collision sampling from `PracticeEngine`
+through the additive `PracticeSettings.freeFlow` flag. This flag defaults to
+false, so existing curriculum callers retain their original behavior. Flow case
+focus is typed data, not inferred from labels or case ids.
+
+## The twelve 2v2 situations
+
+Every focus has two authored conditions. Each pair keeps the same attackers and
+changes one defender's starting position/approach; the other defender remains
+present and reactive. All incoming observation passes are checked against both
+opponents, and every case has a physically safe free first-touch direction.
+Neither a third attacker nor a four-player switch rubric is required.
+
+| Case ids | Read before acting | Difference between conditions | Demonstrated learning |
+| --- | --- | --- | --- |
+| `flow-firstTouch-0/1` | Approach side and pressure gap | Defender 2 approaches from ahead/outside or behind/outside | Touch within the visible range into usable space with pressure relief or an available next connection |
+| `flow-drawDefender-0/1` | First defender's commitment and second defender's cover | Defender 2 steps toward the carrier or starts nearer the diagonal connection | Actually draw a defender and improve a connection, or use an already-open pass beyond that first defender |
+| `flow-supportAngle-0/1` | Space available to the passer after release | Defender 3 starts higher or lower beside the receiver | Receive a useful later pass after relocating at least 1 m from the actual earlier release position; choosing a run endpoint alone is not success |
+| `flow-throughPass-0/1` | A player-commanded runner and the covering defender | Defender 3 covers deeper/wider or nearer the runner's inside shoulder | Complete a useful led pass to the commanded run endpoint while the receiver actually travels at least 1 m |
+| `flow-beatCover-0/1` | Both the pressing and covering defender | Defender 3 narrows the carrying channel or covers the other attacker's side | A touch/carry retains pressure clearance and opens a passing lane or creates measurable pressure relief |
+| `flow-changeLane-0/1` | The congested side and available lateral space | Defender 2 starts toward the touchline or the inside lane | Move the ball laterally at least 1.5 m while measurably improving clearance or pressure; this is a two-player lane change, not a three-player switch |
+
+The useful/risky judgment and focus evidence remain separate. Reaching a cone
+gate cannot retroactively make earlier decisions correct, and the focus can be
+demonstrated without completing a gate. These criteria are teaching
+approximations, not a validated football intelligence score.
+
+## One field, direct decisions
+
+1. A brief incoming pass establishes the situation; it is the only scripted
+   attacking opening. Time then pauses at the receiver.
+2. The player taps any point for the **first touch**. The field shows the actual
+   **2.3 m physical range** and the exact bounded destination. An outside tap is
+   projected onto that visible range. Successful reception requires a new first
+   touch every time, not just at the opening.
+3. A tap on open space carries the ball to that bounded field point. There is no
+   hidden 5.8 m carry cap or 8 m run cap in flow mode. Execution reaches the
+   requested point unless an actual steal or controlled gate crossing ends play.
+4. Selecting the other attacker's jersey pauses on a pending pass. One further
+   field tap supplies the **passer's support destination**. The pass and that
+   support run start together on the first simulated sample. Tapping the passer's
+   current position means staying there. No receiver or support run is chosen
+   by the computer.
+5. The action pauses as soon as the receiver physically collects the ball.
+   A support run that is not yet complete remains visible and continues during
+   subsequent touches, carries, passes or an explicit 0.5 s advance. The next
+   first-touch decision is made from this exact paused world.
+6. A **through pass** is available only to the other attacker's still-pending,
+   player-commanded destination. It never invents a lead target. A pass to feet
+   deliberately collects at the receiver's present position and replaces that
+   receiver's old run. There is no automatic or timed return requirement.
+7. A controlled cone crossing, actual defensive steal or 16 decisions ends the
+   sequence. Offside is disabled for this deliberately constrained 2v2 exercise.
+
+The pass/run decision snapshot contains the committed support destination.
+`beforeDecision` restores that exact world, pending plans, settings and history;
+repeating the same gesture yields identical sampled motion. Choosing a different
+support point replaces the planned point without replaying or altering earlier
+history. Feedback uses positions **at actual reception**, not the distant target
+of a support run that is still in progress.
+
+All movement and contact share sampled trajectories (at most 25 ms apart).
+A steal transfers possession to the actual defender and includes a continuous
+0.4 s collection movement. Both ball and attacking carrier must cross the cone
+opening under control; a ball flying through on its own does not complete it.
+Only previously commanded movement and physical braking remain between choices.
+
+Domain tests cover all 12 openings, safe first-touch exits, exact target/range
+agreement, full clicked carry/run destinations, simultaneous passing/support,
+reception pauses, persistent runs, commanded through passes, deterministic
+retries, both defenders reacting, actual theft and controlled cone crossings.
+Each focus also has a reproducible example using only the public gestures: free
+touch, carrier movement, hold, and pass plus support destination. Through examples
+first launch a support run, receive and touch, then lead that still-pending run;
+none depends on an unavailable direct off-ball selection mode.
+The existing limitations and design sources below still apply: this is a 2D
+teaching model, not a professional match simulator or evidence of transfer to a
+real match.
+
+## Retained legacy curriculum
+
+The remainder documents `scan_pass_curriculum.dart` for compatibility and
+regression coverage. Its old count/mode selection, 2→3→4 progression and
+per-command distance caps do **not** describe the public default above. Earlier
+possession/goal engines also remain internal compatibility surfaces.
+The legacy exercise uses a 40 × 28 m training area, two cone gates, and
+player-controlled attackers.
 
 ## What a case defines
 
@@ -156,3 +247,25 @@ manual team ownership, queued/cancelled runs, constrained return targets, actual
 defensive possession and reproducible comparisons including pending plans. The
 older assisted policy is retained only behind explicit internal settings for
 regression tests; it is not a public control option.
+
+## Default screen interaction
+
+`ScanPassGameScreen` opens `ScanPassFlowScreen` immediately in the first 2v2
+situation. Its on-field goal and current instruction stay in a fixed order.
+A free-space tap chooses the first touch (within the visible physical circle)
+or the carrier's complete dribble destination. Tapping the teammate selects
+a pass; the next space tap supplies the passer's support destination and
+launches both actions. A marked pending receiver endpoint offers a through pass.
+Tapping the carrier keeps possession for a short interval; defenders still react.
+
+One next command can be queued during a committed action, replaced or cancelled.
+Commands execute against the resulting session only after the visible action
+finishes; a terminal result clears the queue. Picking cases, help, app background
+and explicit pause suspend playback. There is no reaction-time score.
+
+Review groups copy into **Result / Why / Try next** with two fixed footer actions:
+**Retry this decision** and **Next situation** (or **Continue play** during a
+mid-attack review). Retry restores the selected original snapshot; combined passes
+reopen support placement for a new destination. Replay, the prior attempt, before
+versus after frames, decision selection, restart and case selection live in More.
+Prior-attempt replay uses that attempt's own feedback and returns to the new record.

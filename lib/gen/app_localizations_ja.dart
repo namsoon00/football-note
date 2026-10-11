@@ -20371,4 +20371,145 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get practiceAdviceStealHold =>
       'プレッシャーが届く前にパスするか、別方向へ運びましょう。味方の移動を待つ間もボールは奪われます。';
+
+  @override
+  String get flowTitle => '2対2・スペースの判断';
+
+  @override
+  String get flowMore => 'その他';
+
+  @override
+  String flowGoalLine(String goal) {
+    return '目標・$goal';
+  }
+
+  @override
+  String flowNowLine(String instruction) {
+    return '今すること・$instruction';
+  }
+
+  @override
+  String flowCaseNumber(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String flowChooseTouch(int number) {
+    return '$number番のファーストタッチを円の中で選んでください。';
+  }
+
+  @override
+  String flowChooseBall(int number, int receiver) {
+    return '$number番：スペースをタップしてドリブル、$receiver番をタップしてパス。';
+  }
+
+  @override
+  String flowChooseRun(int number) {
+    return '$number番がパス後に受け直すスペースをタップしてください。';
+  }
+
+  @override
+  String get flowQueued => '次の動きを予約済み・別のスペースで変更できます。';
+
+  @override
+  String get flowPlaying => '選んだ動きの展開を見てください。';
+
+  @override
+  String get flowCancelChoice => '選択を取り消す';
+
+  @override
+  String get flowKeepBall => '少しボールをキープ';
+
+  @override
+  String get flowThrough => '味方が走るスペースへパス';
+
+  @override
+  String get flowResult => '結果';
+
+  @override
+  String get flowWhy => '理由';
+
+  @override
+  String get flowTry => '次に試すこと';
+
+  @override
+  String get flowRetry => 'この判断から再挑戦';
+
+  @override
+  String get flowContinue => 'プレーを続ける';
+
+  @override
+  String get flowReviewNow => 'ここまでの判断を振り返る';
+
+  @override
+  String get flowReplayPrevious => '前の試行を再生';
+
+  @override
+  String get flowBefore => '選択の直前';
+
+  @override
+  String get flowAfter => '選択した結果';
+
+  @override
+  String get flowOtherDecisions => '別の判断を振り返る';
+
+  @override
+  String get flowRestart => 'この状況を最初から';
+
+  @override
+  String get flowChooseCase => '状況を選ぶ';
+
+  @override
+  String get flowHelpTitle => '操作ガイド';
+
+  @override
+  String get flowHelpBody =>
+      'ファーストタッチ：ボール周辺の円で方向をタップします。円の外を選ぶと、その方向の円の端までタッチします。\n\nボール保持中：スペースを1回タップするとそこまでドリブルします。味方をタップするとパス、自分をタップすると少しキープします。\n\nパスを選んだ後：パサーが受け直す場所をタップします。パスと移動が同時に始まります。走る味方の到着マークをタップすると、そのスペースへスルーパスします。\n\n受けるたびにファーストタッチを選びます。移動中は次の判断を予約でき、×で取り消せます。攻撃側は選んだ動きだけを実行します。\n\nその他から判断を振り返れます。この判断から再挑戦を押すと同じ瞬間に戻ります。最初から、再生、12の状況選択もその他にあります。\n\nボールを持ったままどちらかのコーンゲートを通ると攻撃が終了します。';
+
+  @override
+  String get flowResultTouch => 'ファーストタッチ後もボールを保持しました。';
+
+  @override
+  String get flowResultMove => '選んだスペースへボールを運びました。';
+
+  @override
+  String flowResultPass(int number) {
+    return '$number番にパスがつながりました。';
+  }
+
+  @override
+  String get flowResultHold => '選手が動く間、ボールを保持しました。';
+
+  @override
+  String get flowAdvicePassRun => 'パサーの移動先を変えてリターンパスの道を比べてください。';
+
+  @override
+  String get flowAdviceHold => '守備が近づく前にタッチやパスをした場合と比べてください。';
+
+  @override
+  String get flowGoalFirstTouch => 'プレッシャーを外すファーストタッチ';
+
+  @override
+  String get flowGoalDrawDefender => '守備を引きつけて味方につなぐ';
+
+  @override
+  String get flowGoalSupportAngle => 'パス後に受け直す道を作る';
+
+  @override
+  String get flowGoalThroughPass => '走る味方の前のスペースにつなぐ';
+
+  @override
+  String get flowGoalBeatCover => 'カバーする守備を見て出口を探す';
+
+  @override
+  String get flowGoalChangeLane => '守備をかわして空いたコーンゲートへ方向転換';
+
+  @override
+  String get flowAdviceTouch => '守備から離れるタッチで、次のパスの道が開くか見てください。';
+
+  @override
+  String get flowAdviceCarry => '守備がふさぐ道を避け、横のスペースに運んでみてください。';
+
+  @override
+  String get flowAdviceThrough => '走る味方とボールの到着が合うスペースを探してください。';
 }

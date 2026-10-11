@@ -1,0 +1,411 @@
+import 'dart:math' as math;
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/domain/scan_pass/scan_pass_attack.dart';
+import 'package:football_note/domain/scan_pass/scan_pass_curriculum.dart';
+import 'package:football_note/domain/scan_pass/scan_pass_flow.dart';
+import 'package:football_note/domain/scan_pass/scan_pass_game.dart'
+    show ScanPassPoint;
+
+void main() {
+  const engine = FlowEngine();
+  AttackPlayer player(AttackState state, int number) =>
+      state.attackers.firstWhere((p) => p.number == number);
+  PracticeSession setup({
+    FlowFocus focus = FlowFocus.supportAngle,
+    List<AttackPlayer>? attackers,
+    List<AttackPlayer>? defenders,
+    bool firstTouch = false,
+  }) {
+    final team = attackers ??
+        const [
+          AttackPlayer(number: 6, position: ScanPassPoint(.15, .75)),
+          AttackPlayer(number: 8, position: ScanPassPoint(.37, .75)),
+        ];
+    final state = AttackState(
+        attackers: team,
+        defenders: defenders ??
+            const [
+              AttackPlayer(
+                  number: 2, opponent: true, position: ScanPassPoint(.85, .15)),
+              AttackPlayer(
+                  number: 3, opponent: true, position: ScanPassPoint(.90, .25)),
+            ],
+        ball: team.first.position,
+        carrierNumber: 6,
+        elapsed: 2);
+    final base = FlowEngine.catalog.first.lesson;
+    final started = engine.start(FlowCase(
+        focus: focus,
+        lesson: PracticeCase(
+          id: 'test-world',
+          skill: base.skill,
+          variant: 0,
+          stage: 2,
+          offsideEnabled: false,
+          gates: base.gates,
+          learning: base.learning,
+          observation: AttackTransition(
+              before: state,
+              after: state,
+              action: const AttackAction.pass(6),
+              duration: 0,
+              ballEnd: state.ball,
+              motionSamples: [state]),
+        )));
+    return PracticeSession(
+        lesson: started.lesson,
+        state: started.state,
+        phase: firstTouch ? PracticePhase.firstTouch : PracticePhase.onBall,
+        settings: started.settings,
+        history: started.history);
+  }
+
+  test(
+      'twelve defined cases start 2v2 with clear incoming passes and an escape',
+      () {
+    expect(FlowEngine.catalog, hasLength(12));
+    expect(FlowEngine.catalog.map((c) => c.lesson.id).toSet(), hasLength(12));
+    expect(FlowEngine.catalog.map((c) => c.focus).toSet(),
+        FlowFocus.values.toSet());
+    for (final item in FlowEngine.catalog) {
+      final start = engine.start(item);
+      expect(start.settings.freeFlow, isTrue);
+      expect(start.settings.controlAllAttackers, isTrue);
+      expect(start.settings.passAndMove, isFalse);
+      expect(start.phase, PracticePhase.firstTouch);
+      expect(start.state.attackers, hasLength(2));
+      expect(start.state.defenders, hasLength(2));
+      expect(item.lesson.learning.rubric.requireThirdPlayer, isFalse);
+      expect(item.lesson.learning.rubric.requireSwitch, isFalse);
+      expect(item.lesson.learning.cues.length, greaterThanOrEqualTo(2));
+      expect(item.lesson.offsideEnabled, isFalse);
+      for (final frame in item.lesson.observation.motionSamples) {
+        expect(
+            PracticeEngine.nearestDefender(frame, frame.ball), greaterThan(.72),
+            reason: '${item.lesson.id} opening ${frame.elapsed}');
+      }
+      var safeTouches = 0;
+      for (var angle = 0; angle < 12; angle++) {
+        final radians = angle * math.pi / 6;
+        final target = start.state.ball +
+            ScanPassPoint(
+                math.cos(radians) *
+                    FlowEngine.touchLimitMetres /
+                    PracticeEngine.fieldLength,
+                math.sin(radians) *
+                    FlowEngine.touchLimitMetres /
+                    PracticeEngine.fieldWidth);
+        final step = engine.touchTo(start, target);
+        if (step.session.outcome == null) {
+          safeTouches++;
+          expect(
+              PracticeEngine.distanceMetres(
+                  step.session.state.ball, engine.touchTarget(start, target)),
+              lessThan(.008));
+        }
+      }
+      expect(safeTouches, greaterThan(0), reason: item.lesson.id);
+    }
+  });
+
+  test('every authored focus is achievable through the public gesture controls',
+      () {
+    // Witnesses prove feasibility; they are not a unique answer or input to
+    // the recommendation/physics. Other valid routes remain valid. These
+    // commands deliberately cannot name an off-ball actor or change settings.
+    const examples = <String, List<(String, double, double)>>{
+      'flow-firstTouch-0': [('touch', 0.3375, 0.54)],
+      'flow-firstTouch-1': [('touch', 0.3375, 0.54)],
+      'flow-drawDefender-0': [
+        ('touch', 0.25, 0.5178571428571428),
+        ('pass', 0.55, 0.5178571428571428)
+      ],
+      'flow-drawDefender-1': [
+        ('touch', 0.25, 0.5178571428571428),
+        ('pass', 0.55, 0.5178571428571428)
+      ],
+      'flow-supportAngle-0': [
+        ('touch', 0.3775, 0.65),
+        ('pass', 0.6775, 0.65),
+        ('touch', 0.5775, 0.37),
+        ('pass', 0.8775, 0.37)
+      ],
+      'flow-supportAngle-1': [
+        ('touch', 0.2625, 0.65),
+        ('pass', 0.5625, 0.65),
+        ('touch', 0.5606586399182265, 0.4280837713117521),
+        ('pass', 0.8606586399182266, 0.4280837713117521)
+      ],
+      'flow-throughPass-0': [
+        ('touch', 0.3475, 0.65),
+        ('pass', 0.6475, 0.65),
+        ('touch', 0.5675, 0.38),
+        ('through', 0.8674999999999999, 0.38)
+      ],
+      'flow-throughPass-1': [
+        ('touch', 0.33065863991822647, 0.5919162286882479),
+        ('pass', 0.6306586399182265, 0.5919162286882479),
+        ('touch', 0.5506586399182265, 0.43808377131175213),
+        ('through', 0.8506586399182265, 0.43808377131175213)
+      ],
+      'flow-beatCover-0': [('touch', 0.42, 0.48214285714285715)],
+      'flow-beatCover-1': [('touch', 0.42, 0.48214285714285715)],
+      'flow-changeLane-0': [('touch', 0.4006586399182265, 0.3480837713117521)],
+      'flow-changeLane-1': [('touch', 0.4006586399182265, 0.3480837713117521)],
+    };
+    expect(examples.length, FlowEngine.catalog.length);
+    for (final item in FlowEngine.catalog) {
+      var session = engine.start(item);
+      for (final command in examples[item.lesson.id]!) {
+        final target = ScanPassPoint(command.$2, command.$3);
+        expect(
+            session.phase,
+            command.$1 == 'touch'
+                ? PracticePhase.firstTouch
+                : PracticePhase.onBall,
+            reason:
+                '${item.lesson.id}: ${command.$1} must be offered by the UI');
+        if (command.$1 == 'through') {
+          final receiver = session.state.attackers
+              .firstWhere((p) => p.number != session.state.carrierNumber);
+          final pendingTarget = engine.throughTarget(session);
+          expect(pendingTarget, isNotNull,
+              reason:
+                  'the public through control requires a previous support run');
+          expect(pendingTarget, same(session.runTargets[receiver.number]));
+          expect(
+              session.decisions.any((d) =>
+                  d.action.kind == PracticeActionKind.pass &&
+                  d.action.actorNumber == receiver.number),
+              isTrue,
+              reason:
+                  'the returning runner must have launched their own pass-and-support action');
+        }
+        final step = switch (command.$1) {
+          'touch' => engine.touchTo(session, target),
+          'move' => engine.moveTo(session, target),
+          'hold' => engine.hold(session),
+          'pass' || 'through' => engine.passAndMove(session,
+              runTarget: target, through: command.$1 == 'through'),
+          _ => throw StateError('Unsupported public flow command'),
+        };
+        expect(step.session.outcome, isNot(PracticeOutcome.intercepted),
+            reason: item.lesson.id);
+        session = step.session;
+      }
+      expect(session.goalDemonstrated, isTrue, reason: item.lesson.id);
+    }
+  });
+
+  test(
+      'touch range is physical and free in any direction; preview equals action',
+      () {
+    final start = setup(firstTouch: true);
+    const far = ScanPassPoint(.70, .20);
+    final bounded = engine.touchTarget(start, far);
+    expect(PracticeEngine.distanceMetres(start.state.ball, bounded),
+        closeTo(2.3, 1e-9));
+    final touch = engine.touchTo(start, far);
+    expect(touch.decision.action.target.distanceTo(bounded), closeTo(0, 1e-9));
+    expect(touch.session.state.ball.distanceTo(bounded), closeTo(0, 1e-6));
+    final backwards = engine.touchTo(start, const ScanPassPoint(.11, .78));
+    expect(backwards.session.state.ball.x, lessThan(start.state.ball.x));
+    expect(backwards.session.phase, PracticePhase.onBall);
+    expect(() => engine.touchTo(start, const ScanPassPoint(double.nan, .4)),
+        throwsArgumentError);
+  });
+
+  test(
+      'clicked carry and selected run destinations are never silently shortened',
+      () {
+    final start = setup();
+    const carryTarget = ScanPassPoint(.45, .80);
+    final carry = engine.moveTo(start, carryTarget);
+    expect(carry.session.finished, isFalse);
+    expect(
+        carry.decision.action.target.distanceTo(carryTarget), closeTo(0, 1e-9));
+    expect(PracticeEngine.distanceMetres(start.state.ball, carryTarget),
+        greaterThan(5.8));
+    expect(PracticeEngine.distanceMetres(carry.session.state.ball, carryTarget),
+        lessThan(.008));
+    expect(
+        player(carry.session.state, 8)
+            .position
+            .distanceTo(player(start.state, 8).position),
+        closeTo(0, 1e-9));
+    const runTarget = ScanPassPoint(.68, .82);
+    final run = engine.moveTo(start, runTarget, playerNumber: 8);
+    expect(run.session.finished, isFalse);
+    expect(run.decision.action.target.distanceTo(runTarget), closeTo(0, 1e-9));
+    expect(
+        PracticeEngine.distanceMetres(
+            player(start.state, 8).position, runTarget),
+        greaterThan(8));
+    expect(
+        PracticeEngine.distanceMetres(
+            player(run.session.state, 8).position, runTarget),
+        lessThan(.008));
+    expect(
+        run.session.state.ball.distanceTo(start.state.ball), closeTo(0, 1e-9));
+    expect(run.transitions, hasLength(1));
+  });
+
+  test(
+      'pass and support start together and pause at reception with the run pending',
+      () {
+    final start = setup();
+    const destination = ScanPassPoint(.70, .85);
+    final step = engine.passAndMove(start, runTarget: destination);
+    expect(step.transitions, hasLength(1));
+    expect(step.session.state.carrierNumber, 8);
+    expect(step.session.phase, PracticePhase.firstTouch);
+    expect(step.session.state.completedPasses, 1);
+    expect(step.session.returnTarget, isNull);
+    expect(
+        step.session.runTargets[6]!.distanceTo(destination), closeTo(0, 1e-9));
+    final frames = step.transitions.single.motionSamples;
+    expect(player(frames[1], 6).position.x,
+        greaterThan(player(frames.first, 6).position.x));
+    expect(frames[1].ball.x, greaterThan(frames.first.ball.x));
+    expect(
+        PracticeEngine.distanceMetres(
+            player(step.session.state, 6).position, destination),
+        greaterThan(10),
+        reason: 'reception does not finish the support run');
+    expect(step.decision.goalDemonstrated, isFalse);
+    for (final d in start.state.defenders) {
+      expect(
+          step.session.state.defenders
+              .firstWhere((p) => p.number == d.number)
+              .position
+              .distanceTo(d.position),
+          greaterThan(.001),
+          reason: 'both opponents react during the same action');
+    }
+    final touch = engine.touchTo(step.session, const ScanPassPoint(.40, .75));
+    expect(player(touch.session.state, 6).position.x,
+        greaterThan(player(step.session.state, 6).position.x));
+    expect(
+        touch.session.runTargets[6]!.distanceTo(destination), closeTo(0, 1e-9));
+    expect(touch.session.state.carrierNumber, 8);
+    expect(touch.session.phase, PracticePhase.onBall);
+    expect(touch.session.state.completedPasses, 1);
+  });
+
+  test(
+      'through pass uses only a commanded running endpoint and requires a new touch',
+      () {
+    final start = setup(focus: FlowFocus.throughPass);
+    expect(engine.throughTarget(start), isNull);
+    expect(
+        () => engine.passAndMove(start,
+            runTarget: start.state.ball, through: true),
+        throwsArgumentError);
+    const destination = ScanPassPoint(.45, .82);
+    final first = engine.passAndMove(start, runTarget: destination).session;
+    final touched =
+        engine.touchTo(first, const ScanPassPoint(.40, .75)).session;
+    expect(engine.throughTarget(touched)!.distanceTo(destination),
+        closeTo(0, 1e-9));
+    final returned = engine.passAndMove(touched,
+        runTarget: touched.state.carrier.position, through: true);
+    expect(returned.decision.action.kind, PracticeActionKind.through);
+    expect(returned.decision.action.target.distanceTo(destination),
+        closeTo(0, 1e-9));
+    expect(returned.session.state.carrierNumber, 6);
+    expect(returned.session.phase, PracticePhase.firstTouch);
+    expect(returned.session.state.completedPasses, 2);
+    expect(returned.session.runTargets.containsKey(6), isFalse);
+    expect(
+        PracticeEngine.distanceMetres(returned.session.state.ball, destination),
+        lessThan(.008));
+    final restored = engine.beforeDecision(returned.session, 2);
+    expect(restored.runTargets.keys.toSet(), {6, 8});
+    expect(restored.state, same(touched.state));
+    final repeated = engine.passAndMove(restored,
+        runTarget: touched.state.carrier.position, through: true);
+    expect(repeated.session.state.elapsed, returned.session.state.elapsed);
+    for (final p in returned.session.state.attackers) {
+      expect(
+          player(repeated.session.state, p.number)
+              .position
+              .distanceTo(p.position),
+          closeTo(0, 1e-9));
+    }
+  });
+
+  test(
+      'retry restores pending support plans and exactly repeats a combined pass',
+      () {
+    final start = setup();
+    const destination = ScanPassPoint(.68, .85);
+    final original = engine.passAndMove(start, runTarget: destination);
+    final restored = engine.beforeDecision(original.session, 0);
+    expect(restored.state, same(start.state));
+    expect(restored.phase, start.phase);
+    expect(restored.settings.freeFlow, isTrue);
+    expect(restored.outcome, isNull);
+    expect(restored.history, hasLength(start.history.length));
+    expect(restored.runTargets[6]!.distanceTo(destination), closeTo(0, 1e-9));
+    final repeated = engine.passAndMove(restored, runTarget: destination);
+    expect(repeated.session.state.elapsed, original.session.state.elapsed);
+    expect(repeated.transitions.single.motionSamples.length,
+        original.transitions.single.motionSamples.length);
+    for (var i = 0; i < original.transitions.single.motionSamples.length; i++) {
+      final a = original.transitions.single.motionSamples[i];
+      final b = repeated.transitions.single.motionSamples[i];
+      expect(a.ball.distanceTo(b.ball), closeTo(0, 1e-9));
+      for (final p in a.attackers) {
+        expect(p.position.distanceTo(player(b, p.number).position),
+            closeTo(0, 1e-9));
+      }
+    }
+    final changed =
+        engine.passAndMove(restored, runTarget: const ScanPassPoint(.15, .50));
+    expect(player(changed.session.state, 6).position.y,
+        lessThan(player(original.session.state, 6).position.y));
+    expect(original.session.history.length, start.history.length + 1);
+  });
+
+  test(
+      'steals really transfer possession; a moving ball alone cannot finish a gate',
+      () {
+    final trapped = setup(attackers: const [
+      AttackPlayer(number: 6, position: ScanPassPoint(.20, .50)),
+      AttackPlayer(number: 8, position: ScanPassPoint(.60, .50)),
+    ], defenders: const [
+      AttackPlayer(
+          number: 2, opponent: true, position: ScanPassPoint(.34, .50)),
+      AttackPlayer(
+          number: 3, opponent: true, position: ScanPassPoint(.70, .30)),
+    ]);
+    final stolen =
+        engine.passAndMove(trapped, runTarget: const ScanPassPoint(.20, .70));
+    expect(stolen.session.outcome, PracticeOutcome.intercepted);
+    expect(stolen.session.stolenBy, 2);
+    expect(stolen.session.state.carrier.opponent, isTrue);
+    expect(
+        stolen.session.state.ball
+            .distanceTo(stolen.session.state.carrier.position),
+        closeTo(0, 1e-9));
+    final gateWorld = setup(attackers: const [
+      AttackPlayer(number: 6, position: ScanPassPoint(.75, .23)),
+      AttackPlayer(number: 8, position: ScanPassPoint(.93, .23)),
+    ], defenders: const [
+      AttackPlayer(
+          number: 2, opponent: true, position: ScanPassPoint(.20, .80)),
+      AttackPlayer(
+          number: 3, opponent: true, position: ScanPassPoint(.15, .70)),
+    ]);
+    final pass = engine.passAndMove(gateWorld, runTarget: gateWorld.state.ball);
+    expect(pass.session.outcome, isNull);
+    expect(pass.session.phase, PracticePhase.firstTouch);
+    final carried = engine.moveTo(gateWorld, const ScanPassPoint(.94, .23));
+    expect(carried.session.outcome, PracticeOutcome.gateReached);
+    expect(carried.session.state.ball.x, closeTo(.88, 1e-9));
+    expect(carried.decision.action.target.x, .94,
+        reason:
+            'a real event interrupts the requested path; its endpoint is not silently shortened');
+  });
+}
