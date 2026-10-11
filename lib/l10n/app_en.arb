@@ -11764,6 +11764,23 @@
       }
     }
   },
+  "flowPrepareTouch": "Pass travelling to No. {number}. Tap space to prepare the first touch.",
+  "@flowPrepareTouch": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "flowTouchPrepared": "First touch for No. {number} is prepared for arrival.",
+  "@flowTouchPrepared": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "flowPassTravelling": "Pass travelling. Wait for the receiver.",
   "flowChooseRun": "No. {number} supports automatically after the pass.",
   "@flowChooseRun": {
     "placeholders": {
@@ -11779,6 +11796,7 @@
   "flowPassLabel": "Pass",
   "flowThrough": "Pass into the planned run",
   "flowFirstTouchBadge": "FIRST TOUCH",
+  "flowPrepareTouchBadge": "PREP TOUCH",
   "flowResult": "Result",
   "flowWhy": "Why",
   "flowTry": "Try next",
@@ -11814,5 +11832,7 @@
   "flowGoalChangeLane": "Change direction to reach an open cone gate.",
   "flowAdviceTouch": "Try touching away from pressure and see whether the next pass opens.",
   "flowAdviceCarry": "Try carrying into side space beyond the defender’s reach.",
-  "flowAdviceThrough": "Find where the runner and the arriving ball can meet."
+  "flowAdviceThrough": "Find where the runner and the arriving ball can meet.",
+  "flowTouchInMotion": "Taking the first touch · Choose the next dribble or pass.",
+  "flowMoveInMotion": "Moving · Choose the next dribble or pass."
 }

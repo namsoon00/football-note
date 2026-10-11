@@ -20404,6 +20404,19 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String flowPrepareTouch(int number) {
+    return 'パスは$number番へ移動中です。スペースをタップしてファーストタッチを準備してください。';
+  }
+
+  @override
+  String flowTouchPrepared(int number) {
+    return '$number番の到着時のファーストタッチを準備しました。';
+  }
+
+  @override
+  String get flowPassTravelling => 'パスが移動中です。受け手を待ってください。';
+
+  @override
   String flowChooseRun(int number) {
     return '$number番はパス後に自動でサポート位置を取ります。';
   }
@@ -20428,6 +20441,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get flowFirstTouchBadge => 'ファーストタッチ';
+
+  @override
+  String get flowPrepareTouchBadge => 'タッチ準備';
 
   @override
   String get flowResult => '結果';
@@ -20519,4 +20535,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get flowAdviceThrough => '走る味方とボールの到着が合うスペースを探してください。';
+
+  @override
+  String get flowTouchInMotion => 'ファーストタッチ中 · 次のドリブルやパスを選べます。';
+
+  @override
+  String get flowMoveInMotion => '移動中 · 次のドリブルやパスを選べます。';
 }

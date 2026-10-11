@@ -36022,6 +36022,24 @@ abstract class AppLocalizations {
   /// **'No. {number}: tap space to dribble, or the Pass ring on No. {receiver}.'**
   String flowChooseBall(int number, int receiver);
 
+  /// No description provided for @flowPrepareTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass travelling to No. {number}. Tap space to prepare the first touch.'**
+  String flowPrepareTouch(int number);
+
+  /// No description provided for @flowTouchPrepared.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch for No. {number} is prepared for arrival.'**
+  String flowTouchPrepared(int number);
+
+  /// No description provided for @flowPassTravelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass travelling. Wait for the receiver.'**
+  String get flowPassTravelling;
+
   /// No description provided for @flowChooseRun.
   ///
   /// In en, this message translates to:
@@ -36069,6 +36087,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'FIRST TOUCH'**
   String get flowFirstTouchBadge;
+
+  /// No description provided for @flowPrepareTouchBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'PREP TOUCH'**
+  String get flowPrepareTouchBadge;
 
   /// No description provided for @flowResult.
   ///
@@ -36243,6 +36267,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Find where the runner and the arriving ball can meet.'**
   String get flowAdviceThrough;
+
+  /// No description provided for @flowTouchInMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Taking the first touch · Choose the next dribble or pass.'**
+  String get flowTouchInMotion;
+
+  /// No description provided for @flowMoveInMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Moving · Choose the next dribble or pass.'**
+  String get flowMoveInMotion;
 }
 
 class _AppLocalizationsDelegate

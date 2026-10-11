@@ -30,6 +30,13 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
   Map<int, ScanPassPoint> _movingRuns = const {};
   PracticeAction? _intent;
   PracticeDecision? _previousAttempt;
+  PracticeStep? _pendingStep;
+  (double, TextScaler, TextStyle, String, TextDirection)? _headerMeasureKey;
+  double _headerInstructionHeight = 0;
+
+  // During the opening pass the authored receiving session is already known.
+  PracticeSession? get _upcomingSession =>
+      _pendingStep?.session ?? (_busy && !_replaying ? _session : null);
   _FlowCommand? _queued;
   ScanPassPoint? _hover;
   VoidCallback? _afterMotion;
@@ -52,8 +59,8 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
       ? null
       : _session
           .decisions[_reviewIndex.clamp(0, _session.decisions.length - 1)];
-  int get _receiver => _session.state.attackers
-      .firstWhere((p) => p.number != _session.state.carrierNumber)
+  int _receiverFor(PracticeSession session) => session.state.attackers
+      .firstWhere((p) => p.number != session.state.carrierNumber)
       .number;
 
   @override
@@ -118,13 +125,15 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
       _queued = null;
       _hover = null;
       _previousAttempt = null;
+      _pendingStep = null;
       _intent = null;
       _movingRuns = const {};
       _reviewIndex = 0;
       _replaying = false;
       _replayingPrevious = false;
     });
-    _animate([_case.lesson.observation], _completeAction, opening: true);
+    _animate([_case.lesson.observation], () => _completeAction(null),
+        opening: true);
   }
 
   void _animate(List<AttackTransition> transitions, VoidCallback done,
@@ -177,14 +186,29 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
     return (transition: _motion.last, progress: 1);
   }
 
-  AttackState get _display {
-    final active = _active;
+  AttackState _displayFor(
+      ({AttackTransition transition, double progress})? active) {
     if (active != null) return active.transition.frame(active.progress);
     final decision = _decision;
     if (_review && decision != null) {
       return _before ? decision.before : decision.after;
     }
     return _session.state;
+  }
+
+  bool _isPassActive(
+          ({AttackTransition transition, double progress})? active) =>
+      active != null &&
+      (active.transition.action.kind == AttackActionKind.pass ||
+          active.transition.action.kind == AttackActionKind.shoot) &&
+      active.transition.after.end != AttackEnd.offside;
+
+  PracticeSession _controlSession(
+      ({AttackTransition transition, double progress})? active) {
+    if (!_busy || _pendingStep == null || _isPassActive(active)) {
+      return _session;
+    }
+    return _pendingStep!.session;
   }
 
   Map<int, ScanPassPoint> get _visibleRuns {
@@ -198,7 +222,14 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
     return _session.runTargets;
   }
 
-  void _completeAction() {
+  void _completeAction(PracticeStep? completed) {
+    if (completed != null) {
+      setState(() {
+        _session = completed.session;
+        _reviewIndex = _session.decisions.length - 1;
+        _pendingStep = null;
+      });
+    }
     if (_session.finished) {
       setState(() {
         _review = true;
@@ -250,18 +281,20 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
       PracticeActionKind.hold => _engine.hold(before),
     };
     setState(() {
-      _session = step.session;
+      _pendingStep = step;
       _intent = step.decision.action;
       _movingRuns = step.decision.runTargetsBefore;
-      _reviewIndex = _session.decisions.length - 1;
     });
-    _animate(step.transitions, _completeAction);
+    _animate(step.transitions, () => _completeAction(step));
   }
 
   void _choosePass({bool through = false}) {
+    final active = _active;
+    final controlSession = _controlSession(active);
     if (_review ||
-        _session.finished ||
-        _session.phase == PracticePhase.firstTouch) {
+        controlSession.finished ||
+        _isPassActive(active) ||
+        controlSession.phase == PracticePhase.firstTouch) {
       return;
     }
     _submit(_FlowCommand(
@@ -270,6 +303,20 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
 
   void _tapSpace(ScanPassPoint point) {
     if (_review || _session.finished || _replaying) return;
+    if (_busy) {
+      final active = _active;
+      final future = _upcomingSession;
+      if (future == null || future.finished) return;
+      if (_isPassActive(active) && future.phase == PracticePhase.firstTouch) {
+        _submit(_FlowCommand(
+            PracticeActionKind.touch, _engine.touchTarget(future, point)));
+      } else if (!_isPassActive(active) &&
+          future.phase != PracticePhase.firstTouch) {
+        _submit(_FlowCommand(
+            PracticeActionKind.carry, PracticeEngine.boundedTarget(point)));
+      }
+      return;
+    }
     if (_session.phase == PracticePhase.firstTouch) {
       _submit(_FlowCommand(
           PracticeActionKind.touch, _engine.touchTarget(_session, point)));
@@ -304,6 +351,7 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
       _paused = false;
       _queued = null;
       _intent = null;
+      _pendingStep = null;
       _hover = null;
       _movingRuns = const {};
       _pendingPass = false;
@@ -442,17 +490,39 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
     if (_replayingPrevious) return _l.flowReplayPrevious;
     if (_replaying) return _l.practiceReplayMine;
     if (_review) return _before ? _l.flowBefore : _l.flowAfter;
+    final active = _active;
+    final future = _upcomingSession;
+    if (_isPassActive(active) &&
+        future != null &&
+        future.phase == PracticePhase.firstTouch) {
+      final receiver = future.state.carrierNumber;
+      if (_queued?.kind == PracticeActionKind.touch) {
+        return _l.flowTouchPrepared(receiver);
+      }
+      return _l.flowPrepareTouch(receiver);
+    }
+    if (_isPassActive(active)) return _l.flowPassTravelling;
     if (_queued != null) return _l.flowQueued;
+    if (_busy && _intent?.kind == PracticeActionKind.touch) {
+      return _l.flowTouchInMotion;
+    }
+    if (_busy &&
+        (_intent?.kind == PracticeActionKind.carry ||
+            _intent?.kind == PracticeActionKind.move)) {
+      return _l.flowMoveInMotion;
+    }
     if (_session.finished) return _l.flowPlaying;
     if (_session.phase == PracticePhase.firstTouch) {
       return _l.flowChooseTouch(_session.state.carrierNumber);
     }
-    return _l.flowChooseBall(_session.state.carrierNumber, _receiver);
+    return _l.flowChooseBall(
+        _session.state.carrierNumber, _receiverFor(_session));
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = _ScanPassColors.of(context);
+    final feedback = _review ? _feedback() : null;
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
@@ -481,107 +551,188 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
         top: false,
         child: AnimatedBuilder(
           animation: _controller,
-          builder: (context, _) =>
-              LayoutBuilder(builder: (context, constraints) {
-            final wide = constraints.maxWidth > constraints.maxHeight * 1.55;
-            final portrait = constraints.maxHeight > constraints.maxWidth * 1.1;
-            final field = _field(portrait);
-            if (!_review) return field;
-            if (wide) {
-              return Row(children: [
+          child: _fieldHeader(),
+          builder: (context, header) {
+            final active = _active;
+            final display = _displayFor(active);
+            return LayoutBuilder(builder: (context, constraints) {
+              final wide = constraints.maxWidth > constraints.maxHeight * 1.55;
+              final portrait =
+                  constraints.maxHeight > constraints.maxWidth * 1.1;
+              final field = _field(portrait, display, active, header!);
+              if (!_review) return field;
+              if (wide) {
+                return Row(children: [
+                  Expanded(child: field),
+                  SizedBox(
+                      width: math.min(340, constraints.maxWidth * .44),
+                      child: feedback),
+                ]);
+              }
+              return Column(children: [
                 Expanded(child: field),
                 SizedBox(
-                    width: math.min(340, constraints.maxWidth * .44),
-                    child: _feedback()),
+                    height: math.min(300, constraints.maxHeight * .47),
+                    child: feedback),
               ]);
-            }
-            return Column(children: [
-              Expanded(child: field),
-              SizedBox(
-                  height: math.min(300, constraints.maxHeight * .47),
-                  child: _feedback()),
-            ]);
-          }),
+            });
+          },
         ),
       ),
     );
   }
 
-  Widget _field(bool portrait) {
+  // Cache the tallest localized instruction for this width and font scale.
+  // The field must not move when a pass, a queued action or its cancel control
+  // changes the instruction. This widget is also reused between animation ticks.
+  double _instructionHeight(double width, TextStyle style) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    final key = (width, scaler, style, _l.localeName, direction);
+    if (_headerMeasureKey == key) return _headerInstructionHeight;
+    final messages = [
+      _l.flowChooseTouch(6),
+      _l.flowChooseBall(6, 8),
+      _l.flowPrepareTouch(8),
+      _l.flowTouchPrepared(8),
+      _l.flowPassTravelling,
+      _l.flowTouchInMotion,
+      _l.flowMoveInMotion,
+      _l.flowQueued,
+      _l.flowPlaying,
+      _l.flowReplayPrevious,
+      _l.practiceReplayMine,
+      _l.flowBefore,
+      _l.flowAfter,
+    ];
+    var height = 0.0;
+    for (final message in messages) {
+      final painter = TextPainter(
+        text: TextSpan(text: _l.flowNowLine(message), style: style),
+        textDirection: direction,
+        textScaler: scaler,
+        locale: Localizations.localeOf(context),
+      )..layout(maxWidth: width);
+      height = math.max(height, painter.height);
+      painter.dispose();
+    }
+    _headerMeasureKey = key;
+    return _headerInstructionHeight = height.ceilToDouble() + 1;
+  }
+
+  Widget _fieldHeader() {
     final colors = _ScanPassColors.of(context);
-    final selected =
-        _review || _session.finished ? null : _session.state.carrierNumber;
+    final instruction = _l.flowNowLine(_instruction);
+    final style = (Theme.of(context).textTheme.bodyMedium ?? const TextStyle())
+        .copyWith(
+            fontSize: 14, fontWeight: FontWeight.w700, color: colors.text);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 8, 0),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final height =
+            _instructionHeight(math.max(1.0, constraints.maxWidth - 48), style);
+        return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_l.flowGoalLine(_flowGoal(_l, _case.focus)),
+                    style: TextStyle(fontSize: 12, color: colors.text)),
+                const SizedBox(height: 5),
+                SizedBox(
+                  height: height,
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(instruction,
+                        key: const ValueKey('flow-instruction'), style: style),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: _pendingPass || _queued != null
+                ? AppBarActionButton(
+                    key: const ValueKey('flow-cancel'),
+                    compact: true,
+                    margin: EdgeInsets.zero,
+                    tooltip: _l.flowCancelChoice,
+                    icon: const Icon(Icons.close, size: 20),
+                    onPressed: () => setState(() {
+                          _pendingPass = false;
+                          _pendingThrough = false;
+                          _queued = null;
+                          _hover = null;
+                        }))
+                : Center(
+                    child: Text(
+                      _l.flowCaseNumber(
+                          _caseIndex + 1, FlowEngine.catalog.length),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 11, color: colors.text),
+                    ),
+                  ),
+          ),
+        ]);
+      }),
+    );
+  }
+
+  Widget _field(bool portrait, AttackState display,
+      ({AttackTransition transition, double progress})? active, Widget header) {
+    final controlSession = _controlSession(active);
+    final passInFlight = _isPassActive(active);
+    final future = _upcomingSession;
+    final preparingTouch = passInFlight &&
+        future != null &&
+        !future.finished &&
+        future.phase == PracticePhase.firstTouch;
+    final selected = _review || _session.finished || display.carrierIsDefender
+        ? null
+        : display.carrierNumber;
     final showActions = !_review &&
         !_pendingPass &&
-        !_session.finished &&
-        _session.phase != PracticePhase.firstTouch;
-    final through = showActions ? _engine.throughTarget(_session) : null;
+        !controlSession.finished &&
+        !passInFlight &&
+        controlSession.phase != PracticePhase.firstTouch;
+    final through = showActions ? _engine.throughTarget(controlSession) : null;
     final touchOrigin = !_review &&
             !_pendingPass &&
-            !_session.finished &&
-            _session.phase == PracticePhase.firstTouch
-        ? _session.state.carrier.position
+            !controlSession.finished &&
+            (preparingTouch ||
+                (!passInFlight &&
+                    controlSession.phase == PracticePhase.firstTouch))
+        ? (preparingTouch
+            ? future.state.carrier.position
+            : controlSession.state.carrier.position)
         : null;
     return ColoredBox(
       color: Theme.of(context).brightness == Brightness.dark
           ? const Color(0xFF1B3931)
           : const Color(0xFFD4E1D5),
       child: Column(children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 8, 0),
-          child: Row(children: [
-            Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(_l.flowGoalLine(_flowGoal(_l, _case.focus)),
-                        style: TextStyle(fontSize: 12, color: colors.text)),
-                    const SizedBox(height: 5),
-                    Text(_l.flowNowLine(_instruction),
-                        key: const ValueKey('flow-instruction'),
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: colors.text)),
-                  ]),
-            ),
-            if (_pendingPass || _queued != null)
-              IconButton(
-                  key: const ValueKey('flow-cancel'),
-                  tooltip: _l.flowCancelChoice,
-                  icon: const Icon(Icons.close, size: 20),
-                  onPressed: () => setState(() {
-                        _pendingPass = false;
-                        _pendingThrough = false;
-                        _queued = null;
-                        _hover = null;
-                      }))
-            else
-              Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                      _l.flowCaseNumber(
-                          _caseIndex + 1, FlowEngine.catalog.length),
-                      style: TextStyle(fontSize: 11, color: colors.text))),
-          ]),
-        ),
+        header,
         Expanded(child: LayoutBuilder(builder: (context, constraints) {
           final size = constraints.biggest;
           final geometry = _PracticeGeometry(size, portrait: portrait);
-          final active = _active;
           ScanPassPoint? target = _queued?.target ?? _hover;
           if (target != null && touchOrigin != null) {
-            target = _engine.touchTarget(_session, target);
+            target = _engine.touchTarget(
+                preparingTouch ? future : controlSession, target);
           }
-          final receiverPosition = _session.finished
+          final receiver = _receiverFor(controlSession);
+          final receiverPosition = controlSession.finished
               ? null
-              : _display.attackers
-                  .firstWhere((p) => p.number == _receiver)
+              : display.attackers
+                  .firstWhere((p) => p.number == receiver)
                   .position;
-          final carrierPosition = _session.finished
+          final carrierPosition = controlSession.finished
               ? null
-              : _display.attackers
-                  .firstWhere((p) => p.number == _session.state.carrierNumber)
+              : display.attackers
+                  .firstWhere(
+                      (p) => p.number == controlSession.state.carrierNumber)
                   .position;
           final receiverOffset = receiverPosition == null
               ? null
@@ -593,12 +744,29 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
           final throughAnchor =
               through == null ? null : geometry.toOffset(through);
           Offset? throughOffset = throughAnchor;
+          Offset? passLabelOffset;
           final controlLinks = <(Offset, Offset)>[];
           if (showActions && receiverOffset != null && holdOffset != null) {
-            final reserved = <Rect>[
-              Rect.fromCenter(center: receiverOffset, width: 72, height: 72)
-                  .inflate(5),
-            ];
+            const passLabelSize = Size(58, 24);
+            final reserved = _flowReservedRects(display, geometry);
+            passLabelOffset = _flowRectCenter(
+              receiverOffset + const Offset(0, -56),
+              size,
+              passLabelSize,
+              reserved,
+            );
+            if ((passLabelOffset - receiverOffset).distance > 34) {
+              controlLinks.add((passLabelOffset, receiverOffset));
+            }
+            reserved
+              ..add(Rect.fromCenter(
+                      center: passLabelOffset,
+                      width: passLabelSize.width,
+                      height: passLabelSize.height)
+                  .inflate(5))
+              ..add(
+                  Rect.fromCenter(center: receiverOffset, width: 72, height: 72)
+                      .inflate(5));
             holdOffset = _flowControlCenter(holdOffset, size, reserved);
             if ((holdOffset - carrierAnchor!).distance > 1) {
               controlLinks.add((holdOffset, carrierAnchor));
@@ -632,7 +800,7 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
                   child: CustomPaint(
                     key: const ValueKey('flow-pitch-paint'),
                     painter: _FlowPitchPainter(
-                      state: _display,
+                      state: display,
                       lesson: _case.lesson,
                       l10n: _l,
                       brightness: Theme.of(context).brightness,
@@ -648,21 +816,27 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
                       touchOrigin: touchOrigin,
                       controlLinks: controlLinks,
                       preview: target,
-                      previewOrigin: _session.finished
+                      previewOrigin: controlSession.finished
                           ? null
-                          : _session.state.carrier.position,
+                          : (touchOrigin ??
+                              controlSession.state.carrier.position),
                       previewTouch: touchOrigin != null,
                       pendingPassTarget: _pendingPass
                           ? _pendingThrough
-                              ? _engine.throughTarget(_session)
+                              ? _engine.throughTarget(controlSession)
                               : receiverPosition
                           : null,
                     ),
                   ),
                 ),
                 if (showActions) ...[
-                  _passControl('flow-pass', _l.practicePass(_receiver),
-                      _l.flowPassLabel, receiverOffset!, () => _choosePass()),
+                  ..._passControl(
+                      'flow-pass',
+                      _l.practicePass(receiver),
+                      _l.flowPassLabel,
+                      receiverOffset!,
+                      passLabelOffset!,
+                      () => _choosePass()),
                   if (throughOffset != null)
                     _jerseyControl('flow-through', _l.flowThrough,
                         throughOffset, () => _choosePass(through: true),
@@ -678,7 +852,9 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
                           : null),
                 ],
                 if (touchOrigin != null)
-                  _firstTouchBadge(geometry, touchOrigin),
+                  _firstTouchBadge(geometry, touchOrigin,
+                      _flowReservedRects(display, geometry),
+                      preparing: preparingTouch),
               ]),
             ),
           );
@@ -687,73 +863,72 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
     );
   }
 
-  Widget _passControl(String key, String label, String shortLabel,
-          Offset center, VoidCallback action) =>
-      Positioned(
-        left: center.dx - 36,
-        top: center.dy - 36,
-        width: 72,
-        height: 72,
-        child: Tooltip(
-          message: label,
-          child: Semantics(
-            label: label,
-            button: true,
-            child: Stack(alignment: Alignment.center, children: [
-              IgnorePointer(
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border:
-                        Border.all(color: const Color(0xFFFFD166), width: 3),
-                    boxShadow: const [
-                      BoxShadow(
-                          color: Color(0x66000000),
-                          blurRadius: 4,
-                          offset: Offset(0, 1)),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 0,
-                child: IgnorePointer(
+  List<Widget> _passControl(String key, String label, String shortLabel,
+          Offset center, Offset labelCenter, VoidCallback action) =>
+      [
+        Positioned(
+          left: center.dx - 36,
+          top: center.dy - 36,
+          width: 72,
+          height: 72,
+          child: Tooltip(
+            message: label,
+            child: Semantics(
+              label: label,
+              button: true,
+              child: Stack(alignment: Alignment.center, children: [
+                IgnorePointer(
                   child: DecoratedBox(
+                    key: const ValueKey('flow-pass-ring-visual'),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF173D35),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFFFD166)),
+                      shape: BoxShape.circle,
+                      color: Colors.transparent,
+                      border:
+                          Border.all(color: const Color(0xFFFFD166), width: 3),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 2),
-                      child: Text(shortLabel,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800)),
-                    ),
+                    child: const SizedBox(width: 56, height: 56),
                   ),
                 ),
-              ),
-              TextButton(
-                key: ValueKey(key),
-                onPressed: action,
-                style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    shape: const CircleBorder(),
-                    backgroundColor: Colors.transparent),
-                child: const SizedBox.expand(),
-              ),
-            ]),
+                TextButton(
+                  key: ValueKey(key),
+                  onPressed: action,
+                  style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      shape: const CircleBorder(),
+                      backgroundColor: Colors.transparent),
+                  child: const SizedBox.expand(),
+                ),
+              ]),
+            ),
           ),
         ),
-      );
+        Positioned(
+          left: labelCenter.dx - 29,
+          top: labelCenter.dy - 12,
+          width: 58,
+          height: 24,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              key: const ValueKey('flow-pass-label'),
+              decoration: BoxDecoration(
+                color: const Color(0xFF173D35).withValues(alpha: .90),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFFFD166)),
+              ),
+              child: Center(
+                child: Text(shortLabel,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800)),
+              ),
+            ),
+          ),
+        ),
+      ];
 
   Widget _jerseyControl(
           String key, String label, Offset center, VoidCallback action,
@@ -785,23 +960,28 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
         ),
       );
 
-  Widget _firstTouchBadge(_PracticeGeometry geometry, ScanPassPoint origin) {
+  Widget _firstTouchBadge(
+      _PracticeGeometry geometry, ScanPassPoint origin, List<Rect> reserved,
+      {bool preparing = false}) {
     final at = geometry.toOffset(origin);
     final edge = geometry.toOffset(ScanPassPoint(
         origin.x + FlowEngine.touchLimitMetres / PracticeEngine.fieldLength,
         origin.y));
     final radius = (edge - at).distance;
-    final rightLeft = at.dx + radius + 8;
-    final leftLeft = at.dx - radius - 132;
-    final rawLeft =
-        rightLeft + 124 <= geometry.size.width - 6 ? rightLeft : leftLeft;
-    final maxLeft = math.max(6.0, geometry.size.width - 130);
-    final maxTop = math.max(6.0, geometry.size.height - 34);
+    const badgeSize = Size(124, 28);
+    final rightCenter = Offset(at.dx + radius + 8 + badgeSize.width / 2, at.dy);
+    final leftCenter = Offset(at.dx - radius - 8 - badgeSize.width / 2, at.dy);
+    final preferred =
+        rightCenter.dx + badgeSize.width / 2 <= geometry.size.width - 6
+            ? rightCenter
+            : leftCenter;
+    final center =
+        _flowRectCenter(preferred, geometry.size, badgeSize, reserved);
     return Positioned(
-      left: rawLeft.clamp(6.0, maxLeft).toDouble(),
-      top: (at.dy - 14).clamp(6.0, maxTop).toDouble(),
-      width: 124,
-      height: 28,
+      left: center.dx - badgeSize.width / 2,
+      top: center.dy - badgeSize.height / 2,
+      width: badgeSize.width,
+      height: badgeSize.height,
       child: IgnorePointer(
         child: DecoratedBox(
           key: const ValueKey('flow-first-touch-badge'),
@@ -811,7 +991,8 @@ class _ScanPassFlowScreenState extends State<ScanPassFlowScreen>
             border: Border.all(color: const Color(0xFFFFE6A3)),
           ),
           child: Center(
-            child: Text(_l.flowFirstTouchBadge,
+            child: Text(
+                preparing ? _l.flowPrepareTouchBadge : _l.flowFirstTouchBadge,
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -968,6 +1149,64 @@ Offset _flowControlCenter(Offset desired, Size size, List<Rect> reserved) {
   for (var radius = 28.0;
       radius <= math.max(size.width, size.height);
       radius += 28) {
+    final candidates = <Offset>[
+      for (var direction = 0; direction < 16; direction++)
+        bounded(desired +
+            Offset(math.cos(direction * math.pi / 8),
+                    math.sin(direction * math.pi / 8)) *
+                radius),
+    ].where(clear).toList()
+      ..sort(
+          (a, b) => (a - desired).distance.compareTo((b - desired).distance));
+    if (candidates.isNotEmpty) return candidates.first;
+  }
+  return initial;
+}
+
+List<Rect> _flowReservedRects(AttackState state, _PracticeGeometry geometry) {
+  final playerRadius = math.max(11.0, geometry.size.shortestSide * .037);
+  final rects = <Rect>[
+    for (final player in [...state.attackers, ...state.defenders])
+      Rect.fromCenter(
+        center: geometry.toOffset(player.position),
+        width: playerRadius * 3.4,
+        height: playerRadius * 4.5,
+      ).inflate(3),
+  ];
+  final ballRadius = math.max(
+    geometry.size.width >= 700 ? 8.0 : 5.0,
+    geometry.size.shortestSide * .014,
+  );
+  rects.add(Rect.fromCircle(
+          center: geometry.toOffset(state.ball), radius: ballRadius * 1.8)
+      .inflate(3));
+  return rects;
+}
+
+Offset _flowRectCenter(
+    Offset desired, Size size, Size rectSize, List<Rect> reserved) {
+  final minX = rectSize.width / 2 + 6;
+  final minY = rectSize.height / 2 + 6;
+  final maxX = math.max(minX, size.width - rectSize.width / 2 - 6);
+  final maxY = math.max(minY, size.height - rectSize.height / 2 - 6);
+  Offset bounded(Offset point) => Offset(
+        point.dx.clamp(minX, maxX).toDouble(),
+        point.dy.clamp(minY, maxY).toDouble(),
+      );
+  bool clear(Offset point) {
+    final rect = Rect.fromCenter(
+      center: point,
+      width: rectSize.width,
+      height: rectSize.height,
+    );
+    return reserved.every((item) => !item.overlaps(rect));
+  }
+
+  final initial = bounded(desired);
+  if (clear(initial)) return initial;
+  for (var radius = 22.0;
+      radius <= math.max(size.width, size.height);
+      radius += 22) {
     final candidates = <Offset>[
       for (var direction = 0; direction < 16; direction++)
         bounded(desired +

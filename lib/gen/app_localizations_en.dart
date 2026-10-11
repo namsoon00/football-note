@@ -21243,6 +21243,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String flowPrepareTouch(int number) {
+    return 'Pass travelling to No. $number. Tap space to prepare the first touch.';
+  }
+
+  @override
+  String flowTouchPrepared(int number) {
+    return 'First touch for No. $number is prepared for arrival.';
+  }
+
+  @override
+  String get flowPassTravelling => 'Pass travelling. Wait for the receiver.';
+
+  @override
   String flowChooseRun(int number) {
     return 'No. $number supports automatically after the pass.';
   }
@@ -21267,6 +21280,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get flowFirstTouchBadge => 'FIRST TOUCH';
+
+  @override
+  String get flowPrepareTouchBadge => 'PREP TOUCH';
 
   @override
   String get flowResult => 'Result';
@@ -21365,4 +21381,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get flowAdviceThrough =>
       'Find where the runner and the arriving ball can meet.';
+
+  @override
+  String get flowTouchInMotion =>
+      'Taking the first touch · Choose the next dribble or pass.';
+
+  @override
+  String get flowMoveInMotion => 'Moving · Choose the next dribble or pass.';
 }
