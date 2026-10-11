@@ -6,10 +6,12 @@ import 'scan_pass_game.dart' show ScanPassPoint;
 class PracticeSettings {
   final bool controlAllAttackers;
   final bool passAndMove;
+  final bool freeFlow;
 
   const PracticeSettings({
     this.controlAllAttackers = true,
     this.passAndMove = false,
+    this.freeFlow = false,
   });
 }
 
@@ -268,6 +270,7 @@ class PracticeEngine {
   static const double fieldWidth = 28;
   static const int decisionLimit = 8;
   static const int manualDecisionLimit = 16;
+  static const double freeFlowTouchLimit = 2.3;
   static const double _step = .025;
   static final List<PracticeCase> catalog = List.unmodifiable([
     for (final skill in PracticeSkill.values)
@@ -345,7 +348,8 @@ class PracticeEngine {
     return _ballChoices(session.lesson, state,
         returnTarget:
             session.settings.passAndMove ? session.returnTarget : null,
-        runTargets: session.runTargets);
+        runTargets: session.runTargets,
+        allowUnplannedThrough: !session.settings.freeFlow);
   }
 
   /// Plans change no time, history or possession. They execute only when the
@@ -359,8 +363,10 @@ class PracticeEngine {
     _requireFinite(target);
     return _withRunTargets(session, {
       ...session.runTargets,
-      playerNumber: _toward(_player(session.state, playerNumber).position,
-          boundedTarget(target), 8),
+      playerNumber: session.settings.freeFlow
+          ? boundedTarget(target)
+          : _toward(_player(session.state, playerNumber).position,
+              boundedTarget(target), 8),
     });
   }
 
@@ -413,8 +419,10 @@ class PracticeEngine {
           id: offBall ? 'move-custom' : 'carry-custom',
           kind: offBall ? PracticeActionKind.move : PracticeActionKind.carry,
           actorNumber: number,
-          target: _toward(_player(session.state, number).position,
-              boundedTarget(target), offBall ? 8 : 5.8),
+          target: session.settings.freeFlow
+              ? boundedTarget(target)
+              : _toward(_player(session.state, number).position,
+                  boundedTarget(target), offBall ? 8 : 5.8),
         ));
   }
 
@@ -456,6 +464,14 @@ class PracticeEngine {
           action.receiver != session.returnTarget) {
         throw ArgumentError('The next pass must return to the previous passer');
       }
+      if (session.settings.freeFlow &&
+          action.kind == PracticeActionKind.through &&
+          (session.runTargets[action.receiver] == null ||
+              distanceMetres(
+                      action.target, session.runTargets[action.receiver]!) >
+                  .05)) {
+        throw ArgumentError('A through pass needs a commanded receiver run');
+      }
       if (action.kind == PracticeActionKind.pass &&
           distanceMetres(
                   action.target, _player(state, action.receiver!).position) >
@@ -464,17 +480,21 @@ class PracticeEngine {
       }
     }
     final target = switch (action.kind) {
-      PracticeActionKind.move => _toward(
-          _player(state, actor).position, boundedTarget(action.target), 8),
-      PracticeActionKind.touch => _toward(
-          _player(state, actor).position, boundedTarget(action.target), 2.3),
-      PracticeActionKind.carry => _toward(
-          _player(state, actor).position, boundedTarget(action.target), 5.8),
+      PracticeActionKind.move => session.settings.freeFlow
+          ? boundedTarget(action.target)
+          : _toward(
+              _player(state, actor).position, boundedTarget(action.target), 8),
+      PracticeActionKind.touch => _toward(_player(state, actor).position,
+          boundedTarget(action.target), freeFlowTouchLimit),
+      PracticeActionKind.carry => session.settings.freeFlow
+          ? boundedTarget(action.target)
+          : _toward(_player(state, actor).position,
+              boundedTarget(action.target), 5.8),
       PracticeActionKind.pass => _player(state, action.receiver!).position,
-      PracticeActionKind.through => _toward(
-          _player(state, action.receiver!).position,
-          boundedTarget(action.target),
-          8),
+      PracticeActionKind.through => session.settings.freeFlow
+          ? boundedTarget(action.target)
+          : _toward(_player(state, action.receiver!).position,
+              boundedTarget(action.target), 8),
       PracticeActionKind.hold => state.carrier.position,
     };
     return PracticeAction(
@@ -551,9 +571,12 @@ class PracticeEngine {
           : session.returnTarget,
       phase: outcome != null
           ? PracticePhase.finished
-          : session.settings.controlAllAttackers || state.carrierNumber == 6
-              ? PracticePhase.onBall
-              : PracticePhase.support,
+          : session.settings.freeFlow &&
+                  state.completedPasses > session.state.completedPasses
+              ? PracticePhase.firstTouch
+              : session.settings.controlAllAttackers || state.carrierNumber == 6
+                  ? PracticePhase.onBall
+                  : PracticePhase.support,
       decisions: List.unmodifiable(decisions),
       history: List.unmodifiable([...session.history, ...transitions]),
       outcome: outcome,
@@ -691,7 +714,9 @@ class PracticeEngine {
   }
 
   List<PracticeAction> _ballChoices(PracticeCase lesson, AttackState state,
-          {int? returnTarget, Map<int, ScanPassPoint> runTargets = const {}}) =>
+          {int? returnTarget,
+          Map<int, ScanPassPoint> runTargets = const {},
+          bool allowUnplannedThrough = true}) =>
       [
         for (final gate in lesson.gates)
           PracticeAction(
@@ -710,12 +735,13 @@ class PracticeEngine {
               kind: PracticeActionKind.pass,
               target: p.position,
               receiver: p.number),
-          PracticeAction(
-              id: 'through-${p.number}',
-              actorNumber: state.carrierNumber,
-              kind: PracticeActionKind.through,
-              target: runTargets[p.number] ?? _throughTarget(state, p),
-              receiver: p.number),
+          if (allowUnplannedThrough || runTargets.containsKey(p.number))
+            PracticeAction(
+                id: 'through-${p.number}',
+                actorNumber: state.carrierNumber,
+                kind: PracticeActionKind.through,
+                target: runTargets[p.number] ?? _throughTarget(state, p),
+                receiver: p.number),
         ],
         PracticeAction(
             id: 'hold',
@@ -1170,7 +1196,7 @@ class PracticeEngine {
             : 6.0;
     final duration = settings.controlAllAttackers && moving
         ? (runDistance / controlledSpeed + controlledSpeed / 6.2 + .3)
-            .clamp(.5, 5.5)
+            .clamp(.5, settings.freeFlow ? 12.0 : 5.5)
         : isPass
             ? math.max(.22, flight + .85)
             : isMove
@@ -1217,7 +1243,8 @@ class PracticeEngine {
           speed = 6.4;
         } else if (settings.controlAllAttackers &&
             runTargets.containsKey(p.number) &&
-            p.number != before.carrierNumber) {
+            (p.number != before.carrierNumber ||
+                (settings.freeFlow && isPass))) {
           aim = runTargets[p.number]!;
           speed = 6.4;
         } else if (settings.controlAllAttackers) {
@@ -1313,7 +1340,14 @@ class PracticeEngine {
     // distant receiver. Usually the extra .85 s already permits collection.
     if (isPass && !caught && interceptor == null) {
       var extra = 0.0;
-      while (extra < 2.4 && !caught && interceptor == null) {
+      final collectionLimit = settings.freeFlow
+          ? math.max(
+              2.4,
+              distanceMetres(_player(current, receiver).position, target) /
+                      6.4 +
+                  1.5)
+          : 2.4;
+      while (extra < collectionLimit && !caught && interceptor == null) {
         extra += _step;
         final attackers = [
           for (final p in current.attackers)

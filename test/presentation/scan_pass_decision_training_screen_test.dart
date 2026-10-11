@@ -11,7 +11,7 @@ import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('default entry opens learning cases without a goal-scoring mode',
+  testWidgets('default entry opens a free-space 2v2 situation immediately',
       (tester) async {
     await tester.pumpWidget(_app(
       home: ScanPassGameScreen(
@@ -21,9 +21,8 @@ void main() {
       ),
     ));
     await tester.pump();
-    expect(find.byKey(const ValueKey('practice-catalog')), findsOneWidget);
-    expect(find.byKey(const ValueKey('practice-case-firstTouch-0')),
-        findsOneWidget);
+    expect(find.byKey(const ValueKey('flow-pitch')), findsOneWidget);
+    expect(find.byKey(const ValueKey('practice-catalog')), findsNothing);
     expect(find.byKey(const ValueKey('possession-free-attack-card')),
         findsNothing);
     expect(find.byKey(const ValueKey('attack-start')), findsNothing);

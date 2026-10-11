@@ -21210,4 +21210,153 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get practiceAdviceStealHold =>
       'Release the ball or carry away before pressure reaches it; a support run does not protect a stationary ball.';
+
+  @override
+  String get flowTitle => '2v2 · Read the space';
+
+  @override
+  String get flowMore => 'More';
+
+  @override
+  String flowGoalLine(String goal) {
+    return 'Goal · $goal';
+  }
+
+  @override
+  String flowNowLine(String instruction) {
+    return 'Now · $instruction';
+  }
+
+  @override
+  String flowCaseNumber(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String flowChooseTouch(int number) {
+    return 'Choose No. $number’s first touch within the circle.';
+  }
+
+  @override
+  String flowChooseBall(int number, int receiver) {
+    return 'No. $number: tap space to dribble, or No. $receiver to pass.';
+  }
+
+  @override
+  String flowChooseRun(int number) {
+    return 'Choose where No. $number will move after passing.';
+  }
+
+  @override
+  String get flowQueued => 'Next move queued · tap another space to change it.';
+
+  @override
+  String get flowPlaying => 'Watch how the play develops.';
+
+  @override
+  String get flowCancelChoice => 'Cancel this choice';
+
+  @override
+  String get flowKeepBall => 'Keep the ball for a moment';
+
+  @override
+  String get flowThrough => 'Pass into the planned run';
+
+  @override
+  String get flowResult => 'Result';
+
+  @override
+  String get flowWhy => 'Why';
+
+  @override
+  String get flowTry => 'Try next';
+
+  @override
+  String get flowRetry => 'Retry this decision';
+
+  @override
+  String get flowContinue => 'Continue play';
+
+  @override
+  String get flowReviewNow => 'Review my choices';
+
+  @override
+  String get flowReplayPrevious => 'Replay my previous attempt';
+
+  @override
+  String get flowBefore => 'Before this choice';
+
+  @override
+  String get flowAfter => 'After this choice';
+
+  @override
+  String get flowOtherDecisions => 'Review another decision';
+
+  @override
+  String get flowRestart => 'Restart this situation';
+
+  @override
+  String get flowChooseCase => 'Choose a situation';
+
+  @override
+  String get flowHelpTitle => 'How to play';
+
+  @override
+  String get flowHelpBody =>
+      'First touch: tap a direction around the ball. The circle shows the maximum first-touch distance; farther clicks use that direction at the circle’s edge.\n\nWith the ball: tap space once to move there, or tap your teammate to pass. Tap your own shirt to keep the ball briefly.\n\nAfter selecting a pass: tap where the passer should move. The pass and run begin together. A running teammate’s marked destination can receive a through pass.\n\nEvery reception gives you a new first touch. You can queue the next choice while a move plays; the cross cancels it. Only your chosen attacking actions execute.\n\nUse More to review your choices. Retry this decision returns to the same moment. Restart, replay and all 12 situations are also in More.\n\nCarry the ball through either cone gate to finish the attack.';
+
+  @override
+  String get flowResultTouch => 'You kept the ball after the first touch.';
+
+  @override
+  String get flowResultMove => 'You carried the ball into the chosen space.';
+
+  @override
+  String flowResultPass(int number) {
+    return 'The pass reached No. $number.';
+  }
+
+  @override
+  String get flowResultHold => 'You kept possession while the players moved.';
+
+  @override
+  String get flowAdvicePassRun =>
+      'Change the passer’s support position and compare the return lane.';
+
+  @override
+  String get flowAdviceHold =>
+      'Compare an earlier touch or pass before the defender closes in.';
+
+  @override
+  String get flowGoalFirstTouch => 'Find a first touch that escapes pressure.';
+
+  @override
+  String get flowGoalDrawDefender =>
+      'Draw a defender and connect with your teammate.';
+
+  @override
+  String get flowGoalSupportAngle => 'Open a return lane after your pass.';
+
+  @override
+  String get flowGoalThroughPass => 'Lead your teammate’s run into space.';
+
+  @override
+  String get flowGoalBeatCover =>
+      'Read the covering defender and find an exit.';
+
+  @override
+  String get flowGoalChangeLane =>
+      'Change direction to reach an open cone gate.';
+
+  @override
+  String get flowAdviceTouch =>
+      'Try touching away from pressure and see whether the next pass opens.';
+
+  @override
+  String get flowAdviceCarry =>
+      'Try carrying into side space beyond the defender’s reach.';
+
+  @override
+  String get flowAdviceThrough =>
+      'Find where the runner and the arriving ball can meet.';
 }

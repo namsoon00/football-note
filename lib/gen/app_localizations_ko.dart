@@ -20445,4 +20445,145 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get practiceAdviceStealHold =>
       '압박이 공에 닿기 전에 패스하거나 다른 방향으로 운반하세요. 동료의 이동을 기다리는 동안에도 공은 빼앗길 수 있습니다.';
+
+  @override
+  String get flowTitle => '2대2 · 공간 판단';
+
+  @override
+  String get flowMore => '더 보기';
+
+  @override
+  String flowGoalLine(String goal) {
+    return '목표 · $goal';
+  }
+
+  @override
+  String flowNowLine(String instruction) {
+    return '할 일 · $instruction';
+  }
+
+  @override
+  String flowCaseNumber(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String flowChooseTouch(int number) {
+    return '$number번의 첫 터치 방향을 공 주변 원에서 고르세요.';
+  }
+
+  @override
+  String flowChooseBall(int number, int receiver) {
+    return '$number번: 빈 공간을 누르면 드리블, $receiver번을 누르면 패스.';
+  }
+
+  @override
+  String flowChooseRun(int number) {
+    return '$number번이 패스 후 다시 받을 공간을 누르세요.';
+  }
+
+  @override
+  String get flowQueued => '다음 동작 예약됨 · 다른 공간을 누르면 변경됩니다.';
+
+  @override
+  String get flowPlaying => '선택한 동작이 이어지는 모습을 보세요.';
+
+  @override
+  String get flowCancelChoice => '선택 취소';
+
+  @override
+  String get flowKeepBall => '잠깐 공 지키기';
+
+  @override
+  String get flowThrough => '동료가 달리는 공간으로 패스';
+
+  @override
+  String get flowResult => '결과';
+
+  @override
+  String get flowWhy => '이유';
+
+  @override
+  String get flowTry => '다시 시도';
+
+  @override
+  String get flowRetry => '이 선택부터 다시';
+
+  @override
+  String get flowContinue => '계속하기';
+
+  @override
+  String get flowReviewNow => '지금까지 선택 돌아보기';
+
+  @override
+  String get flowReplayPrevious => '이전 시도 다시 보기';
+
+  @override
+  String get flowBefore => '선택 직전';
+
+  @override
+  String get flowAfter => '선택한 결과';
+
+  @override
+  String get flowOtherDecisions => '다른 선택 살펴보기';
+
+  @override
+  String get flowRestart => '이 상황 처음부터';
+
+  @override
+  String get flowChooseCase => '상황 선택';
+
+  @override
+  String get flowHelpTitle => '조작 안내';
+
+  @override
+  String get flowHelpBody =>
+      '첫 터치: 공 주변 원에서 방향을 한 번 누르세요. 원 밖을 누르면 그 방향의 원 가장자리까지 터치합니다.\n\n공을 가진 상태: 빈 공간을 한 번 누르면 그곳까지 드리블합니다. 동료를 누르면 패스, 내 유니폼을 누르면 잠깐 공을 지킵니다.\n\n패스를 고른 뒤: 패서가 다시 받을 공간을 한 번 누르세요. 패스와 이동이 함께 시작됩니다. 달리는 동료의 도착 표시를 누르면 그 공간으로 스루패스합니다.\n\n공을 받을 때마다 첫 터치를 정합니다. 움직이는 동안 다음 동작을 예약할 수 있고, ×로 취소합니다. 공격수는 선택한 행동만 실행합니다.\n\n더 보기에서 지금까지의 선택을 돌아보세요. 이 선택부터 다시를 누르면 같은 순간으로 돌아갑니다. 처음부터 시작, 재생, 12개 상황 선택도 더 보기에 있습니다.\n\n공을 가진 채 어느 쪽이든 콘 게이트를 통과하면 공격이 끝납니다.';
+
+  @override
+  String get flowResultTouch => '첫 터치 후 공을 지켰어요.';
+
+  @override
+  String get flowResultMove => '선택한 공간으로 공을 운반했어요.';
+
+  @override
+  String flowResultPass(int number) {
+    return '$number번에게 패스가 연결됐어요.';
+  }
+
+  @override
+  String get flowResultHold => '선수들이 움직이는 동안 공을 지켰어요.';
+
+  @override
+  String get flowAdvicePassRun => '패서의 이동 위치를 바꿔 리턴 패스 길을 비교해 보세요.';
+
+  @override
+  String get flowAdviceHold => '수비가 붙기 전에 터치하거나 패스했을 때와 비교해 보세요.';
+
+  @override
+  String get flowGoalFirstTouch => '압박을 벗어나는 첫 터치 찾기';
+
+  @override
+  String get flowGoalDrawDefender => '수비를 끌어낸 뒤 동료에게 연결하기';
+
+  @override
+  String get flowGoalSupportAngle => '패스 후 다시 받을 길 만들기';
+
+  @override
+  String get flowGoalThroughPass => '달리는 동료의 앞 공간으로 연결하기';
+
+  @override
+  String get flowGoalBeatCover => '두 번째 수비의 커버를 보고 길 찾기';
+
+  @override
+  String get flowGoalChangeLane => '수비를 피해 열린 콘 게이트로 방향 바꾸기';
+
+  @override
+  String get flowAdviceTouch => '수비 반대쪽으로 터치하고, 다음 패스 길이 열리는지 보세요.';
+
+  @override
+  String get flowAdviceCarry => '수비가 막는 길을 피해 옆 공간으로 운반해 보세요.';
+
+  @override
+  String get flowAdviceThrough => '동료의 이동과 공의 도착이 만나는 공간을 찾아보세요.';
 }

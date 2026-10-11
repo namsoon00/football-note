@@ -35979,6 +35979,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Release the ball or carry away before pressure reaches it; a support run does not protect a stationary ball.'**
   String get practiceAdviceStealHold;
+
+  /// No description provided for @flowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'2v2 · Read the space'**
+  String get flowTitle;
+
+  /// No description provided for @flowMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get flowMore;
+
+  /// No description provided for @flowGoalLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal · {goal}'**
+  String flowGoalLine(String goal);
+
+  /// No description provided for @flowNowLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Now · {instruction}'**
+  String flowNowLine(String instruction);
+
+  /// No description provided for @flowCaseNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total}'**
+  String flowCaseNumber(int current, int total);
+
+  /// No description provided for @flowChooseTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose No. {number}’s first touch within the circle.'**
+  String flowChooseTouch(int number);
+
+  /// No description provided for @flowChooseBall.
+  ///
+  /// In en, this message translates to:
+  /// **'No. {number}: tap space to dribble, or No. {receiver} to pass.'**
+  String flowChooseBall(int number, int receiver);
+
+  /// No description provided for @flowChooseRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where No. {number} will move after passing.'**
+  String flowChooseRun(int number);
+
+  /// No description provided for @flowQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Next move queued · tap another space to change it.'**
+  String get flowQueued;
+
+  /// No description provided for @flowPlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch how the play develops.'**
+  String get flowPlaying;
+
+  /// No description provided for @flowCancelChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this choice'**
+  String get flowCancelChoice;
+
+  /// No description provided for @flowKeepBall.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the ball for a moment'**
+  String get flowKeepBall;
+
+  /// No description provided for @flowThrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass into the planned run'**
+  String get flowThrough;
+
+  /// No description provided for @flowResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get flowResult;
+
+  /// No description provided for @flowWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Why'**
+  String get flowWhy;
+
+  /// No description provided for @flowTry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try next'**
+  String get flowTry;
+
+  /// No description provided for @flowRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry this decision'**
+  String get flowRetry;
+
+  /// No description provided for @flowContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue play'**
+  String get flowContinue;
+
+  /// No description provided for @flowReviewNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Review my choices'**
+  String get flowReviewNow;
+
+  /// No description provided for @flowReplayPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay my previous attempt'**
+  String get flowReplayPrevious;
+
+  /// No description provided for @flowBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Before this choice'**
+  String get flowBefore;
+
+  /// No description provided for @flowAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After this choice'**
+  String get flowAfter;
+
+  /// No description provided for @flowOtherDecisions.
+  ///
+  /// In en, this message translates to:
+  /// **'Review another decision'**
+  String get flowOtherDecisions;
+
+  /// No description provided for @flowRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart this situation'**
+  String get flowRestart;
+
+  /// No description provided for @flowChooseCase.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a situation'**
+  String get flowChooseCase;
+
+  /// No description provided for @flowHelpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to play'**
+  String get flowHelpTitle;
+
+  /// No description provided for @flowHelpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch: tap a direction around the ball. The circle shows the maximum first-touch distance; farther clicks use that direction at the circle’s edge.\n\nWith the ball: tap space once to move there, or tap your teammate to pass. Tap your own shirt to keep the ball briefly.\n\nAfter selecting a pass: tap where the passer should move. The pass and run begin together. A running teammate’s marked destination can receive a through pass.\n\nEvery reception gives you a new first touch. You can queue the next choice while a move plays; the cross cancels it. Only your chosen attacking actions execute.\n\nUse More to review your choices. Retry this decision returns to the same moment. Restart, replay and all 12 situations are also in More.\n\nCarry the ball through either cone gate to finish the attack.'**
+  String get flowHelpBody;
+
+  /// No description provided for @flowResultTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'You kept the ball after the first touch.'**
+  String get flowResultTouch;
+
+  /// No description provided for @flowResultMove.
+  ///
+  /// In en, this message translates to:
+  /// **'You carried the ball into the chosen space.'**
+  String get flowResultMove;
+
+  /// No description provided for @flowResultPass.
+  ///
+  /// In en, this message translates to:
+  /// **'The pass reached No. {number}.'**
+  String flowResultPass(int number);
+
+  /// No description provided for @flowResultHold.
+  ///
+  /// In en, this message translates to:
+  /// **'You kept possession while the players moved.'**
+  String get flowResultHold;
+
+  /// No description provided for @flowAdvicePassRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the passer’s support position and compare the return lane.'**
+  String get flowAdvicePassRun;
+
+  /// No description provided for @flowAdviceHold.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare an earlier touch or pass before the defender closes in.'**
+  String get flowAdviceHold;
+
+  /// No description provided for @flowGoalFirstTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a first touch that escapes pressure.'**
+  String get flowGoalFirstTouch;
+
+  /// No description provided for @flowGoalDrawDefender.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw a defender and connect with your teammate.'**
+  String get flowGoalDrawDefender;
+
+  /// No description provided for @flowGoalSupportAngle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a return lane after your pass.'**
+  String get flowGoalSupportAngle;
+
+  /// No description provided for @flowGoalThroughPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead your teammate’s run into space.'**
+  String get flowGoalThroughPass;
+
+  /// No description provided for @flowGoalBeatCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the covering defender and find an exit.'**
+  String get flowGoalBeatCover;
+
+  /// No description provided for @flowGoalChangeLane.
+  ///
+  /// In en, this message translates to:
+  /// **'Change direction to reach an open cone gate.'**
+  String get flowGoalChangeLane;
+
+  /// No description provided for @flowAdviceTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Try touching away from pressure and see whether the next pass opens.'**
+  String get flowAdviceTouch;
+
+  /// No description provided for @flowAdviceCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try carrying into side space beyond the defender’s reach.'**
+  String get flowAdviceCarry;
+
+  /// No description provided for @flowAdviceThrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Find where the runner and the arriving ball can meet.'**
+  String get flowAdviceThrough;
 }
 
 class _AppLocalizationsDelegate

@@ -1351,6 +1351,8 @@ class _CurriculumPitchPainter extends CustomPainter {
   final List<PracticeAction> touchOptions;
   final bool? portrait;
   final List<({Offset from, Offset to})> controlLinks;
+  final bool showFieldLabels;
+  final bool showRunDistances;
 
   const _CurriculumPitchPainter(
       {required this.state,
@@ -1367,7 +1369,9 @@ class _CurriculumPitchPainter extends CustomPainter {
       this.runTargets = const {},
       this.touchOptions = const [],
       this.portrait,
-      this.controlLinks = const []});
+      this.controlLinks = const [],
+      this.showFieldLabels = true,
+      this.showRunDistances = true});
 
   Offset offsetFor(ScanPassPoint point, Size size) =>
       _PracticeGeometry(size, portrait: portrait).toOffset(point);
@@ -1396,7 +1400,7 @@ class _CurriculumPitchPainter extends CustomPainter {
     canvas.drawRect(g.fieldRect, line);
     canvas.drawLine(g.toOffset(const ScanPassPoint(.5, 0)),
         g.toOffset(const ScanPassPoint(.5, 1)), line);
-    if (!miniature) {
+    if (!miniature && showFieldLabels) {
       _text(
           canvas,
           g.portrait
@@ -1406,7 +1410,7 @@ class _CurriculumPitchPainter extends CustomPainter {
           textColor,
           10);
     }
-    if (!miniature) {
+    if (!miniature && showFieldLabels) {
       _text(
           canvas,
           lesson.offsideEnabled ? l10n.practiceOffside : l10n.practiceNoOffside,
@@ -1464,6 +1468,7 @@ class _CurriculumPitchPainter extends CustomPainter {
             ..color = color
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2);
+      if (!showRunDistances) continue;
       final metres = PracticeEngine.distanceMetres(player.position, entry.value)
           .toStringAsFixed(1);
       final label = runLabels[entry.key]!;
@@ -1501,7 +1506,10 @@ class _CurriculumPitchPainter extends CustomPainter {
       }
       AttackPlayer? focus;
       final cue = decision.cue;
-      if (cue == PracticeCue.runnerTiming ||
+      if (decision.after.carrierIsDefender) {
+        focus = state.defenders.firstWhere(
+            (p) => p.number == decision.after.carrierNumber);
+      } else if (cue == PracticeCue.runnerTiming ||
           cue == PracticeCue.thirdPlayerLane ||
           cue == PracticeCue.farSideSpace) {
         final players = state.attackers
