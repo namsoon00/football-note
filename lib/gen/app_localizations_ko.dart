@@ -20478,6 +20478,19 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String flowPrepareTouch(int number) {
+    return '패스가 $number번에게 가는 중입니다. 빈 공간을 눌러 첫 터치를 준비하세요.';
+  }
+
+  @override
+  String flowTouchPrepared(int number) {
+    return '$number번의 도착 첫 터치가 준비됐습니다.';
+  }
+
+  @override
+  String get flowPassTravelling => '패스가 이동 중입니다. 받는 순간을 기다리세요.';
+
+  @override
   String flowChooseRun(int number) {
     return '$number번은 패스 후 자동으로 지원 위치를 잡습니다.';
   }
@@ -20502,6 +20515,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get flowFirstTouchBadge => '첫 터치';
+
+  @override
+  String get flowPrepareTouchBadge => '터치 준비';
 
   @override
   String get flowResult => '결과';
@@ -20593,4 +20609,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get flowAdviceThrough => '동료의 이동과 공의 도착이 만나는 공간을 찾아보세요.';
+
+  @override
+  String get flowTouchInMotion => '첫 터치 중 · 다음 드리블이나 패스를 미리 선택하세요.';
+
+  @override
+  String get flowMoveInMotion => '이동 중 · 다음 드리블이나 패스를 미리 선택하세요.';
 }

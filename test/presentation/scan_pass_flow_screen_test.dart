@@ -12,6 +12,88 @@ void main() {
   WidgetController.hitTestWarningShouldBeFatal = true;
   const engine = FlowEngine();
 
+  for (final locale in ['en', 'ko', 'ja']) {
+    for (final size in [
+      const Size(390, 844),
+      const Size(568, 320),
+      const Size(320, 568)
+    ]) {
+      testWidgets('pitch stays fixed through actions for $locale at $size',
+          (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(_app(
+            locale: Locale(locale),
+            textScale: 1.3,
+            execution: const Duration(milliseconds: 400)));
+        await tester.pumpAndSettle();
+        final pitch = find.byKey(const ValueKey('flow-pitch'));
+        final original = tester.getRect(pitch);
+        final start = const FlowEngine().start(FlowEngine.catalog.first);
+        final touch = start.state.ball + const ScanPassPoint(2.3 / 40, 0);
+        await _tapSpace(tester, touch, settle: false);
+        await tester.pumpAndSettle();
+        expect(tester.getRect(pitch), original,
+            reason: 'first touch to pass-ready');
+        await tester.tap(find.byKey(const ValueKey('flow-pass')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 30));
+        expect(tester.getRect(pitch), original, reason: 'pass in flight');
+        final touched = const FlowEngine().touchTo(start, touch).session;
+        final receipt = const FlowEngine().pass(touched).session;
+        await _tapSpace(tester, _safeTouch(receipt), settle: false);
+        expect(tester.getRect(pitch), original,
+            reason: 'queued touch cancel changes trailing header');
+        await tester.pumpAndSettle();
+        expect(tester.getRect(pitch), original,
+            reason: 'receipt and queued touch');
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
+  testWidgets('the opening pass accepts a clearly prepared first touch',
+      (tester) async {
+    await tester.pumpWidget(_app(
+        observation: const Duration(milliseconds: 650),
+        execution: const Duration(milliseconds: 400)));
+    await tester.pump(const Duration(milliseconds: 80));
+    final start = engine.start(FlowEngine.catalog.first);
+    final target = _safeTouch(start);
+    final l =
+        AppLocalizations.of(tester.element(find.byType(ScanPassFlowScreen)))!;
+    expect(
+        find.text(l.flowNowLine(l.flowPrepareTouch(start.state.carrierNumber))),
+        findsOneWidget);
+    expect(_painter(tester).selectedPlayer, _state(tester).carrierNumber);
+    await _tapSpace(tester, target, settle: false);
+    expect(find.byKey(const ValueKey('flow-cancel')), findsOneWidget);
+    await tester.pumpAndSettle();
+    _expectState(_state(tester), engine.touchTo(start, target).session.state);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'executing a first touch describes the next action instead of asking for another touch',
+      (tester) async {
+    await tester.pumpWidget(_app(execution: const Duration(milliseconds: 500)));
+    await tester.pumpAndSettle();
+    final start = engine.start(FlowEngine.catalog.first);
+    final target = _safeTouch(start);
+    await _tapSpace(tester, target, settle: false);
+    final l =
+        AppLocalizations.of(tester.element(find.byType(ScanPassFlowScreen)))!;
+    expect(find.text(l.flowNowLine(l.flowTouchInMotion)), findsOneWidget);
+    const next = ScanPassPoint(.20, .80);
+    await _tapSpace(tester, next, settle: false);
+    await tester.pumpAndSettle();
+    final touched = engine.touchTo(start, target).session;
+    _expectState(_state(tester), engine.moveTo(touched, next).session.state);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('opens straight into 2v2 with a free first-touch surface',
       (tester) async {
     await tester.pumpWidget(_app());
@@ -122,6 +204,93 @@ void main() {
     }
     expect(
         find.byKey(const ValueKey('flow-pass')).hitTestable(), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'mid-pass keeps passer selected while a receiver first touch can be prepared',
+      (tester) async {
+    await tester.pumpWidget(_app(execution: const Duration(milliseconds: 900)));
+    await tester.pumpAndSettle();
+    var session = await _touch(tester, engine.start(FlowEngine.catalog.first));
+    final pass = engine.pass(session);
+    await tester.tap(find.byKey(const ValueKey('flow-pass')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(_state(tester).carrierNumber, session.state.carrierNumber);
+    expect(
+        find.textContaining(
+            'Pass travelling to No. ${pass.session.state.carrierNumber}'),
+        findsOneWidget);
+    expect(find.text('PREP TOUCH'), findsOneWidget);
+    final target = pass.session.state.ball + const ScanPassPoint(.018, -.035);
+    await _tapSpace(tester, target, settle: false);
+    await tester.pump();
+    expect(
+        find.textContaining(
+            'First touch for No. ${pass.session.state.carrierNumber}'),
+        findsOneWidget);
+    await tester.pumpAndSettle();
+    session = engine.touchTo(pass.session, target).session;
+    _expectState(_state(tester), session.state);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a normal pass can be queued while first touch is still moving',
+      (tester) async {
+    await tester.pumpWidget(_app(execution: const Duration(milliseconds: 900)));
+    await tester.pumpAndSettle();
+    final start = engine.start(FlowEngine.catalog.first);
+    final target = _safeTouch(start);
+    final touched = engine.touchTo(start, target).session;
+    await _tapSpace(tester, target, settle: false);
+    await tester.pump(const Duration(milliseconds: 80));
+    expect(
+        find.byKey(const ValueKey('flow-pass')).hitTestable(), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('flow-pass')));
+    await tester.pump();
+    expect(find.textContaining('Next action queued'), findsOneWidget);
+    await tester.pumpAndSettle();
+    final expected = engine.pass(touched).session;
+    _expectState(_state(tester), expected.state);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('pass ring is hollow and its label avoids the receiver body',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final session =
+        await _touch(tester, engine.start(FlowEngine.catalog.first));
+    final decoration = tester
+        .widget<DecoratedBox>(
+            find.byKey(const ValueKey('flow-pass-ring-visual')))
+        .decoration as BoxDecoration;
+    expect(decoration.shape, BoxShape.circle);
+    expect(decoration.color, Colors.transparent);
+    expect(decoration.boxShadow, isNull);
+    expect(tester.getSize(find.byKey(const ValueKey('flow-pass'))).width,
+        greaterThanOrEqualTo(44));
+    final pitchRect = tester.getRect(find.byKey(const ValueKey('flow-pitch')));
+    final receiver = session.state.attackers
+        .firstWhere((p) => p.number != session.state.carrierNumber);
+    final receiverCenter = pitchRect.topLeft +
+        (_painter(tester).offsetFor(receiver.position, pitchRect.size)
+            as Offset);
+    final receiverBody =
+        Rect.fromCenter(center: receiverCenter, width: 44, height: 58);
+    expect(
+        tester
+            .getRect(find.byKey(const ValueKey('flow-pass-label')))
+            .overlaps(receiverBody),
+        isFalse);
+    await tester.tapAt(receiverCenter);
+    await tester.pumpAndSettle();
+    _expectState(_state(tester), engine.pass(session).session.state);
     expect(tester.takeException(), isNull);
   });
 
@@ -285,10 +454,14 @@ void main() {
 }
 
 Widget _app(
-        {Key? key, Duration execution = Duration.zero, double textScale = 1}) =>
+        {Key? key,
+        Duration execution = Duration.zero,
+        Duration observation = Duration.zero,
+        double textScale = 1,
+        Locale locale = const Locale('en')}) =>
     MaterialApp(
       key: key,
-      locale: const Locale('en'),
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) => MediaQuery(
@@ -296,7 +469,7 @@ Widget _app(
               .copyWith(textScaler: TextScaler.linear(textScale)),
           child: child!),
       home: ScanPassFlowScreen(
-          observationDuration: Duration.zero, executionDuration: execution),
+          observationDuration: observation, executionDuration: execution),
     );
 dynamic _painter(WidgetTester tester) => tester
     .widget<CustomPaint>(find.byKey(const ValueKey('flow-pitch-paint')))

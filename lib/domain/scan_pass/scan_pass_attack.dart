@@ -208,18 +208,19 @@ class AttackTransition {
       final span = finish.elapsed - start.elapsed;
       final local =
           span <= 0 ? 0.0 : ((elapsed - start.elapsed) / span).clamp(0.0, 1.0);
-      List<AttackPlayer> sample(List<AttackPlayer> a, List<AttackPlayer> b) => [
-            for (final p in a)
-              p.copyWith(
-                  position: p.position.lerp(
-                      b.firstWhere((q) => q.number == p.number).position,
-                      local),
-                  velocity: p.velocity.lerp(
-                      b.firstWhere((q) => q.number == p.number).velocity,
-                      local),
-                  facingRadians:
-                      b.firstWhere((q) => q.number == p.number).facingRadians)
-          ];
+      List<AttackPlayer> sample(List<AttackPlayer> a, List<AttackPlayer> b) {
+        final byNumber = {for (final p in b) p.number: p};
+        return [
+          for (final p in a)
+            p.copyWith(
+              position: p.position.lerp(byNumber[p.number]!.position, local),
+              velocity: p.velocity.lerp(byNumber[p.number]!.velocity, local),
+              facingRadians: _lerpRadians(
+                  p.facingRadians, byNumber[p.number]!.facingRadians, local),
+            )
+        ];
+      }
+
       return start.copyWith(
           attackers: sample(start.attackers, finish.attackers),
           defenders: sample(start.defenders, finish.defenders),
@@ -227,18 +228,19 @@ class AttackTransition {
           elapsed: elapsed);
     }
     List<AttackPlayer> interpolate(
-            List<AttackPlayer> start, List<AttackPlayer> finish) =>
-        [
-          for (final p in start)
-            p.copyWith(
-                position: p.position.lerp(
-                    finish.firstWhere((q) => q.number == p.number).position, t),
-                facingRadians: finish
-                    .firstWhere((q) => q.number == p.number)
-                    .facingRadians,
-                velocity:
-                    finish.firstWhere((q) => q.number == p.number).velocity),
-        ];
+        List<AttackPlayer> start, List<AttackPlayer> finish) {
+      final byNumber = {for (final p in finish) p.number: p};
+      return [
+        for (final p in start)
+          p.copyWith(
+            position: p.position.lerp(byNumber[p.number]!.position, t),
+            facingRadians: _lerpRadians(
+                p.facingRadians, byNumber[p.number]!.facingRadians, t),
+            velocity: byNumber[p.number]!.velocity,
+          ),
+      ];
+    }
+
     return before.copyWith(
       attackers: interpolate(before.attackers, after.attackers),
       defenders: interpolate(before.defenders, after.defenders),
@@ -246,6 +248,16 @@ class AttackTransition {
       elapsed: before.elapsed + duration * t,
     );
   }
+}
+
+double _lerpRadians(double start, double end, double t) =>
+    start + _angleDelta(end, start) * t;
+
+double _angleDelta(double target, double current) {
+  var delta = (target - current) % (math.pi * 2);
+  if (delta > math.pi) delta -= math.pi * 2;
+  if (delta < -math.pi) delta += math.pi * 2;
+  return delta;
 }
 
 /// Open-play possession: no elapsed wall time, random success roll or

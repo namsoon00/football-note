@@ -229,8 +229,7 @@ void main() {
     expect(touch.session.state.completedPasses, 1);
   });
 
-  test(
-      'ordinary and through passes keep distinct automatic receiver targets',
+  test('ordinary and through passes keep distinct automatic receiver targets',
       () {
     final start = setup(focus: FlowFocus.throughPass);
     final automaticRun = engine.throughTarget(start);
@@ -261,9 +260,13 @@ void main() {
     expect(returned.session.phase, PracticePhase.firstTouch);
     expect(returned.session.state.completedPasses, 2);
     expect(returned.session.runTargets.containsKey(6), isFalse);
+    final returnedCarrier = player(returned.session.state, 6);
     expect(
-        PracticeEngine.distanceMetres(returned.session.state.ball, destination),
-        lessThan(.008));
+        PracticeEngine.distanceMetres(
+            returned.session.state.ball, returnedCarrier.position),
+        lessThan(.08));
+    expect(_speedMetres(returnedCarrier), greaterThan(.2),
+        reason: 'the through-pass receiver keeps running after collection');
     final restored = engine.beforeDecision(returned.session, 2);
     expect(restored.runTargets.keys.toSet(), {6, 8});
     expect(restored.state, same(touched.state));
@@ -308,6 +311,77 @@ void main() {
         closeTo(0, 1e-9));
   });
 
+  test('ordinary safe passes collect moving receivers without teleporting', () {
+    for (final item in FlowEngine.catalog) {
+      final start = engine.start(item);
+      final touched = engine.touchTo(start, _safeTouch(start)).session;
+      if (touched.finished) continue;
+      final pass = engine.pass(touched);
+      expect(pass.transitions.single.duration, greaterThan(0),
+          reason: item.lesson.id);
+      if (pass.session.outcome != null) continue;
+      final receiver =
+          player(pass.session.state, pass.session.state.carrierNumber);
+      expect(_speedMetres(receiver), greaterThan(.2),
+          reason: '${item.lesson.id} receiver should keep stride');
+      expect(
+          PracticeEngine.distanceMetres(
+              pass.session.state.ball, receiver.position),
+          lessThan(.08),
+          reason: '${item.lesson.id} ball should settle at the receiver foot');
+      final samples = pass.transitions.single.motionSamples;
+      for (var i = 1; i < samples.length; i++) {
+        final before = player(samples[i - 1], receiver.number);
+        final after = player(samples[i], receiver.number);
+        expect(PracticeEngine.distanceMetres(before.position, after.position),
+            lessThan(.45),
+            reason: '${item.lesson.id} sample $i moved continuously');
+      }
+    }
+  });
+
+  test('sampled frames turn faces through the shortest angle', () {
+    final before = AttackState(
+      attackers: const [
+        AttackPlayer(
+            number: 6,
+            position: ScanPassPoint(.2, .5),
+            facingRadians: math.pi - .08),
+      ],
+      defenders: const [
+        AttackPlayer(
+            number: 2, opponent: true, position: ScanPassPoint(.6, .5)),
+      ],
+      ball: const ScanPassPoint(.2, .5),
+      carrierNumber: 6,
+    );
+    final after = AttackState(
+      attackers: const [
+        AttackPlayer(
+            number: 6,
+            position: ScanPassPoint(.22, .5),
+            facingRadians: -math.pi + .08),
+      ],
+      defenders: const [
+        AttackPlayer(
+            number: 2, opponent: true, position: ScanPassPoint(.58, .5)),
+      ],
+      ball: const ScanPassPoint(.22, .5),
+      carrierNumber: 6,
+      elapsed: 1,
+    );
+    final mid = AttackTransition(
+      before: before,
+      after: after,
+      action: const AttackAction.hold(),
+      duration: 1,
+      ballEnd: after.ball,
+      motionSamples: [before, after],
+    ).frame(.5);
+    final facing = player(mid, 6).facingRadians.abs();
+    expect(facing, greaterThan(3.0));
+  });
+
   test('automatic pass swaps roles, preserves retry, and can still be stolen',
       () {
     final start = setup();
@@ -340,7 +414,7 @@ void main() {
       AttackPlayer(number: 8, position: ScanPassPoint(.60, .50)),
     ], defenders: const [
       AttackPlayer(
-          number: 2, opponent: true, position: ScanPassPoint(.34, .50)),
+          number: 2, opponent: true, position: ScanPassPoint(.34, .54)),
       AttackPlayer(
           number: 3, opponent: true, position: ScanPassPoint(.70, .30)),
     ]);
@@ -404,7 +478,7 @@ void main() {
       AttackPlayer(number: 8, position: ScanPassPoint(.60, .50)),
     ], defenders: const [
       AttackPlayer(
-          number: 2, opponent: true, position: ScanPassPoint(.34, .50)),
+          number: 2, opponent: true, position: ScanPassPoint(.34, .54)),
       AttackPlayer(
           number: 3, opponent: true, position: ScanPassPoint(.70, .30)),
     ]);
@@ -522,3 +596,8 @@ ScanPassPoint _safeTouch(PracticeSession session) {
   }
   throw StateError('No safe first touch in this fixture');
 }
+
+double _speedMetres(AttackPlayer player) => ScanPassPoint(
+      player.velocity.x * PracticeEngine.fieldLength,
+      player.velocity.y * PracticeEngine.fieldWidth,
+    ).distance;

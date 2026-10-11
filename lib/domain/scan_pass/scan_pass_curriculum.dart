@@ -885,10 +885,21 @@ class PracticeEngine {
     final player = _player(state, receiver);
     final runTarget = runTargets[receiver];
     if (runTarget == null) return player.position;
-    final distance = distanceMetres(player.position, runTarget);
-    if (distance < .45) return player.position;
-    final lead = math.min(1.6, math.max(.65, distance * .35));
-    return _toward(player.position, runTarget, lead);
+    final speed = _metres(player.velocity).distance;
+    final runDistance = distanceMetres(player.position, runTarget);
+    if (runDistance < .45 && speed < .4) return player.position;
+    final receiveAim = _runThroughTarget(player, runTarget, runTarget);
+    final distance = distanceMetres(player.position, receiveAim);
+    var target = player.position;
+    for (var i = 0; i < 5; i += 1) {
+      final flight = distanceMetres(state.ball, target) / 17;
+      final projected = _projectRunner(
+          player, receiveAim, math.min(1.0, flight + .12),
+          maxSpeed: 6.4);
+      final leadLimit = math.min(2.8, math.max(.7, distance));
+      target = _toward(player.position, projected.position, leadLimit);
+    }
+    return boundedTarget(target);
   }
 
   List<PracticeAction> _ballChoices(PracticeCase lesson, AttackState state,
@@ -1420,7 +1431,9 @@ class PracticeEngine {
                   ? 4
                   : 6.0;
         } else if (isPass && p.number == receiver) {
-          aim = target;
+          aim = settings.freeFlow && settings.automaticSupport
+              ? _runThroughTarget(p, runTargets[p.number], target)
+              : target;
           speed = 6.4;
         } else if (settings.controlAllAttackers &&
             runTargets.containsKey(p.number) &&
@@ -1447,8 +1460,14 @@ class PracticeEngine {
           aim = _attackingAim(current, p, lesson.gates, lesson.offsideEnabled);
           speed = 6.2;
         }
+        final preserveMomentum = settings.freeFlow &&
+            settings.controlAllAttackers &&
+            ((moving && p.number == runNumber) ||
+                (isPass &&
+                    (p.number == receiver ||
+                        runTargets.containsKey(p.number))));
         attackers.add(_advance(p, aim, dt, speed,
-            stopAtTarget: settings.controlAllAttackers));
+            stopAtTarget: settings.controlAllAttackers && !preserveMomentum));
       }
       final ball = isPass
           ? before.ball
@@ -1506,13 +1525,16 @@ class PracticeEngine {
       if (settings.controlAllAttackers &&
           moving &&
           distanceMetres(_player(current, runNumber).position, target) < .008 &&
-          _metres(_player(current, runNumber).velocity).distance < .1) {
+          (settings.freeFlow ||
+              _metres(_player(current, runNumber).velocity).distance < .1)) {
         break;
       }
+      final catchRadius =
+          settings.freeFlow && settings.automaticSupport ? .42 : .008;
       if (isPass &&
           elapsed >= flight &&
           distanceMetres(_player(current, receiver).position, ball) <=
-              (settings.controlAllAttackers ? .008 : .6)) {
+              (settings.controlAllAttackers ? catchRadius : .6)) {
         caught = true;
         break;
       }
@@ -1535,13 +1557,16 @@ class PracticeEngine {
             _advance(
                 p,
                 p.number == receiver
-                    ? target
+                    ? settings.freeFlow && settings.automaticSupport
+                        ? _runThroughTarget(p, runTargets[p.number], target)
+                        : target
                     : runTargets[p.number] ?? p.position,
                 _step,
                 p.number == receiver || runTargets.containsKey(p.number)
                     ? 6.4
                     : 0,
-                stopAtTarget: settings.controlAllAttackers),
+                stopAtTarget: settings.controlAllAttackers &&
+                    !(settings.freeFlow && settings.automaticSupport)),
         ];
         final defenders = [
           for (final d in current.defenders) _advance(d, target, _step, 5.9),
@@ -1563,8 +1588,67 @@ class PracticeEngine {
         if (interceptor != null) next = _interpolate(current, next, hitAt);
         current = next;
         samples.add(current);
+        final catchRadius =
+            settings.freeFlow && settings.automaticSupport ? .42 : .008;
         caught = distanceMetres(_player(current, receiver).position, target) <=
-            (settings.controlAllAttackers ? .008 : .6);
+            (settings.controlAllAttackers ? catchRadius : .6);
+      }
+    }
+    if (isPass &&
+        caught &&
+        interceptor == null &&
+        settings.freeFlow &&
+        settings.automaticSupport) {
+      final receiverPlayer = _player(current, receiver);
+      final ballGap = distanceMetres(current.ball, receiverPlayer.position);
+      if (ballGap > .05) {
+        final start = current;
+        const settleSteps = 5;
+        for (var i = 1; i <= settleSteps && interceptor == null; i += 1) {
+          final attackers = [
+            for (final p in current.attackers)
+              _advance(
+                p,
+                p.number == receiver
+                    ? _runThroughTarget(p, runTargets[p.number], target)
+                    : runTargets[p.number] ?? p.position,
+                _step,
+                p.number == receiver || runTargets.containsKey(p.number)
+                    ? 6.0
+                    : 0,
+              ),
+          ];
+          final receiverNow = attackers.firstWhere((p) => p.number == receiver);
+          final defenders = [
+            for (final d in current.defenders)
+              _advance(
+                d,
+                _defendingAim(current, d, press, current.ball, true, target),
+                _step,
+                d.number == press ? 5.6 : 5.3,
+              ),
+          ];
+          final next = current.copyWith(
+            attackers: attackers,
+            defenders: defenders,
+            ball: start.ball.lerp(receiverNow.position, i / settleSteps),
+            elapsed: current.elapsed + _step,
+          );
+          var hitAt = 2.0;
+          for (final d in current.defenders) {
+            final nextD = defenders.firstWhere((p) => p.number == d.number);
+            final hit = _collisionFraction(
+                current.ball - d.position, next.ball - nextD.position, .72);
+            if (hit != null && hit < hitAt) {
+              hitAt = hit;
+              interceptor = d.number;
+            }
+          }
+          current =
+              interceptor == null ? next : _interpolate(current, next, hitAt);
+          samples.add(current);
+        }
+        caught = interceptor == null;
       }
     }
     if (interceptor != null) {
@@ -1892,6 +1976,18 @@ class PracticeEngine {
     return boundedTarget(ScanPassPoint(math.min(.855, proposed.x), proposed.y));
   }
 
+  static ScanPassPoint _runThroughTarget(
+      AttackPlayer player, ScanPassPoint? runTarget, ScanPassPoint fallback) {
+    final anchor = runTarget ?? fallback;
+    var direction = _metres(anchor - player.position);
+    if (direction.distance < .2) {
+      direction = _metres(player.velocity);
+    }
+    if (direction.distance < .2) return anchor;
+    final unit = direction * (1 / direction.distance);
+    return boundedTarget(anchor + _normalized(unit * 1.4));
+  }
+
   static AttackPlayer _advance(
       AttackPlayer player, ScanPassPoint target, double dt, double maxSpeed,
       {bool stopAtTarget = false}) {
@@ -1947,17 +2043,19 @@ class PracticeEngine {
   }
 
   static AttackState _interpolate(AttackState a, AttackState b, double t) {
-    List<AttackPlayer> people(List<AttackPlayer> x, List<AttackPlayer> y) => [
-          for (final p in x)
-            p.copyWith(
-              position: p.position
-                  .lerp(y.firstWhere((q) => q.number == p.number).position, t),
-              velocity: p.velocity
-                  .lerp(y.firstWhere((q) => q.number == p.number).velocity, t),
-              facingRadians:
-                  y.firstWhere((q) => q.number == p.number).facingRadians,
-            ),
-        ];
+    List<AttackPlayer> people(List<AttackPlayer> x, List<AttackPlayer> y) {
+      final byNumber = {for (final p in y) p.number: p};
+      return [
+        for (final p in x)
+          p.copyWith(
+            position: p.position.lerp(byNumber[p.number]!.position, t),
+            velocity: p.velocity.lerp(byNumber[p.number]!.velocity, t),
+            facingRadians: _lerpRadians(
+                p.facingRadians, byNumber[p.number]!.facingRadians, t),
+          ),
+      ];
+    }
+
     return a.copyWith(
       attackers: people(a.attackers, b.attackers),
       defenders: people(a.defenders, b.defenders),
@@ -1985,6 +2083,28 @@ class PracticeEngine {
       ScanPassPoint(point.x * fieldLength, point.y * fieldWidth);
   static ScanPassPoint _normalized(ScanPassPoint point) =>
       ScanPassPoint(point.x / fieldLength, point.y / fieldWidth);
+  static AttackPlayer _projectRunner(
+      AttackPlayer player, ScanPassPoint target, double seconds,
+      {required double maxSpeed}) {
+    var projected = player;
+    var remaining = seconds.clamp(0.0, 1.2).toDouble();
+    while (remaining > 1e-9) {
+      final dt = math.min(_step, remaining);
+      projected = _advance(projected, target, dt, maxSpeed);
+      remaining -= dt;
+    }
+    return projected;
+  }
+
+  static double _lerpRadians(double start, double end, double t) =>
+      start + _angleDelta(end, start) * t;
+  static double _angleDelta(double target, double current) {
+    var delta = (target - current) % (math.pi * 2);
+    if (delta > math.pi) delta -= math.pi * 2;
+    if (delta < -math.pi) delta += math.pi * 2;
+    return delta;
+  }
+
   static ScanPassPoint _toward(
       ScanPassPoint from, ScanPassPoint target, double metres) {
     final distance = distanceMetres(from, target);

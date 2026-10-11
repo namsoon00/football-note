@@ -11764,6 +11764,23 @@
       }
     }
   },
+  "flowPrepareTouch": "パスは{number}番へ移動中です。スペースをタップしてファーストタッチを準備してください。",
+  "@flowPrepareTouch": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "flowTouchPrepared": "{number}番の到着時のファーストタッチを準備しました。",
+  "@flowTouchPrepared": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "flowPassTravelling": "パスが移動中です。受け手を待ってください。",
   "flowChooseRun": "{number}番はパス後に自動でサポート位置を取ります。",
   "@flowChooseRun": {
     "placeholders": {
@@ -11779,6 +11796,7 @@
   "flowPassLabel": "パス",
   "flowThrough": "味方が走るスペースへパス",
   "flowFirstTouchBadge": "ファーストタッチ",
+  "flowPrepareTouchBadge": "タッチ準備",
   "flowResult": "結果",
   "flowWhy": "理由",
   "flowTry": "次に試すこと",
@@ -11814,5 +11832,7 @@
   "flowGoalChangeLane": "守備をかわして空いたコーンゲートへ方向転換",
   "flowAdviceTouch": "守備から離れるタッチで、次のパスの道が開くか見てください。",
   "flowAdviceCarry": "守備がふさぐ道を避け、横のスペースに運んでみてください。",
-  "flowAdviceThrough": "走る味方とボールの到着が合うスペースを探してください。"
+  "flowAdviceThrough": "走る味方とボールの到着が合うスペースを探してください。",
+  "flowTouchInMotion": "ファーストタッチ中 · 次のドリブルやパスを選べます。",
+  "flowMoveInMotion": "移動中 · 次のドリブルやパスを選べます。"
 }

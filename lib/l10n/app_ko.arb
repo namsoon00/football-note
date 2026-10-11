@@ -11764,6 +11764,23 @@
       }
     }
   },
+  "flowPrepareTouch": "패스가 {number}번에게 가는 중입니다. 빈 공간을 눌러 첫 터치를 준비하세요.",
+  "@flowPrepareTouch": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "flowTouchPrepared": "{number}번의 도착 첫 터치가 준비됐습니다.",
+  "@flowTouchPrepared": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "flowPassTravelling": "패스가 이동 중입니다. 받는 순간을 기다리세요.",
   "flowChooseRun": "{number}번은 패스 후 자동으로 지원 위치를 잡습니다.",
   "@flowChooseRun": {
     "placeholders": {
@@ -11779,6 +11796,7 @@
   "flowPassLabel": "패스",
   "flowThrough": "동료가 달리는 공간으로 패스",
   "flowFirstTouchBadge": "첫 터치",
+  "flowPrepareTouchBadge": "터치 준비",
   "flowResult": "결과",
   "flowWhy": "이유",
   "flowTry": "다시 시도",
@@ -11814,5 +11832,7 @@
   "flowGoalChangeLane": "수비를 피해 열린 콘 게이트로 방향 바꾸기",
   "flowAdviceTouch": "수비 반대쪽으로 터치하고, 다음 패스 길이 열리는지 보세요.",
   "flowAdviceCarry": "수비가 막는 길을 피해 옆 공간으로 운반해 보세요.",
-  "flowAdviceThrough": "동료의 이동과 공의 도착이 만나는 공간을 찾아보세요."
+  "flowAdviceThrough": "동료의 이동과 공의 도착이 만나는 공간을 찾아보세요.",
+  "flowTouchInMotion": "첫 터치 중 · 다음 드리블이나 패스를 미리 선택하세요.",
+  "flowMoveInMotion": "이동 중 · 다음 드리블이나 패스를 미리 선택하세요."
 }

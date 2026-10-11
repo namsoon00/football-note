@@ -42,7 +42,8 @@ approximations, not a validated football intelligence score.
 ## One field, direct decisions
 
 1. A brief incoming pass establishes the situation; it is the only scripted
-   attacking opening. Time then pauses at the receiver.
+   attacking opening. Time pauses at the receiver unless a first touch has
+   already been explicitly prepared.
 2. The player taps any point for the **first touch**. The field shows the actual
    **2.3 m physical range** and the exact bounded destination. An outside tap is
    projected onto that visible range. Successful reception requires a new first
@@ -54,15 +55,27 @@ approximations, not a validated football intelligence score.
    the pass immediately. The old carrier's support run is selected
    automatically from the current player/defender geometry and starts on the
    first simulated sample of the pass.
-5. The action pauses as soon as the receiver physically collects the ball.
-   The old carrier becomes the automatic supporter, and any support run that is
-   not complete remains visible and continues during subsequent touches, carries,
-   passes or an explicit 0.5 s advance. The new carrier must choose a first
-   touch from this exact paused world before pass controls return.
+5. Control transfers when the receiver physically collects the ball. A prepared
+   first touch follows immediately; otherwise time pauses for the next choice.
+   Ordinary receptions use the receiver's current run, velocity and the ball's
+   flight time, then settle the ball to the receiver's feet over sampled frames
+   while preserving a realistic receiving stride. The old carrier becomes the
+   automatic supporter, and any support run that is not complete remains visible
+   and continues during subsequent touches, carries, passes or an explicit 0.5 s
+   advance. The new carrier must choose a first touch from this exact paused
+   world before pass controls return.
 6. A **through pass** is available only to the other attacker's visible running
    endpoint. It never invents a hidden distant target. An ordinary pass resolves
-   against the receiver's current movement with a short physical lead; it can
-   still be stolen and does not count as a through pass.
+   against the receiver's current movement, acceleration and ball flight rather
+   than a fixed lead distance; it can still be stolen and does not count as a
+   through pass.
+   The opening pass and later passes accept an explicit first-touch selection
+   before arrival. Touch/carry execution also accepts one next action, with
+   progress copy distinct from a fresh decision prompt. Without a queued choice
+   the world pauses for the player's decision. The localized instruction area
+   and its trailing control keep a stable size, so the pitch does not shift as
+   instructions wrap or a cancel button appears; instructions and feedback are
+   reused between animation frames.
 7. A controlled cone crossing, actual defensive steal or 16 decisions ends the
    sequence. Offside is disabled for this deliberately constrained 2v2 exercise.
 
@@ -75,18 +88,21 @@ progress, and does not credit the player's spatial skill for a run chosen solely
 by the support AI.
 
 All movement and contact share sampled trajectories (at most 25 ms apart).
-A steal transfers possession to the actual defender and includes a continuous
-0.4 s collection movement. Both ball and attacking carrier must cross the cone
-opening under control; a ball flying through on its own does not complete it.
-Only persistent support plans and physical braking remain between choices; there
-is no unbounded real-time tick while the player reads.
+Facing direction is interpolated through the shortest turn between samples, so
+the drawn body direction should not snap to the next stored frame. A steal
+transfers possession to the actual defender and includes a continuous 0.4 s
+collection movement. Both ball and attacking carrier must cross the cone opening
+under control; a ball flying through on its own does not complete it. Only
+persistent support plans and physical braking remain between choices; there is
+no timer, countdown or unbounded real-time tick while the player reads.
 
 Domain tests cover all 12 openings, safe first-touch exits, exact target/range
 agreement, full clicked carry destinations, automatic off-ball displacement
 before the first pass, simultaneous passing/support, reception pauses,
-persistent runs, through-pass endpoints, deterministic retries, defender-sensitive
-support targets, both defenders reacting, actual theft and controlled cone
-crossings.
+persistent runs, through-pass endpoints, moving-receiver collection with
+non-zero receiving speed, shortest-angle facing interpolation, deterministic
+retries, defender-sensitive support targets, both defenders reacting, actual
+theft and controlled cone crossings.
 Each focus also has a reproducible example using only the public gestures: free
 touch, carrier movement, hold, pass, and explicit through pass when a visible
 automatic endpoint exists; none depends on direct off-ball selection.
