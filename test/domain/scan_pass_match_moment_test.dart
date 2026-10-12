@@ -35,6 +35,20 @@ void main() {
   test(
       'historical line receives, touches shortly, carries, assists, and scores',
       () {
+    final leadIn = episode.leadIn;
+    expect(leadIn.kind, MatchMomentActionKind.pass);
+    expect(leadIn.actorId, MatchMomentEpisode.spain8);
+    expect(leadIn.receiverId, MatchMomentEpisode.spain2);
+    expect(leadIn.ballHeight, MatchMomentBallHeight.unknown);
+    expect(leadIn.after.carrierId, MatchMomentEpisode.spain2);
+    expect(leadIn.after.ball.x, greaterThan(.5));
+    expect(leadIn.before.ball.x, lessThan(leadIn.after.ball.x),
+        reason: 'Deeper Ruiz feeds the advanced Carvajal.');
+    expect(episode.initialFrame.actor(MatchMomentEpisode.spain23).position.x,
+        lessThan(.1),
+        reason:
+            'The attacking-zone correction must not move Spain goalkeeper to midfield.');
+
     final attempt = episode.historicalAttempt;
     expect(attempt.followsHistoricalLine, isTrue);
     expect(attempt.outcome, MatchMomentOutcome.goal);
@@ -47,6 +61,7 @@ void main() {
     expect(receive.receiverId, MatchMomentEpisode.spain19);
     expect(receive.frame(.5).carrierId, isNull);
     expect(receive.after.carrierId, MatchMomentEpisode.spain19);
+    expect(receive.after.ball.x, greaterThan(.6));
 
     final touch = attempt.segments
         .firstWhere((s) => s.kind == MatchMomentActionKind.firstTouch);
@@ -71,6 +86,71 @@ void main() {
     final shot = attempt.segments.last;
     expect(shot.kind, MatchMomentActionKind.shot);
     expect(shot.actorId, MatchMomentEpisode.spain17);
+  });
+
+  test('reference pass paths are ground-plane reconstructions, not elevation',
+      () {
+    final receive = episode.historicalAttempt.segments.first;
+    final assist = episode.historicalAttempt.segments.firstWhere(
+      (segment) =>
+          segment.kind == MatchMomentActionKind.pass &&
+          segment.receiverId == MatchMomentEpisode.spain17,
+    );
+
+    expect(receive.ballHeight, MatchMomentBallHeight.unknown);
+    expect(assist.ballHeight, MatchMomentBallHeight.ground);
+    for (final segment in [receive, assist]) {
+      expect(segment.ballGroundWaypoints, isEmpty);
+      expect(
+        segment.groundDistanceMetres,
+        closeTo(
+          MatchMomentEpisode.groundMetres(
+            segment.before.ball,
+            segment.after.ball,
+          ),
+          1e-9,
+        ),
+      );
+      final samples = segment.sampleBallPath(count: 7);
+      expect(samples.first.distanceTo(segment.before.ball), closeTo(0, 1e-9));
+      expect(samples.last.distanceTo(segment.after.ball), closeTo(0, 1e-9));
+    }
+  });
+
+  test('ground waypoints affect path length without implying ball height', () {
+    final before = episode.initialFrame.copyWith(
+      ball: const ScanPassPoint(.10, .10),
+      carrierId: MatchMomentEpisode.spain2,
+    );
+    final after = before.copyWith(
+      ball: const ScanPassPoint(.30, .10),
+      carrierId: MatchMomentEpisode.spain19,
+    );
+    const waypoint = ScanPassPoint(.20, .24);
+    final segment = MatchMomentSegment(
+      before: before,
+      after: after,
+      kind: MatchMomentActionKind.pass,
+      actorId: MatchMomentEpisode.spain2,
+      receiverId: MatchMomentEpisode.spain19,
+      duration: 1,
+      ballGroundWaypoints: const [waypoint],
+      cue: MatchMomentReviewCue.receiveInside,
+    );
+
+    expect(segment.ballHeight, MatchMomentBallHeight.ground);
+    expect(
+      segment.groundDistanceMetres,
+      greaterThan(MatchMomentEpisode.groundMetres(before.ball, after.ball)),
+    );
+    expect(segment.ballPointAt(.5).distanceTo(waypoint), closeTo(0, 1e-9));
+    final samples = segment.sampleBallPath(count: 9);
+    expect(samples.first.distanceTo(before.ball), closeTo(0, 1e-9));
+    expect(samples.last.distanceTo(after.ball), closeTo(0, 1e-9));
+  });
+
+  test('reference does not mark an unverified body feint', () {
+    expect(episode.referenceHasVerifiedBodyFeint, isFalse);
   });
 
   test('authored branches produce different coherent conclusions', () {

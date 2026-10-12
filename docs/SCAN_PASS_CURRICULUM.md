@@ -40,6 +40,25 @@ coach endorsement or a claim of real-life skill transfer. The official footage
 links are external fallbacks, with a web-only user-started embed for the verified
 official England highlights segment when the platform supports it.
 
+The on-pitch visualization is a ground-plane teaching model using the declared
+105 m x 68 m field scale. Playback, pause and step-through all read the same
+segment frame for ball position, player positions, arrows and displayed
+distances. Completed traces are subdued while the active action is drawn with a
+heavier route: solid contact routes for first touch/carry, dashed ball
+trajectories for passes, a shot route and separate off-ball/pressure runs for
+Spain and England. Pass distance labels are approximate reconstruction values
+derived from the sampled ground path, for example `#2 -> #19 · ground path
+approx 12 m · height unknown` or `#19 -> #17 · ground path approx 17 m · ground
+ball`; they are not measured broadcast distances. A
+ground-path waypoint, when present, is only a 2D lateral waypoint and never an
+elevation value. The Yamal-to-Williams pass is marked as a ground ball; the
+Carvajal-to-Yamal release and shots use an unknown/height-not-confirmed category
+because the public stills do not support exact elevation. The body-facing arrow
+is schematic and separate from the ball/player route arrow. The official sources
+support Ruiz feeding Carvajal, Carvajal's first-time outside-foot release,
+Yamal's direction change/carry, Morata and Olmo occupying centre-backs, and
+Williams' far-side finish, but no named or verified body feint is marked.
+
 The receiving decision teaches reading Shaw's outside pressure and the inside
 receiving lane. The first-touch decision isolates a short contact with the ball
 from the later carry: its exact endpoint stays on the pitch while separated
@@ -47,6 +66,17 @@ callouts show the movement direction. The final decision contrasts the diagonal
 carry and switch to Williams with a central possession option or a direct carry
 and shot. Feedback names the actual receiver, shooter or interceptor in the
 selected branch; retaining possession is not described as a wrong answer.
+
+The active action's full intended route remains visible when paused at its
+start, with completed travel emphasized as it plays. Action numbers on the
+route and playback controls agree. Instructions and controls occupy reserved
+layout space above the pitch, so neither can cover a player or the goal.
+The compact height profile is categorical: a ground baseline and ball for
+known/modelled ground height, and a dashed unknown marker without an invented
+arc when elevation is unconfirmed. It is not a measured vertical trajectory.
+Interception details distinguish the intended receiver from the defender who
+actually gains the ball. Completed reference playback has its own replay entry;
+returning to review preserves the learner's original outcome.
 
 Small screens crop the tactical camera to the attack without stretching field
 angles. Portrait orientation stays consistent through review, and reference

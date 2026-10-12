@@ -20707,6 +20707,84 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchMomentReturnToReview => '自分のレビューへ戻る';
 
   @override
+  String get matchMomentPausePlayback => '再生を一時停止';
+
+  @override
+  String get matchMomentResumePlayback => '再生を再開';
+
+  @override
+  String get matchMomentPreviousAction => '前のアクション';
+
+  @override
+  String get matchMomentNextActionControl => '次のアクション';
+
+  @override
+  String matchMomentActionProgress(Object current, Object total) {
+    return '$current/$total';
+  }
+
+  @override
+  String matchMomentActionDetailLead(Object player) {
+    return '#$playerがリリース前に運びます。';
+  }
+
+  @override
+  String matchMomentActionDetailPass(Object passer, Object receiver) {
+    return '#$passer → #$receiver';
+  }
+
+  @override
+  String matchMomentActionDetailFirstTouch(Object player) {
+    return '#$playerのファーストタッチ。';
+  }
+
+  @override
+  String matchMomentActionDetailCarry(Object player) {
+    return '#$playerがボールを運びます。';
+  }
+
+  @override
+  String matchMomentActionDetailShot(Object player) {
+    return '#$playerのシュート。';
+  }
+
+  @override
+  String matchMomentPassMetricApprox(
+      Object from, Object to, Object metres, Object height) {
+    return '#$from → #$to · 地上移動 約${metres}m · $height';
+  }
+
+  @override
+  String matchMomentTouchMetricApprox(Object metres) {
+    return '地上移動 約${metres}m';
+  }
+
+  @override
+  String matchMomentCarryMetricApprox(Object metres) {
+    return '地上での運び 約${metres}m';
+  }
+
+  @override
+  String matchMomentShotMetricApprox(Object metres, Object height) {
+    return 'シュート経路 約${metres}m · $height';
+  }
+
+  @override
+  String get matchMomentHeightGround => 'グラウンダー';
+
+  @override
+  String get matchMomentHeightLow => '低いボール';
+
+  @override
+  String get matchMomentHeightLofted => '浮き球';
+
+  @override
+  String get matchMomentHeightUnknown => '高さは未確認';
+
+  @override
+  String get matchMomentBodyLegend => '小さな矢印：体の向き（模式図）';
+
+  @override
   String get matchMomentOfficialFootageTitle => '公式映像';
 
   @override
@@ -20734,6 +20812,10 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get matchMomentSourcesBody =>
       '2024年7月14日、ベルリン。UEFAのメンバー表と公式映像で当時の選手・背番号・ユニフォームを確認しました。後半開始からロドリに代わりスビメンディ18番が出場しています。動きは公式戦術分析に基づく学習用の2D再構成で、ピッチ全体の正確な追跡データではありません。別の選択の結果はシミュレーションです。';
+
+  @override
+  String get matchMomentSourceFeintLimit =>
+      'この場面は方向転換と運びに焦点を当てます。確認されていないボディフェイントは表示しません。';
 
   @override
   String get matchMomentSourceLineup => 'UEFA · 先発メンバーと背番号';
@@ -20817,4 +20899,26 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get matchMomentReviewEffectCarrySaved =>
       'ヤマルが運んで遠くからシュートしましたが、ピックフォードが止めました。逆サイドのウィリアムズにつないだ場合のシュート位置と比較しましょう。';
+
+  @override
+  String matchMomentHeightDiagram(Object height) {
+    return 'ボールの高さ：$height';
+  }
+
+  @override
+  String get matchMomentMotionLegend => '実線：ドリブル・長い破線：パス\n緑：味方の動き・橙：守備の動き';
+
+  @override
+  String matchMomentInterceptedPassDetail(
+      Object passer, Object target, Object defender) {
+    return '#$passerから#$targetへのパス・守備#$defenderがカット';
+  }
+
+  @override
+  String get matchMomentReplayReference => 'お手本をもう一度見る';
+
+  @override
+  String matchMomentActionIndex(Object current) {
+    return '動作 $current';
+  }
 }

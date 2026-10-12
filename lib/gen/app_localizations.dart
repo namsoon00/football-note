@@ -36574,6 +36574,121 @@ abstract class AppLocalizations {
   /// **'Return to my review'**
   String get matchMomentReturnToReview;
 
+  /// No description provided for @matchMomentPausePlayback.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause playback'**
+  String get matchMomentPausePlayback;
+
+  /// No description provided for @matchMomentResumePlayback.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume playback'**
+  String get matchMomentResumePlayback;
+
+  /// No description provided for @matchMomentPreviousAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous action'**
+  String get matchMomentPreviousAction;
+
+  /// No description provided for @matchMomentNextActionControl.
+  ///
+  /// In en, this message translates to:
+  /// **'Next action'**
+  String get matchMomentNextActionControl;
+
+  /// No description provided for @matchMomentActionProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total}'**
+  String matchMomentActionProgress(Object current, Object total);
+
+  /// No description provided for @matchMomentActionDetailLead.
+  ///
+  /// In en, this message translates to:
+  /// **'#{player} carries before release.'**
+  String matchMomentActionDetailLead(Object player);
+
+  /// No description provided for @matchMomentActionDetailPass.
+  ///
+  /// In en, this message translates to:
+  /// **'#{passer} → #{receiver}'**
+  String matchMomentActionDetailPass(Object passer, Object receiver);
+
+  /// No description provided for @matchMomentActionDetailFirstTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'#{player} first touch.'**
+  String matchMomentActionDetailFirstTouch(Object player);
+
+  /// No description provided for @matchMomentActionDetailCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'#{player} carries with the ball.'**
+  String matchMomentActionDetailCarry(Object player);
+
+  /// No description provided for @matchMomentActionDetailShot.
+  ///
+  /// In en, this message translates to:
+  /// **'#{player} shoots.'**
+  String matchMomentActionDetailShot(Object player);
+
+  /// No description provided for @matchMomentPassMetricApprox.
+  ///
+  /// In en, this message translates to:
+  /// **'#{from} → #{to} · ground path approx {metres} m · {height}'**
+  String matchMomentPassMetricApprox(
+      Object from, Object to, Object metres, Object height);
+
+  /// No description provided for @matchMomentTouchMetricApprox.
+  ///
+  /// In en, this message translates to:
+  /// **'Ground movement approx {metres} m'**
+  String matchMomentTouchMetricApprox(Object metres);
+
+  /// No description provided for @matchMomentCarryMetricApprox.
+  ///
+  /// In en, this message translates to:
+  /// **'Ground carry approx {metres} m'**
+  String matchMomentCarryMetricApprox(Object metres);
+
+  /// No description provided for @matchMomentShotMetricApprox.
+  ///
+  /// In en, this message translates to:
+  /// **'Shot path approx {metres} m · {height}'**
+  String matchMomentShotMetricApprox(Object metres, Object height);
+
+  /// No description provided for @matchMomentHeightGround.
+  ///
+  /// In en, this message translates to:
+  /// **'ground ball'**
+  String get matchMomentHeightGround;
+
+  /// No description provided for @matchMomentHeightLow.
+  ///
+  /// In en, this message translates to:
+  /// **'low ball'**
+  String get matchMomentHeightLow;
+
+  /// No description provided for @matchMomentHeightLofted.
+  ///
+  /// In en, this message translates to:
+  /// **'lofted ball'**
+  String get matchMomentHeightLofted;
+
+  /// No description provided for @matchMomentHeightUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'height unknown'**
+  String get matchMomentHeightUnknown;
+
+  /// No description provided for @matchMomentBodyLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Small arrow: schematic facing'**
+  String get matchMomentBodyLegend;
+
   /// No description provided for @matchMomentOfficialFootageTitle.
   ///
   /// In en, this message translates to:
@@ -36627,6 +36742,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Berlin, 14 July 2024. The UEFA lineup and official footage establish the players, shirt numbers and match kits. Zubimendi 18 replaced Rodri at half-time. Movement is a 2D learning reconstruction informed by official tactical analysis, not exact whole-pitch tracking. Alternative outcomes are simulations.'**
   String get matchMomentSourcesBody;
+
+  /// No description provided for @matchMomentSourceFeintLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'This scene focuses on direction change and ball carrying. No verified body feint is marked.'**
+  String get matchMomentSourceFeintLimit;
 
   /// No description provided for @matchMomentSourceLineup.
   ///
@@ -36789,6 +36910,37 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Yamal carried and shot from distance; Pickford saved. Compare that shooting position with the chance created by finding Williams on the opposite side.'**
   String get matchMomentReviewEffectCarrySaved;
+
+  /// No description provided for @matchMomentHeightDiagram.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball height: {height}'**
+  String matchMomentHeightDiagram(Object height);
+
+  /// No description provided for @matchMomentMotionLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Solid: carry · long dashes: pass\nGreen: support · orange: defence'**
+  String get matchMomentMotionLegend;
+
+  /// No description provided for @matchMomentInterceptedPassDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'#{passer} toward #{target} · intercepted by #{defender}'**
+  String matchMomentInterceptedPassDetail(
+      Object passer, Object target, Object defender);
+
+  /// No description provided for @matchMomentReplayReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay reference'**
+  String get matchMomentReplayReference;
+
+  /// No description provided for @matchMomentActionIndex.
+  ///
+  /// In en, this message translates to:
+  /// **'Action {current}'**
+  String matchMomentActionIndex(Object current);
 }
 
 class _AppLocalizationsDelegate

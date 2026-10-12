@@ -44,6 +44,7 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
   MatchMomentAttempt? _attempt;
   bool _foreground = true;
   bool _modalOpen = false;
+  bool _manualPlaybackPause = false;
 
   bool get _busy =>
       _mode == _MatchMomentMode.leading ||
@@ -98,6 +99,7 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
     _beat = MatchMomentBeat.receive;
     _mode = _MatchMomentMode.leading;
     _activeChoice = null;
+    _manualPlaybackPause = false;
     _playSegments([widget.episode.leadIn], widget.leadInDuration);
   }
 
@@ -139,6 +141,7 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
     _controller.stop();
     setState(() {
       _activeSegments = List.unmodifiable(segments);
+      _manualPlaybackPause = false;
     });
     final resolvedDuration =
         duration == Duration.zero || AppMotion.reduceMotion(context)
@@ -157,11 +160,104 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
   void _resumeAnimation() {
     if (!_foreground ||
         _modalOpen ||
+        _manualPlaybackPause ||
         _activeSegments.isEmpty ||
         _controller.isCompleted) {
       return;
     }
     unawaited(_controller.forward());
+  }
+
+  void _togglePlaybackPause() {
+    if (_activeSegments.isEmpty) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _manualPlaybackPause = !_manualPlaybackPause;
+      if (_manualPlaybackPause) {
+        _controller.stop();
+      }
+    });
+    if (!_manualPlaybackPause) _resumeAnimation();
+  }
+
+  void _stepPlayback(int direction) {
+    if (_activeSegments.isEmpty) return;
+    final snapshot = _playbackSnapshot;
+    if (snapshot == null) return;
+    HapticFeedback.selectionClick();
+    var targetIndex = snapshot.index;
+    if (direction < 0) {
+      targetIndex =
+          snapshot.localProgress > .08 ? snapshot.index : snapshot.index - 1;
+    } else if (direction > 0) {
+      targetIndex = snapshot.index + 1;
+    }
+    final lastIndex = _activeSegments.length - 1;
+    final clampedIndex = targetIndex.clamp(0, lastIndex).toInt();
+    var target = direction > 0 && snapshot.index == lastIndex
+        ? _progressForSegmentEnd(lastIndex)
+        : _progressForSegmentStart(clampedIndex);
+    if (direction > 0 && clampedIndex > snapshot.index) {
+      target += .000001;
+    }
+    setState(() {
+      _manualPlaybackPause = true;
+      _controller.stop();
+      _controller.value = target.clamp(0.0, .999999).toDouble();
+    });
+  }
+
+  double _progressForSegmentStart(int index) {
+    final total = _activeDuration;
+    if (total <= 0) return 0;
+    var elapsed = 0.0;
+    for (var i = 0; i < index && i < _activeSegments.length; i += 1) {
+      elapsed += _activeSegments[i].duration;
+    }
+    return elapsed / total;
+  }
+
+  double _progressForSegmentEnd(int index) {
+    final total = _activeDuration;
+    if (total <= 0) return 1;
+    var elapsed = 0.0;
+    for (var i = 0; i <= index && i < _activeSegments.length; i += 1) {
+      elapsed += _activeSegments[i].duration;
+    }
+    return elapsed / total;
+  }
+
+  double get _activeDuration => _activeSegments.fold<double>(
+        0,
+        (sum, segment) => sum + segment.duration,
+      );
+
+  _MatchPlaybackSnapshot? get _playbackSnapshot {
+    if (_activeSegments.isEmpty) return null;
+    final total = _activeDuration;
+    if (total <= 0) {
+      return _MatchPlaybackSnapshot(
+        index: _activeSegments.length - 1,
+        localProgress: 1,
+        segment: _activeSegments.last,
+        completedBefore: _activeSegments.take(_activeSegments.length - 1),
+      );
+    }
+    var elapsed = total * _controller.value.clamp(0.0, 1.0).toDouble();
+    for (var index = 0; index < _activeSegments.length; index += 1) {
+      final segment = _activeSegments[index];
+      if (elapsed < segment.duration || index == _activeSegments.length - 1) {
+        final local = segment.duration <= 0 ? 1.0 : elapsed / segment.duration;
+        return _MatchPlaybackSnapshot(
+          index: index,
+          localProgress: local.clamp(0.0, 1.0).toDouble(),
+          segment: segment,
+          completedBefore: _activeSegments.take(index),
+        );
+      }
+      elapsed -= segment.duration;
+    }
+    return null;
   }
 
   void _choose(MatchMomentChoiceId id) {
@@ -198,47 +294,6 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
       return widget.episode.historicalAttempt.finalFrame;
     }
     return _current;
-  }
-
-  List<MatchMomentSegment> get _visibleTrail {
-    if (_mode == _MatchMomentMode.compare) {
-      final reference = widget.episode.historicalAttempt.segments;
-      return _activeSegments.isEmpty
-          ? reference
-          : _completedTrail(_activeSegments, _controller.value);
-    }
-    if (_mode == _MatchMomentMode.replaying) {
-      return _completedTrail(_activeSegments, _controller.value);
-    }
-    if (_mode == _MatchMomentMode.review && _attempt != null) {
-      return _attempt!.segments;
-    }
-    return List.unmodifiable([
-      ..._history,
-      ..._completedTrail(_activeSegments, _controller.value),
-    ]);
-  }
-
-  List<MatchMomentSegment> _completedTrail(
-    List<MatchMomentSegment> segments,
-    double progress,
-  ) {
-    if (segments.isEmpty) return const <MatchMomentSegment>[];
-    final total = segments.fold<double>(
-      0,
-      (sum, segment) => sum + segment.duration,
-    );
-    var elapsed = total * progress.clamp(0.0, 1.0).toDouble();
-    final completed = <MatchMomentSegment>[];
-    for (final segment in segments) {
-      if (elapsed >= segment.duration) {
-        completed.add(segment);
-        elapsed -= segment.duration;
-      } else {
-        break;
-      }
-    }
-    return completed;
   }
 
   MatchMomentFrame _frameForProgress(
@@ -281,6 +336,7 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
       _attempt = null;
       _activeSegments = const <MatchMomentSegment>[];
       _activeChoice = null;
+      _manualPlaybackPause = false;
       _mode = _MatchMomentMode.choosing;
     });
   }
@@ -292,6 +348,7 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
       _mode = _MatchMomentMode.replaying;
       _current = widget.episode.initialFrame;
       _activeChoice = null;
+      _manualPlaybackPause = false;
     });
     _playSegments(
       [widget.episode.leadIn, ...attempt.segments],
@@ -306,6 +363,7 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
       _mode = _MatchMomentMode.compare;
       _current = widget.episode.initialFrame;
       _activeChoice = null;
+      _manualPlaybackPause = false;
     });
     _playSegments(
       [widget.episode.leadIn, ...reference.segments],
@@ -321,6 +379,7 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
       _current = attempt.finalFrame;
       _activeSegments = const <MatchMomentSegment>[];
       _activeChoice = null;
+      _manualPlaybackPause = false;
     });
   }
 
@@ -454,86 +513,373 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
     final choices = _mode == _MatchMomentMode.choosing
         ? widget.episode.choicesFor(_beat, _current)
         : const <MatchMomentChoice>[];
+    final motion = _motionVisual;
     return RepaintBoundary(
       key: const ValueKey<String>('match-moment-capture'),
-      child: Semantics(
-        image: true,
-        label: l10n.matchMomentFieldSemantics,
-        child: LayoutBuilder(builder: (context, constraints) {
-          return Stack(
-            key: const ValueKey<String>('match-moment-field'),
-            fit: StackFit.expand,
-            children: [
-              CustomPaint(
-                key: const ValueKey<String>('match-moment-pitch'),
-                painter: _MatchMomentPitchPainter(
-                  episode: widget.episode,
-                  portrait: _portraitView,
-                  frame: _displayFrame,
-                  trail: _visibleTrail,
-                  names: _localizedPlayerNames(l10n),
-                  reference: _mode == _MatchMomentMode.compare,
-                  brightness: Theme.of(context).brightness,
-                  fontFamily:
-                      Theme.of(context).textTheme.bodyMedium?.fontFamily,
-                ),
-              ),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final playback = _playbackSnapshot != null;
+        final wide = constraints.maxWidth >= 700;
+        return Column(
+          key: const ValueKey<String>('match-moment-field'),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (playback && wide)
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Expanded(child: _buildFieldHeader(l10n)),
+                const SizedBox(width: 8),
+                SizedBox(width: 390, child: _buildPlaybackControls(l10n)),
+              ])
+            else ...[
               _buildFieldHeader(l10n),
-              if (choices.isNotEmpty) _buildChoiceLayer(l10n, choices),
+              if (playback) ...[
+                const SizedBox(height: 4),
+                _buildPlaybackControls(l10n),
+              ],
             ],
-          );
-        }),
-      ),
+            const SizedBox(height: 4),
+            Expanded(
+              child: Semantics(
+                image: true,
+                label: l10n.matchMomentFieldSemantics,
+                child: Stack(fit: StackFit.expand, children: [
+                  CustomPaint(
+                    key: const ValueKey<String>('match-moment-pitch'),
+                    painter: _MatchMomentPitchPainter(
+                      episode: widget.episode,
+                      portrait: _portraitView,
+                      frame: _displayFrame,
+                      completedSegments: motion.completedSegments,
+                      activeSegment: motion.activeSegment,
+                      activeSegmentProgress: motion.activeProgress,
+                      names: _localizedPlayerNames(l10n),
+                      reference: _mode == _MatchMomentMode.compare,
+                      brightness: Theme.of(context).brightness,
+                      fontFamily:
+                          Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    ),
+                  ),
+                  if (choices.isNotEmpty) _buildChoiceLayer(l10n, choices),
+                ]),
+              ),
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
+  _MatchMotionVisual get _motionVisual {
+    final snapshot = _playbackSnapshot;
+    if (snapshot != null) {
+      final completed = _mode == _MatchMomentMode.executing
+          ? <MatchMomentSegment>[
+              widget.episode.leadIn,
+              ..._history,
+              ...snapshot.completedBefore,
+            ]
+          : snapshot.completedBefore.toList(growable: false);
+      return _MatchMotionVisual(
+        completedSegments: List.unmodifiable(completed),
+        activeSegment: snapshot.segment,
+        activeProgress: snapshot.localProgress,
+      );
+    }
+    if (_mode == _MatchMomentMode.compare) {
+      return _MatchMotionVisual(
+        completedSegments: [
+          widget.episode.leadIn,
+          ...widget.episode.historicalAttempt.segments,
+        ],
+      );
+    }
+    if (_mode == _MatchMomentMode.review && _attempt != null) {
+      return _MatchMotionVisual(
+        completedSegments: [widget.episode.leadIn, ..._attempt!.segments],
+      );
+    }
+    return _MatchMotionVisual(
+      completedSegments: [widget.episode.leadIn, ..._history],
     );
   }
 
   Widget _buildFieldHeader(AppLocalizations l10n) {
     final compact = !_portraitView && MediaQuery.sizeOf(context).height < 500;
     final colors = _ScanPassColors.of(context);
-    return Positioned(
-      left: 12,
-      right: 12,
-      top: 10,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.surface.withValues(alpha: .92),
-          border: Border.all(color: colors.line),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                compact
-                    ? l10n.matchMomentContextLine.replaceAll('\n', ' · ')
-                    : l10n.matchMomentContextLine,
-                key: const ValueKey<String>('match-moment-context'),
-                maxLines: compact ? 1 : 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: colors.text,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                _instruction(l10n),
-                key: const ValueKey<String>('match-moment-instruction'),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.muted,
-                      height: 1.15,
-                    ),
-              ),
-            ],
-          ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surface.withValues(alpha: .92),
+        border: Border.all(color: colors.line),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              compact
+                  ? l10n.matchMomentContextLine.replaceAll('\n', ' · ')
+                  : l10n.matchMomentContextLine,
+              key: const ValueKey<String>('match-moment-context'),
+              maxLines: compact ? 1 : 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: colors.text,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              _busy ? l10n.matchMomentMotionLegend : _instruction(l10n),
+              key: const ValueKey<String>('match-moment-instruction'),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.muted,
+                    height: 1.15,
+                  ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Widget _buildPlaybackControls(AppLocalizations l10n) {
+    final snapshot = _playbackSnapshot;
+    if (snapshot == null) return const SizedBox.shrink();
+    final colors = _ScanPassColors.of(context);
+    final segment = snapshot.segment;
+    final progress =
+        _mode == _MatchMomentMode.compare || _mode == _MatchMomentMode.replaying
+            ? l10n.matchMomentActionProgress(
+                _playbackDisplayIndex(snapshot), _playbackDisplayTotal)
+            : l10n.matchMomentActionIndex(_playbackDisplayIndex(snapshot));
+    final detail = _actionDetail(l10n, segment);
+    final metric = _actionMetric(l10n, segment);
+    return DecoratedBox(
+      key: const ValueKey<String>('match-playback-panel'),
+      decoration: BoxDecoration(
+        color: colors.surface.withValues(alpha: .94),
+        border: Border.all(color: colors.line),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: .12),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+        child: Row(
+          children: [
+            _playbackControl(
+              key: const ValueKey<String>('match-playback-prev'),
+              icon: Icons.skip_previous,
+              tooltip: l10n.matchMomentPreviousAction,
+              onPressed: snapshot.index == 0 && snapshot.localProgress < .08
+                  ? null
+                  : () => _stepPlayback(-1),
+            ),
+            _playbackControl(
+              key: const ValueKey<String>('match-playback-toggle'),
+              icon: _manualPlaybackPause ? Icons.play_arrow : Icons.pause,
+              tooltip: _manualPlaybackPause
+                  ? l10n.matchMomentResumePlayback
+                  : l10n.matchMomentPausePlayback,
+              onPressed: _togglePlaybackPause,
+            ),
+            _playbackControl(
+              key: const ValueKey<String>('match-playback-next'),
+              icon: Icons.skip_next,
+              tooltip: l10n.matchMomentNextActionControl,
+              onPressed: snapshot.index == _activeSegments.length - 1 &&
+                      snapshot.localProgress > .94
+                  ? null
+                  : () => _stepPlayback(1),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 6,
+                    runSpacing: 2,
+                    children: [
+                      Text(
+                        progress,
+                        key: const ValueKey<String>(
+                          'match-playback-progress',
+                        ),
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: colors.accent,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                      ),
+                      Text(
+                        detail,
+                        key: const ValueKey<String>(
+                          'match-playback-detail',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: colors.text,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    metric,
+                    key: const ValueKey<String>('match-playback-metric'),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colors.muted,
+                          height: 1.12,
+                        ),
+                  ),
+                  Row(children: [
+                    SizedBox(
+                        width: 36,
+                        height: 14,
+                        child: CustomPaint(
+                          key: const ValueKey<String>('match-height-profile'),
+                          painter: _MatchHeightProfilePainter(
+                              height: segment.ballHeight, color: colors.text),
+                        )),
+                    const SizedBox(width: 5),
+                    Expanded(
+                        child: Text(
+                      l10n.matchMomentHeightDiagram(
+                          _heightLabel(l10n, segment.ballHeight)),
+                      key: const ValueKey<String>('match-height-caption'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colors.muted,
+                            height: 1.12,
+                            fontSize: 10.5,
+                          ),
+                    )),
+                  ]),
+                  Text(l10n.matchMomentBodyLegend,
+                      key: const ValueKey<String>('match-body-legend'),
+                      maxLines: 2,
+                      style: TextStyle(
+                          color: colors.muted, fontSize: 10.5, height: 1.12)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  int _playbackDisplayIndex(_MatchPlaybackSnapshot snapshot) {
+    if (_mode == _MatchMomentMode.executing) {
+      return _history.length + snapshot.index + 2;
+    }
+    return snapshot.index + 1;
+  }
+
+  int get _playbackDisplayTotal {
+    if (_mode == _MatchMomentMode.executing) {
+      return _history.length + _activeSegments.length + 1;
+    }
+    return _activeSegments.length;
+  }
+
+  Widget _playbackControl({
+    required Key key,
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback? onPressed,
+  }) =>
+      AppBarActionButton.icon(
+        key: key,
+        icon: icon,
+        tooltip: tooltip,
+        onPressed: onPressed,
+        compact: true,
+        margin: const EdgeInsetsDirectional.only(end: 3),
+      );
+
+  String _actionDetail(AppLocalizations l10n, MatchMomentSegment segment) {
+    final actor = _numberFor(segment.actorId);
+    final receiver =
+        segment.receiverId == null ? null : _numberFor(segment.receiverId!);
+    if (segment.kind == MatchMomentActionKind.pass &&
+        segment.after.outcome == MatchMomentOutcome.turnover &&
+        segment.after.carrierId != null) {
+      return l10n.matchMomentInterceptedPassDetail(
+          actor, receiver ?? actor, _numberFor(segment.after.carrierId!));
+    }
+    return switch (segment.kind) {
+      MatchMomentActionKind.leadIn => l10n.matchMomentActionDetailLead(actor),
+      MatchMomentActionKind.receivePass ||
+      MatchMomentActionKind.pass =>
+        l10n.matchMomentActionDetailPass(actor, receiver ?? actor),
+      MatchMomentActionKind.firstTouch =>
+        l10n.matchMomentActionDetailFirstTouch(actor),
+      MatchMomentActionKind.carry => l10n.matchMomentActionDetailCarry(actor),
+      MatchMomentActionKind.shot => l10n.matchMomentActionDetailShot(actor),
+    };
+  }
+
+  String _actionMetric(AppLocalizations l10n, MatchMomentSegment segment) {
+    final metres = _metresText(segment.groundDistanceMetres);
+    final actor = _numberFor(segment.actorId);
+    final receiver =
+        segment.receiverId == null ? null : _numberFor(segment.receiverId!);
+    final height = _heightLabel(l10n, segment.ballHeight);
+    return switch (segment.kind) {
+      MatchMomentActionKind.receivePass ||
+      MatchMomentActionKind.pass =>
+        l10n.matchMomentPassMetricApprox(
+          actor,
+          receiver ?? actor,
+          metres,
+          height,
+        ),
+      MatchMomentActionKind.firstTouch =>
+        l10n.matchMomentTouchMetricApprox(metres),
+      MatchMomentActionKind.carry => l10n.matchMomentCarryMetricApprox(metres),
+      MatchMomentActionKind.shot =>
+        l10n.matchMomentShotMetricApprox(metres, height),
+      MatchMomentActionKind.leadIn => l10n.matchMomentCarryMetricApprox(metres),
+    };
+  }
+
+  String _heightLabel(AppLocalizations l10n, MatchMomentBallHeight height) {
+    return switch (height) {
+      MatchMomentBallHeight.ground => l10n.matchMomentHeightGround,
+      MatchMomentBallHeight.low => l10n.matchMomentHeightLow,
+      MatchMomentBallHeight.lofted => l10n.matchMomentHeightLofted,
+      MatchMomentBallHeight.unknown => l10n.matchMomentHeightUnknown,
+    };
+  }
+
+  String _metresText(double metres) {
+    if (metres < 9.95) return metres.toStringAsFixed(1);
+    return metres.round().toString();
+  }
+
+  int _numberFor(String playerId) {
+    return widget.episode.roster
+        .firstWhere((player) => player.id == playerId)
+        .number;
   }
 
   Widget _buildChoiceLayer(
@@ -676,6 +1022,13 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
                 style: TextStyle(color: colors.muted, height: 1.35),
               ),
               const SizedBox(height: 12),
+              OutlinedButton.icon(
+                key: const ValueKey<String>('match-reference-replay'),
+                onPressed: _busy ? null : _showReference,
+                icon: const Icon(Icons.replay),
+                label: Text(l10n.matchMomentReplayReference),
+              ),
+              const SizedBox(height: 8),
               FilledButton.icon(
                 key: const ValueKey<String>('match-return-review'),
                 onPressed: _busy ? null : _returnToLearnerReview,
@@ -860,6 +1213,11 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
             l10n.matchMomentSourcesBody,
             style: TextStyle(color: colors.muted, height: 1.35),
           ),
+          const SizedBox(height: 6),
+          Text(
+            '${l10n.matchMomentBodyLegend}\n${l10n.matchMomentSourceFeintLimit}',
+            style: TextStyle(color: colors.muted, height: 1.35),
+          ),
           const SizedBox(height: 8),
           _sourceLink(l10n.matchMomentSourceLineup,
               MatchMomentEpisode.officialLineupUrl),
@@ -907,6 +1265,11 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
                 const SizedBox(height: 10),
                 Text(
                   l10n.matchMomentSourcesBody,
+                  style: TextStyle(color: colors.muted, height: 1.35),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${l10n.matchMomentBodyLegend}\n${l10n.matchMomentSourceFeintLimit}',
                   style: TextStyle(color: colors.muted, height: 1.35),
                 ),
                 const SizedBox(height: 10),
@@ -1103,6 +1466,32 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
       };
 }
 
+class _MatchPlaybackSnapshot {
+  final int index;
+  final double localProgress;
+  final MatchMomentSegment segment;
+  final Iterable<MatchMomentSegment> completedBefore;
+
+  const _MatchPlaybackSnapshot({
+    required this.index,
+    required this.localProgress,
+    required this.segment,
+    required this.completedBefore,
+  });
+}
+
+class _MatchMotionVisual {
+  final List<MatchMomentSegment> completedSegments;
+  final MatchMomentSegment? activeSegment;
+  final double activeProgress;
+
+  const _MatchMotionVisual({
+    required this.completedSegments,
+    this.activeSegment,
+    this.activeProgress = 0,
+  });
+}
+
 class _ChoiceTargetData {
   final MatchMomentChoice choice;
   final Key buttonKey;
@@ -1291,7 +1680,9 @@ class _MatchMomentPitchPainter extends CustomPainter {
   final MatchMomentEpisode episode;
   final bool portrait;
   final MatchMomentFrame frame;
-  final List<MatchMomentSegment> trail;
+  final List<MatchMomentSegment> completedSegments;
+  final MatchMomentSegment? activeSegment;
+  final double activeSegmentProgress;
   final Map<String, String> names;
   final bool reference;
   final Brightness brightness;
@@ -1301,7 +1692,9 @@ class _MatchMomentPitchPainter extends CustomPainter {
     required this.episode,
     required this.portrait,
     required this.frame,
-    required this.trail,
+    required this.completedSegments,
+    required this.activeSegment,
+    required this.activeSegmentProgress,
     required this.names,
     required this.reference,
     required this.brightness,
@@ -1319,7 +1712,7 @@ class _MatchMomentPitchPainter extends CustomPainter {
     _drawPitch(canvas, geometry);
     canvas.save();
     canvas.clipRect(geometry.playArea);
-    _drawTrail(canvas, geometry);
+    _drawMotionAnnotations(canvas, geometry);
     _drawGoal(canvas, geometry);
     final roster = episode.roster.toList(growable: false)
       ..sort((a, b) {
@@ -1335,6 +1728,7 @@ class _MatchMomentPitchPainter extends CustomPainter {
       if (state == null) continue;
       _drawPlayer(canvas, geometry, player, state);
     }
+    _drawTouchDetail(canvas, geometry);
     _drawBall(canvas, geometry);
     _drawAttackArrow(canvas, geometry);
     canvas.restore();
@@ -1417,25 +1811,129 @@ class _MatchMomentPitchPainter extends CustomPainter {
     }
   }
 
-  void _drawTrail(Canvas canvas, _MatchPitchGeometry geometry) {
-    final ballPaint = Paint()
-      ..color = (reference ? const Color(0xFF77A9C4) : const Color(0xFFE2C57E))
-          .withValues(alpha: .92)
-      ..strokeWidth = 2.4
+  void _drawMotionAnnotations(Canvas canvas, _MatchPitchGeometry geometry) {
+    for (var index = 0; index < completedSegments.length; index += 1) {
+      _drawSegmentAnnotation(
+        canvas,
+        geometry,
+        completedSegments[index],
+        progress: 1,
+        sequence: index + 1,
+        active: false,
+      );
+    }
+    final active = activeSegment;
+    if (active != null) {
+      _drawSegmentPlan(canvas, geometry, active);
+      _drawSegmentAnnotation(
+        canvas,
+        geometry,
+        active,
+        progress: activeSegmentProgress,
+        sequence: completedSegments.length + 1,
+        active: true,
+      );
+    }
+  }
+
+  void _drawSegmentPlan(
+    Canvas canvas,
+    _MatchPitchGeometry geometry,
+    MatchMomentSegment segment,
+  ) {
+    final paint = _ballPaint(segment, active: true)
+      ..color = _ballPaint(segment, active: true).color.withValues(alpha: .82)
+      ..strokeWidth = 2.8;
+    final points = segment
+        .sampleBallPath(count: 18)
+        .map(geometry.toOffset)
+        .toList(growable: false);
+    _drawPathForKind(canvas, points, paint, segment.kind);
+    if (segment.groundDistanceMetres >= 3) {
+      _drawSequenceMarker(
+          canvas, points[points.length ~/ 2], completedSegments.length + 1,
+          active: true);
+    }
+    _drawActorRuns(canvas, geometry, segment, 1, active: false, planned: true);
+  }
+
+  void _drawSegmentAnnotation(
+    Canvas canvas,
+    _MatchPitchGeometry geometry,
+    MatchMomentSegment segment, {
+    required double progress,
+    required int sequence,
+    required bool active,
+  }) {
+    final clamped = progress.clamp(0.0, 1.0).toDouble();
+    final points = segment
+        .sampleBallPath(count: active ? 18 : 12, progress: clamped)
+        .map(geometry.toOffset)
+        .toList(growable: false);
+    final ballPaint = _ballPaint(segment, active: active);
+    _drawPathForKind(canvas, points, ballPaint, segment.kind);
+    if (!active && points.length > 1 && segment.groundDistanceMetres >= 3) {
+      final marker = points[(points.length / 2).floor()];
+      _drawSequenceMarker(canvas, marker, sequence, active: active);
+    }
+    _drawActorRuns(canvas, geometry, segment, clamped, active: active);
+  }
+
+  Paint _ballPaint(MatchMomentSegment segment, {required bool active}) {
+    final color = switch (segment.kind) {
+      MatchMomentActionKind.receivePass ||
+      MatchMomentActionKind.pass =>
+        reference
+            ? (_dark ? const Color(0xFF8EC5FF) : const Color(0xFF005A8D))
+            : (_dark ? const Color(0xFFFFD166) : const Color(0xFF8A5A00)),
+      MatchMomentActionKind.firstTouch =>
+        _dark ? const Color(0xFF54D6A4) : const Color(0xFF007B52),
+      MatchMomentActionKind.carry ||
+      MatchMomentActionKind.leadIn =>
+        _dark ? const Color(0xFF24C6DC) : const Color(0xFF006D7A),
+      MatchMomentActionKind.shot =>
+        _dark ? const Color(0xFFFF5A7A) : const Color(0xFFC0183A),
+    };
+    return Paint()
+      ..color = color.withValues(alpha: active ? .98 : .42)
+      ..strokeWidth = active ? 4.4 : 2.0
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    final runPaint = Paint()
-      ..color = (_dark ? Colors.white70 : const Color(0xFF31454A))
-          .withValues(alpha: reference ? .46 : .34)
-      ..strokeWidth = 1.2
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    for (final segment in trail) {
-      final from = geometry.toOffset(segment.before.ball);
-      final to = geometry.toOffset(segment.after.ball);
-      canvas.drawLine(from, to, ballPaint);
-      _drawArrowHead(canvas, from, to, ballPaint);
-      for (final id in const [
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+  }
+
+  void _drawPathForKind(
+    Canvas canvas,
+    List<Offset> points,
+    Paint paint,
+    MatchMomentActionKind kind, {
+    bool arrow = true,
+  }) {
+    if (points.length < 2) return;
+    if (kind == MatchMomentActionKind.pass ||
+        kind == MatchMomentActionKind.receivePass) {
+      _drawDashedPolyline(canvas, points, paint, dash: 10, gap: 7);
+    } else {
+      _drawPolyline(canvas, points, paint);
+    }
+    if (arrow) _drawArrowHeadForPath(canvas, points, paint);
+  }
+
+  void _drawActorRuns(
+    Canvas canvas,
+    _MatchPitchGeometry geometry,
+    MatchMomentSegment segment,
+    double progress, {
+    required bool active,
+    bool planned = false,
+  }) {
+    final frameAtProgress = segment.frame(progress);
+    final runIds = <String>{
+      segment.actorId,
+      if (segment.receiverId != null) segment.receiverId!,
+      ...const [
+        MatchMomentEpisode.spain19,
+        MatchMomentEpisode.spain2,
         MatchMomentEpisode.spain17,
         MatchMomentEpisode.spain7,
         MatchMomentEpisode.spain10,
@@ -1443,18 +1941,65 @@ class _MatchMomentPitchPainter extends CustomPainter {
         MatchMomentEpisode.england4,
         MatchMomentEpisode.england5,
         MatchMomentEpisode.england6,
-      ]) {
-        final a = segment.before.actors[id]?.position;
-        final b = segment.after.actors[id]?.position;
-        if (a == null || b == null || a.distanceTo(b) < .012) continue;
-        _drawDashedLine(
-          canvas,
-          geometry.toOffset(a),
-          geometry.toOffset(b),
-          runPaint,
-        );
+        MatchMomentEpisode.england2,
+      ],
+    };
+    for (final id in runIds) {
+      if (id == segment.actorId &&
+          (segment.kind == MatchMomentActionKind.carry ||
+              segment.kind == MatchMomentActionKind.firstTouch ||
+              segment.kind == MatchMomentActionKind.leadIn)) {
+        continue;
       }
+      final start = segment.before.actors[id]?.position;
+      final end = frameAtProgress.actors[id]?.position;
+      if (start == null || end == null || start.distanceTo(end) < .010) {
+        continue;
+      }
+      final spain = id.startsWith('esp-');
+      final paint = Paint()
+        ..color = (spain
+                ? (_dark ? const Color(0xFFB6E07E) : const Color(0xFF3C7A20))
+                : (_dark ? const Color(0xFFFF9F6E) : const Color(0xFFC45525)))
+            .withValues(alpha: active ? .95 : (planned ? .72 : .25))
+        ..strokeWidth = active ? 2.8 : (planned ? 2.0 : 1.25)
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+      final from = geometry.toOffset(start);
+      final to = geometry.toOffset(end);
+      _drawDashedLine(canvas, from, to, paint, dash: spain ? 8 : 5);
+      _drawArrowHead(canvas, from, to, paint);
     }
+  }
+
+  void _drawSequenceMarker(
+    Canvas canvas,
+    Offset center,
+    int sequence, {
+    required bool active,
+  }) {
+    final radius = active ? 8.5 : 6.5;
+    final fill = Paint()
+      ..color = (active ? const Color(0xFF17252A) : const Color(0xFF31454A))
+          .withValues(alpha: active ? .92 : .68);
+    canvas.drawCircle(center, radius, fill);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = Colors.white.withValues(alpha: active ? .95 : .70)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = active ? 1.3 : .9,
+    );
+    _drawText(
+      canvas,
+      sequence.toString(),
+      center,
+      color: Colors.white,
+      size: active ? 9.5 : 7.5,
+      weight: FontWeight.w900,
+      anchorMode: _TextAnchor.center,
+    );
   }
 
   void _drawPlayer(
@@ -1585,6 +2130,9 @@ class _MatchMomentPitchPainter extends CustomPainter {
           ..strokeWidth = 2,
       );
     }
+    if (player.essential || player.id == frame.carrierId) {
+      _drawFacingIndicator(canvas, geometry, state, alpha: alpha);
+    }
     _drawText(
       canvas,
       player.number.toString(),
@@ -1594,7 +2142,13 @@ class _MatchMomentPitchPainter extends CustomPainter {
       weight: FontWeight.w900,
       anchorMode: _TextAnchor.center,
     );
-    if (player.essential) {
+    // Keep tactical routes and shirt numbers clear in a crowded final third.
+    // The current actor/receiver and the two wide attackers retain name labels.
+    if (player.id == activeSegment?.actorId ||
+        player.id == activeSegment?.receiverId ||
+        player.id == frame.carrierId ||
+        player.id == MatchMomentEpisode.spain19 ||
+        player.id == MatchMomentEpisode.spain17) {
       final label = _shortName(names[player.id] ?? '');
       _drawText(
         canvas,
@@ -1607,6 +2161,51 @@ class _MatchMomentPitchPainter extends CustomPainter {
         anchorMode: _TextAnchor.center,
       );
     }
+  }
+
+  void _drawFacingIndicator(
+    Canvas canvas,
+    _MatchPitchGeometry geometry,
+    MatchMomentActorState state, {
+    required double alpha,
+  }) {
+    final from = state.position;
+    final to = ScanPassPoint(
+      from.x + math.cos(state.facingRadians) * .018,
+      from.y + math.sin(state.facingRadians) * .018,
+    );
+    final start = geometry.toOffset(from);
+    final end = geometry.toOffset(to);
+    final paint = Paint()
+      ..color = const Color(0xFF2A8FBD).withValues(alpha: alpha * .58)
+      ..strokeWidth = 1.15
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(start, end, paint);
+    _drawArrowHead(canvas, start, end, paint);
+  }
+
+  void _drawTouchDetail(Canvas canvas, _MatchPitchGeometry geometry) {
+    final segment = activeSegment;
+    if (segment == null || segment.kind != MatchMomentActionKind.firstTouch) {
+      return;
+    }
+    final from = geometry.toOffset(segment.before.ball);
+    final to = geometry.toOffset(segment.after.ball);
+    // The actual short endpoint can sit beneath a jersey in this top-down
+    // view. A parallel leader preserves exact direction and length without
+    // covering the shirt number or exaggerating the touch distance.
+    final side = Offset(from.dx > geometry.size.width / 2 ? -32 : 32, 0);
+    final paint = _ballPaint(segment, active: true)..strokeWidth = 2.6;
+    final leader = Paint()
+      ..color = paint.color.withValues(alpha: .60)
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+    _drawDashedLine(canvas, from, from + side, leader, dash: 3, gap: 3);
+    _drawDashedLine(canvas, to, to + side, leader, dash: 3, gap: 3);
+    canvas.drawLine(from + side, to + side, paint);
+    _drawArrowHead(canvas, from + side, to + side, paint);
+    canvas.drawCircle(to, 4, leader..strokeWidth = 1.5);
   }
 
   void _drawBall(Canvas canvas, _MatchPitchGeometry geometry) {
@@ -1701,7 +2300,55 @@ class _MatchMomentPitchPainter extends CustomPainter {
     canvas.drawPath(path, paint);
   }
 
-  void _drawDashedLine(Canvas canvas, Offset from, Offset to, Paint paint) {
+  void _drawArrowHeadForPath(Canvas canvas, List<Offset> points, Paint paint) {
+    if (points.length < 2) return;
+    final end = points.last;
+    for (var index = points.length - 2; index >= 0; index -= 1) {
+      final start = points[index];
+      if ((end - start).distance >= 3) {
+        _drawArrowHead(canvas, start, end, paint);
+        return;
+      }
+    }
+    _drawArrowHead(canvas, points.first, end, paint);
+  }
+
+  void _drawPolyline(Canvas canvas, List<Offset> points, Paint paint) {
+    if (points.length < 2) return;
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    for (final point in points.skip(1)) {
+      path.lineTo(point.dx, point.dy);
+    }
+    canvas.drawPath(path, paint);
+  }
+
+  void _drawDashedPolyline(
+    Canvas canvas,
+    List<Offset> points,
+    Paint paint, {
+    double dash = 8,
+    double gap = 6,
+  }) {
+    for (var index = 1; index < points.length; index += 1) {
+      _drawDashedLine(
+        canvas,
+        points[index - 1],
+        points[index],
+        paint,
+        dash: dash,
+        gap: gap,
+      );
+    }
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    Paint paint, {
+    double dash = 6,
+    double gap = 5,
+  }) {
     final delta = to - from;
     final length = delta.distance;
     if (length < 2) return;
@@ -1709,9 +2356,9 @@ class _MatchMomentPitchPainter extends CustomPainter {
     var travelled = 0.0;
     while (travelled < length) {
       final start = from + direction * travelled;
-      final end = from + direction * math.min(travelled + 6, length);
+      final end = from + direction * math.min(travelled + dash, length);
       canvas.drawLine(start, end, paint);
-      travelled += 11;
+      travelled += dash + gap;
     }
   }
 
@@ -1760,10 +2407,45 @@ class _MatchMomentPitchPainter extends CustomPainter {
   bool shouldRepaint(covariant _MatchMomentPitchPainter oldDelegate) =>
       oldDelegate.portrait != portrait ||
       oldDelegate.frame != frame ||
-      oldDelegate.trail != trail ||
+      oldDelegate.completedSegments != completedSegments ||
+      oldDelegate.activeSegment != activeSegment ||
+      oldDelegate.activeSegmentProgress != activeSegmentProgress ||
       oldDelegate.reference != reference ||
       oldDelegate.brightness != brightness ||
       oldDelegate.names != names;
+}
+
+class _MatchHeightProfilePainter extends CustomPainter {
+  final MatchMomentBallHeight height;
+  final Color color;
+  const _MatchHeightProfilePainter({required this.height, required this.color});
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withValues(alpha: .65)
+      ..strokeWidth = 1.2;
+    final baseline = size.height - 2;
+    canvas.drawLine(
+        Offset(1, baseline), Offset(size.width - 1, baseline), paint);
+    if (height == MatchMomentBallHeight.unknown) {
+      for (var x = 3.0; x < size.width - 3; x += 7) {
+        canvas.drawLine(Offset(x, 4), Offset(x + 3, 4), paint);
+      }
+      return;
+    }
+    final lift = switch (height) {
+      MatchMomentBallHeight.ground => 0.0,
+      MatchMomentBallHeight.low => 4.0,
+      MatchMomentBallHeight.lofted => 8.0,
+      MatchMomentBallHeight.unknown => 0.0,
+    };
+    canvas.drawCircle(
+        Offset(size.width / 2, baseline - 2.4 - lift), 2.4, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _MatchHeightProfilePainter oldDelegate) =>
+      oldDelegate.height != height || oldDelegate.color != color;
 }
 
 class _MatchPitchGeometry {
@@ -1772,8 +2454,8 @@ class _MatchPitchGeometry {
   final bool? portrait;
   late final bool vertical = portrait ?? size.width < size.height * .72;
   late final bool compact = size.height < 420 && !vertical;
-  late final double headerHeight = compact ? 64 : 84;
-  late final double minX = vertical ? .18 : (compact ? .14 : 0);
+  final double headerHeight = 0;
+  late final double minX = vertical ? .38 : (compact ? .38 : .28);
   late final double minY = vertical ? .14 : (compact ? .23 : 0);
   late final double maxY = vertical ? .86 : (compact ? .80 : 1);
   late final double lengthMetres = 105 * (maxX - minX);

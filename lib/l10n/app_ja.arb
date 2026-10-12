@@ -11902,6 +11902,81 @@
   "matchMomentReferenceTitle": "実際のプレー再構成",
   "matchMomentReferenceBody": "この2D再構成は公式資料が説明する流れを示します。自分の選択記録は上書きしません。",
   "matchMomentReturnToReview": "自分のレビューへ戻る",
+  "matchMomentPausePlayback": "再生を一時停止",
+  "matchMomentResumePlayback": "再生を再開",
+  "matchMomentPreviousAction": "前のアクション",
+  "matchMomentNextActionControl": "次のアクション",
+  "matchMomentActionProgress": "{current}/{total}",
+  "@matchMomentActionProgress": {
+    "placeholders": {
+      "current": {},
+      "total": {}
+    }
+  },
+  "matchMomentActionDetailLead": "#{player}がリリース前に運びます。",
+  "@matchMomentActionDetailLead": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "matchMomentActionDetailPass": "#{passer} → #{receiver}",
+  "@matchMomentActionDetailPass": {
+    "placeholders": {
+      "passer": {},
+      "receiver": {}
+    }
+  },
+  "matchMomentActionDetailFirstTouch": "#{player}のファーストタッチ。",
+  "@matchMomentActionDetailFirstTouch": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "matchMomentActionDetailCarry": "#{player}がボールを運びます。",
+  "@matchMomentActionDetailCarry": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "matchMomentActionDetailShot": "#{player}のシュート。",
+  "@matchMomentActionDetailShot": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "matchMomentPassMetricApprox": "#{from} → #{to} · 地上移動 約{metres}m · {height}",
+  "@matchMomentPassMetricApprox": {
+    "placeholders": {
+      "from": {},
+      "to": {},
+      "metres": {},
+      "height": {}
+    }
+  },
+  "matchMomentTouchMetricApprox": "地上移動 約{metres}m",
+  "@matchMomentTouchMetricApprox": {
+    "placeholders": {
+      "metres": {}
+    }
+  },
+  "matchMomentCarryMetricApprox": "地上での運び 約{metres}m",
+  "@matchMomentCarryMetricApprox": {
+    "placeholders": {
+      "metres": {}
+    }
+  },
+  "matchMomentShotMetricApprox": "シュート経路 約{metres}m · {height}",
+  "@matchMomentShotMetricApprox": {
+    "placeholders": {
+      "metres": {},
+      "height": {}
+    }
+  },
+  "matchMomentHeightGround": "グラウンダー",
+  "matchMomentHeightLow": "低いボール",
+  "matchMomentHeightLofted": "浮き球",
+  "matchMomentHeightUnknown": "高さは未確認",
+  "matchMomentBodyLegend": "小さな矢印：体の向き（模式図）",
   "matchMomentOfficialFootageTitle": "公式映像",
   "matchMomentOfficialFootageBody": "47分の展開からヤマルのパス、ウィリアムズのフィニッシュまで公式の試合映像で確認します。",
   "matchMomentPlayOfficialHighlight": "ここで公式映像を見る",
@@ -11911,6 +11986,7 @@
   "matchMomentSourceUnavailable": "この端末では公式ソースを開けませんでした。",
   "matchMomentSourcesTitle": "出典と限界",
   "matchMomentSourcesBody": "2024年7月14日、ベルリン。UEFAのメンバー表と公式映像で当時の選手・背番号・ユニフォームを確認しました。後半開始からロドリに代わりスビメンディ18番が出場しています。動きは公式戦術分析に基づく学習用の2D再構成で、ピッチ全体の正確な追跡データではありません。別の選択の結果はシミュレーションです。",
+  "matchMomentSourceFeintLimit": "この場面は方向転換と運びに焦点を当てます。確認されていないボディフェイントは表示しません。",
   "matchMomentSourceLineup": "UEFA · 先発メンバーと背番号",
   "matchMomentSourceTechnical": "UEFA · 決勝の戦術分析",
   "matchMomentSourceRecord": "UEFA · スペイン対イングランド試合記録",
@@ -11937,5 +12013,27 @@
   "matchMomentPlayerPhilFoden": "フィル・フォーデン",
   "matchMomentPlayerKobbieMainoo": "コビー・メイヌー",
   "matchMomentReviewEffectIntercepted": "ライスが斜めのパスコースに先に入り、ボールをカットしました。受ける位置と最初のタッチが次のパスコースに与えた影響を比較しましょう。",
-  "matchMomentReviewEffectCarrySaved": "ヤマルが運んで遠くからシュートしましたが、ピックフォードが止めました。逆サイドのウィリアムズにつないだ場合のシュート位置と比較しましょう。"
+  "matchMomentReviewEffectCarrySaved": "ヤマルが運んで遠くからシュートしましたが、ピックフォードが止めました。逆サイドのウィリアムズにつないだ場合のシュート位置と比較しましょう。",
+  "matchMomentHeightDiagram": "ボールの高さ：{height}",
+  "@matchMomentHeightDiagram": {
+    "placeholders": {
+      "height": {}
+    }
+  },
+  "matchMomentMotionLegend": "実線：ドリブル・長い破線：パス\n緑：味方の動き・橙：守備の動き",
+  "matchMomentInterceptedPassDetail": "#{passer}から#{target}へのパス・守備#{defender}がカット",
+  "@matchMomentInterceptedPassDetail": {
+    "placeholders": {
+      "passer": {},
+      "target": {},
+      "defender": {}
+    }
+  },
+  "matchMomentReplayReference": "お手本をもう一度見る",
+  "matchMomentActionIndex": "動作 {current}",
+  "@matchMomentActionIndex": {
+    "placeholders": {
+      "current": {}
+    }
+  }
 }

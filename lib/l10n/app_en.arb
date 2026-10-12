@@ -11902,6 +11902,81 @@
   "matchMomentReferenceTitle": "Actual-play reconstruction",
   "matchMomentReferenceBody": "This 2D reconstruction shows the official described line. It does not overwrite your learner sequence.",
   "matchMomentReturnToReview": "Return to my review",
+  "matchMomentPausePlayback": "Pause playback",
+  "matchMomentResumePlayback": "Resume playback",
+  "matchMomentPreviousAction": "Previous action",
+  "matchMomentNextActionControl": "Next action",
+  "matchMomentActionProgress": "{current}/{total}",
+  "@matchMomentActionProgress": {
+    "placeholders": {
+      "current": {},
+      "total": {}
+    }
+  },
+  "matchMomentActionDetailLead": "#{player} carries before release.",
+  "@matchMomentActionDetailLead": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "matchMomentActionDetailPass": "#{passer} → #{receiver}",
+  "@matchMomentActionDetailPass": {
+    "placeholders": {
+      "passer": {},
+      "receiver": {}
+    }
+  },
+  "matchMomentActionDetailFirstTouch": "#{player} first touch.",
+  "@matchMomentActionDetailFirstTouch": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "matchMomentActionDetailCarry": "#{player} carries with the ball.",
+  "@matchMomentActionDetailCarry": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "matchMomentActionDetailShot": "#{player} shoots.",
+  "@matchMomentActionDetailShot": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "matchMomentPassMetricApprox": "#{from} → #{to} · ground path approx {metres} m · {height}",
+  "@matchMomentPassMetricApprox": {
+    "placeholders": {
+      "from": {},
+      "to": {},
+      "metres": {},
+      "height": {}
+    }
+  },
+  "matchMomentTouchMetricApprox": "Ground movement approx {metres} m",
+  "@matchMomentTouchMetricApprox": {
+    "placeholders": {
+      "metres": {}
+    }
+  },
+  "matchMomentCarryMetricApprox": "Ground carry approx {metres} m",
+  "@matchMomentCarryMetricApprox": {
+    "placeholders": {
+      "metres": {}
+    }
+  },
+  "matchMomentShotMetricApprox": "Shot path approx {metres} m · {height}",
+  "@matchMomentShotMetricApprox": {
+    "placeholders": {
+      "metres": {},
+      "height": {}
+    }
+  },
+  "matchMomentHeightGround": "ground ball",
+  "matchMomentHeightLow": "low ball",
+  "matchMomentHeightLofted": "lofted ball",
+  "matchMomentHeightUnknown": "height unknown",
+  "matchMomentBodyLegend": "Small arrow: schematic facing",
   "matchMomentOfficialFootageTitle": "Official footage",
   "matchMomentOfficialFootageBody": "Watch the 47th-minute build-up, Yamal’s assist and Williams’s finish in the official match footage.",
   "matchMomentPlayOfficialHighlight": "Open official video here",
@@ -11911,6 +11986,7 @@
   "matchMomentSourceUnavailable": "The official source could not be opened on this device.",
   "matchMomentSourcesTitle": "Sources and limits",
   "matchMomentSourcesBody": "Berlin, 14 July 2024. The UEFA lineup and official footage establish the players, shirt numbers and match kits. Zubimendi 18 replaced Rodri at half-time. Movement is a 2D learning reconstruction informed by official tactical analysis, not exact whole-pitch tracking. Alternative outcomes are simulations.",
+  "matchMomentSourceFeintLimit": "This scene focuses on direction change and ball carrying. No verified body feint is marked.",
   "matchMomentSourceLineup": "UEFA · Starting lineup and shirt numbers",
   "matchMomentSourceTechnical": "UEFA · Final tactical analysis",
   "matchMomentSourceRecord": "UEFA · Spain–England match report",
@@ -11937,5 +12013,27 @@
   "matchMomentPlayerPhilFoden": "Phil Foden",
   "matchMomentPlayerKobbieMainoo": "Kobbie Mainoo",
   "matchMomentReviewEffectIntercepted": "Rice reached the diagonal passing lane first and intercepted. Compare how the receiving position and first touch changed the next passing lane.",
-  "matchMomentReviewEffectCarrySaved": "Yamal carried and shot from distance; Pickford saved. Compare that shooting position with the chance created by finding Williams on the opposite side."
+  "matchMomentReviewEffectCarrySaved": "Yamal carried and shot from distance; Pickford saved. Compare that shooting position with the chance created by finding Williams on the opposite side.",
+  "matchMomentHeightDiagram": "Ball height: {height}",
+  "@matchMomentHeightDiagram": {
+    "placeholders": {
+      "height": {}
+    }
+  },
+  "matchMomentMotionLegend": "Solid: carry · long dashes: pass\nGreen: support · orange: defence",
+  "matchMomentInterceptedPassDetail": "#{passer} toward #{target} · intercepted by #{defender}",
+  "@matchMomentInterceptedPassDetail": {
+    "placeholders": {
+      "passer": {},
+      "target": {},
+      "defender": {}
+    }
+  },
+  "matchMomentReplayReference": "Replay reference",
+  "matchMomentActionIndex": "Action {current}",
+  "@matchMomentActionIndex": {
+    "placeholders": {
+      "current": {}
+    }
+  }
 }

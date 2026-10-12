@@ -11902,6 +11902,81 @@
   "matchMomentReferenceTitle": "실제 플레이 재구성",
   "matchMomentReferenceBody": "이 2D 재구성은 공식 자료가 설명한 흐름을 보여줍니다. 비교한 뒤 내 리뷰로 돌아올 수 있습니다.",
   "matchMomentReturnToReview": "내 리뷰로 돌아가기",
+  "matchMomentPausePlayback": "재생 일시정지",
+  "matchMomentResumePlayback": "재생 계속",
+  "matchMomentPreviousAction": "이전 행동",
+  "matchMomentNextActionControl": "다음 행동",
+  "matchMomentActionProgress": "{current}/{total}",
+  "@matchMomentActionProgress": {
+    "placeholders": {
+      "current": {},
+      "total": {}
+    }
+  },
+  "matchMomentActionDetailLead": "#{player}번이 패스 전 공을 운반합니다.",
+  "@matchMomentActionDetailLead": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "matchMomentActionDetailPass": "#{passer}번 → #{receiver}번",
+  "@matchMomentActionDetailPass": {
+    "placeholders": {
+      "passer": {},
+      "receiver": {}
+    }
+  },
+  "matchMomentActionDetailFirstTouch": "#{player}번 첫 터치.",
+  "@matchMomentActionDetailFirstTouch": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "matchMomentActionDetailCarry": "#{player}번이 공을 운반합니다.",
+  "@matchMomentActionDetailCarry": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "matchMomentActionDetailShot": "#{player}번 슈팅.",
+  "@matchMomentActionDetailShot": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "matchMomentPassMetricApprox": "#{from}번 → #{to}번 · 지면 이동 약 {metres}m · {height}",
+  "@matchMomentPassMetricApprox": {
+    "placeholders": {
+      "from": {},
+      "to": {},
+      "metres": {},
+      "height": {}
+    }
+  },
+  "matchMomentTouchMetricApprox": "지면 이동 약 {metres}m",
+  "@matchMomentTouchMetricApprox": {
+    "placeholders": {
+      "metres": {}
+    }
+  },
+  "matchMomentCarryMetricApprox": "지면 운반 약 {metres}m",
+  "@matchMomentCarryMetricApprox": {
+    "placeholders": {
+      "metres": {}
+    }
+  },
+  "matchMomentShotMetricApprox": "슈팅 경로 약 {metres}m · {height}",
+  "@matchMomentShotMetricApprox": {
+    "placeholders": {
+      "metres": {},
+      "height": {}
+    }
+  },
+  "matchMomentHeightGround": "땅볼",
+  "matchMomentHeightLow": "낮은 공",
+  "matchMomentHeightLofted": "띄운 공",
+  "matchMomentHeightUnknown": "높이 미확인",
+  "matchMomentBodyLegend": "작은 화살표: 몸 방향(도식)",
   "matchMomentOfficialFootageTitle": "공식 영상",
   "matchMomentOfficialFootageBody": "47분의 전개부터 야말의 패스와 윌리엄스의 마무리까지 실제 경기 영상으로 확인하세요.",
   "matchMomentPlayOfficialHighlight": "여기서 공식 영상 보기",
@@ -11911,6 +11986,7 @@
   "matchMomentSourceUnavailable": "이 기기에서 공식 출처를 열 수 없습니다.",
   "matchMomentSourcesTitle": "출처와 한계",
   "matchMomentSourcesBody": "2024년 7월 14일, 베를린. UEFA 명단과 공식 영상으로 당시 선수·등번호·유니폼을 확인했습니다. 후반 시작에 로드리 대신 수비멘디 18번이 뛰었습니다. 움직임은 공식 전술 분석을 바탕으로 한 학습용 2D 재구성입니다. 정확한 전장 추적 자료가 아니며, 다른 선택의 결과는 시뮬레이션입니다.",
+  "matchMomentSourceFeintLimit": "이 장면은 방향 전환·운반에 집중합니다. 확인되지 않은 몸속임은 표시하지 않습니다.",
   "matchMomentSourceLineup": "UEFA · 선발 명단과 등번호",
   "matchMomentSourceTechnical": "UEFA · 결승전 전술 분석",
   "matchMomentSourceRecord": "UEFA · 스페인–잉글랜드 경기 기록",
@@ -11937,5 +12013,27 @@
   "matchMomentPlayerPhilFoden": "필 포든",
   "matchMomentPlayerKobbieMainoo": "코비 마이누",
   "matchMomentReviewEffectIntercepted": "라이스가 대각선 패스 길에 먼저 도착해 공을 끊었습니다. 공을 받은 위치와 첫 터치가 다음 패스 길을 어떻게 바꿨는지 비교하세요.",
-  "matchMomentReviewEffectCarrySaved": "야말이 직접 운반한 뒤 먼 거리에서 슈팅했고, 픽퍼드가 막았습니다. 반대편 윌리엄스에게 연결했을 때의 슈팅 위치와 비교하세요."
+  "matchMomentReviewEffectCarrySaved": "야말이 직접 운반한 뒤 먼 거리에서 슈팅했고, 픽퍼드가 막았습니다. 반대편 윌리엄스에게 연결했을 때의 슈팅 위치와 비교하세요.",
+  "matchMomentHeightDiagram": "공 높이: {height}",
+  "@matchMomentHeightDiagram": {
+    "placeholders": {
+      "height": {}
+    }
+  },
+  "matchMomentMotionLegend": "실선: 공 운반 · 긴 점선: 패스\n초록: 동료 이동 · 주황: 수비 이동",
+  "matchMomentInterceptedPassDetail": "#{passer}번 → #{target}번 시도 · 수비 #{defender}번 차단",
+  "@matchMomentInterceptedPassDetail": {
+    "placeholders": {
+      "passer": {},
+      "target": {},
+      "defender": {}
+    }
+  },
+  "matchMomentReplayReference": "모범 플레이 다시 보기",
+  "matchMomentActionIndex": "동작 {current}",
+  "@matchMomentActionIndex": {
+    "placeholders": {
+      "current": {}
+    }
+  }
 }
