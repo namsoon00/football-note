@@ -21560,6 +21560,84 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchMomentReturnToReview => 'Return to my review';
 
   @override
+  String get matchMomentPausePlayback => 'Pause playback';
+
+  @override
+  String get matchMomentResumePlayback => 'Resume playback';
+
+  @override
+  String get matchMomentPreviousAction => 'Previous action';
+
+  @override
+  String get matchMomentNextActionControl => 'Next action';
+
+  @override
+  String matchMomentActionProgress(Object current, Object total) {
+    return '$current/$total';
+  }
+
+  @override
+  String matchMomentActionDetailLead(Object player) {
+    return '#$player carries before release.';
+  }
+
+  @override
+  String matchMomentActionDetailPass(Object passer, Object receiver) {
+    return '#$passer → #$receiver';
+  }
+
+  @override
+  String matchMomentActionDetailFirstTouch(Object player) {
+    return '#$player first touch.';
+  }
+
+  @override
+  String matchMomentActionDetailCarry(Object player) {
+    return '#$player carries with the ball.';
+  }
+
+  @override
+  String matchMomentActionDetailShot(Object player) {
+    return '#$player shoots.';
+  }
+
+  @override
+  String matchMomentPassMetricApprox(
+      Object from, Object to, Object metres, Object height) {
+    return '#$from → #$to · ground path approx $metres m · $height';
+  }
+
+  @override
+  String matchMomentTouchMetricApprox(Object metres) {
+    return 'Ground movement approx $metres m';
+  }
+
+  @override
+  String matchMomentCarryMetricApprox(Object metres) {
+    return 'Ground carry approx $metres m';
+  }
+
+  @override
+  String matchMomentShotMetricApprox(Object metres, Object height) {
+    return 'Shot path approx $metres m · $height';
+  }
+
+  @override
+  String get matchMomentHeightGround => 'ground ball';
+
+  @override
+  String get matchMomentHeightLow => 'low ball';
+
+  @override
+  String get matchMomentHeightLofted => 'lofted ball';
+
+  @override
+  String get matchMomentHeightUnknown => 'height unknown';
+
+  @override
+  String get matchMomentBodyLegend => 'Small arrow: schematic facing';
+
+  @override
   String get matchMomentOfficialFootageTitle => 'Official footage';
 
   @override
@@ -21589,6 +21667,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get matchMomentSourcesBody =>
       'Berlin, 14 July 2024. The UEFA lineup and official footage establish the players, shirt numbers and match kits. Zubimendi 18 replaced Rodri at half-time. Movement is a 2D learning reconstruction informed by official tactical analysis, not exact whole-pitch tracking. Alternative outcomes are simulations.';
+
+  @override
+  String get matchMomentSourceFeintLimit =>
+      'This scene focuses on direction change and ball carrying. No verified body feint is marked.';
 
   @override
   String get matchMomentSourceLineup =>
@@ -21673,4 +21755,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get matchMomentReviewEffectCarrySaved =>
       'Yamal carried and shot from distance; Pickford saved. Compare that shooting position with the chance created by finding Williams on the opposite side.';
+
+  @override
+  String matchMomentHeightDiagram(Object height) {
+    return 'Ball height: $height';
+  }
+
+  @override
+  String get matchMomentMotionLegend =>
+      'Solid: carry · long dashes: pass\nGreen: support · orange: defence';
+
+  @override
+  String matchMomentInterceptedPassDetail(
+      Object passer, Object target, Object defender) {
+    return '#$passer toward #$target · intercepted by #$defender';
+  }
+
+  @override
+  String get matchMomentReplayReference => 'Replay reference';
+
+  @override
+  String matchMomentActionIndex(Object current) {
+    return 'Action $current';
+  }
 }

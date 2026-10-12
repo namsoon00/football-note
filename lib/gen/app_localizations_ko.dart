@@ -20780,6 +20780,84 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchMomentReturnToReview => '내 리뷰로 돌아가기';
 
   @override
+  String get matchMomentPausePlayback => '재생 일시정지';
+
+  @override
+  String get matchMomentResumePlayback => '재생 계속';
+
+  @override
+  String get matchMomentPreviousAction => '이전 행동';
+
+  @override
+  String get matchMomentNextActionControl => '다음 행동';
+
+  @override
+  String matchMomentActionProgress(Object current, Object total) {
+    return '$current/$total';
+  }
+
+  @override
+  String matchMomentActionDetailLead(Object player) {
+    return '#$player번이 패스 전 공을 운반합니다.';
+  }
+
+  @override
+  String matchMomentActionDetailPass(Object passer, Object receiver) {
+    return '#$passer번 → #$receiver번';
+  }
+
+  @override
+  String matchMomentActionDetailFirstTouch(Object player) {
+    return '#$player번 첫 터치.';
+  }
+
+  @override
+  String matchMomentActionDetailCarry(Object player) {
+    return '#$player번이 공을 운반합니다.';
+  }
+
+  @override
+  String matchMomentActionDetailShot(Object player) {
+    return '#$player번 슈팅.';
+  }
+
+  @override
+  String matchMomentPassMetricApprox(
+      Object from, Object to, Object metres, Object height) {
+    return '#$from번 → #$to번 · 지면 이동 약 ${metres}m · $height';
+  }
+
+  @override
+  String matchMomentTouchMetricApprox(Object metres) {
+    return '지면 이동 약 ${metres}m';
+  }
+
+  @override
+  String matchMomentCarryMetricApprox(Object metres) {
+    return '지면 운반 약 ${metres}m';
+  }
+
+  @override
+  String matchMomentShotMetricApprox(Object metres, Object height) {
+    return '슈팅 경로 약 ${metres}m · $height';
+  }
+
+  @override
+  String get matchMomentHeightGround => '땅볼';
+
+  @override
+  String get matchMomentHeightLow => '낮은 공';
+
+  @override
+  String get matchMomentHeightLofted => '띄운 공';
+
+  @override
+  String get matchMomentHeightUnknown => '높이 미확인';
+
+  @override
+  String get matchMomentBodyLegend => '작은 화살표: 몸 방향(도식)';
+
+  @override
   String get matchMomentOfficialFootageTitle => '공식 영상';
 
   @override
@@ -20807,6 +20885,10 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get matchMomentSourcesBody =>
       '2024년 7월 14일, 베를린. UEFA 명단과 공식 영상으로 당시 선수·등번호·유니폼을 확인했습니다. 후반 시작에 로드리 대신 수비멘디 18번이 뛰었습니다. 움직임은 공식 전술 분석을 바탕으로 한 학습용 2D 재구성입니다. 정확한 전장 추적 자료가 아니며, 다른 선택의 결과는 시뮬레이션입니다.';
+
+  @override
+  String get matchMomentSourceFeintLimit =>
+      '이 장면은 방향 전환·운반에 집중합니다. 확인되지 않은 몸속임은 표시하지 않습니다.';
 
   @override
   String get matchMomentSourceLineup => 'UEFA · 선발 명단과 등번호';
@@ -20890,4 +20972,27 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get matchMomentReviewEffectCarrySaved =>
       '야말이 직접 운반한 뒤 먼 거리에서 슈팅했고, 픽퍼드가 막았습니다. 반대편 윌리엄스에게 연결했을 때의 슈팅 위치와 비교하세요.';
+
+  @override
+  String matchMomentHeightDiagram(Object height) {
+    return '공 높이: $height';
+  }
+
+  @override
+  String get matchMomentMotionLegend =>
+      '실선: 공 운반 · 긴 점선: 패스\n초록: 동료 이동 · 주황: 수비 이동';
+
+  @override
+  String matchMomentInterceptedPassDetail(
+      Object passer, Object target, Object defender) {
+    return '#$passer번 → #$target번 시도 · 수비 #$defender번 차단';
+  }
+
+  @override
+  String get matchMomentReplayReference => '모범 플레이 다시 보기';
+
+  @override
+  String matchMomentActionIndex(Object current) {
+    return '동작 $current';
+  }
 }

@@ -52,6 +52,8 @@ enum MatchMomentActionKind {
   shot
 }
 
+enum MatchMomentBallHeight { ground, low, lofted, unknown }
+
 enum MatchMomentOutcome { goal, saved, turnover, retained }
 
 enum MatchMomentReviewCue {
@@ -167,7 +169,8 @@ class MatchMomentSegment {
   final String? receiverId;
   final MatchMomentChoiceId? choiceId;
   final double duration;
-  final ScanPassPoint? ballApex;
+  final List<ScanPassPoint> ballGroundWaypoints;
+  final MatchMomentBallHeight ballHeight;
   final MatchMomentReviewCue cue;
 
   const MatchMomentSegment({
@@ -179,8 +182,51 @@ class MatchMomentSegment {
     required this.cue,
     this.receiverId,
     this.choiceId,
-    this.ballApex,
+    this.ballGroundWaypoints = const <ScanPassPoint>[],
+    this.ballHeight = MatchMomentBallHeight.ground,
   });
+
+  List<ScanPassPoint> get ballGroundPath => List.unmodifiable(
+        <ScanPassPoint>[
+          before.ball,
+          ...ballGroundWaypoints,
+          after.ball,
+        ],
+      );
+
+  double get groundDistanceMetres =>
+      MatchMomentEpisode.groundPathMetres(ballGroundPath);
+
+  ScanPassPoint ballPointAt(double progress) {
+    final t = progress.clamp(0.0, 1.0).toDouble();
+    final path = ballGroundPath;
+    final total = MatchMomentEpisode.groundPathMetres(path);
+    if (total < .001) return after.ball;
+    var remaining = total * t;
+    for (var index = 1; index < path.length; index += 1) {
+      final start = path[index - 1];
+      final end = path[index];
+      final length = MatchMomentEpisode.groundMetres(start, end);
+      if (length < .001) continue;
+      if (remaining <= length) {
+        return start.lerp(end, remaining / length);
+      }
+      remaining -= length;
+    }
+    return path.last;
+  }
+
+  List<ScanPassPoint> sampleBallPath({
+    int count = 17,
+    double progress = 1,
+  }) {
+    final resolvedCount = math.max(2, count);
+    final end = progress.clamp(0.0, 1.0).toDouble();
+    return List.unmodifiable([
+      for (var index = 0; index < resolvedCount; index += 1)
+        ballPointAt(end * index / (resolvedCount - 1)),
+    ]);
+  }
 
   MatchMomentFrame frame(double progress) {
     final t = progress.clamp(0.0, 1.0).toDouble();
@@ -212,18 +258,7 @@ class MatchMomentSegment {
           frame(count <= 1 ? 1 : index / (count - 1)),
       ]);
 
-  ScanPassPoint _ballPoint(double t) {
-    final apex = ballApex;
-    if (apex == null) return before.ball.lerp(after.ball, t);
-    final first = MatchMomentEpisode._metres(before.ball, apex);
-    final second = MatchMomentEpisode._metres(apex, after.ball);
-    if (first < .001 || second < .001) {
-      return before.ball.lerp(after.ball, t);
-    }
-    final split = first / (first + second);
-    if (t <= split) return before.ball.lerp(apex, t / split);
-    return apex.lerp(after.ball, (t - split) / (1 - split));
-  }
+  ScanPassPoint _ballPoint(double t) => ballPointAt(t);
 }
 
 class MatchMomentBranch {
@@ -269,6 +304,8 @@ class MatchMomentAttempt {
 }
 
 class MatchMomentEpisode {
+  static const double fieldLengthMetres = 105;
+  static const double fieldWidthMetres = 68;
   static const String id = 'yamal-euro-2024-final-assist';
   static const String spain2 = 'esp-2-carvajal';
   static const String spain3 = 'esp-3-le-normand';
@@ -311,6 +348,8 @@ class MatchMomentEpisode {
       'https://www.uefa.com/uefaeuro/history/news/028f-1b5e5c2b7b67-d5faab9be20b-1000--spain-2-1-england-late-oyarzabal-winner-earns-la-roja-reco/';
 
   const MatchMomentEpisode();
+
+  bool get referenceHasVerifiedBodyFeint => false;
 
   List<MatchMomentPlayerDefinition> get roster => const [
         MatchMomentPlayerDefinition(
@@ -466,32 +505,32 @@ class MatchMomentEpisode {
       ];
 
   MatchMomentFrame get initialFrame => MatchMomentFrame(
-        actors: Map.unmodifiable(_states(const {
-          spain23: ScanPassPoint(.02, .50),
-          spain14: ScanPassPoint(.12, .63),
-          spain3: ScanPassPoint(.14, .42),
-          spain2: ScanPassPoint(.22, .30),
-          spain8: ScanPassPoint(.34, .52),
-          spain18: ScanPassPoint(.29, .59),
-          spain24: ScanPassPoint(.48, .79),
-          spain19: ScanPassPoint(.33, .31),
-          spain10: ScanPassPoint(.56, .45),
-          spain7: ScanPassPoint(.65, .52),
-          spain17: ScanPassPoint(.56, .73),
-          england1: ScanPassPoint(.93, .50),
-          england2: ScanPassPoint(.76, .70),
-          england3: ScanPassPoint(.43, .29),
-          england4: ScanPassPoint(.53, .50),
-          england5: ScanPassPoint(.70, .47),
-          england6: ScanPassPoint(.66, .60),
-          england7: ScanPassPoint(.35, .22),
-          england9: ScanPassPoint(.50, .57),
-          england10: ScanPassPoint(.39, .55),
-          england11: ScanPassPoint(.42, .42),
-          england26: ScanPassPoint(.48, .63),
+        actors: Map.unmodifiable(_states({
+          spain23: _sourcePoint(.02, .50),
+          spain14: _sourcePoint(.12, .63),
+          spain3: _sourcePoint(.14, .42),
+          spain2: _sourcePoint(.22, .30),
+          spain8: _sourcePoint(.18, .52),
+          spain18: _sourcePoint(.29, .59),
+          spain24: _sourcePoint(.48, .79),
+          spain19: _sourcePoint(.33, .31),
+          spain10: _sourcePoint(.56, .45),
+          spain7: _sourcePoint(.65, .52),
+          spain17: _sourcePoint(.56, .73),
+          england1: _sourcePoint(.93, .50),
+          england2: _sourcePoint(.76, .70),
+          england3: _sourcePoint(.43, .29),
+          england4: _sourcePoint(.53, .50),
+          england5: _sourcePoint(.70, .47),
+          england6: _sourcePoint(.66, .60),
+          england7: _sourcePoint(.35, .22),
+          england9: _sourcePoint(.50, .57),
+          england10: _sourcePoint(.39, .55),
+          england11: _sourcePoint(.42, .42),
+          england26: _sourcePoint(.48, .63),
         })),
-        ball: const ScanPassPoint(.22, .30),
-        carrierId: spain2,
+        ball: _sourcePoint(.18, .52),
+        carrierId: spain8,
       );
 
   MatchMomentSegment get leadIn {
@@ -499,30 +538,32 @@ class MatchMomentEpisode {
     final after = _frame(
       before,
       elapsed: 1.05,
-      updates: const {
-        spain2: ScanPassPoint(.26, .31),
-        spain8: ScanPassPoint(.37, .52),
-        spain18: ScanPassPoint(.31, .60),
-        spain19: ScanPassPoint(.35, .31),
-        spain10: ScanPassPoint(.58, .44),
-        spain7: ScanPassPoint(.66, .50),
-        spain17: ScanPassPoint(.57, .74),
-        england3: ScanPassPoint(.45, .30),
-        england10: ScanPassPoint(.41, .55),
-        england4: ScanPassPoint(.54, .50),
-        england5: ScanPassPoint(.70, .48),
-        england6: ScanPassPoint(.66, .60),
-        england2: ScanPassPoint(.76, .70),
+      updates: {
+        spain2: _sourcePoint(.26, .31),
+        spain8: _sourcePoint(.19, .52),
+        spain18: _sourcePoint(.31, .60),
+        spain19: _sourcePoint(.35, .31),
+        spain10: _sourcePoint(.58, .44),
+        spain7: _sourcePoint(.66, .50),
+        spain17: _sourcePoint(.57, .74),
+        england3: _sourcePoint(.45, .30),
+        england10: _sourcePoint(.41, .55),
+        england4: _sourcePoint(.54, .50),
+        england5: _sourcePoint(.70, .48),
+        england6: _sourcePoint(.66, .60),
+        england2: _sourcePoint(.76, .70),
       },
-      ball: const ScanPassPoint(.26, .31),
+      ball: _sourcePoint(.26, .31),
       carrierId: spain2,
     );
     return MatchMomentSegment(
       before: before,
       after: after,
-      kind: MatchMomentActionKind.leadIn,
-      actorId: spain2,
+      kind: MatchMomentActionKind.pass,
+      actorId: spain8,
+      receiverId: spain2,
       duration: 1.05,
+      ballHeight: MatchMomentBallHeight.unknown,
       cue: MatchMomentReviewCue.receiveInside,
     );
   }
@@ -540,24 +581,24 @@ class MatchMomentEpisode {
     MatchMomentFrame frame,
   ) {
     return switch (beat) {
-      MatchMomentBeat.receive => const [
+      MatchMomentBeat.receive => [
           MatchMomentChoice(
             id: MatchMomentChoiceId.receiveInside,
             beat: MatchMomentBeat.receive,
             actorId: spain19,
-            target: ScanPassPoint(.43, .36),
+            target: _sourcePoint(.43, .36),
           ),
           MatchMomentChoice(
             id: MatchMomentChoiceId.receiveWide,
             beat: MatchMomentBeat.receive,
             actorId: spain19,
-            target: ScanPassPoint(.40, .25),
+            target: _sourcePoint(.40, .25),
           ),
           MatchMomentChoice(
             id: MatchMomentChoiceId.receiveCheck,
             beat: MatchMomentBeat.receive,
             actorId: spain19,
-            target: ScanPassPoint(.35, .42),
+            target: _sourcePoint(.35, .42),
           ),
         ],
       MatchMomentBeat.firstTouch => [
@@ -668,28 +709,28 @@ class MatchMomentEpisode {
       MatchMomentChoiceId.receiveInside => _receiveBranch(
           before,
           choice,
-          yamalTarget: const ScanPassPoint(.43, .36),
-          shawTarget: const ScanPassPoint(.48, .34),
-          riceTarget: const ScanPassPoint(.55, .49),
-          williamsTarget: const ScanPassPoint(.58, .74),
+          yamalTarget: _sourcePoint(.43, .36),
+          shawTarget: _sourcePoint(.48, .34),
+          riceTarget: _sourcePoint(.55, .49),
+          williamsTarget: _sourcePoint(.58, .74),
           cue: MatchMomentReviewCue.receiveInside,
         ),
       MatchMomentChoiceId.receiveWide => _receiveBranch(
           before,
           choice,
-          yamalTarget: const ScanPassPoint(.40, .25),
-          shawTarget: const ScanPassPoint(.43, .25),
-          riceTarget: const ScanPassPoint(.54, .47),
-          williamsTarget: const ScanPassPoint(.57, .73),
+          yamalTarget: _sourcePoint(.40, .25),
+          shawTarget: _sourcePoint(.43, .25),
+          riceTarget: _sourcePoint(.54, .47),
+          williamsTarget: _sourcePoint(.57, .73),
           cue: MatchMomentReviewCue.receiveWide,
         ),
       MatchMomentChoiceId.receiveCheck => _receiveBranch(
           before,
           choice,
-          yamalTarget: const ScanPassPoint(.35, .42),
-          shawTarget: const ScanPassPoint(.40, .38),
-          riceTarget: const ScanPassPoint(.49, .48),
-          williamsTarget: const ScanPassPoint(.57, .73),
+          yamalTarget: _sourcePoint(.35, .42),
+          shawTarget: _sourcePoint(.40, .38),
+          riceTarget: _sourcePoint(.49, .48),
+          williamsTarget: _sourcePoint(.57, .73),
           cue: MatchMomentReviewCue.receiveCheck,
         ),
       MatchMomentChoiceId.touchInside => _touchBranch(
@@ -754,10 +795,13 @@ class MatchMomentEpisode {
                     segment.after.actor(entry.key).position) /
                 8.5);
       }
-      final ballDistance = segment.ballApex == null
-          ? _metres(cursor.ball, segment.after.ball)
-          : _metres(cursor.ball, segment.ballApex!) +
-              _metres(segment.ballApex!, segment.after.ball);
+      final ballDistance = groundPathMetres(
+        <ScanPassPoint>[
+          cursor.ball,
+          ...segment.ballGroundWaypoints,
+          segment.after.ball,
+        ],
+      );
       duration = math.max(duration, ballDistance / 28);
       final after = segment.after.copyWith(elapsed: cursor.elapsed + duration);
       segments.add(MatchMomentSegment(
@@ -768,7 +812,8 @@ class MatchMomentEpisode {
         receiverId: segment.receiverId,
         choiceId: segment.choiceId,
         duration: duration,
-        ballApex: segment.ballApex,
+        ballGroundWaypoints: segment.ballGroundWaypoints,
+        ballHeight: segment.ballHeight,
         cue: segment.cue,
       ));
       cursor = after;
@@ -781,10 +826,28 @@ class MatchMomentEpisode {
     );
   }
 
-  static double _metres(ScanPassPoint a, ScanPassPoint b) {
-    final dx = (b.x - a.x) * 105;
-    final dy = (b.y - a.y) * 68;
+  static double groundMetres(ScanPassPoint a, ScanPassPoint b) {
+    final dx = (b.x - a.x) * fieldLengthMetres;
+    final dy = (b.y - a.y) * fieldWidthMetres;
     return math.sqrt(dx * dx + dy * dy);
+  }
+
+  static double groundPathMetres(List<ScanPassPoint> path) {
+    var total = 0.0;
+    for (var index = 1; index < path.length; index += 1) {
+      total += groundMetres(path[index - 1], path[index]);
+    }
+    return total;
+  }
+
+  static double _metres(ScanPassPoint a, ScanPassPoint b) => groundMetres(a, b);
+
+  static ScanPassPoint _sourcePoint(double x, double y) =>
+      ScanPassPoint(_sourceX(x), y);
+
+  static double _sourceX(double x) {
+    if (x < .22) return x * (.36 + .22 * .64) / .22;
+    return x >= .99 ? x : .36 + x * .64;
   }
 
   MatchMomentBranch _receiveBranch(
@@ -802,14 +865,14 @@ class MatchMomentEpisode {
       updates: {
         spain19: yamalTarget,
         spain17: williamsTarget,
-        spain10: const ScanPassPoint(.60, .43),
-        spain7: const ScanPassPoint(.67, .50),
+        spain10: _sourcePoint(.60, .43),
+        spain7: _sourcePoint(.67, .50),
         england3: shawTarget,
         england4: riceTarget,
-        england10: const ScanPassPoint(.43, .55),
-        england5: const ScanPassPoint(.71, .47),
-        england6: const ScanPassPoint(.66, .59),
-        england2: const ScanPassPoint(.75, .70),
+        england10: _sourcePoint(.43, .55),
+        england5: _sourcePoint(.71, .47),
+        england6: _sourcePoint(.66, .59),
+        england2: _sourcePoint(.75, .70),
       },
       ball: yamalTarget,
       carrierId: spain19,
@@ -827,10 +890,7 @@ class MatchMomentEpisode {
           receiverId: spain19,
           choiceId: choice,
           duration: .90,
-          ballApex: ScanPassPoint(
-            (before.ball.x + yamalTarget.x) / 2,
-            (before.ball.y + yamalTarget.y) / 2 - .03,
-          ),
+          ballHeight: MatchMomentBallHeight.unknown,
           cue: cue,
         ),
       ],
@@ -902,37 +962,37 @@ class MatchMomentEpisode {
   }
 
   MatchMomentBranch _williamsGoal(MatchMomentFrame before) {
-    const carryPoint = ScanPassPoint(.66, .44);
+    final carryPoint = _sourcePoint(.66, .44);
     final carryAfter = _frame(
       before,
       elapsed: before.elapsed + 3.05,
-      updates: const {
+      updates: {
         spain19: carryPoint,
-        spain17: ScanPassPoint(.74, .68),
-        spain7: ScanPassPoint(.81, .53),
-        spain10: ScanPassPoint(.78, .40),
-        england3: ScanPassPoint(.60, .39),
-        england4: ScanPassPoint(.63, .50),
-        england5: ScanPassPoint(.80, .42),
-        england6: ScanPassPoint(.81, .51),
-        england2: ScanPassPoint(.79, .63),
-        england1: ScanPassPoint(.91, .51),
+        spain17: _sourcePoint(.74, .68),
+        spain7: _sourcePoint(.81, .53),
+        spain10: _sourcePoint(.78, .40),
+        england3: _sourcePoint(.60, .39),
+        england4: _sourcePoint(.63, .50),
+        england5: _sourcePoint(.80, .42),
+        england6: _sourcePoint(.81, .51),
+        england2: _sourcePoint(.79, .63),
+        england1: _sourcePoint(.91, .51),
       },
       ball: carryPoint,
       carrierId: spain19,
     );
-    const receive = ScanPassPoint(.82, .66);
+    final receive = _sourcePoint(.82, .66);
     final passAfter = _frame(
       carryAfter,
       elapsed: carryAfter.elapsed + 1.45,
       updates: {
         spain17: receive,
-        spain7: const ScanPassPoint(.84, .52),
-        spain10: const ScanPassPoint(.81, .40),
-        england2: const ScanPassPoint(.84, .63),
-        england5: const ScanPassPoint(.84, .43),
-        england6: const ScanPassPoint(.84, .52),
-        england1: const ScanPassPoint(.92, .51),
+        spain7: _sourcePoint(.84, .52),
+        spain10: _sourcePoint(.81, .40),
+        england2: _sourcePoint(.84, .63),
+        england5: _sourcePoint(.84, .43),
+        england6: _sourcePoint(.84, .52),
+        england1: _sourcePoint(.92, .51),
       },
       ball: receive,
       carrierId: spain17,
@@ -941,11 +1001,11 @@ class MatchMomentEpisode {
     final shotAfter = _frame(
       passAfter,
       elapsed: passAfter.elapsed + .72,
-      updates: const {
-        spain17: ScanPassPoint(.83, .66),
-        england1: ScanPassPoint(.93, .48),
-        england2: ScanPassPoint(.85, .64),
-        england5: ScanPassPoint(.85, .44),
+      updates: {
+        spain17: _sourcePoint(.83, .66),
+        england1: _sourcePoint(.93, .48),
+        england2: _sourcePoint(.85, .64),
+        england5: _sourcePoint(.85, .44),
       },
       ball: finish,
       carrierId: null,
@@ -981,7 +1041,7 @@ class MatchMomentEpisode {
           kind: MatchMomentActionKind.shot,
           actorId: spain17,
           duration: .72,
-          ballApex: const ScanPassPoint(.92, .55),
+          ballHeight: MatchMomentBallHeight.unknown,
           cue: MatchMomentReviewCue.williamsGoal,
         ),
       ],
@@ -989,49 +1049,49 @@ class MatchMomentEpisode {
   }
 
   MatchMomentBranch _williamsSaved(MatchMomentFrame before) {
-    const carryPoint = ScanPassPoint(.56, .38);
+    final carryPoint = _sourcePoint(.56, .38);
     final carryAfter = _frame(
       before,
       elapsed: before.elapsed + 1.55,
-      updates: const {
+      updates: {
         spain19: carryPoint,
-        spain17: ScanPassPoint(.69, .69),
-        spain7: ScanPassPoint(.70, .50),
-        spain10: ScanPassPoint(.66, .42),
-        england3: ScanPassPoint(.55, .34),
-        england4: ScanPassPoint(.60, .47),
-        england5: ScanPassPoint(.74, .48),
-        england6: ScanPassPoint(.70, .58),
-        england2: ScanPassPoint(.78, .67),
-        england1: ScanPassPoint(.91, .52),
+        spain17: _sourcePoint(.69, .69),
+        spain7: _sourcePoint(.70, .50),
+        spain10: _sourcePoint(.66, .42),
+        england3: _sourcePoint(.55, .34),
+        england4: _sourcePoint(.60, .47),
+        england5: _sourcePoint(.74, .48),
+        england6: _sourcePoint(.70, .58),
+        england2: _sourcePoint(.78, .67),
+        england1: _sourcePoint(.91, .52),
       },
       ball: carryPoint,
       carrierId: spain19,
     );
-    const receive = ScanPassPoint(.80, .64);
+    final receive = _sourcePoint(.80, .64);
     final passAfter = _frame(
       carryAfter,
       elapsed: carryAfter.elapsed + 1.35,
       updates: {
         spain17: receive,
-        spain7: const ScanPassPoint(.72, .50),
-        spain10: const ScanPassPoint(.68, .42),
-        england2: const ScanPassPoint(.82, .64),
-        england5: const ScanPassPoint(.76, .48),
-        england6: const ScanPassPoint(.72, .58),
-        england1: const ScanPassPoint(.92, .52),
+        spain7: _sourcePoint(.72, .50),
+        spain10: _sourcePoint(.68, .42),
+        england2: _sourcePoint(.82, .64),
+        england5: _sourcePoint(.76, .48),
+        england6: _sourcePoint(.72, .58),
+        england1: _sourcePoint(.92, .52),
       },
       ball: receive,
       carrierId: spain17,
     );
-    const save = ScanPassPoint(.95, .50);
+    final save = _sourcePoint(.95, .50);
     final shotAfter = _frame(
       passAfter,
       elapsed: passAfter.elapsed + .70,
-      updates: const {
-        england1: ScanPassPoint(.94, .50),
-        england2: ScanPassPoint(.84, .63),
-        england5: ScanPassPoint(.78, .48),
+      updates: {
+        england1: _sourcePoint(.94, .50),
+        england2: _sourcePoint(.84, .63),
+        england5: _sourcePoint(.78, .48),
       },
       ball: save,
       carrierId: england1,
@@ -1058,7 +1118,6 @@ class MatchMomentEpisode {
           actorId: spain19,
           receiverId: spain17,
           duration: 1.35,
-          ballApex: const ScanPassPoint(.69, .53),
           cue: MatchMomentReviewCue.williamsSaved,
         ),
         MatchMomentSegment(
@@ -1067,7 +1126,7 @@ class MatchMomentEpisode {
           kind: MatchMomentActionKind.shot,
           actorId: spain17,
           duration: .70,
-          ballApex: const ScanPassPoint(.89, .55),
+          ballHeight: MatchMomentBallHeight.unknown,
           cue: MatchMomentReviewCue.williamsSaved,
         ),
       ],
@@ -1075,7 +1134,7 @@ class MatchMomentEpisode {
   }
 
   MatchMomentBranch _williamsIntercepted(MatchMomentFrame before) {
-    const carryPoint = ScanPassPoint(.49, .43);
+    final carryPoint = _sourcePoint(.49, .43);
     final carryAfter = _frame(
       before,
       elapsed: before.elapsed + 1.10,
@@ -1144,31 +1203,31 @@ class MatchMomentEpisode {
   }
 
   MatchMomentBranch _passMorataBranch(MatchMomentFrame before) {
-    const receive = ScanPassPoint(.69, .50);
+    final receive = _sourcePoint(.69, .50);
     final passAfter = _frame(
       before,
       elapsed: before.elapsed + .65,
       updates: {
         spain7: receive,
-        spain10: const ScanPassPoint(.66, .42),
-        spain17: const ScanPassPoint(.70, .74),
-        england5: const ScanPassPoint(.72, .49),
-        england6: const ScanPassPoint(.70, .58),
-        england4: const ScanPassPoint(.61, .50),
+        spain10: _sourcePoint(.66, .42),
+        spain17: _sourcePoint(.70, .74),
+        england5: _sourcePoint(.72, .49),
+        england6: _sourcePoint(.70, .58),
+        england4: _sourcePoint(.61, .50),
       },
       ball: receive,
       carrierId: spain7,
     );
-    const reset = ScanPassPoint(.61, .42);
+    final reset = _sourcePoint(.61, .42);
     final resetAfter = _frame(
       passAfter,
       elapsed: passAfter.elapsed + .60,
-      updates: const {
+      updates: {
         spain10: reset,
-        spain7: ScanPassPoint(.70, .50),
-        england5: ScanPassPoint(.73, .49),
-        england6: ScanPassPoint(.70, .58),
-        england4: ScanPassPoint(.63, .49),
+        spain7: _sourcePoint(.70, .50),
+        england5: _sourcePoint(.73, .49),
+        england6: _sourcePoint(.70, .58),
+        england4: _sourcePoint(.63, .49),
       },
       ball: reset,
       carrierId: spain10,
@@ -1187,7 +1246,6 @@ class MatchMomentEpisode {
           receiverId: spain7,
           choiceId: MatchMomentChoiceId.passMorata,
           duration: .65,
-          ballApex: const ScanPassPoint(.62, .46),
           cue: MatchMomentReviewCue.morataRetained,
         ),
         MatchMomentSegment(
@@ -1224,14 +1282,14 @@ class MatchMomentEpisode {
       carrierId: spain19,
     );
     if (strongCarry) {
-      const save = ScanPassPoint(.91, .49);
+      final save = _sourcePoint(.91, .49);
       final shotAfter = _frame(
         carryAfter,
         elapsed: carryAfter.elapsed + .65,
-        updates: const {
-          england1: ScanPassPoint(.90, .49),
-          england5: ScanPassPoint(.76, .47),
-          england6: ScanPassPoint(.72, .57),
+        updates: {
+          england1: _sourcePoint(.90, .49),
+          england5: _sourcePoint(.76, .47),
+          england6: _sourcePoint(.72, .57),
         },
         ball: save,
         carrierId: england1,
@@ -1257,7 +1315,7 @@ class MatchMomentEpisode {
             kind: MatchMomentActionKind.shot,
             actorId: spain19,
             duration: .65,
-            ballApex: const ScanPassPoint(.82, .47),
+            ballHeight: MatchMomentBallHeight.unknown,
             cue: MatchMomentReviewCue.carrySaved,
           ),
         ],
