@@ -1522,15 +1522,7 @@ class DriveBackupService implements BackupRepository {
     }
     final record = await _familyDriveLinkService().completeParentPairing(
       inviteId: inviteId,
-      restoreChildBackup: (record, childBackup) async {
-        _validateLinkedCorePayload(link: record, remote: childBackup);
-        await _saveLocalPreRestore();
-        await _restoreFromMap(childBackup, mode: RestoreMode.safeMerge);
-        await _recordRemoteBackupReceipt(
-          childBackup,
-          modifiedAt: DateTime.now(),
-        );
-      },
+      restoreChildBackup: _restoreInitialParentPairingSnapshot,
     );
     await _rememberFamilyDriveLinkIdentifiers(record);
     return record;
@@ -1552,18 +1544,27 @@ class DriveBackupService implements BackupRepository {
         .completeParentPairingFromCompletionPayload(
       inviteId: inviteId,
       completionPayload: completionPayload,
-      restoreChildBackup: (record, childBackup) async {
-        _validateLinkedCorePayload(link: record, remote: childBackup);
-        await _saveLocalPreRestore();
-        await _restoreFromMap(childBackup, mode: RestoreMode.safeMerge);
-        await _recordRemoteBackupReceipt(
-          childBackup,
-          modifiedAt: DateTime.now(),
-        );
-      },
+      restoreChildBackup: _restoreInitialParentPairingSnapshot,
     );
     await _rememberFamilyDriveLinkIdentifiers(record);
     return record;
+  }
+
+  Future<void> _restoreInitialParentPairingSnapshot(
+    FamilyDriveLinkRecord record,
+    Map<String, dynamic> childBackup,
+  ) async {
+    _validateLinkedCorePayload(link: record, remote: childBackup);
+    await _saveLocalPreRestore();
+    // The child owns the core dataset. A new parent link must start from that
+    // exact snapshot so pre-existing parent-device values do not become
+    // baseline-less conflicts that leave the link connected but out of sync.
+    // Exact restore still preserves device-local role and Drive bindings.
+    await _restoreFromMap(childBackup, mode: RestoreMode.exactReplace);
+    await _recordRemoteBackupReceipt(
+      childBackup,
+      modifiedAt: DateTime.now(),
+    );
   }
 
   Future<void> unlinkActiveFamilyLink() async {
