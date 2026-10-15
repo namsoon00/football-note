@@ -10,19 +10,21 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   WidgetController.hitTestWarningShouldBeFatal = true;
 
-  testWidgets('public Scan Pass opens the Yamal real-match episode by default',
+  testWidgets('public Scan Pass opens the causal pressure lesson by default',
       (tester) async {
     await tester.pumpWidget(_app(home: _publicEntry()));
     await tester.pump();
     await tester.pump();
 
-    expect(find.byKey(const ValueKey<String>('match-moment-pitch')),
-        findsOneWidget);
+    expect(
+        find.byKey(const ValueKey<String>('pressure-pitch')), findsOneWidget);
+    expect(
+        find.byKey(const ValueKey<String>('match-moment-pitch')), findsNothing);
     expect(find.byKey(const ValueKey('flow-pitch')), findsNothing);
     expect(find.byKey(const ValueKey('practice-catalog')), findsNothing);
     expect(find.byKey(const ValueKey<String>('attack-start')), findsNothing);
-    expect(find.textContaining('Spain v England'), findsOneWidget);
-    expect(find.textContaining("Yamal 19"), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('pressure-progress')),
+        findsOneWidget);
   });
 
   testWidgets('three on-pitch decisions reach the historical goal review',

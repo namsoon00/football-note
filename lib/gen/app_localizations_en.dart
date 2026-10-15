@@ -21778,4 +21778,267 @@ class AppLocalizationsEn extends AppLocalizations {
   String matchMomentActionIndex(Object current) {
     return 'Action $current';
   }
+
+  @override
+  String get pressureLessonTitle => 'Scan Pass';
+
+  @override
+  String pressureLessonProgress(Object current, Object total) {
+    return 'Situation $current / $total';
+  }
+
+  @override
+  String get pressureLessonGoal =>
+      'Read pressure before receiving. Create space, then open the next connection.';
+
+  @override
+  String get pressureLessonSyntheticNote =>
+      'Training reconstruction · approximate positions';
+
+  @override
+  String get pressureLessonObserve =>
+      'Watch the approach before the ball arrives.';
+
+  @override
+  String get pressureLessonChooseFirst =>
+      'Choose one first contact or pass now.';
+
+  @override
+  String get pressureLessonChooseNext =>
+      'Choose the next connection from this new state.';
+
+  @override
+  String get pressureLessonExecuting =>
+      'Defenders are reacting to the ball and players.';
+
+  @override
+  String get pressureLessonReview =>
+      'Observed pressure → choice effect → same-state alternative';
+
+  @override
+  String get pressureLessonAlternativeView => 'Same-state alternative';
+
+  @override
+  String get pressureLessonReplayView => 'Your full replay';
+
+  @override
+  String get pressureLessonTouchInside => 'First touch inside';
+
+  @override
+  String get pressureLessonTouchOutside => 'First touch outside';
+
+  @override
+  String pressureLessonPlayerMarker(Object number) {
+    return '#$number';
+  }
+
+  @override
+  String get pressureLessonTouchMarker => 'FIRST TOUCH';
+
+  @override
+  String get pressureLessonCarryMarker => 'CARRY';
+
+  @override
+  String pressureLessonPassNow(Object number) {
+    return 'Pass now to #$number';
+  }
+
+  @override
+  String pressureLessonPassSupport(Object number) {
+    return 'Connect with #$number';
+  }
+
+  @override
+  String pressureLessonPassRunner(Object number) {
+    return 'Lead #$number';
+  }
+
+  @override
+  String pressureLessonPassBack(Object number) {
+    return 'Play back to #$number';
+  }
+
+  @override
+  String get pressureLessonCarryForward => 'Short carry';
+
+  @override
+  String pressureLessonChoiceSemantics(Object action) {
+    return 'Execute $action with one tap';
+  }
+
+  @override
+  String get pressureLessonOneTapHint =>
+      'Tap one on-pitch ring to execute it immediately.';
+
+  @override
+  String pressureLessonObservedOutside(Object number, Object distance) {
+    return 'Observed: #$number was outside, $distance m away at the decision.';
+  }
+
+  @override
+  String pressureLessonObservedInside(Object number, Object distance) {
+    return 'Observed: #$number was inside, $distance m away at the decision.';
+  }
+
+  @override
+  String pressureLessonObservedLevel(Object number, Object distance) {
+    return 'Observed: #$number was almost level, $distance m away at the decision.';
+  }
+
+  @override
+  String pressureLessonObservedLaneClosing(Object number, Object distance) {
+    return 'Observed: #$number began $distance m from the chosen lane and moved toward it.';
+  }
+
+  @override
+  String pressureLessonObservedLaneHolding(Object number, Object distance) {
+    return 'Observed: #$number began $distance m from the chosen lane and held that cover.';
+  }
+
+  @override
+  String pressureLessonEffectLost(Object number, Object time) {
+    return 'Effect: #$number reached the ball at $time s and possession changed.';
+  }
+
+  @override
+  String pressureLessonEffectOffside(Object number) {
+    return 'Effect: #$number received beyond the visible offside reference at release, so play stopped.';
+  }
+
+  @override
+  String get pressureLessonEffectLoose =>
+      'Effect: the pass reached no attacker, so the ball stayed loose.';
+
+  @override
+  String pressureLessonEffectRetained(Object clearance, Object time) {
+    return 'Effect: possession stayed with $clearance m clearance; the hold continuation remained safe for $time s.';
+  }
+
+  @override
+  String pressureLessonEffectForwardPass(Object number, Object clearance) {
+    return 'Effect: #$number received in a forward position. Pressure clearance: $clearance m.';
+  }
+
+  @override
+  String pressureLessonEffectConnection(Object number, Object clearance) {
+    return 'Effect: the move left a controllable lane to #$number; nearest pressure was $clearance m.';
+  }
+
+  @override
+  String get pressureLessonEffectMissed =>
+      'Effect: possession stayed, but a forward lane that was open at this state was not used.';
+
+  @override
+  String pressureLessonAlternativeLost(Object action, Object number) {
+    return 'Alternative: $action lets #$number reach the ball first.';
+  }
+
+  @override
+  String pressureLessonAlternativeOffside(Object action) {
+    return 'Alternative: $action reached an offside-positioned receiver from the same freeze, so play stopped.';
+  }
+
+  @override
+  String pressureLessonAlternativeLoose(Object action) {
+    return 'Alternative: $action from the same freeze left the ball loose.';
+  }
+
+  @override
+  String pressureLessonAlternativeClearance(Object action, Object clearance) {
+    return 'Alternative: $action leaves $clearance m clearance.';
+  }
+
+  @override
+  String pressureLessonAlternativeConnection(Object action, Object number) {
+    return 'Alternative: $action → a passing lane to #$number.';
+  }
+
+  @override
+  String pressureLessonAlternativeSimilar(Object action) {
+    return 'Alternative: $action also retained the ball from the same freeze; compare its pressure and lane trace.';
+  }
+
+  @override
+  String get pressureLessonRetry => 'Retry choice';
+
+  @override
+  String get pressureLessonNext => 'Next situation';
+
+  @override
+  String get pressureLessonFinish => 'View summary';
+
+  @override
+  String get pressureLessonCompare => 'Compare alternative';
+
+  @override
+  String get pressureLessonReturnMine => 'Return to my attempt';
+
+  @override
+  String get pressureLessonReplayMine => 'Replay my attempt';
+
+  @override
+  String get pressureLessonReplayAlternative => 'Replay alternative';
+
+  @override
+  String get pressureLessonPause => 'Pause motion';
+
+  @override
+  String get pressureLessonResume => 'Resume motion';
+
+  @override
+  String get pressureLessonMore => 'More lesson actions';
+
+  @override
+  String get pressureLessonReference => 'Real-play reference';
+
+  @override
+  String get pressureLessonReferenceHint =>
+      'Yamal\'s assist sequence is a separate historical example, not the answer key for these synthetic situations.';
+
+  @override
+  String get pressureLessonSummaryTitle => 'Eight decisions reviewed';
+
+  @override
+  String get pressureLessonSummaryCoverage =>
+      'Your first attempts covered both outside and inside pressure, plus changing cover and runner timing.';
+
+  @override
+  String pressureLessonSummaryConnections(Object count, Object total) {
+    return 'First attempts: $count of $total progressed or opened a safe next connection.';
+  }
+
+  @override
+  String get pressureLessonSummaryFocusPressure =>
+      'Next focus: create more clearance before the presser reaches the ball.';
+
+  @override
+  String get pressureLessonSummaryFocusConnection =>
+      'Next focus: look again at the next lane immediately after the first contact.';
+
+  @override
+  String get pressureLessonRestart => 'Run the eight situations again';
+
+  @override
+  String pressureLessonSituationMenu(Object number) {
+    return 'Open situation $number';
+  }
+
+  @override
+  String get pressureLessonMyAttempt => 'My attempt';
+
+  @override
+  String get pressureLessonAlternative => 'Alternative';
+
+  @override
+  String pressureLessonApproxMetres(Object distance) {
+    return '$distance m';
+  }
+
+  @override
+  String get pressureLessonOffsideLine => 'local offside reference';
+
+  @override
+  String pressureLessonTracePass(Object distance) {
+    return '$distance m · ground pass';
+  }
 }

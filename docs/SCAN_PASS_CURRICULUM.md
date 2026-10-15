@@ -1,13 +1,104 @@
-# Scan Pass: real-match decision lesson and retained 2v2 flow
+# Scan Pass: causal pressure decisions and real-play reference
 
 ## Current default
 
-`ScanPassGameScreen` now opens the public Scan Pass quick action directly into a
-real-match lesson: Lamine Yamal's assist to Nico Williams for Spain's opening
-goal against England in the UEFA EURO 2024 final, Berlin, 14 July 2024, 47'.
-There is no pre-game mode selector, timer, XP award, leaderboard or generic
-attacker/defender setup. The old 2v2 flow remains available internally for tests
-and compatibility, but it is no longer the public default.
+`ScanPassGameScreen` opens `ScanPassPressureLessonScreen` directly. There is no
+catalog, setup split, countdown, score, XP or answer-revealing scenario title.
+The learner watches roughly 2-3 seconds of the incoming pass and defender
+approach, then uses one neutral on-pitch control to choose a 1-2.5 m first touch
+or an immediate pass. A retained first touch opens a second one-tap decision
+from the actual resulting positions. An immediate pass, interception or loose
+ball can finish the situation without demanding a meaningless extra action.
+Each situation chooses one local physical viewport from the observed actors,
+ball path and reachable first actions, then keeps that transform fixed through
+execution and review. This improves readability without moving the camera to
+signal the value of a choice; the historical reference keeps its existing
+field framing.
+
+The session contains six learning situations followed seamlessly by two unseen
+combinations. The six vary outside pressure, inside pressure, cover distance,
+a holding/retreating defender and runner timing. The final two combine and
+jitter those physical features; they are not cosmetic mirrors or replays of a
+training id. A seed changes the training order and small starting offsets while
+the last two remain held-out combinations. The learner sees only ordinary
+`Situation 1 / 8` progress before deciding.
+
+The teaching definitions are checked against the physical resolver:
+
+| Situation | What the learner reads | Learning consequence |
+| --- | --- | --- |
+| Outside pressure | The presser approaches from the flank while the support and runner lanes are covered | A short contact changes the passing angle and leaves a usable forward connection |
+| Inside pressure | The presser blocks the inside and a teammate runs beyond the cover | The outside contact and an already-open early pass can be compared from the same state |
+| Near cover | A second defender covers the nearby outlet and the runner is marked | Immediate forward passes can be intercepted; contact changes the angle before the next pass |
+| Holding line | The presser holds a larger gap | Several actions can retain possession; an open early connection does not require an extra touch |
+| Late runner | The forward has not separated from the tracking defender | Distinguish the early through pass from a safer support connection or a changed angle |
+| Runner breaks cover | The teammate accelerates away from the marking line | Recognize an early forward pass while it is available |
+
+The outside-pressure and near-cover setups are checked across multiple seeds:
+they contain blocked immediate forward lanes that a retained first contact can
+open. Other cases preserve a useful early-pass option. No route is declared
+correct in catalog metadata; changing the geometry changes the resolution.
+
+All coordinates use the declared 105 m x 68 m field. The resolver reads the
+immutable world snapshot, action endpoint, actor positions, velocities and
+stable press/cover/track roles. It never reads the scenario id, action label,
+previous choice or lesson progress. Players move in bounded small time steps.
+Passes have no carrier during flight, and possession changes only when the
+sampled ball path and a moving player make contact. The presser follows the
+ball/receiver, the cover defender protects a physical lane, and the tracker
+follows the runner, so the defenders do not all swarm one point. First-contact
+endpoints, animated paths and review arrows all come from the same sampled
+trace. A displayed connection is called safe only when a pass run through this
+same motion/contact simulation reaches that receiver and remains controlled;
+there is no separate projected-lane score. Because this is a reduced-sided
+local lesson, a declared 92 m goal-side offside reference represents defenders
+outside the teaching crop and is drawn neutrally on the pitch. Runner choices
+remain visible on either side of it: position alone is not an offence and is
+not used as a pre-answer hint. At the actual release, a receiver is onside when
+level with the ball or effective reference, or still in their own half. An
+offside restart occurs only if the intended receiver beyond both limits
+actually receives the pass. A defender contact first remains an interception;
+the rule never moves or teleports an actor.
+
+Decision quality is separate from a later goal or shot. Review uses the exact
+frozen decision state and reports an observed defender/distance, the selected
+action's measured consequence, and one alternative simulated from that same
+snapshot with the same rules. It distinguishes retaining possession, pressure
+clearance, a controllable next lane, progress and a missed forward opportunity.
+A safe support pass can be useful under severe pressure, but is not described
+as equally progressive when an open forward connection existed. No fabricated
+success percentage or expert endorsement is shown.
+
+Retry restores the exact last decision snapshot. Full replay and alternative
+comparison do not replace the original attempt, and session progress records
+only the first attempt for each situation, including the final two. The summary
+describes the pressure types encountered, how often a safe next connection was
+created, and one next learning focus; it does not claim measured match improvement
+or eye-scanning skill transfer. The old curriculum, possession and 2v2 flow
+engines remain internal compatibility surfaces and do not drive public results.
+
+The current lesson counts a completed, retained forward pass as progress even
+when the new receiver has no further forward teammate. It reports that receiver
+and pressure gap in review. A missed forward opportunity on a safe recycle is
+kept separate from this progress count. Replay and real-play reference actions
+live in the app bar; the review card keeps observation, effect and same-state
+alternative visible above its retry/next controls. Offside uses the reduced
+reference described above and ground points, rather than full body geometry;
+see [IFAB Law 11](https://www.theifab.com/laws/latest/offside/) for the complete
+position and involvement rules.
+
+## Historical reference retained
+
+`ScanPassMatchMomentScreen` remains available after a training result as a
+clearly separate real-play reference: Lamine Yamal's assist to Nico Williams for
+Spain's opening goal against England in the UEFA EURO 2024 final, Berlin,
+14 July 2024, 47'. It is not an answer key for the synthetic pressure
+variations. Returning from it preserves the learner's pressure-lesson review.
+The public reference action opens its historical playback directly in a
+reference-only mode, so the learner is not sent through the old three scripted
+choices. Direct legacy callers may still open the interactive reconstruction.
+There is no new footage claim or download; the existing official links and
+source limitations remain in place.
 
 The first episode is a three-beat authored decision sequence centered on Spain
 19 Yamal:
@@ -247,7 +338,7 @@ not arbitrary 11v11 match formations.
    opening a case. The catalog filters actual teams. Retry, paired conditions
    and next case preserve the selection. Defenders remain reactive opposition.
 2. Watch the incoming pass and surrounding motion for 0.65 s. This is the only
-   scripted attacking sequence in the public exercise.
+   scripted attacking sequence in this retained legacy exercise.
 3. Time freezes. Numbered first-touch controls connect to a solid path and a
    football at the **actual destination**. Metres mean current ball to destination,
    not screen-button spacing. A touch reaches its target unless stolen first.
@@ -363,9 +454,9 @@ defensive possession and reproducible comparisons including pending plans. The
 older assisted policy is retained only behind explicit internal settings for
 regression tests; it is not a public control option.
 
-## Default screen interaction
+## Retained flow screen interaction
 
-`ScanPassGameScreen` opens `ScanPassFlowScreen` immediately in the first 2v2
+Direct internal callers can still open `ScanPassFlowScreen` in the first 2v2
 situation. Its on-field goal and current instruction stay in a fixed order.
 A free-space tap chooses the first touch (within the visible physical circle)
 or the carrier's complete dribble destination. The **Pass** ring around the

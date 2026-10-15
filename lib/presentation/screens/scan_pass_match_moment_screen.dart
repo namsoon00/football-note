@@ -16,6 +16,7 @@ class ScanPassMatchMomentScreen extends StatefulWidget {
   final Duration leadInDuration;
   final Duration actionDuration;
   final MatchMomentSourceLauncher? sourceLauncher;
+  final bool referenceOnly;
 
   const ScanPassMatchMomentScreen({
     super.key,
@@ -23,6 +24,7 @@ class ScanPassMatchMomentScreen extends StatefulWidget {
     this.leadInDuration = const Duration(milliseconds: 1200),
     this.actionDuration = const Duration(milliseconds: 1250),
     this.sourceLauncher,
+    this.referenceOnly = false,
   });
 
   @override
@@ -66,7 +68,12 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
       ..addStatusListener(_handleAnimationStatus);
     _current = widget.episode.initialFrame;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _startLeadIn();
+      if (!mounted) return;
+      if (widget.referenceOnly) {
+        _startReferenceOnly();
+      } else {
+        _startLeadIn();
+      }
     });
   }
 
@@ -101,6 +108,21 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
     _activeChoice = null;
     _manualPlaybackPause = false;
     _playSegments([widget.episode.leadIn], widget.leadInDuration);
+  }
+
+  void _startReferenceOnly() {
+    final reference = widget.episode.historicalAttempt;
+    setState(() {
+      _current = widget.episode.initialFrame;
+      _choices = const <MatchMomentChoiceId>[];
+      _history = const <MatchMomentSegment>[];
+      _attempt = null;
+      _mode = _MatchMomentMode.compare;
+      _activeChoice = null;
+      _manualPlaybackPause = false;
+    });
+    final segments = [widget.episode.leadIn, ...reference.segments];
+    _playSegments(segments, _durationFor(segments));
   }
 
   void _handleAnimationStatus(AnimationStatus status) {
@@ -420,7 +442,9 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: Text(l10n.matchMomentTitle),
+        title: Text(widget.referenceOnly
+            ? l10n.matchMomentReferenceTitle
+            : l10n.matchMomentTitle),
         backgroundColor: colors.surface,
         foregroundColor: colors.text,
         surfaceTintColor: Colors.transparent,
@@ -451,7 +475,8 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
                 ),
               PopupMenuItem(
                 key: const ValueKey<String>('match-restart'),
-                value: _startLeadIn,
+                value:
+                    widget.referenceOnly ? _startReferenceOnly : _startLeadIn,
                 child: Text(l10n.matchMomentRestart),
               ),
               PopupMenuItem(
@@ -997,7 +1022,29 @@ class _ScanPassMatchMomentScreenState extends State<ScanPassMatchMomentScreen>
                   ),
             ),
             const SizedBox(height: 10),
-            if (attempt != null && !comparing) ...[
+            if (widget.referenceOnly) ...[
+              Text(
+                l10n.matchMomentReferenceBody,
+                style: TextStyle(color: colors.muted, height: 1.35),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                key: const ValueKey<String>('match-reference-replay'),
+                onPressed: _busy ? null : _startReferenceOnly,
+                icon: const Icon(Icons.replay),
+                label: Text(l10n.matchMomentReplayReference),
+              ),
+              const SizedBox(height: 10),
+              _buildOfficialFootage(l10n),
+              const SizedBox(height: 8),
+              _buildProvenance(l10n),
+              const SizedBox(height: 10),
+              OutlinedButton(
+                key: const ValueKey<String>('match-reference-close'),
+                onPressed: () => Navigator.pop(context),
+                child: Text(l10n.close),
+              ),
+            ] else if (attempt != null && !comparing) ...[
               _buildReviewActions(l10n),
               const SizedBox(height: 12),
               _reviewLine(
@@ -1687,6 +1734,7 @@ class _MatchMomentPitchPainter extends CustomPainter {
   final bool reference;
   final Brightness brightness;
   final String? fontFamily;
+  final Rect? viewBounds;
 
   const _MatchMomentPitchPainter({
     required this.episode,
@@ -1699,16 +1747,24 @@ class _MatchMomentPitchPainter extends CustomPainter {
     required this.reference,
     required this.brightness,
     required this.fontFamily,
+    this.viewBounds,
   });
 
   bool get _dark => brightness == Brightness.dark;
 
-  Offset offsetFor(ScanPassPoint point, Size size) =>
-      _MatchPitchGeometry(size, portrait: portrait).toOffset(point);
+  Offset offsetFor(ScanPassPoint point, Size size) => _MatchPitchGeometry(
+        size,
+        portrait: portrait,
+        viewBounds: viewBounds,
+      ).toOffset(point);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final geometry = _MatchPitchGeometry(size, portrait: portrait);
+    final geometry = _MatchPitchGeometry(
+      size,
+      portrait: portrait,
+      viewBounds: viewBounds,
+    );
     _drawPitch(canvas, geometry);
     canvas.save();
     canvas.clipRect(geometry.playArea);
@@ -1752,8 +1808,8 @@ class _MatchMomentPitchPainter extends CustomPainter {
     canvas.clipRect(geometry.playArea);
     for (var i = 0; i < 7; i += 2) {
       canvas.drawRect(
-          geometry.rectFor(i / 7 * _MatchPitchGeometry.maxX, 0,
-              (i + 1) / 7 * _MatchPitchGeometry.maxX, 1),
+          geometry.rectFor(i / 7 * _MatchPitchGeometry.defaultMaxX, 0,
+              (i + 1) / 7 * _MatchPitchGeometry.defaultMaxX, 1),
           Paint()..color = stripe.withValues(alpha: .55));
     }
     final paint = Paint()
@@ -2412,6 +2468,7 @@ class _MatchMomentPitchPainter extends CustomPainter {
       oldDelegate.activeSegmentProgress != activeSegmentProgress ||
       oldDelegate.reference != reference ||
       oldDelegate.brightness != brightness ||
+      oldDelegate.viewBounds != viewBounds ||
       oldDelegate.names != names;
 }
 
@@ -2449,15 +2506,20 @@ class _MatchHeightProfilePainter extends CustomPainter {
 }
 
 class _MatchPitchGeometry {
-  static const double maxX = 1.04;
+  static const double defaultMaxX = 1.04;
   final Size size;
   final bool? portrait;
+  final Rect? viewBounds;
   late final bool vertical = portrait ?? size.width < size.height * .72;
   late final bool compact = size.height < 420 && !vertical;
   final double headerHeight = 0;
-  late final double minX = vertical ? .38 : (compact ? .38 : .28);
-  late final double minY = vertical ? .14 : (compact ? .23 : 0);
-  late final double maxY = vertical ? .86 : (compact ? .80 : 1);
+  late final double minX =
+      viewBounds?.left ?? (vertical ? .38 : (compact ? .38 : .28));
+  late final double maxX = viewBounds?.right ?? defaultMaxX;
+  late final double minY =
+      viewBounds?.top ?? (vertical ? .14 : (compact ? .23 : 0));
+  late final double maxY =
+      viewBounds?.bottom ?? (vertical ? .86 : (compact ? .80 : 1));
   late final double lengthMetres = 105 * (maxX - minX);
   late final double widthMetres = 68 * (maxY - minY);
   late final Rect playArea =
@@ -2478,7 +2540,11 @@ class _MatchPitchGeometry {
   );
   late final Rect fieldRect = rectFor(0, 0, 1, 1);
 
-  _MatchPitchGeometry(this.size, {this.portrait});
+  _MatchPitchGeometry(
+    this.size, {
+    this.portrait,
+    this.viewBounds,
+  });
 
   Offset toOffset(ScanPassPoint point) {
     // Lateral episode coordinates run from Spain's right flank to its left.
