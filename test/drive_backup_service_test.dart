@@ -3433,6 +3433,155 @@ void main() {
   });
 
   test(
+      'parent QR completion imports the child snapshot and seeds later updates',
+      () async {
+    final childTrainingBox = await Hive.openBox<TrainingEntry>(
+      'pairing_child_training_entries',
+    );
+    final childOptionBox = await Hive.openBox('pairing_child_options');
+    final childGoogleSignIn = _NoopGoogleSignIn();
+    final parentGoogleSignIn = _NoopGoogleSignIn();
+    addTearDown(() async {
+      await childTrainingBox.clear();
+      await childOptionBox.clear();
+      await childTrainingBox.close();
+      await childOptionBox.close();
+      await childGoogleSignIn.close();
+      await parentGoogleSignIn.close();
+    });
+
+    const parentAccount = DriveConnectionInfo(
+      email: 'parent@example.com',
+      displayName: 'Parent',
+      subjectId: 'parent-subject',
+    );
+    const childAccount = DriveConnectionInfo(
+      email: 'child@example.com',
+      displayName: 'Child',
+      subjectId: 'child-subject',
+    );
+    final driveClient = _FamilyPairingApprovalDriveClient();
+    final offer = FamilyPairingOffer.create(
+      parentAccount: parentAccount,
+      now: DateTime.now().toUtc(),
+    );
+
+    await optionBox.put(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    await optionBox.put('profile_name', 'Stale parent player');
+    await optionBox.put(PlayerLevelService.totalXpKey, 15);
+    await optionBox.put('locale', 'ko');
+    await optionBox.put(
+      DriveBackupService.parentDriveEmailLocalKey,
+      parentAccount.email,
+    );
+    await optionBox.put(
+      DriveBackupService.parentDriveLabelLocalKey,
+      parentAccount.label,
+    );
+    await optionBox.put(
+      DriveBackupService.parentDriveSubjectLocalKey,
+      parentAccount.subjectId,
+    );
+    await trainingBox.add(
+      _trainingEntry(
+        recordId: 'parent-only-entry',
+        notes: 'Stale parent-side player record',
+      ),
+    );
+    await FamilyDriveLinkStore(HiveOptionRepository(optionBox))
+        .savePendingOffer(offer);
+
+    await childOptionBox.put(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.child.name,
+    );
+    await childOptionBox.put('profile_name', 'Child player');
+    await childOptionBox.put(PlayerLevelService.totalXpKey, 420);
+    final childCreatedAt = DateTime(2026, 8, 27, 9);
+    await childTrainingBox.add(
+      _trainingEntry(
+        recordId: 'child-entry',
+        notes: 'Child training snapshot',
+        createdAt: childCreatedAt,
+        updatedAt: childCreatedAt,
+      ),
+    );
+    final childService = DriveBackupService(
+      childTrainingBox,
+      childOptionBox,
+      googleSignIn: childGoogleSignIn,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => childAccount,
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+    await childService.getDriveConnectionInfo();
+    await childService.approveFamilyPairingOffer(offer.toQrPayload());
+
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      googleSignIn: parentGoogleSignIn,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => parentAccount,
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+    await service.getDriveConnectionInfo();
+    final link = await service.completeParentPairing(offer.inviteId);
+
+    expect(link.childSubjectId, childAccount.subjectId);
+    expect(service.getActiveFamilyDriveLink(), isNotNull);
+    expect(
+      optionBox.get(FamilyAccessService.currentRoleLocalKey),
+      FamilyRole.parent.name,
+    );
+    expect(
+      optionBox.get(DriveBackupService.parentDriveSubjectLocalKey),
+      parentAccount.subjectId,
+    );
+    expect(optionBox.get('locale'), 'ko');
+    expect(optionBox.get('profile_name'), 'Child player');
+    expect(optionBox.get(PlayerLevelService.totalXpKey), 420);
+    expect(trainingBox.values, hasLength(1));
+    expect(trainingBox.values.single.effectiveRecordId, 'child-entry');
+    expect(trainingBox.values.single.notes, 'Child training snapshot');
+    expect(service.hasLocalPreRestoreBackup(), isTrue);
+
+    await childOptionBox.put('profile_name', 'Child player updated');
+    await childOptionBox.put(PlayerLevelService.totalXpKey, 525);
+    await childTrainingBox.putAt(
+      0,
+      _trainingEntry(
+        recordId: 'child-entry',
+        notes: 'Child training updated',
+        createdAt: childCreatedAt,
+        updatedAt: childCreatedAt.add(const Duration(hours: 1)),
+      ),
+    );
+    await childService.backup();
+    await service.restoreLatest();
+
+    expect(optionBox.get('profile_name'), 'Child player updated');
+    expect(optionBox.get(PlayerLevelService.totalXpKey), 525);
+    expect(trainingBox.values, hasLength(1));
+    expect(trainingBox.values.single.notes, 'Child training updated');
+    expect(
+      optionBox.get(FamilyAccessService.currentRoleLocalKey),
+      FamilyRole.parent.name,
+    );
+    expect(
+      optionBox.get(DriveBackupService.parentDriveSubjectLocalKey),
+      parentAccount.subjectId,
+    );
+  });
+
+  test(
       'child QR approval blocks an unbound account with an existing Drive backup',
       () async {
     await optionBox.put(
@@ -4532,6 +4681,28 @@ class _FamilyPairingApprovalDriveClient extends http.BaseClient {
               'name': DriveBackupService.backupFolderName,
             },
           ],
+        });
+      }
+      if (query.contains('sharedWithMe=true')) {
+        final byInvite = RegExp(
+          "key='${GoogleDriveFamilyLinkGateway.appPropertyInviteId}' and value='([^']+)'",
+        ).firstMatch(query)?.group(1);
+        final byKind = RegExp(
+          "key='${GoogleDriveFamilyLinkGateway.appPropertyKind}' and value='([^']+)'",
+        ).firstMatch(query)?.group(1);
+        final matches = _filesById.values.where((file) {
+          if (file.trashed) return false;
+          if (byInvite != null &&
+              file.appProperties[
+                      GoogleDriveFamilyLinkGateway.appPropertyInviteId] !=
+                  byInvite) {
+            return false;
+          }
+          if (byKind != null && file.kind != byKind) return false;
+          return true;
+        }).toList(growable: false);
+        return _jsonResponse(request, <String, Object?>{
+          'files': matches.map(_fileResponse).toList(growable: false),
         });
       }
       if (query.contains("'folder-id' in parents")) {
