@@ -557,6 +557,128 @@ void main() {
   });
 
   group('decision snapshots and session', () {
+    test('context is derived from each exact decision snapshot', () {
+      final first = engine
+          .observe(PressureLessonCatalog.build(seed: 19).first)
+          .decisionState;
+      final touch = engine
+          .optionsFor(first, PressureDecisionStage.firstContact)
+          .where(
+              (option) => option.action.kind == PressureActionKind.firstTouch)
+          .map((option) => engine.simulate(first, option.action))
+          .firstWhere(
+              (result) => result.after.possession == PressurePossession.attack);
+
+      final firstContext =
+          engine.situationContext(first, PressureDecisionStage.firstContact);
+      final nextContext = engine.situationContext(
+          touch.after, PressureDecisionStage.nextConnection);
+      final retryContext = engine.situationContext(
+          touch.after, PressureDecisionStage.nextConnection);
+
+      expect(firstContext.stage, PressureDecisionStage.firstContact);
+      expect(nextContext.stage, PressureDecisionStage.nextConnection);
+      expect(nextContext.carrierNumber, touch.after.carrier!.number);
+      expect(nextContext.pressureDistanceMetres,
+          isNot(closeTo(firstContext.pressureDistanceMetres, 1e-6)));
+      expect(retryContext.pressureDistanceMetres,
+          nextContext.pressureDistanceMetres);
+      expect(retryContext.coverLaneDistanceMetres,
+          nextContext.coverLaneDistanceMetres);
+    });
+
+    test('action evidence keeps a good touch separate from a lost next pass',
+        () {
+      PressureActionEvidence? touchEvidence;
+      PressureActionEvidence? lostPassEvidence;
+      for (final scenario in PressureLessonCatalog.build(seed: 19)) {
+        final first = engine.observe(scenario).decisionState;
+        for (final touchOption in engine
+            .optionsFor(first, PressureDecisionStage.firstContact)
+            .where((option) =>
+                option.action.kind == PressureActionKind.firstTouch)) {
+          final touch = engine.simulate(first, touchOption.action);
+          if (touch.after.possession != PressurePossession.attack) continue;
+          final touchFacts = engine.actionEvidence(touch);
+          if (touchFacts.benefit == PressureActionBenefit.none) continue;
+          for (final passOption in engine
+              .optionsFor(touch.after, PressureDecisionStage.nextConnection)
+              .where(
+                  (option) => option.action.kind == PressureActionKind.pass)) {
+            final pass = engine.simulate(touch.after, passOption.action);
+            if (pass.after.possession == PressurePossession.attack) continue;
+            touchEvidence = touchFacts;
+            lostPassEvidence = engine.actionEvidence(pass);
+            break;
+          }
+          if (lostPassEvidence != null) break;
+        }
+        if (lostPassEvidence != null) break;
+      }
+
+      expect(touchEvidence, isNotNull);
+      expect(touchEvidence!.benefit, isNot(PressureActionBenefit.none));
+      expect(lostPassEvidence, isNotNull);
+      expect(lostPassEvidence!.benefit, PressureActionBenefit.none);
+      expect(
+        lostPassEvidence.limitation,
+        anyOf(
+          PressureActionLimitation.interception,
+          PressureActionLimitation.looseBall,
+          PressureActionLimitation.offside,
+        ),
+      );
+      if (lostPassEvidence.limitation ==
+          PressureActionLimitation.interception) {
+        expect(lostPassEvidence.contactPoint, isNotNull);
+        expect(lostPassEvidence.freezeFrame.ball.position,
+            lostPassEvidence.contactPoint);
+      }
+    });
+
+    test('only an actually controlled pass is credited as received', () {
+      var state = engine
+          .observe(PressureLessonCatalog.build(seed: 19).first)
+          .decisionState;
+      for (final role in const [
+        PressureActorRole.presser,
+        PressureActorRole.cover,
+        PressureActorRole.tracker,
+      ]) {
+        state = _moveRole(
+          state,
+          role,
+          ScanPassPoint(82, 50 + role.index.toDouble()),
+          const ScanPassPoint(0, 0),
+          reactivity: 0,
+        );
+      }
+      final option = engine
+          .optionsFor(state, PressureDecisionStage.firstContact)
+          .firstWhere(
+              (value) => value.kind == PressureOptionKind.immediateRunnerPass);
+      final received = engine.simulate(state, option.action);
+      final receivedEvidence = engine.actionEvidence(received);
+      expect(
+          receivedEvidence.benefit, PressureActionBenefit.forwardPassReceived);
+      expect(receivedEvidence.benefitReceiverNumber,
+          received.after.carrier!.number);
+
+      final lane = state.ball.position.lerp(option.action.target, .5);
+      final blocked = _moveRole(
+        state,
+        PressureActorRole.cover,
+        lane,
+        const ScanPassPoint(0, 0),
+        reactivity: 0,
+      );
+      final lost = engine.simulate(blocked, option.action);
+      final lostEvidence = engine.actionEvidence(lost);
+      expect(lost.after.possession, isNot(PressurePossession.attack));
+      expect(lostEvidence.benefit, PressureActionBenefit.none);
+      expect(lostEvidence.benefitReceiverNumber, isNull);
+    });
+
     test('a completed forward pass counts even without a further forward lane',
         () {
       final scenarios = PressureLessonCatalog.build(seed: 19);

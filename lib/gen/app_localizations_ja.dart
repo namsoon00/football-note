@@ -21085,7 +21085,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String pressureLessonAlternativeConnection(Object action, Object number) {
-    return '別案：$action → #$numberへのパスコースを確保。';
+    return '別の選択：$action → 次は#$numberへパス可能';
   }
 
   @override
@@ -21175,5 +21175,217 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String pressureLessonTracePass(Object distance) {
     return '${distance}m・グラウンダー';
+  }
+
+  @override
+  String pressureLessonSituationIdentity(
+      Object current, Object total, Object name) {
+    return '状況 $current/$total・$name';
+  }
+
+  @override
+  String get pressureLessonContextOutsideClosing => '外側のプレッシャー';
+
+  @override
+  String get pressureLessonContextOutsideHolding => '外側の守備';
+
+  @override
+  String get pressureLessonContextInsideClosing => '内側のプレッシャー';
+
+  @override
+  String get pressureLessonContextInsideHolding => '内側の守備';
+
+  @override
+  String get pressureLessonContextLevelClosing => '正面のプレッシャー';
+
+  @override
+  String get pressureLessonContextLevelHolding => '正面の守備';
+
+  @override
+  String get pressureLessonContextCoverClosing => 'カバーが接近';
+
+  @override
+  String get pressureLessonContextRunnerBreaking => '前方へ走る';
+
+  @override
+  String get pressureLessonContextRunnerMoving => '前へ移動';
+
+  @override
+  String get pressureLessonContextRunnerHeld => '前方への動きは小さい';
+
+  @override
+  String pressureLessonContextName(Object pressure, Object movement) {
+    return '$pressure・$movement';
+  }
+
+  @override
+  String get pressureLessonMiddleThird => '中盤';
+
+  @override
+  String get pressureLessonAttackingThird => '攻撃エリア';
+
+  @override
+  String get pressureLessonRightChannel => '右側';
+
+  @override
+  String get pressureLessonCentralChannel => '中央';
+
+  @override
+  String get pressureLessonLeftChannel => '左側';
+
+  @override
+  String pressureLessonLocation(Object band, Object channel) {
+    return '$band・$channel';
+  }
+
+  @override
+  String get pressureLessonPressureClosing => '接近';
+
+  @override
+  String get pressureLessonPressureHolding => '距離';
+
+  @override
+  String pressureLessonContextFacts(Object location, Object carrier,
+      Object presser, Object movement, Object distance) {
+    return '$location · ボール#$carrier · 守備#$presser $movement ${distance}m';
+  }
+
+  @override
+  String pressureLessonContextTaskObserve(
+      Object focus, Object cover, Object support, Object runner) {
+    return '受ける前：#$focusの周囲と#$cover・#$support・#$runnerの位置を確認。';
+  }
+
+  @override
+  String pressureLessonContextTaskFirst(
+      Object cover, Object support, Object runner) {
+    return 'タッチ／パスを選択。#$coverと#$support・#$runnerの位置を確認。';
+  }
+
+  @override
+  String pressureLessonContextTaskNext(
+      Object cover, Object support, Object runner) {
+    return 'パス／運ぶを選択。#$coverと#$support・#$runnerを再確認。';
+  }
+
+  @override
+  String get pressureLessonContextTaskExecutingFirst => '最初に選んだ動きを再生中です。';
+
+  @override
+  String get pressureLessonContextTaskExecutingNext => '次に選んだ動きを再生中です。';
+
+  @override
+  String get pressureLessonContextTaskReviewFirst => '結果の場面：最初の判断の経路と守備の反応。';
+
+  @override
+  String get pressureLessonContextTaskReviewNext => '結果の場面：次の動きの経路と守備の反応。';
+
+  @override
+  String get pressureLessonContextTaskAlternative => '同じ場面で別の選択の結果を見ます。';
+
+  @override
+  String get pressureLessonContextTaskReplay => 'ボールが来る前から次の連係まで再生します。';
+
+  @override
+  String get pressureLessonReviewFirstTouch => '最初の判断';
+
+  @override
+  String get pressureLessonReviewNextAction => '次の行動';
+
+  @override
+  String get pressureLessonFirstTouch => 'ファーストタッチ';
+
+  @override
+  String pressureLessonPassTo(Object number) {
+    return '#$numberへパス';
+  }
+
+  @override
+  String pressureLessonReviewSelectedAction(Object number, Object action) {
+    return '選択：#$numberの$action';
+  }
+
+  @override
+  String get pressureLessonBenefitNone => '結果：この動きでは明確な利点を作れませんでした。';
+
+  @override
+  String pressureLessonBenefitSeparation(Object distance) {
+    return '良かった点：最も近い守備との距離が${distance}m広がりました。';
+  }
+
+  @override
+  String pressureLessonBenefitPassReceived(Object number) {
+    return '良かった点：#$numberにパスがつながりました。';
+  }
+
+  @override
+  String pressureLessonBenefitForwardPassReceived(
+      Object number, Object distance) {
+    return '良かった点：#$numberへのパスでボールが${distance}m前進しました。';
+  }
+
+  @override
+  String pressureLessonBenefitSimulatedLane(Object number) {
+    return '良かった点：#$numberへの前方パスコースが新たに開きました。';
+  }
+
+  @override
+  String pressureLessonBenefitControlledProgress(Object distance) {
+    return '良かった点：ボールを保ち${distance}m前進しました。';
+  }
+
+  @override
+  String get pressureLessonBenefitRetainedControl =>
+      '良かった点：プレッシャーの中でボールを保ちました。';
+
+  @override
+  String pressureLessonLimitationInterception(Object number, Object time) {
+    return '原因：経路に入った守備#$numberに$time秒後に奪われました。';
+  }
+
+  @override
+  String pressureLessonLimitationOffside(Object number) {
+    return '原因：パスを出した時点で#$numberがオフサイド位置におり、その後プレーに関与しました。';
+  }
+
+  @override
+  String get pressureLessonLimitationLoose => '原因：攻撃側がボールを収められず、ルーズボールになりました。';
+
+  @override
+  String get pressureLessonLimitationForwardWindow =>
+      '比較点：前方パスも可能な場面で後方への連係を選びました。';
+
+  @override
+  String pressureLessonLimitationClosingPressure(
+      Object number, Object distance) {
+    return '注意：動きの後、守備#$numberとの間隔は${distance}mです。';
+  }
+
+  @override
+  String pressureLessonLimitationProgress(Object distance) {
+    return '次の確認：前進距離${distance}m。新たな前方パスコースは開きませんでした。';
+  }
+
+  @override
+  String pressureLessonLimitationRemainingPressure(
+      Object number, Object distance) {
+    return '次の確認：最も近い守備は#$number、距離は${distance}mです。';
+  }
+
+  @override
+  String get pressureLessonOffsideAhead => '画面外のオフサイド基準線';
+
+  @override
+  String pressureLessonAlternativeReceived(Object action, Object number) {
+    return '別の選択：$action → #$numberにつながる';
+  }
+
+  @override
+  String get pressureLessonOverview => '全選手の位置と現在の拡大範囲';
+
+  @override
+  String pressureLessonReviewSituationFacts(
+      Object location, Object carrier, Object presser, Object distance) {
+    return '$location · 判断時：ボール#$carrier、守備#$presserと${distance}m';
   }
 }

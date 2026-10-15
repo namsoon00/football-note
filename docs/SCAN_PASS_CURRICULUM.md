@@ -9,11 +9,29 @@ approach, then uses one neutral on-pitch control to choose a 1-2.5 m first touch
 or an immediate pass. A retained first touch opens a second one-tap decision
 from the actual resulting positions. An immediate pass, interception or loose
 ball can finish the situation without demanding a meaningless extra action.
-Each situation chooses one local physical viewport from the observed actors,
-ball path and reachable first actions, then keeps that transform fixed through
-execution and review. This improves readability without moving the camera to
-signal the value of a choice; the historical reference keeps its existing
-field framing.
+The pitch reserves a compact situation ribbon above play during observation,
+both decisions, execution, retry and review. Its situation name, field band,
+channel, current carrier, pressure distance/movement and task are derived from
+the displayed immutable world rather than a raw scenario id. The description
+therefore changes after a first touch and returns verbatim with the exact retry
+snapshot. It names only current facts and never highlights a preferred option.
+During review, the ribbon explicitly labels the facts as the pre-decision
+state and the displayed pitch as the result frame, so a former carrier is not
+mistaken for the current ball owner after an interception.
+
+The tactical camera fits the current carrier, reachable action endpoints,
+relevant pressure/cover and nearby next space. It does not widen the view merely
+to include the distant 92 m offside reference or every future trajectory; an
+edge cue keeps that reference accessible when it is outside the crop. A small
+pitch overview shows all players and the current enlarged area, avoiding
+player and choice-marker rectangles. Reviews crop around the selected action
+and its evidence rather than all unchosen routes. Every
+pitch mark, player, ball, trace, option endpoint and hit target uses the same
+world-to-screen transform. The transform stays fixed through a decision and its
+execution, and can change at the explicit boundary into a second decision or a
+selected review action. The just-completed action is reviewed first; the
+first touch remains individually selectable. Full replay may return to the observation crop. The
+historical reference keeps its existing field framing.
 
 The session contains six learning situations followed seamlessly by two unseen
 combinations. The six vary outside pressure, inside pressure, cover distance,
@@ -60,16 +78,36 @@ offside restart occurs only if the intended receiver beyond both limits
 actually receives the pass. A defender contact first remains an interception;
 the rule never moves or teleports an actor.
 
-Decision quality is separate from a later goal or shot. Review uses the exact
-frozen decision state and reports an observed defender/distance, the selected
-action's measured consequence, and one alternative simulated from that same
-snapshot with the same rules. It distinguishes retaining possession, pressure
-clearance, a controllable next lane, progress and a missed forward opportunity.
-A safe support pass can be useful under severe pressure, but is not described
-as equally progressive when an open forward connection existed. No fabricated
-success percentage or expert endorsement is shown.
+Decision quality is separate from a later goal or shot. When a situation has a
+first touch and a next action, review keeps them as two selectable judgments.
+Each action names the selected movement (and pass destination shirt number),
+one supported benefit or an explicit absence of credited benefit, and the
+limiting cause/tradeoff. A completed pass is credited only when the intended
+attacker actually controls it. Increased separation comes from the before/after
+nearest-defender distance. A newly opened lane is described as an available
+next pass from the post-action state, not a pass already completed. A later
+interception therefore cannot erase a useful first touch, and a turnover cannot
+inherit praise for a merely possible connection.
 
-Retry restores the exact last decision snapshot. Full replay and alternative
+Review freezes at the relevant action evidence: the actual contact frame for an
+interception, otherwise the action's resulting frame. It draws the selected
+ball route, the decisive defender's sampled motion, a faint decision-origin
+marker and the recorded contact point. Only a supported newly opened lane is drawn
+as a separate subdued projection. Retry targets the judgment currently selected
+in review. The same-state alternative is clearly labelled as a different choice, and returning
+to the learner restores that selected original action rather than the terminal
+pose of the whole attempt.
+
+The context categories and coaching summaries are inspectable heuristics over
+the same 2D simulation. Terms such as closing pressure use relative velocity;
+field band/channel use declared pitch coordinates; benefits use contact,
+possession, distance and connection simulation evidence. Thresholds organize
+the explanation but are not an expert correctness meter, universal tactical
+rule, validated ability score or proof of match transfer. Several sound choices
+can retain different tradeoffs. No fabricated success percentage or expert
+endorsement is shown.
+
+Retry restores the exact selected decision snapshot. Full replay and alternative
 comparison do not replace the original attempt, and session progress records
 only the first attempt for each situation, including the final two. The summary
 describes the pressure types encountered, how often a safe next connection was
@@ -81,8 +119,11 @@ The current lesson counts a completed, retained forward pass as progress even
 when the new receiver has no further forward teammate. It reports that receiver
 and pressure gap in review. A missed forward opportunity on a safe recycle is
 kept separate from this progress count. Replay and real-play reference actions
-live in the app bar; the review card keeps observation, effect and same-state
-alternative visible above its retry/next controls. Offside uses the reduced
+live in the app bar; the compact review card prioritizes action, benefit and
+limitation above its retry/next controls, with alternative comparison available.
+Coaching copy distinguishes received passes from future lanes, slow forward
+movement from being marked, and a back-pass tradeoff from an unmeasured lost
+window. Offside uses the reduced
 reference described above and ground points, rather than full body geometry;
 see [IFAB Law 11](https://www.theifab.com/laws/latest/offside/) for the complete
 position and involvement rules.

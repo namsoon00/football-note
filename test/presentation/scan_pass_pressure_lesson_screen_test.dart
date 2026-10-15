@@ -33,6 +33,28 @@ void main() {
             .hitTestable(),
         findsOneWidget);
     final firstState = _painter(tester).displayWorld as PressureWorld;
+    final firstFacts = tester
+        .widget<Text>(
+            find.byKey(const ValueKey<String>('pressure-situation-facts')))
+        .data;
+    final firstCamera = _painter(tester).viewBounds as Rect;
+    expect(firstCamera.width * ScanPassPressureEngine.fieldLengthMetres,
+        lessThan(46));
+    expect(
+        firstCamera.right,
+        lessThan(ScanPassPressureEngine.localOffsideReferenceMetres /
+            ScanPassPressureEngine.fieldLengthMetres));
+    for (final option in const ScanPassPressureEngine()
+        .optionsFor(firstState, PressureDecisionStage.firstContact)) {
+      final x =
+          option.action.target.x / ScanPassPressureEngine.fieldLengthMetres;
+      final y =
+          option.action.target.y / ScanPassPressureEngine.fieldWidthMetres;
+      expect(x, inInclusiveRange(firstCamera.left, firstCamera.right),
+          reason: option.key);
+      expect(y, inInclusiveRange(firstCamera.top, firstCamera.bottom),
+          reason: option.key);
+    }
 
     await _tap(tester, 'pressure-action-touch-inside');
 
@@ -46,6 +68,17 @@ void main() {
     expect(nextState.ball.position.distanceTo(firstState.ball.position),
         greaterThan(1));
     expect(nextState.carrier?.role, PressureActorRole.receiver);
+    final nextFacts = tester
+        .widget<Text>(
+            find.byKey(const ValueKey<String>('pressure-situation-facts')))
+        .data;
+    expect(nextFacts, isNot(firstFacts));
+    expect(
+        tester
+            .widget<Text>(
+                find.byKey(const ValueKey<String>('pressure-situation-task')))
+            .data,
+        contains('#'));
     expect(tester.takeException(), isNull);
   });
 
@@ -60,23 +93,75 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(
+        tester.element(find.byType(ScanPassPressureLessonScreen)))!;
     await _tap(tester, 'pressure-action-touch-inside');
     final lastDecision = _painter(tester).displayWorld as PressureWorld;
+    final retryFacts = tester
+        .widget<Text>(
+            find.byKey(const ValueKey<String>('pressure-situation-facts')))
+        .data;
     await _tap(tester, 'pressure-action-pass-support');
 
     expect(find.byKey(const ValueKey<String>('pressure-review-panel')),
         findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('pressure-review-observed')),
+    expect(find.byKey(const ValueKey<String>('pressure-review-action')),
         findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('pressure-review-effect')),
+    expect(find.byKey(const ValueKey<String>('pressure-review-benefit')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('pressure-review-limitation')),
         findsOneWidget);
     expect(find.byKey(const ValueKey<String>('pressure-review-alternative')),
         findsOneWidget);
-    final mineEffect = tester
+    expect(
+        (_painter(tester).reviewResult as PressureSimulationResult).action.kind,
+        PressureActionKind.pass,
+        reason: 'Review should first explain the action that just finished.');
+    await _tap(tester, 'pressure-review-first');
+    final firstAction = tester
         .widget<Text>(
-            find.byKey(const ValueKey<String>('pressure-review-effect')))
+            find.byKey(const ValueKey<String>('pressure-review-action')))
         .data;
+    final firstBenefit = tester
+        .widget<Text>(
+            find.byKey(const ValueKey<String>('pressure-review-benefit')))
+        .data;
+    expect(
+        (_painter(tester).reviewResult as PressureSimulationResult).action.kind,
+        PressureActionKind.firstTouch);
 
+    await _tap(tester, 'pressure-review-next-action');
+    final nextAction = tester
+        .widget<Text>(
+            find.byKey(const ValueKey<String>('pressure-review-action')))
+        .data;
+    final nextBenefit = tester
+        .widget<Text>(
+            find.byKey(const ValueKey<String>('pressure-review-benefit')))
+        .data;
+    expect(nextAction, contains('#'));
+    expect(nextAction, isNot(firstAction));
+    expect(firstBenefit, l10n.pressureLessonBenefitRetainedControl);
+    expect(nextBenefit, l10n.pressureLessonBenefitNone,
+        reason: 'An intercepted pass must not claim a completed connection.');
+    final reviewedPass =
+        _painter(tester).reviewResult as PressureSimulationResult;
+    expect(reviewedPass.action.kind, PressureActionKind.pass);
+    expect(reviewedPass.contact, isNotNull);
+    expect((_painter(tester).displayWorld as PressureWorld).ball.position,
+        reviewedPass.contact!.point);
+    final reviewBounds = _painter(tester).viewBounds as Rect;
+    for (final world in [reviewedPass.before, reviewedPass.after]) {
+      final receiver = world.actorByRole(reviewedPass.intendedReceiverRole!);
+      expect(
+          reviewBounds.contains(Offset(
+            receiver.position.x / ScanPassPressureEngine.fieldLengthMetres,
+            receiver.position.y / ScanPassPressureEngine.fieldWidthMetres,
+          )),
+          isTrue,
+          reason:
+              'A blocked-pass review must still show the intended receiver.');
+    }
     await _tap(tester, 'pressure-compare');
     expect(find.byKey(const ValueKey<String>('pressure-return-attempt')),
         findsOneWidget);
@@ -84,9 +169,9 @@ void main() {
     expect(
         tester
             .widget<Text>(
-                find.byKey(const ValueKey<String>('pressure-review-effect')))
+                find.byKey(const ValueKey<String>('pressure-review-benefit')))
             .data,
-        mineEffect);
+        nextBenefit);
 
     await _tap(tester, 'pressure-retry');
     final retryState = _painter(tester).displayWorld as PressureWorld;
@@ -96,6 +181,12 @@ void main() {
             .byKey(const ValueKey<String>('pressure-action-pass-support'))
             .hitTestable(),
         findsOneWidget);
+    expect(
+        tester
+            .widget<Text>(
+                find.byKey(const ValueKey<String>('pressure-situation-facts')))
+            .data,
+        retryFacts);
     expect(tester.takeException(), isNull);
   });
 
@@ -110,9 +201,9 @@ void main() {
     ));
     await tester.pumpAndSettle();
     await _tap(tester, 'pressure-action-pass-now');
-    final effect = tester
+    final limitation = tester
         .widget<Text>(
-            find.byKey(const ValueKey<String>('pressure-review-effect')))
+            find.byKey(const ValueKey<String>('pressure-review-limitation')))
         .data;
 
     await _tap(tester, 'pressure-reference', settle: false);
@@ -137,10 +228,10 @@ void main() {
         findsOneWidget);
     expect(
         tester
-            .widget<Text>(
-                find.byKey(const ValueKey<String>('pressure-review-effect')))
+            .widget<Text>(find
+                .byKey(const ValueKey<String>('pressure-review-limitation')))
             .data,
-        effect);
+        limitation);
   });
 
   testWidgets('next situation cycles through six learning and two unseen cases',
@@ -157,8 +248,7 @@ void main() {
         tester.element(find.byType(ScanPassPressureLessonScreen)))!;
 
     for (var index = 0; index < 8; index++) {
-      expect(
-          find.text(l10n.pressureLessonProgress(index + 1, 8)), findsOneWidget);
+      expect(_progressText(tester), startsWith('Situation ${index + 1}/8'));
       await _tap(tester, 'pressure-action-pass-now');
       expect(find.byKey(const ValueKey<String>('pressure-review-panel')),
           findsOneWidget);
@@ -182,20 +272,17 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    final l10n = AppLocalizations.of(
-        tester.element(find.byType(ScanPassPressureLessonScreen)))!;
-
     await _tap(tester, 'pressure-more', settle: false);
     await tester.pumpAndSettle();
     await _tap(tester, 'pressure-menu-situation-8');
-    expect(find.text(l10n.pressureLessonProgress(8, 8)), findsOneWidget);
+    expect(_progressText(tester), startsWith('Situation 8/8'));
 
     await _tap(tester, 'pressure-action-pass-now');
     await _tap(tester, 'pressure-next');
 
     expect(
         find.byKey(const ValueKey<String>('pressure-summary')), findsNothing);
-    expect(find.text(l10n.pressureLessonProgress(1, 8)), findsOneWidget);
+    expect(_progressText(tester), startsWith('Situation 1/8'));
     expect(tester.takeException(), isNull);
   });
 
@@ -224,10 +311,12 @@ void main() {
 
       final pitch =
           tester.getRect(find.byKey(const ValueKey<String>('pressure-pitch')));
-      final panel = tester
-          .getRect(find.byKey(const ValueKey<String>('pressure-instruction')));
+      final ribbon = tester.getRect(
+          find.byKey(const ValueKey<String>('pressure-situation-ribbon')));
+      final overview = tester
+          .getRect(find.byKey(const ValueKey<String>('pressure-overview')));
       expect(pitch.height, greaterThan(config.size.height < 500 ? 150 : 280));
-      expect(pitch.overlaps(panel), isFalse);
+      expect(pitch.overlaps(ribbon), isFalse);
       final rects = <Rect>[];
       for (final key in [
         'pressure-action-touch-inside',
@@ -239,6 +328,8 @@ void main() {
         final finder = find.byKey(ValueKey<String>(key));
         expect(finder.hitTestable(), findsOneWidget, reason: key);
         final rect = tester.getRect(finder);
+        expect(rect.overlaps(overview), isFalse,
+            reason: 'The context map must not hide the $key control.');
         expect(rect.width, greaterThanOrEqualTo(48));
         expect(rect.height, greaterThanOrEqualTo(48));
         for (final previous in rects) {
@@ -298,6 +389,10 @@ void main() {
 dynamic _painter(WidgetTester tester) => tester
     .widget<CustomPaint>(find.byKey(const ValueKey<String>('pressure-pitch')))
     .painter;
+
+String _progressText(WidgetTester tester) => tester
+    .widget<Text>(find.byKey(const ValueKey<String>('pressure-progress')))
+    .data!;
 
 Future<void> _tap(WidgetTester tester, String key, {bool settle = true}) async {
   final finder = find.byKey(ValueKey<String>(key));

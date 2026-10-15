@@ -21950,7 +21950,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pressureLessonAlternativeConnection(Object action, Object number) {
-    return 'Alternative: $action → a passing lane to #$number.';
+    return 'Other choice: $action → a next pass to #$number is possible';
   }
 
   @override
@@ -22040,5 +22040,226 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String pressureLessonTracePass(Object distance) {
     return '$distance m · ground pass';
+  }
+
+  @override
+  String pressureLessonSituationIdentity(
+      Object current, Object total, Object name) {
+    return 'Situation $current/$total · $name';
+  }
+
+  @override
+  String get pressureLessonContextOutsideClosing => 'outside pressure';
+
+  @override
+  String get pressureLessonContextOutsideHolding => 'outside defender';
+
+  @override
+  String get pressureLessonContextInsideClosing => 'inside pressure';
+
+  @override
+  String get pressureLessonContextInsideHolding => 'inside defender';
+
+  @override
+  String get pressureLessonContextLevelClosing => 'front pressure';
+
+  @override
+  String get pressureLessonContextLevelHolding => 'front defender';
+
+  @override
+  String get pressureLessonContextCoverClosing => 'cover approaching';
+
+  @override
+  String get pressureLessonContextRunnerBreaking => 'forward run';
+
+  @override
+  String get pressureLessonContextRunnerMoving => 'moving forward';
+
+  @override
+  String get pressureLessonContextRunnerHeld => 'little forward movement';
+
+  @override
+  String pressureLessonContextName(Object pressure, Object movement) {
+    return '$pressure · $movement';
+  }
+
+  @override
+  String get pressureLessonMiddleThird => 'Midfield';
+
+  @override
+  String get pressureLessonAttackingThird => 'Attack';
+
+  @override
+  String get pressureLessonRightChannel => 'right';
+
+  @override
+  String get pressureLessonCentralChannel => 'centre';
+
+  @override
+  String get pressureLessonLeftChannel => 'left';
+
+  @override
+  String pressureLessonLocation(Object band, Object channel) {
+    return '$band, $channel';
+  }
+
+  @override
+  String get pressureLessonPressureClosing => 'closing';
+
+  @override
+  String get pressureLessonPressureHolding => 'gap';
+
+  @override
+  String pressureLessonContextFacts(Object location, Object carrier,
+      Object presser, Object movement, Object distance) {
+    return '$location · ball #$carrier · defender #$presser $movement $distance m';
+  }
+
+  @override
+  String pressureLessonContextTaskObserve(
+      Object focus, Object cover, Object support, Object runner) {
+    return 'Before receiving: scan around #$focus; locate #$cover, #$support and #$runner.';
+  }
+
+  @override
+  String pressureLessonContextTaskFirst(
+      Object cover, Object support, Object runner) {
+    return 'Choose touch/pass. Check #$cover, #$support and #$runner.';
+  }
+
+  @override
+  String pressureLessonContextTaskNext(
+      Object cover, Object support, Object runner) {
+    return 'Choose pass/carry. Recheck #$cover, #$support and #$runner.';
+  }
+
+  @override
+  String get pressureLessonContextTaskExecutingFirst =>
+      'Watching your first action.';
+
+  @override
+  String get pressureLessonContextTaskExecutingNext =>
+      'Watching your next action.';
+
+  @override
+  String get pressureLessonContextTaskReviewFirst =>
+      'Result frame: first decision and defensive response.';
+
+  @override
+  String get pressureLessonContextTaskReviewNext =>
+      'Result frame: next action and defensive response.';
+
+  @override
+  String get pressureLessonContextTaskAlternative =>
+      'A different choice from the same decision moment.';
+
+  @override
+  String get pressureLessonContextTaskReplay =>
+      'Replay from the incoming ball to the next connection.';
+
+  @override
+  String get pressureLessonReviewFirstTouch => 'First decision';
+
+  @override
+  String get pressureLessonReviewNextAction => 'Next action';
+
+  @override
+  String get pressureLessonFirstTouch => 'First touch';
+
+  @override
+  String pressureLessonPassTo(Object number) {
+    return 'Pass to #$number';
+  }
+
+  @override
+  String pressureLessonReviewSelectedAction(Object number, Object action) {
+    return 'Choice: #$number — $action';
+  }
+
+  @override
+  String get pressureLessonBenefitNone =>
+      'Result: this action created no clear advantage.';
+
+  @override
+  String pressureLessonBenefitSeparation(Object distance) {
+    return 'Worked: the nearest defender is $distance m farther away.';
+  }
+
+  @override
+  String pressureLessonBenefitPassReceived(Object number) {
+    return 'Worked: #$number received your pass.';
+  }
+
+  @override
+  String pressureLessonBenefitForwardPassReceived(
+      Object number, Object distance) {
+    return 'Worked: the pass reached #$number, advancing the ball $distance m.';
+  }
+
+  @override
+  String pressureLessonBenefitSimulatedLane(Object number) {
+    return 'Worked: a new forward passing lane to #$number opened.';
+  }
+
+  @override
+  String pressureLessonBenefitControlledProgress(Object distance) {
+    return 'Worked: you kept the ball and advanced $distance m.';
+  }
+
+  @override
+  String get pressureLessonBenefitRetainedControl =>
+      'Worked: you kept possession under pressure.';
+
+  @override
+  String pressureLessonLimitationInterception(Object number, Object time) {
+    return 'Cause: #$number entered your route and won the ball after $time s.';
+  }
+
+  @override
+  String pressureLessonLimitationOffside(Object number) {
+    return 'Cause: #$number was offside at release and later became involved.';
+  }
+
+  @override
+  String get pressureLessonLimitationLoose =>
+      'Cause: no attacker controlled the ball; it became loose.';
+
+  @override
+  String get pressureLessonLimitationForwardWindow =>
+      'Tradeoff: a forward pass was available when you chose the back pass.';
+
+  @override
+  String pressureLessonLimitationClosingPressure(
+      Object number, Object distance) {
+    return 'Watch: defender #$number is now only $distance m away.';
+  }
+
+  @override
+  String pressureLessonLimitationProgress(Object distance) {
+    return 'Next check: $distance m forward gain, with no new forward passing lane.';
+  }
+
+  @override
+  String pressureLessonLimitationRemainingPressure(
+      Object number, Object distance) {
+    return 'Next check: nearest defender #$number, gap $distance m.';
+  }
+
+  @override
+  String get pressureLessonOffsideAhead => 'Offside reference outside view';
+
+  @override
+  String pressureLessonAlternativeReceived(Object action, Object number) {
+    return 'Other choice: $action → #$number receives';
+  }
+
+  @override
+  String get pressureLessonOverview =>
+      'All players and the current enlarged area';
+
+  @override
+  String pressureLessonReviewSituationFacts(
+      Object location, Object carrier, Object presser, Object distance) {
+    return '$location · at decision: ball #$carrier, defender #$presser $distance m away';
   }
 }

@@ -39,6 +39,111 @@ enum PressureSafety { safe, pressured, lost }
 
 enum PressureProgress { opened, retained, missedOpportunity, stopped }
 
+enum PressureFieldBand { middleThird, attackingThird }
+
+enum PressureFieldChannel { right, central, left }
+
+enum PressureApproachSide { outside, inside, level }
+
+enum PressureMovement { closing, holding }
+
+enum PressureRunnerMovement { breakingForward, movingForward, held }
+
+enum PressureActionBenefit {
+  none,
+  increasedSeparation,
+  passReceived,
+  forwardPassReceived,
+  openedSimulatedForwardLane,
+  progressedWithControl,
+  retainedControl,
+}
+
+enum PressureActionLimitation {
+  interception,
+  offside,
+  looseBall,
+  lostForwardWindow,
+  closingPressure,
+  limitedProgression,
+  remainingPressure,
+}
+
+/// Measured situation facts for the persistent decision ribbon.
+///
+/// This deliberately contains no recommendation or scenario-authored answer.
+/// Every value is derived from the current immutable world snapshot.
+class PressureSituationContext {
+  final PressureDecisionStage stage;
+  final PressureFieldBand fieldBand;
+  final PressureFieldChannel fieldChannel;
+  final int carrierNumber;
+  final int focusNumber;
+  final int presserNumber;
+  final PressureApproachSide approachSide;
+  final PressureMovement pressureMovement;
+  final double pressureDistanceMetres;
+  final int coverNumber;
+  final int supportNumber;
+  final PressureMovement coverMovement;
+  final double coverLaneDistanceMetres;
+  final int runnerNumber;
+  final PressureRunnerMovement runnerMovement;
+
+  const PressureSituationContext({
+    required this.stage,
+    required this.fieldBand,
+    required this.fieldChannel,
+    required this.carrierNumber,
+    required this.focusNumber,
+    required this.presserNumber,
+    required this.approachSide,
+    required this.pressureMovement,
+    required this.pressureDistanceMetres,
+    required this.coverNumber,
+    required this.supportNumber,
+    required this.coverMovement,
+    required this.coverLaneDistanceMetres,
+    required this.runnerNumber,
+    required this.runnerMovement,
+  });
+}
+
+/// Per-action evidence used by review copy and spatial annotations.
+///
+/// Benefits are credited only for an observed change in this action or for a
+/// pass that the intended teammate actually controlled. A projected connection
+/// is named separately so it cannot be mistaken for a completed pass.
+class PressureActionEvidence {
+  final PressureActionBenefit benefit;
+  final PressureActionLimitation limitation;
+  final int actorNumber;
+  final int? destinationNumber;
+  final int? benefitReceiverNumber;
+  final int? defenderNumber;
+  final double separationChangeMetres;
+  final double pressureClearanceMetres;
+  final double progressMetres;
+  final double? contactSeconds;
+  final ScanPassPoint? contactPoint;
+  final PressureWorld freezeFrame;
+
+  const PressureActionEvidence({
+    required this.benefit,
+    required this.limitation,
+    required this.actorNumber,
+    required this.destinationNumber,
+    required this.benefitReceiverNumber,
+    required this.defenderNumber,
+    required this.separationChangeMetres,
+    required this.pressureClearanceMetres,
+    required this.progressMetres,
+    required this.contactSeconds,
+    required this.contactPoint,
+    required this.freezeFrame,
+  });
+}
+
 /// A physical actor on the declared 105 m x 68 m field.
 ///
 /// Identity and shirt number are evidence/display fields. Motion policy reads
@@ -807,6 +912,172 @@ class ScanPassPressureEngine {
         ),
       ),
     ]);
+  }
+
+  PressureSituationContext situationContext(
+    PressureWorld world,
+    PressureDecisionStage stage,
+  ) {
+    final carrier = world.carrier;
+    final receiver = world.actorByRole(PressureActorRole.receiver);
+    final focus = carrier == null || carrier.role == PressureActorRole.passer
+        ? receiver
+        : carrier;
+    final presser = world.actorByRole(PressureActorRole.presser);
+    final cover = world.actorByRole(PressureActorRole.cover);
+    final support = world.actorByRole(PressureActorRole.support);
+    final runner = world.actorByRole(PressureActorRole.runner);
+    final pressureDelta = presser.position.y - focus.position.y;
+    final approachSide = pressureDelta < -1
+        ? PressureApproachSide.outside
+        : pressureDelta > 1
+            ? PressureApproachSide.inside
+            : PressureApproachSide.level;
+    final coverLanePoint = _closestPointOnSegment(
+      cover.position,
+      world.ball.position,
+      support.position,
+    );
+    return PressureSituationContext(
+      stage: stage,
+      fieldBand: focus.position.x >= fieldLengthMetres * 2 / 3
+          ? PressureFieldBand.attackingThird
+          : PressureFieldBand.middleThird,
+      fieldChannel: focus.position.y < fieldWidthMetres / 3
+          ? PressureFieldChannel.right
+          : focus.position.y > fieldWidthMetres * 2 / 3
+              ? PressureFieldChannel.left
+              : PressureFieldChannel.central,
+      carrierNumber: (carrier ?? focus).number,
+      focusNumber: focus.number,
+      presserNumber: presser.number,
+      approachSide: approachSide,
+      pressureMovement: _movingToward(presser, focus.position, focus.velocity)
+          ? PressureMovement.closing
+          : PressureMovement.holding,
+      pressureDistanceMetres: presser.position.distanceTo(focus.position),
+      coverNumber: cover.number,
+      supportNumber: support.number,
+      coverMovement: _movingToward(
+        cover,
+        coverLanePoint,
+        const ScanPassPoint(0, 0),
+      )
+          ? PressureMovement.closing
+          : PressureMovement.holding,
+      coverLaneDistanceMetres: cover.position.distanceTo(coverLanePoint),
+      runnerNumber: runner.number,
+      runnerMovement: runner.velocity.x > 2.1
+          ? PressureRunnerMovement.breakingForward
+          : runner.velocity.x > .8
+              ? PressureRunnerMovement.movingForward
+              : PressureRunnerMovement.held,
+    );
+  }
+
+  PressureActionEvidence actionEvidence(PressureSimulationResult result) {
+    final beforeCarrier = result.before.carrier!;
+    final beforeDefender =
+        _nearestDefender(result.before, beforeCarrier.position);
+    final afterCarrier = result.after.carrier;
+    final retained = afterCarrier?.team == PressureTeam.attack;
+    final beforeClearance =
+        beforeDefender.position.distanceTo(beforeCarrier.position);
+    final afterClearance =
+        retained ? result.assessment.pressureClearanceMetres : 0.0;
+    final separationChange = retained ? afterClearance - beforeClearance : 0.0;
+
+    final destinationRole = result.intendedReceiverRole;
+    final destinationNumber = destinationRole == null
+        ? null
+        : result.before.actorByRole(destinationRole).number;
+    final received = result.action.kind == PressureActionKind.pass &&
+        retained &&
+        afterCarrier!.role == destinationRole;
+    final beforeForwardRoles = connections(result.before)
+        .where((connection) => connection.safe && connection.forward)
+        .map((connection) => connection.receiverRole)
+        .toSet();
+    PressureConnectionEvidence? openedConnection;
+    if (retained) {
+      for (final connection in result.assessment.connections) {
+        if (connection.safe &&
+            connection.forward &&
+            !beforeForwardRoles.contains(connection.receiverRole)) {
+          openedConnection = connection;
+          break;
+        }
+      }
+    }
+
+    late final PressureActionBenefit benefit;
+    int? benefitReceiverNumber;
+    if (received) {
+      benefitReceiverNumber = afterCarrier.number;
+      benefit = result.assessment.actionProgressMetres >= 1
+          ? PressureActionBenefit.forwardPassReceived
+          : PressureActionBenefit.passReceived;
+    } else if (retained && separationChange >= .25) {
+      benefit = PressureActionBenefit.increasedSeparation;
+    } else if (openedConnection != null) {
+      benefitReceiverNumber =
+          result.after.actorByRole(openedConnection.receiverRole).number;
+      benefit = PressureActionBenefit.openedSimulatedForwardLane;
+    } else if (retained && result.assessment.actionProgressMetres >= 1) {
+      benefit = PressureActionBenefit.progressedWithControl;
+    } else if (retained) {
+      benefit = PressureActionBenefit.retainedControl;
+    } else {
+      benefit = PressureActionBenefit.none;
+    }
+
+    late final PressureActionLimitation limitation;
+    int? defenderNumber;
+    if (result.offside) {
+      limitation = PressureActionLimitation.offside;
+    } else if (result.contact != null &&
+        result.after.possession == PressurePossession.defense) {
+      limitation = PressureActionLimitation.interception;
+      defenderNumber = result.contact!.defenderNumber;
+    } else if (!retained) {
+      limitation = PressureActionLimitation.looseBall;
+    } else if (result.assessment.missedForwardOpportunity) {
+      limitation = PressureActionLimitation.lostForwardWindow;
+    } else {
+      final nearest = _nearestDefender(result.after, afterCarrier!.position);
+      defenderNumber = nearest.number;
+      if (afterClearance <= 1.5 || separationChange < -.2) {
+        limitation = PressureActionLimitation.closingPressure;
+      } else if (result.assessment.actionProgressMetres < 1 &&
+          openedConnection == null) {
+        limitation = PressureActionLimitation.limitedProgression;
+      } else {
+        limitation = PressureActionLimitation.remainingPressure;
+      }
+    }
+
+    final contact = result.contact;
+    final freezeFrame = contact == null
+        ? result.after
+        : result.trace.frames.reduce((a, b) =>
+            (a.clock - contact.clock).abs() <= (b.clock - contact.clock).abs()
+                ? a
+                : b);
+    return PressureActionEvidence(
+      benefit: benefit,
+      limitation: limitation,
+      actorNumber: beforeCarrier.number,
+      destinationNumber: destinationNumber,
+      benefitReceiverNumber: benefitReceiverNumber,
+      defenderNumber: defenderNumber,
+      separationChangeMetres: separationChange,
+      pressureClearanceMetres: afterClearance,
+      progressMetres: result.assessment.actionProgressMetres,
+      contactSeconds:
+          contact == null ? null : contact.clock - result.before.clock,
+      contactPoint: contact?.point,
+      freezeFrame: freezeFrame,
+    );
   }
 
   /// Uses an explicit local offside reference for this reduced-sided lesson.
@@ -1582,6 +1853,40 @@ class ScanPassPressureEngine {
 
   static ScanPassPoint _limit(ScanPassPoint value, double maximum) =>
       value.distance <= maximum ? value : _unit(value) * maximum;
+
+  static bool _movingToward(
+    PressureActor actor,
+    ScanPassPoint target,
+    ScanPassPoint targetVelocity,
+  ) {
+    final delta = target - actor.position;
+    if (delta.distance <= .01) return true;
+    final relativeVelocity = actor.velocity - targetVelocity;
+    return relativeVelocity.dot(_unit(delta)) > .15;
+  }
+
+  static ScanPassPoint _closestPointOnSegment(
+    ScanPassPoint point,
+    ScanPassPoint start,
+    ScanPassPoint end,
+  ) {
+    final segment = end - start;
+    final squared = segment.dot(segment);
+    final fraction = squared <= 1e-10
+        ? 0.0
+        : ((point - start).dot(segment) / squared).clamp(0.0, 1.0).toDouble();
+    return start + segment * fraction;
+  }
+
+  static PressureActor _nearestDefender(
+    PressureWorld world,
+    ScanPassPoint point,
+  ) {
+    final defenders = world.team(PressureTeam.defense).toList()
+      ..sort((a, b) =>
+          a.position.distanceTo(point).compareTo(b.position.distanceTo(point)));
+    return defenders.first;
+  }
 
   static ScanPassPoint _clamp(ScanPassPoint point) => ScanPassPoint(
         point.x.clamp(1.0, fieldLengthMetres - 1.0).toDouble(),
