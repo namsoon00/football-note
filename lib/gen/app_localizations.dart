@@ -36941,6 +36941,396 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Action {current}'**
   String matchMomentActionIndex(Object current);
+
+  /// No description provided for @pressureLessonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Pass'**
+  String get pressureLessonTitle;
+
+  /// No description provided for @pressureLessonProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Situation {current} / {total}'**
+  String pressureLessonProgress(Object current, Object total);
+
+  /// No description provided for @pressureLessonGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Read pressure before receiving. Create space, then open the next connection.'**
+  String get pressureLessonGoal;
+
+  /// No description provided for @pressureLessonSyntheticNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Training reconstruction · approximate positions'**
+  String get pressureLessonSyntheticNote;
+
+  /// No description provided for @pressureLessonObserve.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the approach before the ball arrives.'**
+  String get pressureLessonObserve;
+
+  /// No description provided for @pressureLessonChooseFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one first contact or pass now.'**
+  String get pressureLessonChooseFirst;
+
+  /// No description provided for @pressureLessonChooseNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the next connection from this new state.'**
+  String get pressureLessonChooseNext;
+
+  /// No description provided for @pressureLessonExecuting.
+  ///
+  /// In en, this message translates to:
+  /// **'Defenders are reacting to the ball and players.'**
+  String get pressureLessonExecuting;
+
+  /// No description provided for @pressureLessonReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed pressure → choice effect → same-state alternative'**
+  String get pressureLessonReview;
+
+  /// No description provided for @pressureLessonAlternativeView.
+  ///
+  /// In en, this message translates to:
+  /// **'Same-state alternative'**
+  String get pressureLessonAlternativeView;
+
+  /// No description provided for @pressureLessonReplayView.
+  ///
+  /// In en, this message translates to:
+  /// **'Your full replay'**
+  String get pressureLessonReplayView;
+
+  /// No description provided for @pressureLessonTouchInside.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch inside'**
+  String get pressureLessonTouchInside;
+
+  /// No description provided for @pressureLessonTouchOutside.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch outside'**
+  String get pressureLessonTouchOutside;
+
+  /// No description provided for @pressureLessonPlayerMarker.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number}'**
+  String pressureLessonPlayerMarker(Object number);
+
+  /// No description provided for @pressureLessonTouchMarker.
+  ///
+  /// In en, this message translates to:
+  /// **'FIRST TOUCH'**
+  String get pressureLessonTouchMarker;
+
+  /// No description provided for @pressureLessonCarryMarker.
+  ///
+  /// In en, this message translates to:
+  /// **'CARRY'**
+  String get pressureLessonCarryMarker;
+
+  /// No description provided for @pressureLessonPassNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass now to #{number}'**
+  String pressureLessonPassNow(Object number);
+
+  /// No description provided for @pressureLessonPassSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with #{number}'**
+  String pressureLessonPassSupport(Object number);
+
+  /// No description provided for @pressureLessonPassRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead #{number}'**
+  String pressureLessonPassRunner(Object number);
+
+  /// No description provided for @pressureLessonPassBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Play back to #{number}'**
+  String pressureLessonPassBack(Object number);
+
+  /// No description provided for @pressureLessonCarryForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Short carry'**
+  String get pressureLessonCarryForward;
+
+  /// No description provided for @pressureLessonChoiceSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Execute {action} with one tap'**
+  String pressureLessonChoiceSemantics(Object action);
+
+  /// No description provided for @pressureLessonOneTapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap one on-pitch ring to execute it immediately.'**
+  String get pressureLessonOneTapHint;
+
+  /// No description provided for @pressureLessonObservedOutside.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed: #{number} was outside, {distance} m away at the decision.'**
+  String pressureLessonObservedOutside(Object number, Object distance);
+
+  /// No description provided for @pressureLessonObservedInside.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed: #{number} was inside, {distance} m away at the decision.'**
+  String pressureLessonObservedInside(Object number, Object distance);
+
+  /// No description provided for @pressureLessonObservedLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed: #{number} was almost level, {distance} m away at the decision.'**
+  String pressureLessonObservedLevel(Object number, Object distance);
+
+  /// No description provided for @pressureLessonObservedLaneClosing.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed: #{number} began {distance} m from the chosen lane and moved toward it.'**
+  String pressureLessonObservedLaneClosing(Object number, Object distance);
+
+  /// No description provided for @pressureLessonObservedLaneHolding.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed: #{number} began {distance} m from the chosen lane and held that cover.'**
+  String pressureLessonObservedLaneHolding(Object number, Object distance);
+
+  /// No description provided for @pressureLessonEffectLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect: #{number} reached the ball at {time} s and possession changed.'**
+  String pressureLessonEffectLost(Object number, Object time);
+
+  /// No description provided for @pressureLessonEffectOffside.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect: #{number} received beyond the visible offside reference at release, so play stopped.'**
+  String pressureLessonEffectOffside(Object number);
+
+  /// No description provided for @pressureLessonEffectLoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect: the pass reached no attacker, so the ball stayed loose.'**
+  String get pressureLessonEffectLoose;
+
+  /// No description provided for @pressureLessonEffectRetained.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect: possession stayed with {clearance} m clearance; the hold continuation remained safe for {time} s.'**
+  String pressureLessonEffectRetained(Object clearance, Object time);
+
+  /// No description provided for @pressureLessonEffectForwardPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect: #{number} received in a forward position. Pressure clearance: {clearance} m.'**
+  String pressureLessonEffectForwardPass(Object number, Object clearance);
+
+  /// No description provided for @pressureLessonEffectConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect: the move left a controllable lane to #{number}; nearest pressure was {clearance} m.'**
+  String pressureLessonEffectConnection(Object number, Object clearance);
+
+  /// No description provided for @pressureLessonEffectMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect: possession stayed, but a forward lane that was open at this state was not used.'**
+  String get pressureLessonEffectMissed;
+
+  /// No description provided for @pressureLessonAlternativeLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternative: {action} lets #{number} reach the ball first.'**
+  String pressureLessonAlternativeLost(Object action, Object number);
+
+  /// No description provided for @pressureLessonAlternativeOffside.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternative: {action} reached an offside-positioned receiver from the same freeze, so play stopped.'**
+  String pressureLessonAlternativeOffside(Object action);
+
+  /// No description provided for @pressureLessonAlternativeLoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternative: {action} from the same freeze left the ball loose.'**
+  String pressureLessonAlternativeLoose(Object action);
+
+  /// No description provided for @pressureLessonAlternativeClearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternative: {action} leaves {clearance} m clearance.'**
+  String pressureLessonAlternativeClearance(Object action, Object clearance);
+
+  /// No description provided for @pressureLessonAlternativeConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternative: {action} → a passing lane to #{number}.'**
+  String pressureLessonAlternativeConnection(Object action, Object number);
+
+  /// No description provided for @pressureLessonAlternativeSimilar.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternative: {action} also retained the ball from the same freeze; compare its pressure and lane trace.'**
+  String pressureLessonAlternativeSimilar(Object action);
+
+  /// No description provided for @pressureLessonRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry choice'**
+  String get pressureLessonRetry;
+
+  /// No description provided for @pressureLessonNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next situation'**
+  String get pressureLessonNext;
+
+  /// No description provided for @pressureLessonFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'View summary'**
+  String get pressureLessonFinish;
+
+  /// No description provided for @pressureLessonCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare alternative'**
+  String get pressureLessonCompare;
+
+  /// No description provided for @pressureLessonReturnMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to my attempt'**
+  String get pressureLessonReturnMine;
+
+  /// No description provided for @pressureLessonReplayMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay my attempt'**
+  String get pressureLessonReplayMine;
+
+  /// No description provided for @pressureLessonReplayAlternative.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay alternative'**
+  String get pressureLessonReplayAlternative;
+
+  /// No description provided for @pressureLessonPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause motion'**
+  String get pressureLessonPause;
+
+  /// No description provided for @pressureLessonResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume motion'**
+  String get pressureLessonResume;
+
+  /// No description provided for @pressureLessonMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More lesson actions'**
+  String get pressureLessonMore;
+
+  /// No description provided for @pressureLessonReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Real-play reference'**
+  String get pressureLessonReference;
+
+  /// No description provided for @pressureLessonReferenceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Yamal\'s assist sequence is a separate historical example, not the answer key for these synthetic situations.'**
+  String get pressureLessonReferenceHint;
+
+  /// No description provided for @pressureLessonSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Eight decisions reviewed'**
+  String get pressureLessonSummaryTitle;
+
+  /// No description provided for @pressureLessonSummaryCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first attempts covered both outside and inside pressure, plus changing cover and runner timing.'**
+  String get pressureLessonSummaryCoverage;
+
+  /// No description provided for @pressureLessonSummaryConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'First attempts: {count} of {total} progressed or opened a safe next connection.'**
+  String pressureLessonSummaryConnections(Object count, Object total);
+
+  /// No description provided for @pressureLessonSummaryFocusPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Next focus: create more clearance before the presser reaches the ball.'**
+  String get pressureLessonSummaryFocusPressure;
+
+  /// No description provided for @pressureLessonSummaryFocusConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Next focus: look again at the next lane immediately after the first contact.'**
+  String get pressureLessonSummaryFocusConnection;
+
+  /// No description provided for @pressureLessonRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Run the eight situations again'**
+  String get pressureLessonRestart;
+
+  /// No description provided for @pressureLessonSituationMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Open situation {number}'**
+  String pressureLessonSituationMenu(Object number);
+
+  /// No description provided for @pressureLessonMyAttempt.
+  ///
+  /// In en, this message translates to:
+  /// **'My attempt'**
+  String get pressureLessonMyAttempt;
+
+  /// No description provided for @pressureLessonAlternative.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternative'**
+  String get pressureLessonAlternative;
+
+  /// No description provided for @pressureLessonApproxMetres.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} m'**
+  String pressureLessonApproxMetres(Object distance);
+
+  /// No description provided for @pressureLessonOffsideLine.
+  ///
+  /// In en, this message translates to:
+  /// **'local offside reference'**
+  String get pressureLessonOffsideLine;
+
+  /// No description provided for @pressureLessonTracePass.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} m · ground pass'**
+  String pressureLessonTracePass(Object distance);
 }
 
 class _AppLocalizationsDelegate

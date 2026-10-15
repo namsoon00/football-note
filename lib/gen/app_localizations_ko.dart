@@ -20995,4 +20995,258 @@ class AppLocalizationsKo extends AppLocalizations {
   String matchMomentActionIndex(Object current) {
     return '동작 $current';
   }
+
+  @override
+  String get pressureLessonTitle => '스캔 패스';
+
+  @override
+  String pressureLessonProgress(Object current, Object total) {
+    return '상황 $current / $total';
+  }
+
+  @override
+  String get pressureLessonGoal => '받기 전에 압박을 읽고, 첫 터치로 공간을 만든 뒤 다음 연결을 여세요.';
+
+  @override
+  String get pressureLessonSyntheticNote => '훈련용 재구성 · 위치는 근사값';
+
+  @override
+  String get pressureLessonObserve => '공이 오기 전 수비의 접근을 보세요.';
+
+  @override
+  String get pressureLessonChooseFirst => '첫 터치 방향이나 즉시 패스를 하나 고르세요.';
+
+  @override
+  String get pressureLessonChooseNext => '달라진 위치에서 다음 연결을 고르세요.';
+
+  @override
+  String get pressureLessonExecuting => '수비가 실제 공과 선수 움직임에 반응하고 있습니다.';
+
+  @override
+  String get pressureLessonReview => '본 압박 → 선택의 영향 → 같은 장면의 대안';
+
+  @override
+  String get pressureLessonAlternativeView => '같은 장면의 대안';
+
+  @override
+  String get pressureLessonReplayView => '내 전체 플레이';
+
+  @override
+  String get pressureLessonTouchInside => '안쪽 첫 터치';
+
+  @override
+  String get pressureLessonTouchOutside => '바깥쪽 첫 터치';
+
+  @override
+  String pressureLessonPlayerMarker(Object number) {
+    return '#$number';
+  }
+
+  @override
+  String get pressureLessonTouchMarker => '첫 터치';
+
+  @override
+  String get pressureLessonCarryMarker => '공 운반';
+
+  @override
+  String pressureLessonPassNow(Object number) {
+    return '#$number번에게 바로 패스';
+  }
+
+  @override
+  String pressureLessonPassSupport(Object number) {
+    return '#$number번과 연결';
+  }
+
+  @override
+  String pressureLessonPassRunner(Object number) {
+    return '#$number번 앞 패스';
+  }
+
+  @override
+  String pressureLessonPassBack(Object number) {
+    return '#$number번에게 뒤로 패스';
+  }
+
+  @override
+  String get pressureLessonCarryForward => '짧게 운반';
+
+  @override
+  String pressureLessonChoiceSemantics(Object action) {
+    return '한 번 눌러 $action 실행';
+  }
+
+  @override
+  String get pressureLessonOneTapHint => '피치 위 원 하나를 누르면 바로 실행됩니다.';
+
+  @override
+  String pressureLessonObservedOutside(Object number, Object distance) {
+    return '관찰: #$number가 바깥쪽 ${distance}m에 있었습니다.';
+  }
+
+  @override
+  String pressureLessonObservedInside(Object number, Object distance) {
+    return '관찰: #$number가 안쪽 ${distance}m에 있었습니다.';
+  }
+
+  @override
+  String pressureLessonObservedLevel(Object number, Object distance) {
+    return '관찰: #$number가 같은 선상 ${distance}m에 있었습니다.';
+  }
+
+  @override
+  String pressureLessonObservedLaneClosing(Object number, Object distance) {
+    return '관찰: #$number가 패스 길 ${distance}m 옆에서 좁혀 왔습니다.';
+  }
+
+  @override
+  String pressureLessonObservedLaneHolding(Object number, Object distance) {
+    return '관찰: #$number가 패스 길 ${distance}m 옆을 지켰습니다.';
+  }
+
+  @override
+  String pressureLessonEffectLost(Object number, Object time) {
+    return '결과: $time초 뒤 #$number가 공을 빼앗았습니다.';
+  }
+
+  @override
+  String pressureLessonEffectOffside(Object number) {
+    return '선택의 영향: 패스 순간 보이는 오프사이드 기준선을 넘은 #$number번이 공을 받아 플레이가 중단됐습니다.';
+  }
+
+  @override
+  String get pressureLessonEffectLoose =>
+      '선택의 영향: 패스가 동료에게 닿지 않아 공이 주인 없이 남았습니다.';
+
+  @override
+  String pressureLessonEffectRetained(Object clearance, Object time) {
+    return '결과: 공을 지켰습니다 · 압박 간격 ${clearance}m · 여유 약 $time초.';
+  }
+
+  @override
+  String pressureLessonEffectForwardPass(Object number, Object clearance) {
+    return '결과: #$number가 전진한 위치에서 공을 받았습니다. 압박 간격 ${clearance}m.';
+  }
+
+  @override
+  String pressureLessonEffectConnection(Object number, Object clearance) {
+    return '결과: #$number 앞 패스 길 확보 · 압박 간격 ${clearance}m.';
+  }
+
+  @override
+  String get pressureLessonEffectMissed => '결과: 공은 지켰지만 열린 전진 패스 기회를 놓쳤습니다.';
+
+  @override
+  String pressureLessonAlternativeLost(Object action, Object number) {
+    return '대안: $action → #$number가 공에 먼저 닿습니다.';
+  }
+
+  @override
+  String pressureLessonAlternativeOffside(Object action) {
+    return '대안: 같은 장면에서 $action을 선택하면 오프사이드 위치의 선수가 받아 플레이가 중단됐습니다.';
+  }
+
+  @override
+  String pressureLessonAlternativeLoose(Object action) {
+    return '대안: 같은 장면에서 $action을 선택하면 공이 주인 없이 남았습니다.';
+  }
+
+  @override
+  String pressureLessonAlternativeClearance(Object action, Object clearance) {
+    return '대안: $action → 압박 간격 ${clearance}m를 확보합니다.';
+  }
+
+  @override
+  String pressureLessonAlternativeConnection(Object action, Object number) {
+    return '대안: $action → #$number 앞 패스 길 확보';
+  }
+
+  @override
+  String pressureLessonAlternativeSimilar(Object action) {
+    return '대안: 같은 장면에서 $action도 공을 지켰습니다. 압박 간격과 패스 길의 변화를 비교하세요.';
+  }
+
+  @override
+  String get pressureLessonRetry => '다시 판단';
+
+  @override
+  String get pressureLessonNext => '다음 상황';
+
+  @override
+  String get pressureLessonFinish => '요약 보기';
+
+  @override
+  String get pressureLessonCompare => '대안 비교';
+
+  @override
+  String get pressureLessonReturnMine => '내 선택으로 돌아가기';
+
+  @override
+  String get pressureLessonReplayMine => '내 플레이 다시 보기';
+
+  @override
+  String get pressureLessonReplayAlternative => '대안 다시 보기';
+
+  @override
+  String get pressureLessonPause => '움직임 일시 정지';
+
+  @override
+  String get pressureLessonResume => '움직임 계속 보기';
+
+  @override
+  String get pressureLessonMore => '더 많은 학습 동작';
+
+  @override
+  String get pressureLessonReference => '실제 경기 참고 장면';
+
+  @override
+  String get pressureLessonReferenceHint =>
+      '야말의 도움 전개는 별도의 역사적 예시이며, 이 가상 훈련 상황의 정답표가 아닙니다.';
+
+  @override
+  String get pressureLessonSummaryTitle => '8번의 판단을 살펴봤어요';
+
+  @override
+  String get pressureLessonSummaryCoverage =>
+      '첫 시도에서 바깥쪽·안쪽 압박, 커버 위치, 주자 타이밍이 달라지는 상황을 모두 경험했습니다.';
+
+  @override
+  String pressureLessonSummaryConnections(Object count, Object total) {
+    return '첫 시도 $total개 중 $count개에서 전진하거나 안전한 다음 연결을 만들었습니다.';
+  }
+
+  @override
+  String get pressureLessonSummaryFocusPressure =>
+      '다음 초점: 압박 수비가 공에 닿기 전에 더 넓은 간격을 만드세요.';
+
+  @override
+  String get pressureLessonSummaryFocusConnection =>
+      '다음 초점: 첫 터치 직후 다음 패스 길을 다시 확인하세요.';
+
+  @override
+  String get pressureLessonRestart => '8개 상황 다시 시작';
+
+  @override
+  String pressureLessonSituationMenu(Object number) {
+    return '$number번 상황 열기';
+  }
+
+  @override
+  String get pressureLessonMyAttempt => '내 선택';
+
+  @override
+  String get pressureLessonAlternative => '대안';
+
+  @override
+  String pressureLessonApproxMetres(Object distance) {
+    return '${distance}m';
+  }
+
+  @override
+  String get pressureLessonOffsideLine => '오프사이드 기준선';
+
+  @override
+  String pressureLessonTracePass(Object distance) {
+    return '${distance}m · 땅볼 패스';
+  }
 }

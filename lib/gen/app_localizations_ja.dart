@@ -20921,4 +20921,259 @@ class AppLocalizationsJa extends AppLocalizations {
   String matchMomentActionIndex(Object current) {
     return '動作 $current';
   }
+
+  @override
+  String get pressureLessonTitle => 'スキャンパス';
+
+  @override
+  String pressureLessonProgress(Object current, Object total) {
+    return '状況 $current / $total';
+  }
+
+  @override
+  String get pressureLessonGoal =>
+      '受ける前にプレッシャーを読み、ファーストタッチで空間を作って次のパスコースを開きます。';
+
+  @override
+  String get pressureLessonSyntheticNote => 'トレーニング用再構成・位置は概算';
+
+  @override
+  String get pressureLessonObserve => 'ボールが届く前の守備の寄せ方を見ましょう。';
+
+  @override
+  String get pressureLessonChooseFirst => 'ファーストタッチの方向か、すぐ出すパスを1つ選びます。';
+
+  @override
+  String get pressureLessonChooseNext => '変化した位置から次のつなぎを選びます。';
+
+  @override
+  String get pressureLessonExecuting => '守備は実際のボールと選手の動きに反応しています。';
+
+  @override
+  String get pressureLessonReview => '見えたプレッシャー → 選択の影響 → 同じ場面の別案';
+
+  @override
+  String get pressureLessonAlternativeView => '同じ場面の別案';
+
+  @override
+  String get pressureLessonReplayView => '自分のプレー全体';
+
+  @override
+  String get pressureLessonTouchInside => '内側へファーストタッチ';
+
+  @override
+  String get pressureLessonTouchOutside => '外側へファーストタッチ';
+
+  @override
+  String pressureLessonPlayerMarker(Object number) {
+    return '#$number';
+  }
+
+  @override
+  String get pressureLessonTouchMarker => 'ファーストタッチ';
+
+  @override
+  String get pressureLessonCarryMarker => '運ぶ';
+
+  @override
+  String pressureLessonPassNow(Object number) {
+    return '#$numberへすぐパス';
+  }
+
+  @override
+  String pressureLessonPassSupport(Object number) {
+    return '#$numberとつなぐ';
+  }
+
+  @override
+  String pressureLessonPassRunner(Object number) {
+    return '#$numberの前へパス';
+  }
+
+  @override
+  String pressureLessonPassBack(Object number) {
+    return '#$numberへ戻す';
+  }
+
+  @override
+  String get pressureLessonCarryForward => '短く運ぶ';
+
+  @override
+  String pressureLessonChoiceSemantics(Object action) {
+    return '1回のタップで$actionを実行';
+  }
+
+  @override
+  String get pressureLessonOneTapHint => 'ピッチ上のリングを1つタップすると、すぐ実行します。';
+
+  @override
+  String pressureLessonObservedOutside(Object number, Object distance) {
+    return '観察：#$numberは外側にいて、判断時の距離は${distance}mでした。';
+  }
+
+  @override
+  String pressureLessonObservedInside(Object number, Object distance) {
+    return '観察：#$numberは内側にいて、判断時の距離は${distance}mでした。';
+  }
+
+  @override
+  String pressureLessonObservedLevel(Object number, Object distance) {
+    return '観察：#$numberはほぼ同じラインにいて、判断時の距離は${distance}mでした。';
+  }
+
+  @override
+  String pressureLessonObservedLaneClosing(Object number, Object distance) {
+    return '観察：#$numberは選んだコースから${distance}mの位置で、そのコースへ動いていました。';
+  }
+
+  @override
+  String pressureLessonObservedLaneHolding(Object number, Object distance) {
+    return '観察：#$numberは選んだコースから${distance}mの位置で、カバーを保っていました。';
+  }
+
+  @override
+  String pressureLessonEffectLost(Object number, Object time) {
+    return '影響：$time秒で#$numberがボールに届き、保持が入れ替わりました。';
+  }
+
+  @override
+  String pressureLessonEffectOffside(Object number) {
+    return '影響：パス時に見えているオフサイド基準線を越えていた#$numberが受けたため、プレーが止まりました。';
+  }
+
+  @override
+  String get pressureLessonEffectLoose => '影響：パスは味方に届かず、ルーズボールになりました。';
+
+  @override
+  String pressureLessonEffectRetained(Object clearance, Object time) {
+    return '影響：保持を続けてプレッシャーと${clearance}mの間隔を残し、そのまま保持する展開でも$time秒間安全でした。';
+  }
+
+  @override
+  String pressureLessonEffectForwardPass(Object number, Object clearance) {
+    return '結果：#$numberが前方で受け取りました。プレスとの間隔は${clearance}mです。';
+  }
+
+  @override
+  String pressureLessonEffectConnection(Object number, Object clearance) {
+    return '影響：#$numberへ通せるコースが残り、最も近いプレッシャーは${clearance}mでした。';
+  }
+
+  @override
+  String get pressureLessonEffectMissed =>
+      '影響：保持は続きましたが、この判断時に開いていた前方向のコースは使いませんでした。';
+
+  @override
+  String pressureLessonAlternativeLost(Object action, Object number) {
+    return '別案：$actionでは#$numberが先にボールへ届きます。';
+  }
+
+  @override
+  String pressureLessonAlternativeOffside(Object action) {
+    return '別案：同じ停止場面で$actionを選ぶと、オフサイド位置の選手が受けたため、プレーが止まりました。';
+  }
+
+  @override
+  String pressureLessonAlternativeLoose(Object action) {
+    return '別案：同じ停止場面で$actionを選ぶと、ルーズボールになりました。';
+  }
+
+  @override
+  String pressureLessonAlternativeClearance(Object action, Object clearance) {
+    return '別案：$actionで${clearance}mの間隔を確保します。';
+  }
+
+  @override
+  String pressureLessonAlternativeConnection(Object action, Object number) {
+    return '別案：$action → #$numberへのパスコースを確保。';
+  }
+
+  @override
+  String pressureLessonAlternativeSimilar(Object action) {
+    return '別案：同じ停止場面で$actionも保持できました。プレッシャーとの間隔とパスコースを比べましょう。';
+  }
+
+  @override
+  String get pressureLessonRetry => 'もう一度';
+
+  @override
+  String get pressureLessonNext => '次の状況';
+
+  @override
+  String get pressureLessonFinish => 'まとめを見る';
+
+  @override
+  String get pressureLessonCompare => '別案と比較';
+
+  @override
+  String get pressureLessonReturnMine => '自分の選択に戻る';
+
+  @override
+  String get pressureLessonReplayMine => '自分のプレーを再生';
+
+  @override
+  String get pressureLessonReplayAlternative => '別案を再生';
+
+  @override
+  String get pressureLessonPause => '動きを一時停止';
+
+  @override
+  String get pressureLessonResume => '動きを再開';
+
+  @override
+  String get pressureLessonMore => 'その他の学習操作';
+
+  @override
+  String get pressureLessonReference => '実際の試合の参考例';
+
+  @override
+  String get pressureLessonReferenceHint =>
+      'ヤマルのアシストにつながる攻撃は別の歴史的な例であり、この合成トレーニング状況の正解ではありません。';
+
+  @override
+  String get pressureLessonSummaryTitle => '8つの判断を振り返りました';
+
+  @override
+  String get pressureLessonSummaryCoverage =>
+      '最初の試行で、外側・内側のプレッシャー、カバー位置、走り出しのタイミングが変わる状況を扱いました。';
+
+  @override
+  String pressureLessonSummaryConnections(Object count, Object total) {
+    return '初回$total回中$count回で前進、または安全な次のつなぎを作りました。';
+  }
+
+  @override
+  String get pressureLessonSummaryFocusPressure =>
+      '次の焦点：守備がボールに届く前に、より大きな間隔を作りましょう。';
+
+  @override
+  String get pressureLessonSummaryFocusConnection =>
+      '次の焦点：ファーストタッチの直後に次のパスコースをもう一度確認しましょう。';
+
+  @override
+  String get pressureLessonRestart => '8つの状況をもう一度始める';
+
+  @override
+  String pressureLessonSituationMenu(Object number) {
+    return '状況$numberを開く';
+  }
+
+  @override
+  String get pressureLessonMyAttempt => '自分の選択';
+
+  @override
+  String get pressureLessonAlternative => '別案';
+
+  @override
+  String pressureLessonApproxMetres(Object distance) {
+    return '${distance}m';
+  }
+
+  @override
+  String get pressureLessonOffsideLine => 'オフサイド基準線';
+
+  @override
+  String pressureLessonTracePass(Object distance) {
+    return '${distance}m・グラウンダー';
+  }
 }

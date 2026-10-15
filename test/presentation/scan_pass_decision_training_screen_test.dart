@@ -11,7 +11,7 @@ import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('default entry opens the real-match Yamal episode immediately',
+  testWidgets('default entry opens the causal pressure lesson immediately',
       (tester) async {
     await tester.pumpWidget(_app(
       home: ScanPassGameScreen(
@@ -22,12 +22,13 @@ void main() {
     ));
     await tester.pump();
     await tester.pump();
-    expect(find.byKey(const ValueKey('match-moment-pitch')), findsOneWidget);
+    expect(find.byKey(const ValueKey('pressure-pitch')), findsOneWidget);
+    expect(find.byKey(const ValueKey('match-moment-pitch')), findsNothing);
     expect(find.byKey(const ValueKey('practice-catalog')), findsNothing);
     expect(find.byKey(const ValueKey('possession-free-attack-card')),
         findsNothing);
     expect(find.byKey(const ValueKey('attack-start')), findsNothing);
-    expect(find.textContaining('Spain v England'), findsOneWidget);
+    expect(find.byKey(const ValueKey('pressure-progress')), findsOneWidget);
   });
 
   testWidgets('pre-reception selection queues without revealing a verdict',

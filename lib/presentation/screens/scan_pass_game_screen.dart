@@ -16,12 +16,14 @@ import '../../domain/scan_pass/scan_pass_decision.dart';
 import '../../domain/scan_pass/scan_pass_game.dart' show ScanPassPoint;
 import '../../domain/scan_pass/scan_pass_judgment.dart';
 import '../../domain/scan_pass/scan_pass_possession_lesson.dart';
+import '../../domain/scan_pass/scan_pass_pressure_lesson.dart';
 import '../../domain/scan_pass/scan_pass_space.dart';
 import '../theme/app_motion.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/match_moment_official_video.dart';
 
 part 'scan_pass_possession_lesson_screen.dart';
+part 'scan_pass_pressure_lesson_screen.dart';
 part 'scan_pass_match_moment_screen.dart';
 part 'scan_pass_curriculum_screen.dart';
 part 'scan_pass_flow_screen.dart';
@@ -57,9 +59,10 @@ class ScanPassGameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScanPassMatchMomentScreen(
-      leadInDuration: previewDuration ?? const Duration(milliseconds: 1200),
-      actionDuration: passAnimationDuration,
+    return ScanPassPressureLessonScreen(
+      seed: seed,
+      observationDuration: previewDuration,
+      executionDuration: passAnimationDuration,
       sourceLauncher: matchMomentSourceLauncher,
     );
   }
