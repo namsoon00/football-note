@@ -1735,6 +1735,7 @@ class _MatchMomentPitchPainter extends CustomPainter {
   final Brightness brightness;
   final String? fontFamily;
   final Rect? viewBounds;
+  final bool emphasizePlayers;
 
   const _MatchMomentPitchPainter({
     required this.episode,
@@ -1748,6 +1749,7 @@ class _MatchMomentPitchPainter extends CustomPainter {
     required this.brightness,
     required this.fontFamily,
     this.viewBounds,
+    this.emphasizePlayers = false,
   });
 
   bool get _dark => brightness == Brightness.dark;
@@ -2065,10 +2067,11 @@ class _MatchMomentPitchPainter extends CustomPainter {
     MatchMomentActorState state,
   ) {
     final feet = geometry.toOffset(state.position);
-    final scale = player.essential ? 1.0 : .88;
+    final scale =
+        (player.essential ? 1.0 : .88) * (emphasizePlayers ? 1.18 : 1.0);
     final r = math.max(9.5, geometry.size.shortestSide * .027) * scale;
     final center = feet - Offset(0, r * 1.55);
-    final alpha = player.subdued ? .58 : 1.0;
+    final alpha = emphasizePlayers ? 1.0 : (player.subdued ? .58 : 1.0);
     final kit = _kitFor(player);
     final shadow = Paint()
       ..color = Colors.black.withValues(alpha: _dark ? .30 : .18);
@@ -2469,6 +2472,7 @@ class _MatchMomentPitchPainter extends CustomPainter {
       oldDelegate.reference != reference ||
       oldDelegate.brightness != brightness ||
       oldDelegate.viewBounds != viewBounds ||
+      oldDelegate.emphasizePlayers != emphasizePlayers ||
       oldDelegate.names != names;
 }
 

@@ -21158,7 +21158,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String pressureLessonAlternativeConnection(Object action, Object number) {
-    return '대안: $action → #$number 앞 패스 길 확보';
+    return '다른 선택: $action → #$number에게 다음 패스 가능';
   }
 
   @override
@@ -21248,5 +21248,216 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String pressureLessonTracePass(Object distance) {
     return '${distance}m · 땅볼 패스';
+  }
+
+  @override
+  String pressureLessonSituationIdentity(
+      Object current, Object total, Object name) {
+    return '상황 $current/$total · $name';
+  }
+
+  @override
+  String get pressureLessonContextOutsideClosing => '바깥 압박';
+
+  @override
+  String get pressureLessonContextOutsideHolding => '바깥쪽 수비';
+
+  @override
+  String get pressureLessonContextInsideClosing => '안쪽 압박';
+
+  @override
+  String get pressureLessonContextInsideHolding => '안쪽 수비';
+
+  @override
+  String get pressureLessonContextLevelClosing => '정면 압박';
+
+  @override
+  String get pressureLessonContextLevelHolding => '정면 수비';
+
+  @override
+  String get pressureLessonContextCoverClosing => '커버 접근';
+
+  @override
+  String get pressureLessonContextRunnerBreaking => '전방 침투';
+
+  @override
+  String get pressureLessonContextRunnerMoving => '전진 움직임';
+
+  @override
+  String get pressureLessonContextRunnerHeld => '전진 움직임 작음';
+
+  @override
+  String pressureLessonContextName(Object pressure, Object movement) {
+    return '$pressure · $movement';
+  }
+
+  @override
+  String get pressureLessonMiddleThird => '중원';
+
+  @override
+  String get pressureLessonAttackingThird => '공격 진영';
+
+  @override
+  String get pressureLessonRightChannel => '오른쪽';
+
+  @override
+  String get pressureLessonCentralChannel => '중앙';
+
+  @override
+  String get pressureLessonLeftChannel => '왼쪽';
+
+  @override
+  String pressureLessonLocation(Object band, Object channel) {
+    return '$band $channel';
+  }
+
+  @override
+  String get pressureLessonPressureClosing => '접근';
+
+  @override
+  String get pressureLessonPressureHolding => '거리';
+
+  @override
+  String pressureLessonContextFacts(Object location, Object carrier,
+      Object presser, Object movement, Object distance) {
+    return '$location · 공 #$carrier · 수비 #$presser $movement ${distance}m';
+  }
+
+  @override
+  String pressureLessonContextTaskObserve(
+      Object focus, Object cover, Object support, Object runner) {
+    return '받기 전: #$focus 주변 · #$cover·#$support·#$runner 위치 확인';
+  }
+
+  @override
+  String pressureLessonContextTaskFirst(
+      Object cover, Object support, Object runner) {
+    return '첫 판단: 터치/패스 선택 · #$cover와 #$support·#$runner 위치 확인';
+  }
+
+  @override
+  String pressureLessonContextTaskNext(
+      Object cover, Object support, Object runner) {
+    return '다음 판단: 패스/운반 선택 · #$cover와 #$support·#$runner 위치 확인';
+  }
+
+  @override
+  String get pressureLessonContextTaskExecutingFirst => '선택한 첫 동작을 보고 있습니다.';
+
+  @override
+  String get pressureLessonContextTaskExecutingNext => '선택한 다음 행동을 보고 있습니다.';
+
+  @override
+  String get pressureLessonContextTaskReviewFirst => '결과 장면: 첫 판단의 경로와 수비 반응';
+
+  @override
+  String get pressureLessonContextTaskReviewNext => '결과 장면: 다음 행동의 경로와 수비 반응';
+
+  @override
+  String get pressureLessonContextTaskAlternative => '같은 장면에서 다른 선택의 결과를 봅니다.';
+
+  @override
+  String get pressureLessonContextTaskReplay => '받기 전부터 다음 연결까지 다시 봅니다.';
+
+  @override
+  String get pressureLessonReviewFirstTouch => '첫 판단';
+
+  @override
+  String get pressureLessonReviewNextAction => '다음 행동';
+
+  @override
+  String get pressureLessonFirstTouch => '첫 터치';
+
+  @override
+  String pressureLessonPassTo(Object number) {
+    return '#$number번에게 패스';
+  }
+
+  @override
+  String pressureLessonReviewSelectedAction(Object number, Object action) {
+    return '선택: #$number의 $action';
+  }
+
+  @override
+  String get pressureLessonBenefitNone => '결과: 이번 동작에서는 이점을 만들지 못했습니다.';
+
+  @override
+  String pressureLessonBenefitSeparation(Object distance) {
+    return '좋았던 점: 가장 가까운 수비와 ${distance}m 더 벌어졌습니다.';
+  }
+
+  @override
+  String pressureLessonBenefitPassReceived(Object number) {
+    return '좋았던 점: #$number에게 패스를 연결했습니다.';
+  }
+
+  @override
+  String pressureLessonBenefitForwardPassReceived(
+      Object number, Object distance) {
+    return '좋았던 점: #$number에게 연결해 공이 ${distance}m 전진했습니다.';
+  }
+
+  @override
+  String pressureLessonBenefitSimulatedLane(Object number) {
+    return '좋았던 점: #$number에게 전진 패스할 길이 새로 열렸습니다.';
+  }
+
+  @override
+  String pressureLessonBenefitControlledProgress(Object distance) {
+    return '좋았던 점: 공을 지키며 ${distance}m 전진했습니다.';
+  }
+
+  @override
+  String get pressureLessonBenefitRetainedControl => '좋았던 점: 압박 속에서 공을 지켰습니다.';
+
+  @override
+  String pressureLessonLimitationInterception(Object number, Object time) {
+    return '원인: 경로에 들어온 수비 #$number에게 $time초 만에 빼앗겼습니다.';
+  }
+
+  @override
+  String pressureLessonLimitationOffside(Object number) {
+    return '원인: 패스를 보낼 때 #$number가 오프사이드 위치였고, 이후 공에 관여했습니다.';
+  }
+
+  @override
+  String get pressureLessonLimitationLoose => '원인: 공을 통제할 선수가 없어 루즈볼이 됐습니다.';
+
+  @override
+  String get pressureLessonLimitationForwardWindow =>
+      '비교할 점: 전진 패스가 가능할 때 후방 연결을 선택했습니다.';
+
+  @override
+  String pressureLessonLimitationClosingPressure(
+      Object number, Object distance) {
+    return '주의: 행동 뒤 수비 #$number와 ${distance}m 간격만 남았습니다.';
+  }
+
+  @override
+  String pressureLessonLimitationProgress(Object distance) {
+    return '다음 확인: 전진 거리 ${distance}m. 새 전진 패스 길은 열리지 않았습니다.';
+  }
+
+  @override
+  String pressureLessonLimitationRemainingPressure(
+      Object number, Object distance) {
+    return '다음 확인: 가장 가까운 수비는 #$number, 간격은 ${distance}m입니다.';
+  }
+
+  @override
+  String get pressureLessonOffsideAhead => '화면 밖 오프사이드 기준선';
+
+  @override
+  String pressureLessonAlternativeReceived(Object action, Object number) {
+    return '다른 선택: $action → #$number에게 연결됨';
+  }
+
+  @override
+  String get pressureLessonOverview => '전체 선수 위치와 현재 확대 영역';
+
+  @override
+  String pressureLessonReviewSituationFacts(
+      Object location, Object carrier, Object presser, Object distance) {
+    return '$location · 판단 전 공 #$carrier, 수비 #$presser와 ${distance}m';
   }
 }
