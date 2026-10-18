@@ -36963,7 +36963,7 @@ abstract class AppLocalizations {
   /// No description provided for @pressureLessonSyntheticNote.
   ///
   /// In en, this message translates to:
-  /// **'Training reconstruction · approximate positions'**
+  /// **'Source-principle adaptation · authored approximate positions'**
   String get pressureLessonSyntheticNote;
 
   /// No description provided for @pressureLessonObserve.
@@ -37079,6 +37079,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap one on-pitch ring to execute it immediately.'**
   String get pressureLessonOneTapHint;
+
+  /// No description provided for @pressureLessonFirstContactHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a first-touch arrow or a player circle to pass.'**
+  String get pressureLessonFirstContactHint;
+
+  /// No description provided for @pressureLessonNextActionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a player circle to pass or a space arrow to carry.'**
+  String get pressureLessonNextActionHint;
 
   /// No description provided for @pressureLessonObservedOutside.
   ///
@@ -37251,14 +37263,183 @@ abstract class AppLocalizations {
   /// No description provided for @pressureLessonReference.
   ///
   /// In en, this message translates to:
-  /// **'Real-play reference'**
+  /// **'Sources and limits'**
   String get pressureLessonReference;
 
   /// No description provided for @pressureLessonReferenceHint.
   ///
   /// In en, this message translates to:
-  /// **'Yamal\'s assist sequence is a separate historical example, not the answer key for these synthetic situations.'**
+  /// **'Inspect the coaching principle, primary sources and limits for this authored model scene.'**
   String get pressureLessonReferenceHint;
+
+  /// No description provided for @pressureCurriculumSourcesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coaching sources and model limits'**
+  String get pressureCurriculumSourcesTitle;
+
+  /// No description provided for @pressureCurriculumPrincipleDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Principle: {principle} · phase: {phase} · roles: {roles}'**
+  String pressureCurriculumPrincipleDetail(
+      Object principle, Object phase, Object roles);
+
+  /// No description provided for @pressureCurriculumAdaptationLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'This is an adaptation of source coaching principles. The exact coordinates and alternatives are authored for this reduced model; they are not tracking data, a source exercise reproduction or a certified best play.'**
+  String get pressureCurriculumAdaptationLimit;
+
+  /// No description provided for @pressureCurriculumModelLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'The model uses ground points, seven players and no keeper. Its visible offside line comes from the ball and second-most goal-side defender at release; it cannot observe scanning, body orientation or technique.'**
+  String get pressureCurriculumModelLimit;
+
+  /// No description provided for @pressureCurriculumValidationStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Not coach-reviewed and not tested for learning gains or match transfer.'**
+  String get pressureCurriculumValidationStatus;
+
+  /// No description provided for @pressureCurriculumSourceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The coaching source could not be opened on this device.'**
+  String get pressureCurriculumSourceUnavailable;
+
+  /// No description provided for @pressureCurriculumSourcePassing.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA Training Centre · Passing and receiving'**
+  String get pressureCurriculumSourcePassing;
+
+  /// No description provided for @pressureCurriculumSourceBuildUp.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA Training Centre · Goalkeeper build-up'**
+  String get pressureCurriculumSourceBuildUp;
+
+  /// No description provided for @pressureCurriculumSourceBreakingPress.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA Training Centre · Breaking the press and playing in behind'**
+  String get pressureCurriculumSourceBreakingPress;
+
+  /// No description provided for @pressureCurriculumSourceRepresentativeGames.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA Training Centre · Player numbers and representative space'**
+  String get pressureCurriculumSourceRepresentativeGames;
+
+  /// No description provided for @pressureCurriculumPrincipleReception.
+  ///
+  /// In en, this message translates to:
+  /// **'receive under pressure while preserving a usable next action'**
+  String get pressureCurriculumPrincipleReception;
+
+  /// No description provided for @pressureCurriculumPrincipleSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'offer a usable off-ball support angle'**
+  String get pressureCurriculumPrincipleSupport;
+
+  /// No description provided for @pressureCurriculumPrincipleRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'read the runner, lane and onside release window together'**
+  String get pressureCurriculumPrincipleRunner;
+
+  /// No description provided for @pressureCurriculumPrincipleRecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'recycle or switch when forward play is closed'**
+  String get pressureCurriculumPrincipleRecycle;
+
+  /// No description provided for @pressureCurriculumPhaseBuildUp.
+  ///
+  /// In en, this message translates to:
+  /// **'build-up'**
+  String get pressureCurriculumPhaseBuildUp;
+
+  /// No description provided for @pressureCurriculumPhaseProgression.
+  ///
+  /// In en, this message translates to:
+  /// **'progression'**
+  String get pressureCurriculumPhaseProgression;
+
+  /// No description provided for @pressureCurriculumPhaseChanceCreation.
+  ///
+  /// In en, this message translates to:
+  /// **'playing in behind'**
+  String get pressureCurriculumPhaseChanceCreation;
+
+  /// No description provided for @pressureCurriculumRolesReception.
+  ///
+  /// In en, this message translates to:
+  /// **'receiver, presser and outlets'**
+  String get pressureCurriculumRolesReception;
+
+  /// No description provided for @pressureCurriculumRolesSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'carrier and supporting teammate'**
+  String get pressureCurriculumRolesSupport;
+
+  /// No description provided for @pressureCurriculumRolesRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'carrier, runner and defensive line'**
+  String get pressureCurriculumRolesRunner;
+
+  /// No description provided for @pressureCurriculumRolesRecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'carrier, backward outlet and far-side option'**
+  String get pressureCurriculumRolesRecycle;
+
+  /// No description provided for @pressureCurriculumActorPasser.
+  ///
+  /// In en, this message translates to:
+  /// **'backward outlet #2'**
+  String get pressureCurriculumActorPasser;
+
+  /// No description provided for @pressureCurriculumActorReceiver.
+  ///
+  /// In en, this message translates to:
+  /// **'receiving player #19'**
+  String get pressureCurriculumActorReceiver;
+
+  /// No description provided for @pressureCurriculumActorSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'supporting player #10'**
+  String get pressureCurriculumActorSupport;
+
+  /// No description provided for @pressureCurriculumActorRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'forward runner #17'**
+  String get pressureCurriculumActorRunner;
+
+  /// No description provided for @pressureCurriculumActorPresser.
+  ///
+  /// In en, this message translates to:
+  /// **'pressing defender #3'**
+  String get pressureCurriculumActorPresser;
+
+  /// No description provided for @pressureCurriculumActorCover.
+  ///
+  /// In en, this message translates to:
+  /// **'cover defender #4'**
+  String get pressureCurriculumActorCover;
+
+  /// No description provided for @pressureCurriculumActorTracker.
+  ///
+  /// In en, this message translates to:
+  /// **'tracking defender #5'**
+  String get pressureCurriculumActorTracker;
 
   /// No description provided for @pressureLessonSummaryTitle.
   ///
@@ -37323,8 +37504,14 @@ abstract class AppLocalizations {
   /// No description provided for @pressureLessonOffsideLine.
   ///
   /// In en, this message translates to:
-  /// **'local offside reference'**
+  /// **'offside line at release'**
   String get pressureLessonOffsideLine;
+
+  /// No description provided for @pressureLessonOffsideCurrentLine.
+  ///
+  /// In en, this message translates to:
+  /// **'current offside line'**
+  String get pressureLessonOffsideCurrentLine;
 
   /// No description provided for @pressureLessonTracePass.
   ///
@@ -37550,87 +37737,87 @@ abstract class AppLocalizations {
   /// No description provided for @pressureLessonBenefitNone.
   ///
   /// In en, this message translates to:
-  /// **'Result: this action created no clear advantage.'**
+  /// **'No clear advantage.'**
   String get pressureLessonBenefitNone;
 
   /// No description provided for @pressureLessonBenefitSeparation.
   ///
   /// In en, this message translates to:
-  /// **'Worked: the nearest defender is {distance} m farther away.'**
+  /// **'Defender separation +{distance} m.'**
   String pressureLessonBenefitSeparation(Object distance);
 
   /// No description provided for @pressureLessonBenefitPassReceived.
   ///
   /// In en, this message translates to:
-  /// **'Worked: #{number} received your pass.'**
+  /// **'#{number} controlled the pass.'**
   String pressureLessonBenefitPassReceived(Object number);
 
   /// No description provided for @pressureLessonBenefitForwardPassReceived.
   ///
   /// In en, this message translates to:
-  /// **'Worked: the pass reached #{number}, advancing the ball {distance} m.'**
+  /// **'#{number} controlled it; +{distance} m.'**
   String pressureLessonBenefitForwardPassReceived(
       Object number, Object distance);
 
   /// No description provided for @pressureLessonBenefitSimulatedLane.
   ///
   /// In en, this message translates to:
-  /// **'Worked: a new forward passing lane to #{number} opened.'**
+  /// **'Forward lane to #{number} opened.'**
   String pressureLessonBenefitSimulatedLane(Object number);
 
   /// No description provided for @pressureLessonBenefitControlledProgress.
   ///
   /// In en, this message translates to:
-  /// **'Worked: you kept the ball and advanced {distance} m.'**
+  /// **'Possession retained; +{distance} m.'**
   String pressureLessonBenefitControlledProgress(Object distance);
 
   /// No description provided for @pressureLessonBenefitRetainedControl.
   ///
   /// In en, this message translates to:
-  /// **'Worked: you kept possession under pressure.'**
+  /// **'Possession retained.'**
   String get pressureLessonBenefitRetainedControl;
 
   /// No description provided for @pressureLessonLimitationInterception.
   ///
   /// In en, this message translates to:
-  /// **'Cause: #{number} entered your route and won the ball after {time} s.'**
+  /// **'#{number} intercepted after {time} s.'**
   String pressureLessonLimitationInterception(Object number, Object time);
 
   /// No description provided for @pressureLessonLimitationOffside.
   ///
   /// In en, this message translates to:
-  /// **'Cause: #{number} was offside at release and later became involved.'**
+  /// **'#{number} was offside at release.'**
   String pressureLessonLimitationOffside(Object number);
 
   /// No description provided for @pressureLessonLimitationLoose.
   ///
   /// In en, this message translates to:
-  /// **'Cause: no attacker controlled the ball; it became loose.'**
+  /// **'No attacker controlled the loose ball.'**
   String get pressureLessonLimitationLoose;
 
   /// No description provided for @pressureLessonLimitationForwardWindow.
   ///
   /// In en, this message translates to:
-  /// **'Tradeoff: a forward pass was available when you chose the back pass.'**
+  /// **'A forward option was passed up.'**
   String get pressureLessonLimitationForwardWindow;
 
   /// No description provided for @pressureLessonLimitationClosingPressure.
   ///
   /// In en, this message translates to:
-  /// **'Watch: defender #{number} is now only {distance} m away.'**
+  /// **'Pressure: #{number}, {distance} m.'**
   String pressureLessonLimitationClosingPressure(
       Object number, Object distance);
 
   /// No description provided for @pressureLessonLimitationProgress.
   ///
   /// In en, this message translates to:
-  /// **'Next check: {distance} m forward gain, with no new forward passing lane.'**
+  /// **'Forward gain {distance} m; no new lane.'**
   String pressureLessonLimitationProgress(Object distance);
 
   /// No description provided for @pressureLessonLimitationRemainingPressure.
   ///
   /// In en, this message translates to:
-  /// **'Next check: nearest defender #{number}, gap {distance} m.'**
+  /// **'Nearest defender #{number}, {distance} m.'**
   String pressureLessonLimitationRemainingPressure(
       Object number, Object distance);
 
@@ -37913,7 +38100,7 @@ abstract class AppLocalizations {
   /// No description provided for @pressureEpisodeSupportNoMeasuredBenefit.
   ///
   /// In en, this message translates to:
-  /// **'Result: the run did not measurably improve a passing lane.'**
+  /// **'No lane gain measured in this movement interval.'**
   String get pressureEpisodeSupportNoMeasuredBenefit;
 
   /// No description provided for @pressureEpisodeSupportBlockedLane.
@@ -37980,7 +38167,7 @@ abstract class AppLocalizations {
   /// No description provided for @pressureEpisodeSummaryCoverage.
   ///
   /// In en, this message translates to:
-  /// **'First attempts completed: {count} of {total} across six learning families.'**
+  /// **'First attempts completed: {count} of {total} across four learning families.'**
   String pressureEpisodeSummaryCoverage(Object count, Object total);
 
   /// No description provided for @pressureEpisodeSummaryRetained.
@@ -38004,7 +38191,7 @@ abstract class AppLocalizations {
   /// No description provided for @pressureEpisodeRestart.
   ///
   /// In en, this message translates to:
-  /// **'Run the 18 attacks again'**
+  /// **'Run the 12 situations again'**
   String get pressureEpisodeRestart;
 
   /// No description provided for @pressureEpisodeOutcomePenetration.
@@ -38046,7 +38233,7 @@ abstract class AppLocalizations {
   /// No description provided for @pressureEpisodeOutcomeUnresolved.
   ///
   /// In en, this message translates to:
-  /// **'Result: retained, unresolved'**
+  /// **'Attack review'**
   String get pressureEpisodeOutcomeUnresolved;
 
   /// No description provided for @pressureEpisodeDecisionCount.
@@ -38184,6 +38371,12 @@ abstract class AppLocalizations {
   /// **'Route: the circle is the bounded request; the trace shows the position actually reached.'**
   String get pressureSceneRunNotReached;
 
+  /// No description provided for @pressureSceneActiveRunReleaseCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Run continues; recheck the lead pass at release.'**
+  String get pressureSceneActiveRunReleaseCheck;
+
   /// No description provided for @pressureSceneSupportSeparation.
   ///
   /// In en, this message translates to:
@@ -38295,6 +38488,12 @@ abstract class AppLocalizations {
   /// **'Learning example available from the same scene start.'**
   String get pressureSceneExampleAvailable;
 
+  /// No description provided for @pressureSceneExampleUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This live state could not physically demonstrate the principle, so no model example is claimed.'**
+  String get pressureSceneExampleUnavailable;
+
   /// No description provided for @pressureSceneExampleTitle.
   ///
   /// In en, this message translates to:
@@ -38306,6 +38505,273 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'One defensible rollout for this goal—not expert-certified best play.'**
   String get pressureSceneExampleLimit;
+
+  /// No description provided for @pressureCoachingRouteOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'a forward route was usable'**
+  String get pressureCoachingRouteOpen;
+
+  /// No description provided for @pressureCoachingRouteClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'forward routes were covered'**
+  String get pressureCoachingRouteClosed;
+
+  /// No description provided for @pressureCoachingOnside.
+  ///
+  /// In en, this message translates to:
+  /// **'onside behind the visible line'**
+  String get pressureCoachingOnside;
+
+  /// No description provided for @pressureCoachingBeyondLine.
+  ///
+  /// In en, this message translates to:
+  /// **'beyond the visible line'**
+  String get pressureCoachingBeyondLine;
+
+  /// No description provided for @pressureCoachingObservationPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Before: defender #{defender} was {movement}, {gap} m away.'**
+  String pressureCoachingObservationPressure(
+      Object defender, Object movement, Object gap);
+
+  /// No description provided for @pressureCoachingObservationSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Before: #{actor}\'s current support route was {route}.'**
+  String pressureCoachingObservationSupport(Object actor, Object route);
+
+  /// No description provided for @pressureCoachingObservationRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'Before: runner #{runner} was {movement} and {position}.'**
+  String pressureCoachingObservationRunner(
+      Object runner, Object movement, Object position);
+
+  /// No description provided for @pressureCoachingObservationForwardOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Before: at least one forward pass was physically usable.'**
+  String get pressureCoachingObservationForwardOpen;
+
+  /// No description provided for @pressureCoachingObservationForwardClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Before: no forward pass was physically usable; a backward outlet remained.'**
+  String get pressureCoachingObservationForwardClosed;
+
+  /// No description provided for @pressureCoachingObservationNoOutlet.
+  ///
+  /// In en, this message translates to:
+  /// **'Before: neither a forward pass nor a safe backward outlet was usable.'**
+  String get pressureCoachingObservationNoOutlet;
+
+  /// No description provided for @pressureCoachingIdeaFits.
+  ///
+  /// In en, this message translates to:
+  /// **'Idea fits'**
+  String get pressureCoachingIdeaFits;
+
+  /// No description provided for @pressureCoachingIdeaTradeoff.
+  ///
+  /// In en, this message translates to:
+  /// **'Defensible tradeoff'**
+  String get pressureCoachingIdeaTradeoff;
+
+  /// No description provided for @pressureCoachingIdeaNotCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Chance not created'**
+  String get pressureCoachingIdeaNotCreated;
+
+  /// No description provided for @pressureCoachingIdeaConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'Idea conflicts'**
+  String get pressureCoachingIdeaConflicts;
+
+  /// No description provided for @pressureCoachingIdeaInsufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence insufficient'**
+  String get pressureCoachingIdeaInsufficient;
+
+  /// No description provided for @pressureCoachingReasonAwayPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'the touch entered the clearer corridor'**
+  String get pressureCoachingReasonAwayPressure;
+
+  /// No description provided for @pressureCoachingReasonReleaseEarly.
+  ///
+  /// In en, this message translates to:
+  /// **'the pass lane was open before pressure arrived'**
+  String get pressureCoachingReasonReleaseEarly;
+
+  /// No description provided for @pressureCoachingReasonIntoPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'the touch entered the pressure corridor'**
+  String get pressureCoachingReasonIntoPressure;
+
+  /// No description provided for @pressureCoachingReasonSafeTradeoff.
+  ///
+  /// In en, this message translates to:
+  /// **'the safe outlet traded progression'**
+  String get pressureCoachingReasonSafeTradeoff;
+
+  /// No description provided for @pressureCoachingReasonCarryClear.
+  ///
+  /// In en, this message translates to:
+  /// **'the carry entered clear space'**
+  String get pressureCoachingReasonCarryClear;
+
+  /// No description provided for @pressureCoachingReasonCarryPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'the carry entered pressure'**
+  String get pressureCoachingReasonCarryPressure;
+
+  /// No description provided for @pressureCoachingReasonBackwardOutlet.
+  ///
+  /// In en, this message translates to:
+  /// **'the safe backward outlet was open'**
+  String get pressureCoachingReasonBackwardOutlet;
+
+  /// No description provided for @pressureCoachingReasonClosedRunnerOutlet.
+  ///
+  /// In en, this message translates to:
+  /// **'the runner window was closed, so the safe outlet fit'**
+  String get pressureCoachingReasonClosedRunnerOutlet;
+
+  /// No description provided for @pressureCoachingReasonSupportTargetOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'the target offered a usable pass angle'**
+  String get pressureCoachingReasonSupportTargetOpen;
+
+  /// No description provided for @pressureCoachingReasonSupportTargetCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'the target stayed in a covered relation'**
+  String get pressureCoachingReasonSupportTargetCovered;
+
+  /// No description provided for @pressureCoachingReasonSupportUnchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'the pass relation did not improve'**
+  String get pressureCoachingReasonSupportUnchanged;
+
+  /// No description provided for @pressureCoachingReasonRunnerAdjusted.
+  ///
+  /// In en, this message translates to:
+  /// **'the runner adjusted behind the closed window'**
+  String get pressureCoachingReasonRunnerAdjusted;
+
+  /// No description provided for @pressureCoachingReasonRunnerWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'the moving runner\'s release window was usable'**
+  String get pressureCoachingReasonRunnerWindow;
+
+  /// No description provided for @pressureCoachingReasonRunnerUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'the runner window was not usable yet'**
+  String get pressureCoachingReasonRunnerUnavailable;
+
+  /// No description provided for @pressureCoachingReasonRunnerOffside.
+  ///
+  /// In en, this message translates to:
+  /// **'the runner was beyond the release line'**
+  String get pressureCoachingReasonRunnerOffside;
+
+  /// No description provided for @pressureCoachingReasonReceiverOffside.
+  ///
+  /// In en, this message translates to:
+  /// **'the selected receiver was beyond the release line'**
+  String get pressureCoachingReasonReceiverOffside;
+
+  /// No description provided for @pressureCoachingReasonRecycleFits.
+  ///
+  /// In en, this message translates to:
+  /// **'forward play was closed, so recycling fit'**
+  String get pressureCoachingReasonRecycleFits;
+
+  /// No description provided for @pressureCoachingReasonRecycleTradeoff.
+  ///
+  /// In en, this message translates to:
+  /// **'recycling was safe, but forward play was open'**
+  String get pressureCoachingReasonRecycleTradeoff;
+
+  /// No description provided for @pressureCoachingReasonBlockedRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'the selected route was covered before the action'**
+  String get pressureCoachingReasonBlockedRoute;
+
+  /// No description provided for @pressureCoachingReasonForwardAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'the selected forward route was usable'**
+  String get pressureCoachingReasonForwardAvailable;
+
+  /// No description provided for @pressureCoachingReasonInsufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'the model lacked evidence for that claim'**
+  String get pressureCoachingReasonInsufficient;
+
+  /// No description provided for @pressureCoachingRiskNone.
+  ///
+  /// In en, this message translates to:
+  /// **'no specific risk observed'**
+  String get pressureCoachingRiskNone;
+
+  /// No description provided for @pressureCoachingRiskPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'nearby pressure remains'**
+  String get pressureCoachingRiskPressure;
+
+  /// No description provided for @pressureCoachingRiskCoveredLane.
+  ///
+  /// In en, this message translates to:
+  /// **'the lane remains covered'**
+  String get pressureCoachingRiskCoveredLane;
+
+  /// No description provided for @pressureCoachingRiskProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'progression may be lost'**
+  String get pressureCoachingRiskProgress;
+
+  /// No description provided for @pressureCoachingRiskOffside.
+  ///
+  /// In en, this message translates to:
+  /// **'the release window may close'**
+  String get pressureCoachingRiskOffside;
+
+  /// No description provided for @pressureCoachingRiskExecution.
+  ///
+  /// In en, this message translates to:
+  /// **'execution still matters'**
+  String get pressureCoachingRiskExecution;
+
+  /// No description provided for @pressureCoachingJudgment.
+  ///
+  /// In en, this message translates to:
+  /// **'{assessment}: {reason}. Risk: {risk}.'**
+  String pressureCoachingJudgment(
+      Object assessment, Object reason, Object risk);
+
+  /// No description provided for @pressureCoachingActualOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual: {benefit} {limitation}'**
+  String pressureCoachingActualOutcome(Object benefit, Object limitation);
 
   /// No description provided for @pressureSceneReplayExample.
   ///

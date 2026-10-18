@@ -1,6 +1,9 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/scan_pass/scan_pass_game.dart'
@@ -30,7 +33,7 @@ void main() {
         find.byKey(const ValueKey<String>('pressure-pitch')), findsOneWidget);
     expect(
         find.byKey(const ValueKey<String>('match-moment-pitch')), findsNothing);
-    expect(_progressText(tester), startsWith('Situation 1/18'));
+    expect(_progressText(tester), startsWith('Situation 1/12'));
     expect(find.textContaining('pressure reception'), findsOneWidget);
 
     final received = _world(tester);
@@ -58,6 +61,83 @@ void main() {
       contains('#${changed.carrier!.number}'),
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('generic lesson ids paint both team jerseys and shirt numbers',
+      (tester) async {
+    await tester.pumpWidget(_app(
+      home: const ScanPassPressureLessonScreen(
+        seed: 19,
+        observationDuration: Duration.zero,
+        executionDuration: Duration.zero,
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final boundary = tester.renderObject<RenderRepaintBoundary>(
+      find.byKey(const ValueKey<String>('pressure-pitch-render')),
+    );
+    late ui.Image image;
+    late ByteData pixels;
+    await tester.runAsync(() async {
+      image = await boundary.toImage(pixelRatio: 1);
+      pixels = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
+    });
+    var attackShirtPixels = 0;
+    var defenseShirtPixels = 0;
+    var attackNumberPixels = 0;
+    var defenseNumberPixels = 0;
+    final bytes = pixels.buffer.asUint8List();
+    for (var index = 0; index < bytes.length; index += 4) {
+      final red = bytes[index];
+      final green = bytes[index + 1];
+      final blue = bytes[index + 2];
+      if (red == 200 && green == 15 && blue == 36) attackShirtPixels++;
+      if (red == 247 && green == 247 && blue == 242) defenseShirtPixels++;
+      if (red == 255 && green == 212 && blue == 71) attackNumberPixels++;
+      if (red == 23 && green == 42 && blue == 85) defenseNumberPixels++;
+    }
+    image.dispose();
+
+    expect(attackShirtPixels, greaterThan(40));
+    expect(defenseShirtPixels, greaterThan(40));
+    expect(attackNumberPixels, greaterThan(10));
+    expect(defenseNumberPixels, greaterThan(10));
+    expect(find.textContaining('Yamal'), findsNothing);
+  });
+
+  testWidgets('choosing uses concise control hints instead of repeating task',
+      (tester) async {
+    await tester.pumpWidget(_app(
+      home: const ScanPassPressureLessonScreen(
+        seed: 19,
+        observationDuration: Duration.zero,
+        executionDuration: Duration.zero,
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    String instruction() => tester
+        .widget<Text>(
+            find.byKey(const ValueKey<String>('pressure-instruction')))
+        .data!;
+    final task = tester
+        .widget<Text>(
+            find.byKey(const ValueKey<String>('pressure-situation-task')))
+        .data!;
+    expect(instruction(), contains('first-touch arrow'));
+    expect(instruction(), contains('player circle'));
+    expect(instruction(), isNot(task));
+
+    await _tap(tester, 'pressure-action-touch-inside');
+    expect(instruction(), contains('player circle'));
+    expect(instruction(), contains('space arrow'));
+    expect(
+        instruction(),
+        isNot(tester
+            .widget<Text>(
+                find.byKey(const ValueKey<String>('pressure-situation-task')))
+            .data));
   });
 
   testWidgets(
@@ -90,9 +170,11 @@ void main() {
         findsOneWidget);
     expect(find.byKey(const ValueKey<String>('pressure-review-action')),
         findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('pressure-review-benefit')),
+    expect(find.byKey(const ValueKey<String>('pressure-review-observation')),
         findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('pressure-review-limitation')),
+    expect(find.byKey(const ValueKey<String>('pressure-review-judgment')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('pressure-review-outcome')),
         findsOneWidget);
 
     await _tap(tester, 'pressure-review-decision-0');
@@ -132,7 +214,7 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    await _openSituation(tester, 5);
+    await _openSituation(tester, 3);
 
     final before = _world(tester);
     final learner = before.actorByRole(PressureActorRole.receiver);
@@ -158,7 +240,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('third-player task ring follows #19 to #10 to #17',
+  testWidgets('support task distinguishes the mover from the actual carrier',
       (tester) async {
     await tester.pumpWidget(_app(
       home: const ScanPassPressureLessonScreen(
@@ -168,16 +250,18 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    await _openSituation(tester, 9);
-    expect(_world(tester).carrier?.number, 19);
-    expect(_painter(tester).decisionActorId, _world(tester).carrier?.id);
-    await _tap(tester, 'pressure-action-pass-support');
+    await _openSituation(tester, 3);
+    expect(_world(tester).carrier?.number, 10);
+    expect(
+        _world(tester)
+            .actorById(_painter(tester).decisionActorId as String)
+            .number,
+        19);
+    final mover = _world(tester).actorByRole(PressureActorRole.receiver);
+    await _tapSupport(tester, mover.position + const ScanPassPoint(0, 5));
     expect(_world(tester).carrier?.number, 10);
     expect(_painter(tester).decisionActorId, _world(tester).carrier?.id);
     expect(_situationFacts(tester), contains('deciding #10'));
-    await _tap(tester, 'pressure-action-pass-runner');
-    expect(_world(tester).carrier?.number, 17);
-    expect(_painter(tester).decisionActorId, _world(tester).carrier?.id);
     expect(tester.takeException(), isNull);
   });
 
@@ -191,10 +275,9 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    await _openSituation(tester, 9);
-    await _tap(tester, 'pressure-action-pass-support');
-    await _tap(tester, 'pressure-action-pass-runner');
-    await _tap(tester, 'pressure-action-carry-space');
+    await _tapBestPass(tester);
+    final secondActor = _world(tester).carrier!.number;
+    await _tapBestOnBall(tester);
     expect(find.byKey(const ValueKey<String>('pressure-review-panel')),
         findsOneWidget);
 
@@ -221,7 +304,7 @@ void main() {
         contains('#$number'),
       );
     }
-    expect(seen, containsAllInOrder([19, 10, 17]));
+    expect(seen, containsAllInOrder([19, secondActor]));
     expect(tester.takeException(), isNull);
   });
 
@@ -235,7 +318,7 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    await _openSituation(tester, 5);
+    await _openSituation(tester, 3);
     final mover = _world(tester).actorByRole(PressureActorRole.receiver);
     await _tapSupport(
       tester,
@@ -249,6 +332,44 @@ void main() {
         .data!;
     expect(consequence, contains('intercepted'));
     expect(consequence, isNot(contains('controlled')));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('an active run is not reported as a completed blocked route',
+      (tester) async {
+    const engine = ScanPassPressureEngine();
+    final scenario = PressureLessonCatalog.build(seed: 19)[4];
+    final example = engine.teachingExample(scenario)!;
+    final run = example.timeline.first;
+    final pass = example.timeline.last;
+    expect(run.runPlanAfter!.isActive, isTrue);
+    expect(
+        run.supportResult!.laneChanges.any((lane) =>
+            lane.receiverRole == PressureActorRole.runner && !lane.usableAfter),
+        isTrue);
+    expect(pass.actionResult!.intendedReceiverRole, PressureActorRole.runner);
+    expect(pass.after.carrier!.role, PressureActorRole.runner);
+    expect(pass.offside, isFalse);
+
+    await tester.pumpWidget(_app(
+      home: const ScanPassPressureLessonScreen(
+        seed: 19,
+        observationDuration: Duration.zero,
+        executionDuration: Duration.zero,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await _openSituation(tester, 5);
+    await _tapSupport(tester, run.requestedTarget);
+    await _tap(tester, 'pressure-action-${pass.selectedOption!.key}');
+    await _tap(tester, 'pressure-review-decision-0');
+    final outcome = tester
+        .widget<Text>(
+            find.byKey(const ValueKey<String>('pressure-review-outcome')))
+        .data!;
+    expect(outcome, contains('Run continues'));
+    expect(outcome, isNot(contains('Still blocked: #17')));
+    expect(outcome, isNot(contains('lane to #17 closed')));
     expect(tester.takeException(), isNull);
   });
 
@@ -282,6 +403,35 @@ void main() {
       originalAction,
     );
     expect(identical(_painter(tester).reviewResult, originalResult), isTrue);
+  });
+
+  testWidgets('pass review keeps the visible offside line at release',
+      (tester) async {
+    await tester.pumpWidget(_app(
+      home: const ScanPassPressureLessonScreen(
+        seed: 19,
+        observationDuration: Duration.zero,
+        executionDuration: Duration.zero,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await _openSituation(tester, 8);
+
+    expect(_painter(tester).offsideLineAtRelease, isFalse);
+    await _tap(tester, 'pressure-action-pass-runner');
+    await _tapBestOnBall(tester);
+    await _tap(tester, 'pressure-review-decision-0');
+
+    final painter = _painter(tester);
+    final result = painter.reviewResult as PressureSimulationResult;
+    const engine = ScanPassPressureEngine();
+    final releaseLine = engine.offsideReferenceX(result.before);
+    final laterLine = engine.offsideReferenceX(result.after);
+    expect(painter.offsideLineAtRelease, isTrue);
+    expect(
+        painter.offsideReferenceXMetres as double, closeTo(releaseLine, 1e-9));
+    expect((releaseLine - laterLine).abs(), greaterThan(.05),
+        reason: 'The assertion must distinguish release from the later frame.');
   });
 
   testWidgets('final review exposes a replayable reduced-model example',
@@ -332,13 +482,18 @@ void main() {
     );
   });
 
-  testWidgets('historical reference returns to the unchanged timeline review',
+  testWidgets('case source details open the mapped primary source and return',
       (tester) async {
+    Uri? opened;
     await tester.pumpWidget(_app(
-      home: const ScanPassPressureLessonScreen(
+      home: ScanPassPressureLessonScreen(
         seed: 19,
         observationDuration: Duration.zero,
         executionDuration: Duration.zero,
+        sourceLauncher: (uri) async {
+          opened = uri;
+          return true;
+        },
       ),
     ));
     await tester.pumpAndSettle();
@@ -350,15 +505,21 @@ void main() {
 
     await _tap(tester, 'pressure-reference', settle: false);
     await tester.pumpAndSettle();
-    expect(find.byType(ScanPassMatchMomentScreen), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('pressure-source-details')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('pressure-source-principle')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('pressure-source-validation')),
+        findsOneWidget);
+    await _tap(tester,
+        'pressure-source-${PressureCoachingSource.fifaPassingAndReceiving.name}');
     expect(
-      tester
-          .widget<ScanPassMatchMomentScreen>(
-              find.byType(ScanPassMatchMomentScreen))
-          .referenceOnly,
-      isTrue,
-    );
-    await tester.pageBack();
+        opened, Uri.parse(PressureCoachingSource.fifaPassingAndReceiving.url));
+    Navigator.of(
+      tester.element(
+        find.byKey(const ValueKey<String>('pressure-source-details')),
+      ),
+    ).pop();
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey<String>('pressure-review-panel')),
         findsOneWidget);
@@ -381,7 +542,7 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    await _openSituation(tester, 5);
+    await _openSituation(tester, 3);
     expect(_painter(tester).showSupportRange, isTrue);
     expect(_progressText(tester), contains('support after passing'));
     expect(
@@ -392,7 +553,7 @@ void main() {
       contains('#19'),
     );
 
-    await _openSituation(tester, 6);
+    await _openSituation(tester, 4);
     expect(_painter(tester).showSupportRange, isFalse);
     expect(_progressText(tester), contains('support after passing'));
     expect(find.byKey(const ValueKey<String>('pressure-support-surface')),
@@ -410,20 +571,20 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await _openSituation(tester, 5);
+    await _openSituation(tester, 3);
     expect(_situationFacts(tester), contains('Return to #19'));
     expect(_situationFacts(tester), contains('from lane'));
 
-    await _openSituation(tester, 7);
+    await _openSituation(tester, 5);
     expect(_situationFacts(tester), contains('Runner #17'));
 
-    await _openSituation(tester, 9);
+    await _openSituation(tester, 7);
     expect(_situationFacts(tester), contains('To #10'));
     expect(_situationFacts(tester), contains('from pass lane'));
     expect(_situationFacts(tester), isNot(contains('Return to')));
   });
 
-  testWidgets('jumping to situation 18 cannot skip missing first attempts',
+  testWidgets('jumping to situation 12 cannot skip missing first attempts',
       (tester) async {
     await tester.pumpWidget(_app(
       home: const ScanPassPressureLessonScreen(
@@ -433,13 +594,13 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    await _openSituation(tester, 18);
-    expect(_progressText(tester), startsWith('Situation 18/18'));
+    await _openSituation(tester, 12);
+    expect(_progressText(tester), startsWith('Situation 12/12'));
     await _playToReview(tester);
     await _tap(tester, 'pressure-next');
     expect(
         find.byKey(const ValueKey<String>('pressure-summary')), findsNothing);
-    expect(_progressText(tester), startsWith('Situation 1/18'));
+    expect(_progressText(tester), startsWith('Situation 1/12'));
   });
 
   for (final config in [
@@ -495,6 +656,21 @@ void main() {
           expect(rect.overlaps(previous), isFalse, reason: key);
         }
         rects.add(rect);
+      }
+      await _playToReview(tester);
+      for (final key in [
+        'pressure-review-action',
+        'pressure-review-observation',
+        'pressure-review-judgment',
+        'pressure-review-outcome',
+      ]) {
+        final finder = find.byKey(ValueKey<String>(key));
+        expect(finder, findsOneWidget, reason: key);
+        await tester.ensureVisible(finder);
+        await tester.pumpAndSettle();
+        expect(tester.renderObject<RenderParagraph>(finder).didExceedMaxLines,
+            isFalse,
+            reason: '${config.size}/${config.locale.languageCode}/$key');
       }
       expect(tester.takeException(), isNull);
     });

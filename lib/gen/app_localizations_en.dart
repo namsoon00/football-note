@@ -21793,7 +21793,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pressureLessonSyntheticNote =>
-      'Training reconstruction · approximate positions';
+      'Source-principle adaptation · authored approximate positions';
 
   @override
   String get pressureLessonObserve =>
@@ -21869,6 +21869,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pressureLessonOneTapHint =>
       'Tap one on-pitch ring to execute it immediately.';
+
+  @override
+  String get pressureLessonFirstContactHint =>
+      'Tap a first-touch arrow or a player circle to pass.';
+
+  @override
+  String get pressureLessonNextActionHint =>
+      'Tap a player circle to pass or a space arrow to carry.';
 
   @override
   String pressureLessonObservedOutside(Object number, Object distance) {
@@ -21989,11 +21997,115 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pressureLessonMore => 'More lesson actions';
 
   @override
-  String get pressureLessonReference => 'Real-play reference';
+  String get pressureLessonReference => 'Sources and limits';
 
   @override
   String get pressureLessonReferenceHint =>
-      'Yamal\'s assist sequence is a separate historical example, not the answer key for these synthetic situations.';
+      'Inspect the coaching principle, primary sources and limits for this authored model scene.';
+
+  @override
+  String get pressureCurriculumSourcesTitle =>
+      'Coaching sources and model limits';
+
+  @override
+  String pressureCurriculumPrincipleDetail(
+      Object principle, Object phase, Object roles) {
+    return 'Principle: $principle · phase: $phase · roles: $roles';
+  }
+
+  @override
+  String get pressureCurriculumAdaptationLimit =>
+      'This is an adaptation of source coaching principles. The exact coordinates and alternatives are authored for this reduced model; they are not tracking data, a source exercise reproduction or a certified best play.';
+
+  @override
+  String get pressureCurriculumModelLimit =>
+      'The model uses ground points, seven players and no keeper. Its visible offside line comes from the ball and second-most goal-side defender at release; it cannot observe scanning, body orientation or technique.';
+
+  @override
+  String get pressureCurriculumValidationStatus =>
+      'Not coach-reviewed and not tested for learning gains or match transfer.';
+
+  @override
+  String get pressureCurriculumSourceUnavailable =>
+      'The coaching source could not be opened on this device.';
+
+  @override
+  String get pressureCurriculumSourcePassing =>
+      'FIFA Training Centre · Passing and receiving';
+
+  @override
+  String get pressureCurriculumSourceBuildUp =>
+      'FIFA Training Centre · Goalkeeper build-up';
+
+  @override
+  String get pressureCurriculumSourceBreakingPress =>
+      'FIFA Training Centre · Breaking the press and playing in behind';
+
+  @override
+  String get pressureCurriculumSourceRepresentativeGames =>
+      'FIFA Training Centre · Player numbers and representative space';
+
+  @override
+  String get pressureCurriculumPrincipleReception =>
+      'receive under pressure while preserving a usable next action';
+
+  @override
+  String get pressureCurriculumPrincipleSupport =>
+      'offer a usable off-ball support angle';
+
+  @override
+  String get pressureCurriculumPrincipleRunner =>
+      'read the runner, lane and onside release window together';
+
+  @override
+  String get pressureCurriculumPrincipleRecycle =>
+      'recycle or switch when forward play is closed';
+
+  @override
+  String get pressureCurriculumPhaseBuildUp => 'build-up';
+
+  @override
+  String get pressureCurriculumPhaseProgression => 'progression';
+
+  @override
+  String get pressureCurriculumPhaseChanceCreation => 'playing in behind';
+
+  @override
+  String get pressureCurriculumRolesReception =>
+      'receiver, presser and outlets';
+
+  @override
+  String get pressureCurriculumRolesSupport =>
+      'carrier and supporting teammate';
+
+  @override
+  String get pressureCurriculumRolesRunner =>
+      'carrier, runner and defensive line';
+
+  @override
+  String get pressureCurriculumRolesRecycle =>
+      'carrier, backward outlet and far-side option';
+
+  @override
+  String get pressureCurriculumActorPasser => 'backward outlet #2';
+
+  @override
+  String get pressureCurriculumActorReceiver => 'receiving player #19';
+
+  @override
+  String get pressureCurriculumActorSupport => 'supporting player #10';
+
+  @override
+  String get pressureCurriculumActorRunner => 'forward runner #17';
+
+  @override
+  String get pressureCurriculumActorPresser => 'pressing defender #3';
+
+  @override
+  String get pressureCurriculumActorCover => 'cover defender #4';
+
+  @override
+  String get pressureCurriculumActorTracker => 'tracking defender #5';
 
   @override
   String get pressureLessonSummaryTitle => 'Decisions reviewed';
@@ -22035,7 +22147,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get pressureLessonOffsideLine => 'local offside reference';
+  String get pressureLessonOffsideLine => 'offside line at release';
+
+  @override
+  String get pressureLessonOffsideCurrentLine => 'current offside line';
 
   @override
   String pressureLessonTracePass(Object distance) {
@@ -22177,72 +22292,70 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get pressureLessonBenefitNone =>
-      'Result: this action created no clear advantage.';
+  String get pressureLessonBenefitNone => 'No clear advantage.';
 
   @override
   String pressureLessonBenefitSeparation(Object distance) {
-    return 'Worked: the nearest defender is $distance m farther away.';
+    return 'Defender separation +$distance m.';
   }
 
   @override
   String pressureLessonBenefitPassReceived(Object number) {
-    return 'Worked: #$number received your pass.';
+    return '#$number controlled the pass.';
   }
 
   @override
   String pressureLessonBenefitForwardPassReceived(
       Object number, Object distance) {
-    return 'Worked: the pass reached #$number, advancing the ball $distance m.';
+    return '#$number controlled it; +$distance m.';
   }
 
   @override
   String pressureLessonBenefitSimulatedLane(Object number) {
-    return 'Worked: a new forward passing lane to #$number opened.';
+    return 'Forward lane to #$number opened.';
   }
 
   @override
   String pressureLessonBenefitControlledProgress(Object distance) {
-    return 'Worked: you kept the ball and advanced $distance m.';
+    return 'Possession retained; +$distance m.';
   }
 
   @override
-  String get pressureLessonBenefitRetainedControl =>
-      'Worked: you kept possession under pressure.';
+  String get pressureLessonBenefitRetainedControl => 'Possession retained.';
 
   @override
   String pressureLessonLimitationInterception(Object number, Object time) {
-    return 'Cause: #$number entered your route and won the ball after $time s.';
+    return '#$number intercepted after $time s.';
   }
 
   @override
   String pressureLessonLimitationOffside(Object number) {
-    return 'Cause: #$number was offside at release and later became involved.';
+    return '#$number was offside at release.';
   }
 
   @override
   String get pressureLessonLimitationLoose =>
-      'Cause: no attacker controlled the ball; it became loose.';
+      'No attacker controlled the loose ball.';
 
   @override
   String get pressureLessonLimitationForwardWindow =>
-      'Tradeoff: a forward pass was available when you chose the back pass.';
+      'A forward option was passed up.';
 
   @override
   String pressureLessonLimitationClosingPressure(
       Object number, Object distance) {
-    return 'Watch: defender #$number is now only $distance m away.';
+    return 'Pressure: #$number, $distance m.';
   }
 
   @override
   String pressureLessonLimitationProgress(Object distance) {
-    return 'Next check: $distance m forward gain, with no new forward passing lane.';
+    return 'Forward gain $distance m; no new lane.';
   }
 
   @override
   String pressureLessonLimitationRemainingPressure(
       Object number, Object distance) {
-    return 'Next check: nearest defender #$number, gap $distance m.';
+    return 'Nearest defender #$number, $distance m.';
   }
 
   @override
@@ -22427,7 +22540,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pressureEpisodeSupportNoMeasuredBenefit =>
-      'Result: the run did not measurably improve a passing lane.';
+      'No lane gain measured in this movement interval.';
 
   @override
   String pressureEpisodeSupportBlockedLane(Object receiver, Object defender) {
@@ -22477,7 +22590,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pressureEpisodeSummaryCoverage(Object count, Object total) {
-    return 'First attempts completed: $count of $total across six learning families.';
+    return 'First attempts completed: $count of $total across four learning families.';
   }
 
   @override
@@ -22495,7 +22608,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'These results measure decisions in this simplified model, not proven match transfer.';
 
   @override
-  String get pressureEpisodeRestart => 'Run the 18 attacks again';
+  String get pressureEpisodeRestart => 'Run the 12 situations again';
 
   @override
   String get pressureEpisodeOutcomePenetration =>
@@ -22517,7 +22630,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pressureEpisodeOutcomeLoose => 'Result: loose ball';
 
   @override
-  String get pressureEpisodeOutcomeUnresolved => 'Result: retained, unresolved';
+  String get pressureEpisodeOutcomeUnresolved => 'Attack review';
 
   @override
   String pressureEpisodeDecisionCount(Object count) {
@@ -22620,6 +22733,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Route: the circle is the bounded request; the trace shows the position actually reached.';
 
   @override
+  String get pressureSceneActiveRunReleaseCheck =>
+      'Run continues; recheck the lead pass at release.';
+
+  @override
   String pressureSceneSupportSeparation(
       Object number, Object distance, Object defender) {
     return 'Benefit: versus standing still, #$number gained ${distance}m from #$defender.';
@@ -22711,11 +22828,184 @@ class AppLocalizationsEn extends AppLocalizations {
       'Learning example available from the same scene start.';
 
   @override
+  String get pressureSceneExampleUnavailable =>
+      'This live state could not physically demonstrate the principle, so no model example is claimed.';
+
+  @override
   String get pressureSceneExampleTitle => 'Learning example · reduced model';
 
   @override
   String get pressureSceneExampleLimit =>
       'One defensible rollout for this goal—not expert-certified best play.';
+
+  @override
+  String get pressureCoachingRouteOpen => 'a forward route was usable';
+
+  @override
+  String get pressureCoachingRouteClosed => 'forward routes were covered';
+
+  @override
+  String get pressureCoachingOnside => 'onside behind the visible line';
+
+  @override
+  String get pressureCoachingBeyondLine => 'beyond the visible line';
+
+  @override
+  String pressureCoachingObservationPressure(
+      Object defender, Object movement, Object gap) {
+    return 'Before: defender #$defender was $movement, $gap m away.';
+  }
+
+  @override
+  String pressureCoachingObservationSupport(Object actor, Object route) {
+    return 'Before: #$actor\'s current support route was $route.';
+  }
+
+  @override
+  String pressureCoachingObservationRunner(
+      Object runner, Object movement, Object position) {
+    return 'Before: runner #$runner was $movement and $position.';
+  }
+
+  @override
+  String get pressureCoachingObservationForwardOpen =>
+      'Before: at least one forward pass was physically usable.';
+
+  @override
+  String get pressureCoachingObservationForwardClosed =>
+      'Before: no forward pass was physically usable; a backward outlet remained.';
+
+  @override
+  String get pressureCoachingObservationNoOutlet =>
+      'Before: neither a forward pass nor a safe backward outlet was usable.';
+
+  @override
+  String get pressureCoachingIdeaFits => 'Idea fits';
+
+  @override
+  String get pressureCoachingIdeaTradeoff => 'Defensible tradeoff';
+
+  @override
+  String get pressureCoachingIdeaNotCreated => 'Chance not created';
+
+  @override
+  String get pressureCoachingIdeaConflicts => 'Idea conflicts';
+
+  @override
+  String get pressureCoachingIdeaInsufficient => 'Evidence insufficient';
+
+  @override
+  String get pressureCoachingReasonAwayPressure =>
+      'the touch entered the clearer corridor';
+
+  @override
+  String get pressureCoachingReasonReleaseEarly =>
+      'the pass lane was open before pressure arrived';
+
+  @override
+  String get pressureCoachingReasonIntoPressure =>
+      'the touch entered the pressure corridor';
+
+  @override
+  String get pressureCoachingReasonSafeTradeoff =>
+      'the safe outlet traded progression';
+
+  @override
+  String get pressureCoachingReasonCarryClear =>
+      'the carry entered clear space';
+
+  @override
+  String get pressureCoachingReasonCarryPressure =>
+      'the carry entered pressure';
+
+  @override
+  String get pressureCoachingReasonBackwardOutlet =>
+      'the safe backward outlet was open';
+
+  @override
+  String get pressureCoachingReasonClosedRunnerOutlet =>
+      'the runner window was closed, so the safe outlet fit';
+
+  @override
+  String get pressureCoachingReasonSupportTargetOpen =>
+      'the target offered a usable pass angle';
+
+  @override
+  String get pressureCoachingReasonSupportTargetCovered =>
+      'the target stayed in a covered relation';
+
+  @override
+  String get pressureCoachingReasonSupportUnchanged =>
+      'the pass relation did not improve';
+
+  @override
+  String get pressureCoachingReasonRunnerAdjusted =>
+      'the runner adjusted behind the closed window';
+
+  @override
+  String get pressureCoachingReasonRunnerWindow =>
+      'the moving runner\'s release window was usable';
+
+  @override
+  String get pressureCoachingReasonRunnerUnavailable =>
+      'the runner window was not usable yet';
+
+  @override
+  String get pressureCoachingReasonRunnerOffside =>
+      'the runner was beyond the release line';
+
+  @override
+  String get pressureCoachingReasonReceiverOffside =>
+      'the selected receiver was beyond the release line';
+
+  @override
+  String get pressureCoachingReasonRecycleFits =>
+      'forward play was closed, so recycling fit';
+
+  @override
+  String get pressureCoachingReasonRecycleTradeoff =>
+      'recycling was safe, but forward play was open';
+
+  @override
+  String get pressureCoachingReasonBlockedRoute =>
+      'the selected route was covered before the action';
+
+  @override
+  String get pressureCoachingReasonForwardAvailable =>
+      'the selected forward route was usable';
+
+  @override
+  String get pressureCoachingReasonInsufficient =>
+      'the model lacked evidence for that claim';
+
+  @override
+  String get pressureCoachingRiskNone => 'no specific risk observed';
+
+  @override
+  String get pressureCoachingRiskPressure => 'nearby pressure remains';
+
+  @override
+  String get pressureCoachingRiskCoveredLane => 'the lane remains covered';
+
+  @override
+  String get pressureCoachingRiskProgress => 'progression may be lost';
+
+  @override
+  String get pressureCoachingRiskOffside => 'the release window may close';
+
+  @override
+  String get pressureCoachingRiskExecution => 'execution still matters';
+
+  @override
+  String pressureCoachingJudgment(
+      Object assessment, Object reason, Object risk) {
+    return '$assessment: $reason. Risk: $risk.';
+  }
+
+  @override
+  String pressureCoachingActualOutcome(Object benefit, Object limitation) {
+    return 'Actual: $benefit $limitation';
+  }
 
   @override
   String get pressureSceneReplayExample => 'Play learning example';

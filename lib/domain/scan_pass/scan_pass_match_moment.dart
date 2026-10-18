@@ -27,6 +27,7 @@ enum MatchMomentPlayerName {
   judeBellingham,
   philFoden,
   kobbieMainoo,
+  authoredRole,
 }
 
 enum MatchMomentBeat { receive, firstTouch, nextAction }
