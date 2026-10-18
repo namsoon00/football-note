@@ -1736,6 +1736,7 @@ class _MatchMomentPitchPainter extends CustomPainter {
   final String? fontFamily;
   final Rect? viewBounds;
   final bool emphasizePlayers;
+  final List<MatchMomentPlayerDefinition>? rosterOverride;
 
   const _MatchMomentPitchPainter({
     required this.episode,
@@ -1750,6 +1751,7 @@ class _MatchMomentPitchPainter extends CustomPainter {
     required this.fontFamily,
     this.viewBounds,
     this.emphasizePlayers = false,
+    this.rosterOverride,
   });
 
   bool get _dark => brightness == Brightness.dark;
@@ -1772,7 +1774,7 @@ class _MatchMomentPitchPainter extends CustomPainter {
     canvas.clipRect(geometry.playArea);
     _drawMotionAnnotations(canvas, geometry);
     _drawGoal(canvas, geometry);
-    final roster = episode.roster.toList(growable: false)
+    final roster = (rosterOverride ?? episode.roster).toList(growable: false)
       ..sort((a, b) {
         if (a.goalkeeper != b.goalkeeper) return a.goalkeeper ? -1 : 1;
         if (a.subdued != b.subdued) return a.subdued ? -1 : 1;
@@ -1789,6 +1791,37 @@ class _MatchMomentPitchPainter extends CustomPainter {
     _drawTouchDetail(canvas, geometry);
     _drawBall(canvas, geometry);
     _drawAttackArrow(canvas, geometry);
+    canvas.restore();
+  }
+
+  /// Repaints only the current roster and ball above lesson annotations.
+  ///
+  /// The historical painter's normal paint order is unchanged. Pressure-lesson
+  /// review uses this foreground pass so route evidence cannot cover live shirt
+  /// numbers while all marks retain the same geometry.
+  void paintRosterAndBall(Canvas canvas, Size size) {
+    final geometry = _MatchPitchGeometry(
+      size,
+      portrait: portrait,
+      viewBounds: viewBounds,
+    );
+    canvas.save();
+    canvas.clipRect(geometry.playArea);
+    final roster = (rosterOverride ?? episode.roster).toList(growable: false)
+      ..sort((a, b) {
+        if (a.goalkeeper != b.goalkeeper) return a.goalkeeper ? -1 : 1;
+        if (a.subdued != b.subdued) return a.subdued ? -1 : 1;
+        if (a.team != b.team) {
+          return a.team == MatchMomentTeam.england ? -1 : 1;
+        }
+        return a.number.compareTo(b.number);
+      });
+    for (final player in roster) {
+      final state = frame.actors[player.id];
+      if (state == null) continue;
+      _drawPlayer(canvas, geometry, player, state);
+    }
+    _drawBall(canvas, geometry);
     canvas.restore();
   }
 
@@ -2473,6 +2506,7 @@ class _MatchMomentPitchPainter extends CustomPainter {
       oldDelegate.brightness != brightness ||
       oldDelegate.viewBounds != viewBounds ||
       oldDelegate.emphasizePlayers != emphasizePlayers ||
+      oldDelegate.rosterOverride != rosterOverride ||
       oldDelegate.names != names;
 }
 

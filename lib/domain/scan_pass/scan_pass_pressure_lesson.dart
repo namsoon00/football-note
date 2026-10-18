@@ -18,7 +18,11 @@ enum PressureDecisionStage { firstContact, nextConnection, support, reRead }
 
 enum PressureActionKind { firstTouch, pass, carry, offBallRun }
 
-/// The six football questions taught by the public Scan Pass lesson.
+/// Public and legacy football questions understood by the lesson engine.
+///
+/// [drawAndRelease] and [thirdPlayer] remain for internal compatibility. The
+/// public catalog deliberately exposes only the four source-grounded families
+/// declared by [PressureLessonCatalog.publicFamilies].
 enum PressureLearningFamily {
   pressureReception,
   drawAndRelease,
@@ -37,6 +41,75 @@ enum PressureLearningObjective {
   timeTheThroughPass,
   connectTheThirdPlayer,
   recycleWhenForwardPlayCloses,
+}
+
+enum PressureCoachingPrinciple {
+  receiveUnderPressure,
+  offerUsableSupport,
+  readRunnerAndRelease,
+  recycleWhenForwardClosed,
+}
+
+enum PressureCoachingSource {
+  fifaPassingAndReceiving,
+  fifaGoalkeeperBuildUp,
+  fifaBreakingPressAndPlayingBehind,
+  fifaRepresentativeGameDesign,
+}
+
+extension PressureCoachingSourceDetails on PressureCoachingSource {
+  String get url => switch (this) {
+        PressureCoachingSource.fifaPassingAndReceiving =>
+          'https://www.fifatrainingcentre.com/en/practice/elite-sessions/in-possession/john-peacock-passing-and-receiving.php',
+        PressureCoachingSource.fifaGoalkeeperBuildUp =>
+          'https://www.fifatrainingcentre.com/en/practice/elite-sessions/in-possession/building_from_the_back_skinner.php',
+        PressureCoachingSource.fifaBreakingPressAndPlayingBehind =>
+          'https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/build-and-progress/5v5-plus-3-small-sided-game-breaking-the-press-and-play-in-behind.php',
+        PressureCoachingSource.fifaRepresentativeGameDesign =>
+          'https://www.fifatrainingcentre.com/en/practice/training-perspectives/designing-games-for-development/the-role-of-player-numbers-and-space.php',
+      };
+}
+
+enum PressurePlayPhase { buildUp, progression, chanceCreation }
+
+enum PressureRoleRelationship {
+  receiverPressureAndOutlets,
+  carrierAndOffBallSupport,
+  carrierRunnerAndBackLine,
+  carrierRecycleAndFarSideOutlet,
+}
+
+enum PressureConditionalRubric {
+  escapePressureOrRelease,
+  changeTheSupportAngle,
+  releaseAnOnsideMovingRunner,
+  recycleOnlyWhenForwardPlayIsClosed,
+}
+
+class PressureLessonMetadata {
+  final PressureCoachingPrinciple principle;
+  final List<PressureCoachingSource> sources;
+  final PressureFieldBand fieldBand;
+  final PressureFieldChannel fieldChannel;
+  final PressurePlayPhase phase;
+  final PressureRoleRelationship roleRelationship;
+  final PressureLearningObjective learningObjective;
+  final List<PressureObservationFact> observableCues;
+  final PressureContrastFeature contrastFeature;
+  final PressureConditionalRubric rubric;
+
+  const PressureLessonMetadata({
+    required this.principle,
+    required this.sources,
+    required this.fieldBand,
+    required this.fieldChannel,
+    required this.phase,
+    required this.roleRelationship,
+    required this.learningObjective,
+    required this.observableCues,
+    required this.contrastFeature,
+    required this.rubric,
+  });
 }
 
 enum PressureObservationFact {
@@ -162,6 +235,110 @@ enum PressureActionLimitation {
   closingPressure,
   limitedProgression,
   remainingPressure,
+}
+
+enum PressureIdeaAssessment {
+  fitsObservedCondition,
+  defensibleTradeoff,
+  opportunityNotCreated,
+  conflictsWithObservedCondition,
+  insufficientEvidence,
+}
+
+enum PressureCoachingReason {
+  movedAwayFromPressure,
+  carriedIntoClearSpace,
+  carriedIntoPressure,
+  safeReleaseBeforePressure,
+  movedTowardPressure,
+  safeOutletWithProgressTradeoff,
+  safeBackwardOutlet,
+  safeOutletWhileRunnerWindowClosed,
+  supportTargetOffersAngle,
+  supportTargetCovered,
+  supportRelationUnchanged,
+  runnerWindowAvailable,
+  runnerWindowNotAvailable,
+  runnerAdjustedToClosedWindow,
+  runnerOffsideAtRelease,
+  receiverOffsideAtRelease,
+  forwardRouteClosedRecycleFits,
+  forwardRouteOpenRecycleTradesProgress,
+  blockedForwardRoute,
+  forwardRouteAvailable,
+  evidenceInsufficient,
+}
+
+enum PressureRemainingRisk {
+  noneObserved,
+  nearbyPressure,
+  coveredLane,
+  lostProgression,
+  offsideWindow,
+  physicalExecution,
+}
+
+/// Geometry and motion facts available at the exact decision snapshot.
+///
+/// These facts contain no authored success answer and remain distinct from the
+/// later contact, interception, loose-ball or retained outcome.
+class PressurePreActionFacts {
+  final PressureWorld before;
+  final double nearestPressureMetres;
+  final PressureApproachSide pressureSide;
+  final bool pressureClosing;
+  final bool forwardPlayOpen;
+  final bool backwardOutletOpen;
+  final bool selectedLaneUsable;
+  final double selectedLaneClearanceMetres;
+  final bool selectedReceiverOnsideAtRelease;
+  final bool runnerMovingForward;
+  final bool runnerOnsideAtRelease;
+  final bool runnerWindowOpen;
+  final double offsideReferenceX;
+  final bool supportTargetOffersAngle;
+  final int? selectedReceiverNumber;
+  final int nearestDefenderNumber;
+
+  const PressurePreActionFacts({
+    required this.before,
+    required this.nearestPressureMetres,
+    required this.pressureSide,
+    required this.pressureClosing,
+    required this.forwardPlayOpen,
+    required this.backwardOutletOpen,
+    required this.selectedLaneUsable,
+    required this.selectedLaneClearanceMetres,
+    required this.selectedReceiverOnsideAtRelease,
+    required this.runnerMovingForward,
+    required this.runnerOnsideAtRelease,
+    required this.runnerWindowOpen,
+    required this.offsideReferenceX,
+    required this.supportTargetOffersAngle,
+    required this.selectedReceiverNumber,
+    required this.nearestDefenderNumber,
+  });
+}
+
+/// A conditional assessment of the football idea, before the physical result.
+///
+/// [facts.before] is the same immutable object recorded by the decision. The
+/// assessment may describe a defensible idea even when execution is later
+/// intercepted or loose.
+class PressureCoachingAnalysis {
+  final PressureCoachingPrinciple principle;
+  final PressurePreActionFacts facts;
+  final PressureIdeaAssessment idea;
+  final PressureCoachingReason reason;
+  final PressureRemainingRisk remainingRisk;
+
+  const PressureCoachingAnalysis({
+    required this.principle,
+    required this.facts,
+    required this.idea,
+    required this.reason,
+    required this.remainingRisk,
+  });
 }
 
 /// Measured situation facts for the persistent decision ribbon.
@@ -611,6 +788,7 @@ class PressureLessonScenario {
   final PressureLearningFamily family;
   final PressureLessonVariant variant;
   final PressureLearningObjective learningObjective;
+  final PressureLessonMetadata metadata;
   final List<PressureObservationFact> observationFacts;
   final PressureContrastFeature contrastFeature;
   final PressureEpisodeDecisionKind initialDecisionKind;
@@ -624,6 +802,25 @@ class PressureLessonScenario {
     this.family = PressureLearningFamily.pressureReception,
     this.variant = PressureLessonVariant.guided,
     this.learningObjective = PressureLearningObjective.receiveAwayFromPressure,
+    this.metadata = const PressureLessonMetadata(
+      principle: PressureCoachingPrinciple.receiveUnderPressure,
+      sources: [
+        PressureCoachingSource.fifaPassingAndReceiving,
+        PressureCoachingSource.fifaRepresentativeGameDesign,
+      ],
+      fieldBand: PressureFieldBand.middleThird,
+      fieldChannel: PressureFieldChannel.right,
+      phase: PressurePlayPhase.progression,
+      roleRelationship: PressureRoleRelationship.receiverPressureAndOutlets,
+      learningObjective: PressureLearningObjective.receiveAwayFromPressure,
+      observableCues: [
+        PressureObservationFact.pressureSide,
+        PressureObservationFact.pressureSpeed,
+        PressureObservationFact.coverLane,
+      ],
+      contrastFeature: PressureContrastFeature.approachSide,
+      rubric: PressureConditionalRubric.escapePressureOrRelease,
+    ),
     this.observationFacts = const [
       PressureObservationFact.pressureSide,
       PressureObservationFact.coverLane,
@@ -647,6 +844,7 @@ class PressureLessonScenario {
         family: family,
         variant: variant,
         learningObjective: learningObjective,
+        metadata: metadata,
         observationFacts: observationFacts,
         contrastFeature: contrastFeature,
         initialDecisionKind: initialDecisionKind,
@@ -824,6 +1022,7 @@ class PressureSupportResult {
 /// One selectable item in the complete learner-decision timeline.
 class PressureEpisodeDecision {
   final int index;
+  final PressureLessonScenario scenario;
   final PressureEpisodeDecisionKind kind;
   final String actorId;
   final PressureWorld before;
@@ -837,9 +1036,11 @@ class PressureEpisodeDecision {
   final PressureSupportResult? supportResult;
   final PressureRunPlan? runPlanBefore;
   final PressureRunPlan? runPlanAfter;
+  final PressureCoachingAnalysis coachingAnalysis;
 
   const PressureEpisodeDecision({
     required this.index,
+    required this.scenario,
     required this.kind,
     required this.actorId,
     required this.before,
@@ -853,6 +1054,7 @@ class PressureEpisodeDecision {
     required this.supportResult,
     required this.runPlanBefore,
     required this.runPlanAfter,
+    required this.coachingAnalysis,
   });
 
   int get actorNumber => before.actorById(actorId).number;
@@ -1021,6 +1223,7 @@ class PressureTeachingExample {
   final List<PressureEpisodeDecision> timeline;
   final PressureSceneTail? tail;
   final PressureEpisodeOutcome outcome;
+  final bool demonstratesPrinciple;
 
   PressureTeachingExample({
     required this.scenario,
@@ -1028,6 +1231,7 @@ class PressureTeachingExample {
     required List<PressureEpisodeDecision> timeline,
     required this.tail,
     required this.outcome,
+    required this.demonstratesPrinciple,
   }) : timeline = List.unmodifiable(timeline);
 
   PressureWorld get terminal => tail?.after ?? timeline.last.after;
@@ -1040,10 +1244,17 @@ class PressureTeachingExample {
 }
 
 class PressureLessonCatalog {
-  static const int familyCount = 6;
+  static const publicFamilies = <PressureLearningFamily>[
+    PressureLearningFamily.pressureReception,
+    PressureLearningFamily.supportAfterPass,
+    PressureLearningFamily.runnerTiming,
+    PressureLearningFamily.recycleAndSwitch,
+  ];
+
+  static const int familyCount = 4;
   static const int variantsPerFamily = 3;
-  static const int trainingCount = 12;
-  static const int heldOutCount = 6;
+  static const int trainingCount = 8;
+  static const int heldOutCount = 4;
   static const int situationCount = familyCount * variantsPerFamily;
 
   static List<PressureSceneJudgment> _judgmentsFor(
@@ -1109,28 +1320,119 @@ class PressureLessonCatalog {
           ],
       };
 
-  /// Guided and contrast cases stay paired. The six unseen combinations are
+  /// Guided and contrast cases stay paired. The four unseen combinations are
   /// deliberately placed after all learning pairs.
   static List<PressureLessonScenario> build({int seed = 19}) {
     final specs = <_PressureScenarioSpec>[
-      for (final family in PressureLearningFamily.values) ...[
+      for (final family in publicFamilies) ...[
         _spec(family, PressureLessonVariant.guided),
         _spec(family, PressureLessonVariant.contrast),
       ],
-      for (final family in PressureLearningFamily.values)
+      for (final family in publicFamilies)
         _spec(family, PressureLessonVariant.unseen),
     ];
     return List.unmodifiable([
-      for (final spec in specs)
-        _scenario(
-          spec,
-          math.Random(
-            seed * 997 +
-                spec.family.index * 131 +
-                (spec.variant == PressureLessonVariant.unseen ? 7919 : 0),
-          ),
-        ),
+      for (final spec in specs) _scenario(spec),
     ]);
+  }
+
+  static PressureLessonMetadata _metadataFor(
+    PressureLearningFamily family,
+    PressureLessonVariant variant,
+  ) {
+    final unseen = variant == PressureLessonVariant.unseen;
+    return switch (family) {
+      PressureLearningFamily.pressureReception => PressureLessonMetadata(
+          principle: PressureCoachingPrinciple.receiveUnderPressure,
+          sources: const [
+            PressureCoachingSource.fifaPassingAndReceiving,
+            PressureCoachingSource.fifaRepresentativeGameDesign,
+          ],
+          fieldBand: PressureFieldBand.middleThird,
+          fieldChannel: unseen
+              ? PressureFieldChannel.central
+              : PressureFieldChannel.right,
+          phase: PressurePlayPhase.progression,
+          roleRelationship: PressureRoleRelationship.receiverPressureAndOutlets,
+          learningObjective: PressureLearningObjective.receiveAwayFromPressure,
+          observableCues: const [
+            PressureObservationFact.pressureSide,
+            PressureObservationFact.pressureSpeed,
+            PressureObservationFact.coverLane,
+          ],
+          contrastFeature: PressureContrastFeature.approachSide,
+          rubric: PressureConditionalRubric.escapePressureOrRelease,
+        ),
+      PressureLearningFamily.supportAfterPass => PressureLessonMetadata(
+          principle: PressureCoachingPrinciple.offerUsableSupport,
+          sources: const [
+            PressureCoachingSource.fifaGoalkeeperBuildUp,
+            PressureCoachingSource.fifaRepresentativeGameDesign,
+          ],
+          fieldBand: PressureFieldBand.middleThird,
+          fieldChannel:
+              unseen ? PressureFieldChannel.left : PressureFieldChannel.central,
+          phase: PressurePlayPhase.buildUp,
+          roleRelationship: PressureRoleRelationship.carrierAndOffBallSupport,
+          learningObjective: PressureLearningObjective.moveAfterPassing,
+          observableCues: const [
+            PressureObservationFact.focusSupportLane,
+            PressureObservationFact.coverLane,
+            PressureObservationFact.pressureSpeed,
+          ],
+          contrastFeature: PressureContrastFeature.coverPosition,
+          rubric: PressureConditionalRubric.changeTheSupportAngle,
+        ),
+      PressureLearningFamily.runnerTiming => PressureLessonMetadata(
+          principle: PressureCoachingPrinciple.readRunnerAndRelease,
+          sources: const [
+            PressureCoachingSource.fifaBreakingPressAndPlayingBehind,
+            PressureCoachingSource.fifaRepresentativeGameDesign,
+          ],
+          fieldBand: PressureFieldBand.attackingThird,
+          fieldChannel:
+              unseen ? PressureFieldChannel.left : PressureFieldChannel.central,
+          phase: PressurePlayPhase.chanceCreation,
+          roleRelationship: PressureRoleRelationship.carrierRunnerAndBackLine,
+          learningObjective: PressureLearningObjective.timeTheThroughPass,
+          observableCues: const [
+            PressureObservationFact.runnerSpeed,
+            PressureObservationFact.trackerDepth,
+            PressureObservationFact.offsideReference,
+          ],
+          contrastFeature: PressureContrastFeature.runnerStart,
+          rubric: PressureConditionalRubric.releaseAnOnsideMovingRunner,
+        ),
+      PressureLearningFamily.recycleAndSwitch => PressureLessonMetadata(
+          principle: PressureCoachingPrinciple.recycleWhenForwardClosed,
+          sources: const [
+            PressureCoachingSource.fifaGoalkeeperBuildUp,
+            PressureCoachingSource.fifaRepresentativeGameDesign,
+          ],
+          fieldBand: PressureFieldBand.middleThird,
+          fieldChannel:
+              unseen ? PressureFieldChannel.right : PressureFieldChannel.left,
+          phase: PressurePlayPhase.buildUp,
+          roleRelationship:
+              PressureRoleRelationship.carrierRecycleAndFarSideOutlet,
+          learningObjective:
+              PressureLearningObjective.recycleWhenForwardPlayCloses,
+          observableCues: const [
+            PressureObservationFact.coverLane,
+            PressureObservationFact.farSideOutlet,
+            PressureObservationFact.pressureSpeed,
+          ],
+          contrastFeature: PressureContrastFeature.farSideClosure,
+          rubric: PressureConditionalRubric.recycleOnlyWhenForwardPlayIsClosed,
+        ),
+      PressureLearningFamily.drawAndRelease ||
+      PressureLearningFamily.thirdPlayer =>
+        throw ArgumentError.value(
+          family,
+          'family',
+          'Legacy family is not part of the public source-grounded catalog.',
+        ),
+    };
   }
 
   static _PressureScenarioSpec _spec(
@@ -1159,7 +1461,7 @@ class PressureLessonCatalog {
               : const ScanPassPoint(63, 21),
           support: unseen
               ? const ScanPassPoint(62, 31)
-              : const ScanPassPoint(68, 32),
+              : const ScanPassPoint(67, 32),
           runner: unseen
               ? const ScanPassPoint(69, 47)
               : const ScanPassPoint(74, 17),
@@ -1170,7 +1472,7 @@ class PressureLessonCatalog {
                   : const ScanPassPoint(61.8, 16.5),
           cover: unseen
               ? const ScanPassPoint(63, 39)
-              : const ScanPassPoint(68, 25.5),
+              : const ScanPassPoint(74, 30),
           tracker: unseen
               ? const ScanPassPoint(73, 46)
               : const ScanPassPoint(77, 18.5),
@@ -1250,22 +1552,19 @@ class PressureLessonCatalog {
               ? const ScanPassPoint(76, 49)
               : const ScanPassPoint(76, 24),
           presser: unseen
-              ? const ScanPassPoint(62.5, 43)
-              : const ScanPassPoint(62.5, 29.5),
+              ? const ScanPassPoint(62.5, 47.5)
+              : const ScanPassPoint(62.5, 26.5),
           cover: variant == PressureLessonVariant.contrast
               ? const ScanPassPoint(64, 25)
               : unseen
-                  ? const ScanPassPoint(68, 48)
+                  ? const ScanPassPoint(70, 45)
                   : const ScanPassPoint(70, 29),
           tracker: unseen
               ? const ScanPassPoint(78, 48)
               : const ScanPassPoint(79, 24),
           presserIntent: const ScanPassPoint(1.2, .25),
-          coverIntent: variant == PressureLessonVariant.contrast
-              ? const ScanPassPoint(-.8, .35)
-              : const ScanPassPoint(-.35, -.1),
-          coverReactivity:
-              variant == PressureLessonVariant.contrast ? .82 : .68,
+          coverIntent: const ScanPassPoint(-.35, -.1),
+          coverReactivity: .68,
           runnerIntent: const ScanPassPoint(2.0, 0),
         );
       case PressureLearningFamily.runnerTiming:
@@ -1291,23 +1590,21 @@ class PressureLessonCatalog {
               ? const ScanPassPoint(69, 34)
               : const ScanPassPoint(68, 49),
           runner: variant == PressureLessonVariant.contrast
-              ? const ScanPassPoint(79, 34)
+              ? const ScanPassPoint(73.2, 34)
               : unseen
-                  ? const ScanPassPoint(82, 53)
-                  : const ScanPassPoint(75, 34),
+                  ? const ScanPassPoint(72, 53)
+                  : const ScanPassPoint(69, 34),
           presser: unseen
               ? const ScanPassPoint(62, 51)
               : const ScanPassPoint(61, 44),
           cover: unseen
-              ? const ScanPassPoint(72, 44)
-              : const ScanPassPoint(72, 41),
+              ? const ScanPassPoint(80, 44)
+              : const ScanPassPoint(76.5, 41),
           tracker: unseen
               ? const ScanPassPoint(87, 51)
-              : const ScanPassPoint(80, 35),
+              : const ScanPassPoint(82, 35),
           presserIntent: const ScanPassPoint(1.2, -.9),
-          runnerIntent: variant == PressureLessonVariant.contrast
-              ? const ScanPassPoint(.7, 0)
-              : const ScanPassPoint(3.2, -.35),
+          runnerIntent: const ScanPassPoint(3.2, -.35),
         );
       case PressureLearningFamily.thirdPlayer:
         return _PressureScenarioSpec(
@@ -1372,41 +1669,37 @@ class PressureLessonCatalog {
               : const ScanPassPoint(61, 22),
           runner: unseen
               ? const ScanPassPoint(82, 14)
-              : const ScanPassPoint(83, 47),
+              : const ScanPassPoint(78, 47),
           presser: unseen
               ? const ScanPassPoint(70, 23)
               : const ScanPassPoint(71, 45),
           cover: variant == PressureLessonVariant.contrast
-              ? const ScanPassPoint(68, 35)
+              ? const ScanPassPoint(86, 43)
               : unseen
                   ? const ScanPassPoint(69, 40)
                   : const ScanPassPoint(76, 43),
           tracker: unseen
               ? const ScanPassPoint(78, 16)
-              : const ScanPassPoint(79, 48),
+              : const ScanPassPoint(84, 48),
           presserIntent: const ScanPassPoint(1.4, 1.0),
           runnerIntent: const ScanPassPoint(1.3, 0),
         );
     }
   }
 
-  static PressureLessonScenario _scenario(
-    _PressureScenarioSpec spec,
-    math.Random random,
-  ) {
-    double jitter() => (random.nextDouble() - .5) * .22;
-    ScanPassPoint j(ScanPassPoint point) =>
-        ScanPassPoint(point.x + jitter(), point.y + jitter());
-    final passer = j(spec.passer);
-    final focus = j(spec.focus);
-    final support = j(spec.support);
-    final runner = j(spec.runner);
-    final presser = j(spec.presser);
-    final cover = j(spec.cover);
-    final tracker = j(spec.tracker);
+  static PressureLessonScenario _scenario(_PressureScenarioSpec spec) {
+    // These are authored teaching coordinates, not tracking data. Keeping them
+    // exact makes a paired start differ only in its declared football cue.
+    final passer = spec.passer;
+    final focus = spec.focus;
+    final support = spec.support;
+    final runner = spec.runner;
+    final presser = spec.presser;
+    final cover = spec.cover;
+    final tracker = spec.tracker;
     final actors = <PressureActor>[
       PressureActor(
-        id: 'esp-2-carvajal',
+        id: 'lesson-attack-passer',
         number: 2,
         team: PressureTeam.attack,
         role: PressureActorRole.passer,
@@ -1416,7 +1709,7 @@ class PressureLessonCatalog {
         maxSpeed: 5.8,
       ),
       PressureActor(
-        id: 'esp-19-yamal',
+        id: 'lesson-attack-receiver',
         number: 19,
         team: PressureTeam.attack,
         role: PressureActorRole.receiver,
@@ -1427,7 +1720,7 @@ class PressureLessonCatalog {
         maxAcceleration: 6.8,
       ),
       PressureActor(
-        id: 'esp-10-olmo',
+        id: 'lesson-attack-support',
         number: 10,
         team: PressureTeam.attack,
         role: PressureActorRole.support,
@@ -1437,7 +1730,7 @@ class PressureLessonCatalog {
         maxSpeed: 6.5,
       ),
       PressureActor(
-        id: 'esp-17-williams',
+        id: 'lesson-attack-runner',
         number: 17,
         team: PressureTeam.attack,
         role: PressureActorRole.runner,
@@ -1448,7 +1741,7 @@ class PressureLessonCatalog {
         maxAcceleration: 4.8,
       ),
       PressureActor(
-        id: 'eng-3-shaw',
+        id: 'lesson-defense-presser',
         number: 3,
         team: PressureTeam.defense,
         role: PressureActorRole.presser,
@@ -1461,7 +1754,7 @@ class PressureLessonCatalog {
         reactivity: spec.presserReactivity,
       ),
       PressureActor(
-        id: 'eng-4-rice',
+        id: 'lesson-defense-cover',
         number: 4,
         team: PressureTeam.defense,
         role: PressureActorRole.cover,
@@ -1474,7 +1767,7 @@ class PressureLessonCatalog {
         reactivity: spec.coverReactivity,
       ),
       PressureActor(
-        id: 'eng-5-stones',
+        id: 'lesson-defense-tracker',
         number: 5,
         team: PressureTeam.defense,
         role: PressureActorRole.tracker,
@@ -1495,6 +1788,7 @@ class PressureLessonCatalog {
       family: spec.family,
       variant: spec.variant,
       learningObjective: spec.objective,
+      metadata: _metadataFor(spec.family, spec.variant),
       observationFacts: spec.facts,
       contrastFeature: spec.contrastFeature,
       initialDecisionKind: spec.initialDecisionKind,
@@ -1563,7 +1857,6 @@ class ScanPassPressureEngine {
   static const double touchMaximumMetres = 2.5;
   static const double touchMinimumMetres = 1.0;
   static const double contactRadiusMetres = .78;
-  static const double localOffsideReferenceMetres = 92;
 
   final double stepSeconds;
 
@@ -1796,6 +2089,7 @@ class ScanPassPressureEngine {
     final planAfter = _updatedRunPlan(planBefore, result.after);
     final decision = PressureEpisodeDecision(
       index: episode.timeline.length,
+      scenario: episode.scenario,
       kind: kind!,
       actorId: actorId,
       before: episode.world,
@@ -1809,6 +2103,12 @@ class ScanPassPressureEngine {
       supportResult: null,
       runPlanBefore: planBefore,
       runPlanAfter: planAfter,
+      coachingAnalysis: _analyzeActionIdea(
+        episode.scenario,
+        episode.world,
+        option,
+        runPlan: planBefore,
+      ),
     );
     return _continueEpisode(episode, decision);
   }
@@ -1846,6 +2146,7 @@ class ScanPassPressureEngine {
     );
     final decision = PressureEpisodeDecision(
       index: episode.timeline.length,
+      scenario: episode.scenario,
       kind: PressureEpisodeDecisionKind.support,
       actorId: actorId,
       before: episode.world,
@@ -1859,6 +2160,11 @@ class ScanPassPressureEngine {
       supportResult: result,
       runPlanBefore: episode.runPlan,
       runPlanAfter: plan,
+      coachingAnalysis: _analyzeSupportIdea(
+        episode.scenario,
+        episode.world,
+        result,
+      ),
     );
     return _continueEpisode(episode, decision);
   }
@@ -1901,6 +2207,7 @@ class ScanPassPressureEngine {
     );
     return PressureEpisodeDecision(
       index: original.index,
+      scenario: original.scenario,
       kind: original.kind,
       actorId: original.actorId,
       before: original.before,
@@ -1914,19 +2221,36 @@ class ScanPassPressureEngine {
       supportResult: null,
       runPlanBefore: original.runPlanBefore,
       runPlanAfter: _updatedRunPlan(original.runPlanBefore, result.after),
+      coachingAnalysis: _analyzeActionIdea(
+        original.scenario,
+        original.before,
+        option,
+        runPlan: original.runPlanBefore,
+      ),
     );
   }
 
   PressureEpisodeDecision alternativeSupport(
     PressureEpisodeDecision original,
     ScanPassPoint target,
-  ) {
+  ) =>
+      _alternativeSupport(
+        original,
+        target,
+        stationaryMover: true,
+      );
+
+  PressureEpisodeDecision _alternativeSupport(
+    PressureEpisodeDecision original,
+    ScanPassPoint target, {
+    required bool stationaryMover,
+  }) {
     final result = simulateSupport(
       original.before,
       target,
       focusRole: original.before.actorById(original.actorId).role,
       actorId: original.actorId,
-      stationaryMover: true,
+      stationaryMover: stationaryMover,
     );
     final plan = PressureRunPlan(
       actorId: original.actorId,
@@ -1942,6 +2266,7 @@ class ScanPassPressureEngine {
     );
     return PressureEpisodeDecision(
       index: original.index,
+      scenario: original.scenario,
       kind: PressureEpisodeDecisionKind.support,
       actorId: original.actorId,
       before: original.before,
@@ -1955,7 +2280,56 @@ class ScanPassPressureEngine {
       supportResult: result,
       runPlanBefore: original.runPlanBefore,
       runPlanAfter: plan,
+      coachingAnalysis: _analyzeSupportIdea(
+        original.scenario,
+        original.before,
+        result,
+      ),
     );
+  }
+
+  /// Chooses an instructionally relevant same-snapshot comparison.
+  ///
+  /// The alternative must be a conditionally defensible idea when one exists;
+  /// it is not selected by outcome quality or a generic numeric rank.
+  PressureEpisodeDecision? relevantAlternative(
+    PressureEpisodeDecision original,
+  ) {
+    if (original.kind == PressureEpisodeDecisionKind.support) {
+      final actor = original.before.actorById(original.actorId);
+      if (original.supportResult!.movementDistanceMetres > .08) {
+        return alternativeSupport(original, actor.position);
+      }
+      for (final target
+          in _supportPolicyTargets(original.scenario, original.before, actor)) {
+        final candidate = _alternativeSupport(
+          original,
+          target,
+          stationaryMover: false,
+        );
+        if (candidate.coachingAnalysis.idea ==
+            PressureIdeaAssessment.fitsObservedCondition) {
+          return candidate;
+        }
+      }
+      return null;
+    }
+    final chosenKey = original.selectedOption?.key;
+    PressureEpisodeDecision? sameReasonFallback;
+    for (final option
+        in original.availableOptions.where((item) => item.key != chosenKey)) {
+      final candidate = alternativeOption(original, option);
+      final idea = candidate.coachingAnalysis.idea;
+      final defensible = idea == PressureIdeaAssessment.fitsObservedCondition ||
+          idea == PressureIdeaAssessment.defensibleTradeoff;
+      if (!defensible) continue;
+      if (candidate.coachingAnalysis.reason !=
+          original.coachingAnalysis.reason) {
+        return candidate;
+      }
+      sameReasonFallback ??= candidate;
+    }
+    return sameReasonFallback;
   }
 
   PressureSupportResult simulateSupport(
@@ -2117,7 +2491,20 @@ class ScanPassPressureEngine {
     final scheduleComplete = timeline.length >= episode.maxDecisions ||
         timeline.length >= episode.scenario.sceneJudgments.length;
     if (outcome == null && scheduleComplete) {
-      tail = _simulateTail(world, runPlan);
+      tail = _timelineDemonstratesPrinciple(
+        episode.scenario,
+        episode.observation,
+        timeline,
+      )
+          ? PressureSceneTail(
+              before: world,
+              after: world,
+              trace: PressureTrace([world]),
+              actions: const [],
+              runPlanBefore: runPlan,
+              runPlanAfter: _updatedRunPlan(runPlan, world),
+            )
+          : _simulateTail(world, runPlan);
       world = tail.after;
       runPlan = tail.runPlanAfter;
       outcome = _terminalOutcome(tail.offside, world) ??
@@ -2255,104 +2642,318 @@ class ScanPassPressureEngine {
     );
   }
 
-  /// Builds a bounded learning example from the same scene start. Candidate
-  /// selection may use the declared teaching objective, but every candidate is
-  /// executed by the ordinary sampled resolver and no result is forced.
-  PressureTeachingExample teachingExample(PressureLessonScenario scenario) {
+  /// Builds a bounded source-principle example from the same scene start.
+  ///
+  /// This is a small conditional intent policy, not a weighted best-play
+  /// selector. Every candidate still uses the ordinary physical resolver. If
+  /// the model cannot demonstrate the declared principle, no example is shown.
+  PressureTeachingExample? teachingExample(PressureLessonScenario scenario) {
     var episode = startEpisode(scenario);
     while (!episode.isComplete) {
-      if (episode.pendingDecision == PressureEpisodeDecisionKind.support) {
-        final actor = episode.world.actorById(episode.pendingActorId!);
-        final targets = <ScanPassPoint>[
-          actor.position + const ScanPassPoint(8, 0),
-          actor.position + const ScanPassPoint(-8, 0),
-          actor.position + const ScanPassPoint(0, 8),
-          actor.position + const ScanPassPoint(0, -8),
-          actor.position + const ScanPassPoint(6, 0),
-          actor.position + const ScanPassPoint(4.5, 4.5),
-          actor.position + const ScanPassPoint(4.5, -4.5),
-          actor.position + const ScanPassPoint(-4.5, -4.5),
-          actor.position + const ScanPassPoint(-3.5, 4.5),
-          actor.position,
-        ];
-        PressureEpisodeState? selected;
-        var bestScore = -double.infinity;
-        for (final target in targets) {
-          final candidate = chooseSupportTarget(episode, target);
-          if (candidate.timeline.length == episode.timeline.length) continue;
-          final support = candidate.timeline.last.supportResult!;
-          var score = candidate.world.possession == PressurePossession.attack
-              ? 1000.0
-              : -1000.0;
-          score += support.movementDistanceMetres * .4;
-          score += support.laneChanges
-                  .where((lane) => lane.usableAfter && !lane.usableBefore)
-                  .length *
-              30;
-          score += support.laneChanges
-              .map((lane) => lane.clearanceChangeMetres)
-              .fold(0.0, math.max);
-          score += math.max(0, support.separationChangeMetres) * 8;
-          if (score > bestScore) {
-            bestScore = score;
-            selected = candidate;
-          }
-        }
-        episode = selected!;
-        continue;
-      }
-      PressureEpisodeState? selected;
-      var bestScore = -double.infinity;
-      for (final option in episodeOptions(episode)) {
-        final candidate = chooseEpisodeOption(episode, option);
-        if (candidate.timeline.length == episode.timeline.length) continue;
-        final result = candidate.timeline.last.actionResult!;
-        var score = result.after.possession == PressurePossession.attack
-            ? 1000.0
-            : -1000.0;
-        if (candidate.isComplete) {
-          score += candidate.world.possession == PressurePossession.attack
-              ? 250
-              : -1400;
-          if (candidate.outcome == PressureEpisodeOutcome.offside) {
-            score -= 800;
-          }
-        }
-        if (result.offside) score -= 800;
-        score += result.assessment.pressureClearanceMetres * 4;
-        score += result.assessment.actionProgressMetres * 2;
-        score += result.assessment.connections
-                .where((connection) => connection.safe && connection.forward)
-                .length *
-            12;
-        score += switch (scenario.learningObjective) {
-          PressureLearningObjective.receiveAwayFromPressure =>
-            result.assessment.pressureClearanceMetres * 3,
-          PressureLearningObjective.commitThenRelease =>
-            option.action.kind == PressureActionKind.carry ? 3 : 5,
-          PressureLearningObjective.moveAfterPassing =>
-            option.action.kind == PressureActionKind.pass ? 6 : 0,
-          PressureLearningObjective.timeTheThroughPass =>
-            result.intendedReceiverRole == PressureActorRole.runner ? 8 : 0,
-          PressureLearningObjective.connectTheThirdPlayer =>
-            option.action.kind == PressureActionKind.pass ? 7 : 0,
-          PressureLearningObjective.recycleWhenForwardPlayCloses =>
-            option.kind == PressureOptionKind.recycle ? 8 : 0,
-        };
-        if (score > bestScore) {
-          bestScore = score;
-          selected = candidate;
-        }
-      }
-      episode = selected!;
+      final selected =
+          episode.pendingDecision == PressureEpisodeDecisionKind.support
+              ? _teachingSupportStep(episode)
+              : _teachingOnBallStep(episode);
+      if (selected == null) return null;
+      episode = selected;
     }
+    if (!_exampleDemonstratesPrinciple(episode)) return null;
     return PressureTeachingExample(
       scenario: scenario,
       observation: episode.observation,
       timeline: episode.timeline,
       tail: episode.tail,
       outcome: episode.outcome!,
+      demonstratesPrinciple: true,
     );
+  }
+
+  PressureEpisodeState? _teachingSupportStep(PressureEpisodeState episode) {
+    final actor = episode.world.actorById(episode.pendingActorId!);
+    final runnerPrinciple = episode.scenario.metadata.principle ==
+        PressureCoachingPrinciple.readRunnerAndRelease;
+    final supportPrinciple = episode.scenario.metadata.principle ==
+        PressureCoachingPrinciple.offerUsableSupport;
+    final initialRunnerWindow = _runnerWindowOpen(episode.world);
+    final targets =
+        _supportPolicyTargets(episode.scenario, episode.world, actor);
+    for (final target in targets) {
+      final candidate = chooseSupportTarget(episode, target);
+      if (candidate.timeline.length == episode.timeline.length) continue;
+      final decision = candidate.timeline.last;
+      if (decision.after.possession == PressurePossession.attack &&
+          decision.coachingAnalysis.idea ==
+              PressureIdeaAssessment.fitsObservedCondition) {
+        if (supportPrinciple) {
+          final lane = decision.supportResult!.demonstratedPositiveLaneChange;
+          if (lane == null || !lane.usableAfter) continue;
+          final linkedOption = episodeOptions(candidate)
+              .where((option) => option.targetRole == lane.receiverRole)
+              .firstOrNull;
+          if (linkedOption == null) continue;
+          final linked = chooseEpisodeOption(candidate, linkedOption);
+          final linkedDecision = linked.timeline.last;
+          if (linkedDecision.after.possession != PressurePossession.attack ||
+              linkedDecision.offside ||
+              linkedDecision.after.carrier?.role != lane.receiverRole) {
+            continue;
+          }
+        }
+        if (runnerPrinciple && initialRunnerWindow) {
+          final runnerOption = episodeOptions(candidate)
+              .where(
+                (option) => option.targetRole == PressureActorRole.runner,
+              )
+              .firstOrNull;
+          if (runnerOption == null) continue;
+          final release = chooseEpisodeOption(candidate, runnerOption);
+          final releaseDecision = release.timeline.last;
+          if (releaseDecision.after.possession != PressurePossession.attack ||
+              releaseDecision.offside ||
+              releaseDecision.coachingAnalysis.idea !=
+                  PressureIdeaAssessment.fitsObservedCondition) {
+            continue;
+          }
+        } else if (runnerPrinciple) {
+          final safeAlternative = episodeOptions(candidate)
+              .where((option) => option.targetRole != PressureActorRole.runner)
+              .map((option) => chooseEpisodeOption(candidate, option))
+              .where((next) =>
+                  next.timeline.last.after.possession ==
+                      PressurePossession.attack &&
+                  next.timeline.last.coachingAnalysis.idea ==
+                      PressureIdeaAssessment.fitsObservedCondition)
+              .firstOrNull;
+          if (safeAlternative == null) continue;
+        }
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  List<ScanPassPoint> _supportPolicyTargets(
+    PressureLessonScenario scenario,
+    PressureWorld world,
+    PressureActor actor,
+  ) {
+    if (scenario.metadata.principle ==
+        PressureCoachingPrinciple.readRunnerAndRelease) {
+      final windowOpen = _runnerWindowOpen(world);
+      final line = offsideReferenceX(world);
+      if (!windowOpen) {
+        return [
+          ScanPassPoint(
+              math.min(actor.position.x, line - .45), actor.position.y + 3.5),
+          ScanPassPoint(
+              math.min(actor.position.x, line - .45), actor.position.y - 3.5),
+          actor.position + const ScanPassPoint(-3.5, 0),
+        ];
+      }
+      return [
+        ScanPassPoint(
+          math.min(actor.position.x + 4.0, line - .35),
+          actor.position.y,
+        ),
+        actor.position + const ScanPassPoint(2.5, -2.5),
+        actor.position + const ScanPassPoint(2.5, 2.5),
+        actor.position + const ScanPassPoint(1.5, 0),
+      ];
+    }
+    return [
+      actor.position + const ScanPassPoint(0, 8),
+      actor.position + const ScanPassPoint(4, 4),
+      actor.position + const ScanPassPoint(0, -8),
+      actor.position + const ScanPassPoint(4, -4),
+      actor.position + const ScanPassPoint(-4, 4),
+      actor.position + const ScanPassPoint(-4, -4),
+      actor.position + const ScanPassPoint(8, 0),
+      actor.position + const ScanPassPoint(-8, 0),
+    ];
+  }
+
+  PressureEpisodeState? _teachingOnBallStep(PressureEpisodeState episode) {
+    final options = episodeOptions(episode);
+    if (options.isEmpty) return null;
+    final forwardOpen = connections(episode.world).any(
+      (connection) => connection.safe && connection.forward,
+    );
+    final ordered = switch (episode.scenario.metadata.principle) {
+      PressureCoachingPrinciple.receiveUnderPressure => _receptionPolicyOptions(
+          episode.world,
+          options,
+        ),
+      PressureCoachingPrinciple.offerUsableSupport => [
+          ...options.where(
+              (option) => option.targetRole == episode.runPlan?.actorRole),
+          ...options.where((option) =>
+              option.targetRole != episode.runPlan?.actorRole &&
+              option.action.kind == PressureActionKind.pass),
+          ...options.where(
+              (option) => option.action.kind == PressureActionKind.carry),
+        ],
+      PressureCoachingPrinciple.readRunnerAndRelease => [
+          ...options
+              .where((option) => option.targetRole == PressureActorRole.runner),
+          ...options.where((option) =>
+              option.targetRole != PressureActorRole.runner &&
+              option.action.kind == PressureActionKind.pass),
+        ],
+      PressureCoachingPrinciple.recycleWhenForwardClosed => forwardOpen
+          ? [
+              ...options.where((option) =>
+                  option.action.kind == PressureActionKind.pass &&
+                  option.action.target.x > episode.world.ball.position.x),
+              ...options,
+            ]
+          : [
+              ...options
+                  .where((option) => option.kind == PressureOptionKind.recycle),
+              ...options.where((option) =>
+                  option.action.kind == PressureActionKind.pass &&
+                  (option.action.target.y - episode.world.ball.position.y)
+                          .abs() >
+                      10),
+              ...options,
+            ],
+    };
+    final seen = <String>{};
+    PressureEpisodeState? tradeoff;
+    for (final option in ordered) {
+      if (!seen.add(option.key)) continue;
+      final candidate = chooseEpisodeOption(episode, option);
+      if (candidate.timeline.length == episode.timeline.length) continue;
+      final decision = candidate.timeline.last;
+      if (decision.after.possession != PressurePossession.attack ||
+          decision.offside) {
+        continue;
+      }
+      if (decision.coachingAnalysis.idea ==
+          PressureIdeaAssessment.fitsObservedCondition) {
+        return candidate;
+      }
+      if (decision.coachingAnalysis.idea ==
+          PressureIdeaAssessment.defensibleTradeoff) {
+        tradeoff ??= candidate;
+      }
+    }
+    return tradeoff;
+  }
+
+  List<PressureDecisionOption> _receptionPolicyOptions(
+    PressureWorld world,
+    List<PressureDecisionOption> options,
+  ) {
+    final carrier = world.carrier!;
+    final available = connections(world);
+    int priority(PressureDecisionOption option) {
+      if (option.action.kind == PressureActionKind.firstTouch) {
+        if (_movesIntoClearCorridor(
+          world,
+          carrier.position,
+          option.action.target,
+        )) {
+          return 0;
+        }
+      }
+      if (option.action.kind == PressureActionKind.pass) {
+        final lane = available
+            .where((item) => item.receiverRole == option.targetRole)
+            .firstOrNull;
+        if (lane?.safe == true) return lane!.forward ? 1 : 2;
+      }
+      return 3;
+    }
+
+    return [...options]..sort((a, b) => priority(a).compareTo(priority(b)));
+  }
+
+  bool _exampleDemonstratesPrinciple(PressureEpisodeState episode) {
+    if (episode.timeline.isEmpty ||
+        episode.world.possession != PressurePossession.attack ||
+        episode.outcome == PressureEpisodeOutcome.offside ||
+        episode.outcome == PressureEpisodeOutcome.intercepted ||
+        episode.outcome == PressureEpisodeOutcome.loose) {
+      return false;
+    }
+    return _timelineDemonstratesPrinciple(
+      episode.scenario,
+      episode.observation,
+      episode.timeline,
+    );
+  }
+
+  bool _timelineDemonstratesPrinciple(
+    PressureLessonScenario scenario,
+    PressureObservation observation,
+    List<PressureEpisodeDecision> timeline,
+  ) {
+    bool retained(PressureEpisodeDecision decision) =>
+        decision.after.possession == PressurePossession.attack &&
+        !decision.offside;
+
+    return switch (scenario.metadata.principle) {
+      PressureCoachingPrinciple.receiveUnderPressure => timeline.any(
+          (decision) =>
+              decision.coachingAnalysis.reason ==
+                  PressureCoachingReason.movedAwayFromPressure &&
+              retained(decision),
+        ),
+      PressureCoachingPrinciple.offerUsableSupport => timeline.indexed.any(
+          (entry) {
+            final (index, decision) = entry;
+            final lane = decision.supportResult?.demonstratedPositiveLaneChange;
+            if (lane?.usableAfter != true) return false;
+            return timeline.skip(index + 1).any(
+                  (later) =>
+                      retained(later) &&
+                      later.after.carrier?.role == lane!.receiverRole,
+                );
+          },
+        ),
+      PressureCoachingPrinciple.readRunnerAndRelease =>
+        _runnerWindowOpen(observation.decisionState)
+            ? timeline.any(
+                (decision) =>
+                    decision.selectedOption?.targetRole ==
+                        PressureActorRole.runner &&
+                    retained(decision),
+              )
+            : timeline.any(
+                (decision) =>
+                    decision.coachingAnalysis.reason ==
+                        PressureCoachingReason
+                            .safeOutletWhileRunnerWindowClosed &&
+                    retained(decision),
+              ),
+      PressureCoachingPrinciple.recycleWhenForwardClosed =>
+        connections(observation.decisionState)
+                .any((connection) => connection.safe && connection.forward)
+            ? timeline.any(
+                (decision) =>
+                    decision.coachingAnalysis.reason ==
+                        PressureCoachingReason.forwardRouteAvailable &&
+                    retained(decision),
+              )
+            : timeline.any(
+                (decision) =>
+                    decision.coachingAnalysis.reason ==
+                        PressureCoachingReason.forwardRouteClosedRecycleFits &&
+                    retained(decision),
+              ),
+    };
+  }
+
+  bool _runnerWindowOpen(PressureWorld world) {
+    final runner = world.actorByRole(PressureActorRole.runner);
+    final lane = connections(world)
+        .where(
+            (connection) => connection.receiverRole == PressureActorRole.runner)
+        .firstOrNull;
+    return runner.velocity.x > .8 &&
+        receiverIsOnside(world, runner) &&
+        (lane?.safe ?? false) &&
+        (lane?.forward ?? false);
   }
 
   PressureAutomaticContinuation _adaptiveContinuation(
@@ -2360,32 +2961,46 @@ class ScanPassPressureEngine {
     PressureRunPlan? runPlan,
   ) {
     final options = optionsFor(world, PressureDecisionStage.reRead);
-    final candidates = <({
+    final forwardOpen = connections(world)
+        .any((connection) => connection.safe && connection.forward);
+    final localPasses = options
+        .where((option) =>
+            option.action.kind == PressureActionKind.pass &&
+            option.kind != PressureOptionKind.recycle)
+        .toList()
+      ..sort((a, b) => world.ball.position
+          .distanceTo(a.action.target)
+          .compareTo(world.ball.position.distanceTo(b.action.target)));
+    final ordered = [
+      if (forwardOpen)
+        ...options.where((option) =>
+            option.action.kind == PressureActionKind.pass &&
+            option.action.target.x > world.ball.position.x),
+      ...localPasses,
+      ...options
+          .where((option) => option.action.kind == PressureActionKind.carry),
+      ...options.where((option) => option.kind == PressureOptionKind.recycle),
+      ...options
+          .where((option) => option.action.kind == PressureActionKind.pass),
+    ];
+    ({
       PressureDecisionOption option,
-      PressureSimulationResult result,
-      double score,
-    })>[];
-    for (final option in options) {
+      PressureSimulationResult result
+    })? selected;
+    final seen = <String>{};
+    for (final option in ordered) {
+      if (!seen.add(option.key)) continue;
       final result = _simulateOption(world, option, runPlan: runPlan);
-      var score = result.after.possession == PressurePossession.attack
-          ? 100.0
-          : -1000.0;
-      if (result.offside) score -= 800;
-      score += result.assessment.actionProgressMetres * 1.35;
-      score += result.assessment.pressureClearanceMetres * 3.0;
-      score += result.assessment.connections
-              .where((connection) => connection.safe && connection.forward)
-              .length *
-          7.0;
-      if (option.kind == PressureOptionKind.recycle) {
-        final forwardOpen = connections(world)
-            .any((connection) => connection.safe && connection.forward);
-        score += forwardOpen ? -7 : 9;
+      if (result.after.possession == PressurePossession.attack &&
+          !result.offside) {
+        selected = (option: option, result: result);
+        break;
       }
-      candidates.add((option: option, result: result, score: score));
     }
-    candidates.sort((a, b) => b.score.compareTo(a.score));
-    final selected = candidates.first;
+    selected ??= (
+      option: options.first,
+      result: _simulateOption(world, options.first, runPlan: runPlan),
+    );
     final kind = selected.option.action.kind == PressureActionKind.carry
         ? PressureAutomaticKind.carry
         : selected.option.kind == PressureOptionKind.recycle
@@ -2566,6 +3181,392 @@ class ScanPassPressureEngine {
     );
   }
 
+  PressureCoachingAnalysis _analyzeActionIdea(
+    PressureLessonScenario scenario,
+    PressureWorld before,
+    PressureDecisionOption option, {
+    PressureRunPlan? runPlan,
+  }) {
+    final carrier = before.carrier!;
+    final nearest = _nearestDefender(before, carrier.position);
+    final context = situationContext(
+      before,
+      option.action.kind == PressureActionKind.firstTouch
+          ? PressureDecisionStage.firstContact
+          : PressureDecisionStage.reRead,
+      decisionActorId: carrier.id,
+    );
+    final available = connections(before);
+    final selectedConnection = option.targetRole == null
+        ? null
+        : available
+            .where((connection) => connection.receiverRole == option.targetRole)
+            .firstOrNull;
+    final plannedConnection =
+        runPlan?.isActive == true && option.targetRole == runPlan!.actorRole
+            ? _simulateOption(before, option, runPlan: runPlan)
+            : null;
+    final selectedLaneUsable = plannedConnection == null
+        ? selectedConnection?.safe ?? false
+        : plannedConnection.after.possession == PressurePossession.attack &&
+            !plannedConnection.offside &&
+            plannedConnection.after.carrier?.role == option.targetRole;
+    final selectedReceiver = option.targetRole == null
+        ? null
+        : before.actorByRole(option.targetRole!);
+    final selectedReceiverOnside =
+        selectedReceiver == null || receiverIsOnside(before, selectedReceiver);
+    final runner = before.actorByRole(PressureActorRole.runner);
+    final line = offsideReferenceX(before);
+    final forwardOpen = available.any(
+      (connection) => connection.safe && connection.forward,
+    );
+    final backwardOpen = available.any(
+      (connection) =>
+          connection.safe && connection.target.x < before.ball.position.x - .5,
+    );
+    final runnerConnection = available
+        .where(
+            (connection) => connection.receiverRole == PressureActorRole.runner)
+        .firstOrNull;
+    final runnerOnside = receiverIsOnside(before, runner);
+    final runnerMoving = runner.velocity.x > .8;
+    final plannedRunnerReception =
+        option.targetRole == PressureActorRole.runner &&
+            plannedConnection != null &&
+            plannedConnection.after.possession == PressurePossession.attack &&
+            !plannedConnection.offside &&
+            plannedConnection.after.carrier?.role == PressureActorRole.runner;
+    final runnerWindowOpen = runnerOnside &&
+        runnerMoving &&
+        ((runnerConnection?.safe ?? false) || plannedRunnerReception) &&
+        ((runnerConnection?.forward ?? false) || plannedRunnerReception);
+    final facts = PressurePreActionFacts(
+      before: before,
+      nearestPressureMetres: nearest.position.distanceTo(carrier.position),
+      pressureSide: context.approachSide,
+      pressureClosing: context.pressureMovement == PressureMovement.closing,
+      forwardPlayOpen: forwardOpen,
+      backwardOutletOpen: backwardOpen,
+      selectedLaneUsable: selectedLaneUsable,
+      selectedLaneClearanceMetres:
+          plannedConnection?.assessment.pressureClearanceMetres ??
+              selectedConnection?.closestDefenderMetres ??
+              0,
+      selectedReceiverOnsideAtRelease: selectedReceiverOnside,
+      runnerMovingForward: runnerMoving,
+      runnerOnsideAtRelease: runnerOnside,
+      runnerWindowOpen: runnerWindowOpen,
+      offsideReferenceX: line,
+      supportTargetOffersAngle: false,
+      selectedReceiverNumber: option.targetRole == null
+          ? null
+          : before.actorByRole(option.targetRole!).number,
+      nearestDefenderNumber: nearest.number,
+    );
+
+    PressureIdeaAssessment idea;
+    PressureCoachingReason reason;
+    PressureRemainingRisk risk;
+    if (option.action.kind == PressureActionKind.carry) {
+      final clear = _carryHasUsableCorridor(
+        before,
+        carrier.position,
+        option.action.target,
+      );
+      return PressureCoachingAnalysis(
+        principle: scenario.metadata.principle,
+        facts: facts,
+        idea: clear
+            ? PressureIdeaAssessment.fitsObservedCondition
+            : PressureIdeaAssessment.conflictsWithObservedCondition,
+        reason: clear
+            ? PressureCoachingReason.carriedIntoClearSpace
+            : PressureCoachingReason.carriedIntoPressure,
+        remainingRisk: clear
+            ? PressureRemainingRisk.physicalExecution
+            : PressureRemainingRisk.nearbyPressure,
+      );
+    }
+    if (option.action.kind == PressureActionKind.pass &&
+        !selectedReceiverOnside) {
+      return PressureCoachingAnalysis(
+        principle: scenario.metadata.principle,
+        facts: facts,
+        idea: PressureIdeaAssessment.conflictsWithObservedCondition,
+        reason: option.targetRole == PressureActorRole.runner
+            ? PressureCoachingReason.runnerOffsideAtRelease
+            : PressureCoachingReason.receiverOffsideAtRelease,
+        remainingRisk: PressureRemainingRisk.offsideWindow,
+      );
+    }
+    switch (scenario.metadata.principle) {
+      case PressureCoachingPrinciple.receiveUnderPressure:
+        if (option.action.kind == PressureActionKind.firstTouch) {
+          final clear = _movesIntoClearCorridor(
+            before,
+            carrier.position,
+            option.action.target,
+          );
+          idea = clear
+              ? PressureIdeaAssessment.fitsObservedCondition
+              : PressureIdeaAssessment.conflictsWithObservedCondition;
+          reason = clear
+              ? PressureCoachingReason.movedAwayFromPressure
+              : PressureCoachingReason.movedTowardPressure;
+          risk = facts.nearestPressureMetres < 2.4
+              ? PressureRemainingRisk.nearbyPressure
+              : PressureRemainingRisk.physicalExecution;
+        } else if (selectedLaneUsable) {
+          final backwards =
+              option.action.target.x < before.ball.position.x - .5;
+          idea = backwards && forwardOpen
+              ? PressureIdeaAssessment.defensibleTradeoff
+              : PressureIdeaAssessment.fitsObservedCondition;
+          reason = backwards && forwardOpen
+              ? PressureCoachingReason.safeOutletWithProgressTradeoff
+              : PressureCoachingReason.safeReleaseBeforePressure;
+          risk = backwards && forwardOpen
+              ? PressureRemainingRisk.lostProgression
+              : PressureRemainingRisk.physicalExecution;
+        } else {
+          idea = PressureIdeaAssessment.conflictsWithObservedCondition;
+          reason = PressureCoachingReason.blockedForwardRoute;
+          risk = PressureRemainingRisk.coveredLane;
+        }
+      case PressureCoachingPrinciple.offerUsableSupport:
+        if (selectedLaneUsable) {
+          idea = PressureIdeaAssessment.fitsObservedCondition;
+          reason = option.action.target.x >= before.ball.position.x + .5
+              ? PressureCoachingReason.forwardRouteAvailable
+              : PressureCoachingReason.safeBackwardOutlet;
+          risk = PressureRemainingRisk.physicalExecution;
+        } else {
+          idea = PressureIdeaAssessment.conflictsWithObservedCondition;
+          reason = PressureCoachingReason.blockedForwardRoute;
+          risk = PressureRemainingRisk.coveredLane;
+        }
+      case PressureCoachingPrinciple.readRunnerAndRelease:
+        if (option.targetRole == PressureActorRole.runner) {
+          if (!facts.runnerOnsideAtRelease) {
+            idea = PressureIdeaAssessment.conflictsWithObservedCondition;
+            reason = PressureCoachingReason.runnerOffsideAtRelease;
+            risk = PressureRemainingRisk.offsideWindow;
+          } else if (facts.runnerWindowOpen && facts.selectedLaneUsable) {
+            idea = PressureIdeaAssessment.fitsObservedCondition;
+            reason = PressureCoachingReason.runnerWindowAvailable;
+            risk = PressureRemainingRisk.physicalExecution;
+          } else {
+            idea = PressureIdeaAssessment.opportunityNotCreated;
+            reason = PressureCoachingReason.runnerWindowNotAvailable;
+            risk = facts.runnerMovingForward
+                ? PressureRemainingRisk.coveredLane
+                : PressureRemainingRisk.offsideWindow;
+          }
+        } else if (selectedLaneUsable) {
+          idea = runnerWindowOpen
+              ? PressureIdeaAssessment.defensibleTradeoff
+              : PressureIdeaAssessment.fitsObservedCondition;
+          reason = runnerWindowOpen
+              ? PressureCoachingReason.safeOutletWithProgressTradeoff
+              : PressureCoachingReason.safeOutletWhileRunnerWindowClosed;
+          risk = runnerWindowOpen
+              ? PressureRemainingRisk.lostProgression
+              : PressureRemainingRisk.physicalExecution;
+        } else {
+          idea = PressureIdeaAssessment.conflictsWithObservedCondition;
+          reason = PressureCoachingReason.blockedForwardRoute;
+          risk = PressureRemainingRisk.coveredLane;
+        }
+      case PressureCoachingPrinciple.recycleWhenForwardClosed:
+        final recycles = option.kind == PressureOptionKind.recycle ||
+            option.kind == PressureOptionKind.immediateBackPass ||
+            option.action.target.x < before.ball.position.x - .5;
+        if (recycles && !selectedLaneUsable) {
+          idea = PressureIdeaAssessment.conflictsWithObservedCondition;
+          reason = PressureCoachingReason.blockedForwardRoute;
+          risk = PressureRemainingRisk.coveredLane;
+        } else if (recycles) {
+          idea = forwardOpen
+              ? PressureIdeaAssessment.defensibleTradeoff
+              : PressureIdeaAssessment.fitsObservedCondition;
+          reason = forwardOpen
+              ? PressureCoachingReason.forwardRouteOpenRecycleTradesProgress
+              : PressureCoachingReason.forwardRouteClosedRecycleFits;
+          risk = forwardOpen
+              ? PressureRemainingRisk.lostProgression
+              : PressureRemainingRisk.physicalExecution;
+        } else if (selectedLaneUsable) {
+          idea = PressureIdeaAssessment.fitsObservedCondition;
+          reason = PressureCoachingReason.forwardRouteAvailable;
+          risk = PressureRemainingRisk.physicalExecution;
+        } else {
+          idea = PressureIdeaAssessment.conflictsWithObservedCondition;
+          reason = PressureCoachingReason.blockedForwardRoute;
+          risk = PressureRemainingRisk.coveredLane;
+        }
+    }
+    return PressureCoachingAnalysis(
+      principle: scenario.metadata.principle,
+      facts: facts,
+      idea: idea,
+      reason: reason,
+      remainingRisk: risk,
+    );
+  }
+
+  PressureCoachingAnalysis _analyzeSupportIdea(
+    PressureLessonScenario scenario,
+    PressureWorld before,
+    PressureSupportResult support,
+  ) {
+    final actor = before.actorById(support.actorId);
+    final nearest = _nearestDefender(before, actor.position);
+    final context = situationContext(
+      before,
+      PressureDecisionStage.support,
+      decisionActorId: actor.id,
+    );
+    final runner = before.actorByRole(PressureActorRole.runner);
+    final available = connections(before);
+    final forwardOpen = available.any(
+      (connection) => connection.safe && connection.forward,
+    );
+    final backwardOpen = available.any(
+      (connection) =>
+          connection.safe && connection.target.x < before.ball.position.x - .5,
+    );
+    final runnerConnection = available
+        .where(
+            (connection) => connection.receiverRole == PressureActorRole.runner)
+        .firstOrNull;
+    final runnerOnside = receiverIsOnside(before, runner);
+    final runnerMoving = runner.velocity.x > .8;
+    final runnerWindowOpen = runnerOnside &&
+        runnerMoving &&
+        (runnerConnection?.safe ?? false) &&
+        (runnerConnection?.forward ?? false);
+    final currentLaneClearance = _staticLaneClearance(
+      before,
+      before.ball.position,
+      actor.position,
+    );
+    final targetLaneClearance = _staticLaneClearance(
+      before,
+      before.ball.position,
+      support.boundedTarget,
+    );
+    final projectedAngle =
+        support.boundedTarget.distanceTo(actor.position) >= .5 &&
+            targetLaneClearance >= 1.2 &&
+            targetLaneClearance >= currentLaneClearance + .2;
+    final facts = PressurePreActionFacts(
+      before: before,
+      nearestPressureMetres: nearest.position.distanceTo(actor.position),
+      pressureSide: context.approachSide,
+      pressureClosing: context.pressureMovement == PressureMovement.closing,
+      forwardPlayOpen: forwardOpen,
+      backwardOutletOpen: backwardOpen,
+      selectedLaneUsable: projectedAngle,
+      selectedLaneClearanceMetres: targetLaneClearance,
+      selectedReceiverOnsideAtRelease: true,
+      runnerMovingForward: runnerMoving,
+      runnerOnsideAtRelease: runnerOnside,
+      runnerWindowOpen: runnerWindowOpen,
+      offsideReferenceX: offsideReferenceX(before),
+      supportTargetOffersAngle: projectedAngle,
+      selectedReceiverNumber: actor.number,
+      nearestDefenderNumber: nearest.number,
+    );
+    final runnerPrinciple = scenario.metadata.principle ==
+        PressureCoachingPrinciple.readRunnerAndRelease;
+    final runnerRecovers = !runnerOnside
+        ? support.boundedTarget.x <= offsideReferenceX(before) - .05
+        : support.boundedTarget.x <= actor.position.x + .5;
+    final runnerAttacksOpenWindow =
+        runnerWindowOpen && support.boundedTarget.x > actor.position.x + .5;
+    final supportFits = runnerPrinciple
+        ? runnerAttacksOpenWindow || (!runnerWindowOpen && runnerRecovers)
+        : projectedAngle;
+    return PressureCoachingAnalysis(
+      principle: scenario.metadata.principle,
+      facts: facts,
+      idea: supportFits
+          ? PressureIdeaAssessment.fitsObservedCondition
+          : PressureIdeaAssessment.opportunityNotCreated,
+      reason: runnerPrinciple
+          ? runnerAttacksOpenWindow
+              ? PressureCoachingReason.runnerWindowAvailable
+              : supportFits
+                  ? PressureCoachingReason.runnerAdjustedToClosedWindow
+                  : PressureCoachingReason.runnerWindowNotAvailable
+          : projectedAngle
+              ? PressureCoachingReason.supportTargetOffersAngle
+              : PressureCoachingReason.supportTargetCovered,
+      remainingRisk: runnerPrinciple
+          ? PressureRemainingRisk.offsideWindow
+          : projectedAngle
+              ? PressureRemainingRisk.physicalExecution
+              : PressureRemainingRisk.coveredLane,
+    );
+  }
+
+  bool _movesIntoClearCorridor(
+    PressureWorld world,
+    ScanPassPoint start,
+    ScanPassPoint target,
+  ) {
+    final defenders = world.team(PressureTeam.defense);
+    double clearance(ScanPassPoint point) => defenders
+        .map((defender) =>
+            (defender.position + defender.velocity * .25).distanceTo(point))
+        .reduce(math.min);
+    final startClearance = clearance(start);
+    final targetClearance = clearance(target);
+    final corridorClearance = defenders
+        .map((defender) => (defender.position + defender.velocity * .18)
+                .distanceTo(_closestPointOnSegment(
+              defender.position + defender.velocity * .18,
+              start,
+              target,
+            )))
+        .reduce(math.min);
+    return targetClearance >= startClearance + .04 &&
+        targetClearance >= 1.25 &&
+        corridorClearance >= .85;
+  }
+
+  bool _carryHasUsableCorridor(
+    PressureWorld world,
+    ScanPassPoint start,
+    ScanPassPoint target,
+  ) {
+    final defenders = world.team(PressureTeam.defense);
+    final targetClearance = defenders
+        .map((defender) =>
+            (defender.position + defender.velocity * .25).distanceTo(target))
+        .reduce(math.min);
+    final corridorClearance = defenders.map((defender) {
+      final predicted = defender.position + defender.velocity * .18;
+      return predicted.distanceTo(
+        _closestPointOnSegment(predicted, start, target),
+      );
+    }).reduce(math.min);
+    return targetClearance >= 2.0 && corridorClearance >= 1.15;
+  }
+
+  double _staticLaneClearance(
+    PressureWorld world,
+    ScanPassPoint from,
+    ScanPassPoint to,
+  ) =>
+      world
+          .team(PressureTeam.defense)
+          .map((defender) => defender.position.distanceTo(
+                _closestPointOnSegment(defender.position, from, to),
+              ))
+          .reduce(math.min);
+
   PressureActionEvidence actionEvidence(PressureSimulationResult result) {
     final beforeCarrier = result.before.carrier!;
     final beforeDefender =
@@ -2671,13 +3672,13 @@ class ScanPassPressureEngine {
     );
   }
 
-  /// Uses an explicit local offside reference for this reduced-sided lesson.
-  /// The reference represents the goal-side defenders outside the teaching
-  /// crop; visible defenders can move the line farther goal-side. The line is
-  /// shown on the pitch and is evaluated only when the intended receiver
-  /// actually receives or plays the pass. Merely standing beyond it is not an
-  /// offence, and a defender interception before reception remains an
-  /// interception.
+  /// Uses the actual release snapshot and visible defensive line.
+  ///
+  /// The reduced model has three outfield defenders and no keeper. The second
+  /// most goal-side visible defender supplies the defensive reference, and the
+  /// ball can move the effective line farther goal-side. This is intentionally
+  /// a simplified ground-point application rather than full Law 11 body-part
+  /// geometry.
   bool receiverIsOnside(PressureWorld world, PressureActor receiver) {
     if (receiver.position.x <= world.ball.position.x + .01 ||
         receiver.position.x <= fieldLengthMetres / 2) {
@@ -2686,10 +3687,15 @@ class ScanPassPressureEngine {
     return receiver.position.x <= offsideReferenceX(world) + .01;
   }
 
-  /// The visible reference used by the reduced-sided exercise. Equality is
-  /// onside; the receiver must be beyond both this line and the ball in the
-  /// opponents' half before involvement can be penalised.
-  double offsideReferenceX(PressureWorld _) => localOffsideReferenceMetres;
+  /// The visible effective reference at release. Equality is onside.
+  double offsideReferenceX(PressureWorld world) {
+    final defenders = world.team(PressureTeam.defense).toList()
+      ..sort((a, b) => b.position.x.compareTo(a.position.x));
+    final defensiveLine = defenders.length >= 2
+        ? defenders[1].position.x
+        : defenders.single.position.x;
+    return math.max(world.ball.position.x, defensiveLine);
+  }
 
   PressureSimulationResult simulate(
     PressureWorld before,
@@ -3240,7 +4246,7 @@ class ScanPassPressureEngine {
       var position = _clamp(actor.position + velocity * dt);
       if (actorTarget != null &&
           actor.position.distanceTo(actorTarget) <= .015 &&
-          actor.velocity.distance <= actor.maxAcceleration * dt + .01) {
+          actor.velocity.distance <= actor.maxAcceleration * dt + 1e-9) {
         position = actorTarget;
         velocity = const ScanPassPoint(0, 0);
       }

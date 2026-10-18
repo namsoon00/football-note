@@ -20935,7 +20935,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '受ける前にプレッシャーを読み、ファーストタッチで空間を作って次のパスコースを開きます。';
 
   @override
-  String get pressureLessonSyntheticNote => 'トレーニング用再構成・位置は概算';
+  String get pressureLessonSyntheticNote => '指導原則をモデル化・座標は独自の概算';
 
   @override
   String get pressureLessonObserve => 'ボールが届く前の守備の寄せ方を見ましょう。';
@@ -21005,6 +21005,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get pressureLessonOneTapHint => 'ピッチ上のリングを1つタップすると、すぐ実行します。';
+
+  @override
+  String get pressureLessonFirstContactHint => 'ファーストタッチの矢印か選手の円をタップしてパスします。';
+
+  @override
+  String get pressureLessonNextActionHint => '選手の円でパス、スペースの矢印で運びます。';
 
   @override
   String pressureLessonObservedOutside(Object number, Object distance) {
@@ -21124,11 +21130,103 @@ class AppLocalizationsJa extends AppLocalizations {
   String get pressureLessonMore => 'その他の学習操作';
 
   @override
-  String get pressureLessonReference => '実際の試合の参考例';
+  String get pressureLessonReference => '出典と限界';
 
   @override
-  String get pressureLessonReferenceHint =>
-      'ヤマルのアシストにつながる攻撃は別の歴史的な例であり、この合成トレーニング状況の正解ではありません。';
+  String get pressureLessonReferenceHint => 'このモデル場面に適用した指導原則、一次資料、限界を確認します。';
+
+  @override
+  String get pressureCurriculumSourcesTitle => '指導資料とモデルの限界';
+
+  @override
+  String pressureCurriculumPrincipleDetail(
+      Object principle, Object phase, Object roles) {
+    return '原則：$principle・局面：$phase・関係：$roles';
+  }
+
+  @override
+  String get pressureCurriculumAdaptationLimit =>
+      '資料の指導原則を縮小モデルに適用しています。座標と選択肢は独自作成で、トラッキングデータ、原資料の練習再現、認定された最善プレーではありません。';
+
+  @override
+  String get pressureCurriculumModelLimit =>
+      '地面上の点、7人、GKなしのモデルです。表示するオフサイド線はパス時のボールとゴール側から2人目の守備者で決まり、実際の視線、体の向き、技術は観察できません。';
+
+  @override
+  String get pressureCurriculumValidationStatus =>
+      'コーチによる評価、学習効果、実戦への転移は未検証です。';
+
+  @override
+  String get pressureCurriculumSourceUnavailable => 'この端末では指導資料を開けませんでした。';
+
+  @override
+  String get pressureCurriculumSourcePassing => 'FIFA Training Centre・パスとレシーブ';
+
+  @override
+  String get pressureCurriculumSourceBuildUp =>
+      'FIFA Training Centre・GKを使うビルドアップ';
+
+  @override
+  String get pressureCurriculumSourceBreakingPress =>
+      'FIFA Training Centre・プレス突破と背後へのプレー';
+
+  @override
+  String get pressureCurriculumSourceRepresentativeGames =>
+      'FIFA Training Centre・人数と代表性のあるスペース';
+
+  @override
+  String get pressureCurriculumPrincipleReception => 'プレッシャー下で次の選択肢を残して受ける';
+
+  @override
+  String get pressureCurriculumPrincipleSupport => '使えるオフボールのサポート角度を作る';
+
+  @override
+  String get pressureCurriculumPrincipleRunner => 'ランナー、レーン、オンサイトのリリースを一緒に読む';
+
+  @override
+  String get pressureCurriculumPrincipleRecycle => '前進が閉じた時に循環または展開する';
+
+  @override
+  String get pressureCurriculumPhaseBuildUp => 'ビルドアップ';
+
+  @override
+  String get pressureCurriculumPhaseProgression => '前進';
+
+  @override
+  String get pressureCurriculumPhaseChanceCreation => '背後へのプレー';
+
+  @override
+  String get pressureCurriculumRolesReception => '受け手・プレス・接続先';
+
+  @override
+  String get pressureCurriculumRolesSupport => '保持者・オフボールの支援者';
+
+  @override
+  String get pressureCurriculumRolesRunner => '保持者・ランナー・守備ライン';
+
+  @override
+  String get pressureCurriculumRolesRecycle => '保持者・後方の出口・逆側の選択肢';
+
+  @override
+  String get pressureCurriculumActorPasser => '後方の出口 #2';
+
+  @override
+  String get pressureCurriculumActorReceiver => '受け手 #19';
+
+  @override
+  String get pressureCurriculumActorSupport => 'サポート #10';
+
+  @override
+  String get pressureCurriculumActorRunner => '前方ランナー #17';
+
+  @override
+  String get pressureCurriculumActorPresser => 'プレス守備 #3';
+
+  @override
+  String get pressureCurriculumActorCover => 'カバー守備 #4';
+
+  @override
+  String get pressureCurriculumActorTracker => '追跡守備 #5';
 
   @override
   String get pressureLessonSummaryTitle => '判断を振り返りました';
@@ -21170,7 +21268,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get pressureLessonOffsideLine => 'オフサイド基準線';
+  String get pressureLessonOffsideLine => 'リリース時のオフサイド線';
+
+  @override
+  String get pressureLessonOffsideCurrentLine => '現在のオフサイド線';
 
   @override
   String pressureLessonTracePass(Object distance) {
@@ -21306,70 +21407,68 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get pressureLessonBenefitNone => '結果：この動きでは明確な利点を作れませんでした。';
+  String get pressureLessonBenefitNone => '明確な利点なし。';
 
   @override
   String pressureLessonBenefitSeparation(Object distance) {
-    return '良かった点：最も近い守備との距離が${distance}m広がりました。';
+    return '守備との距離 +${distance}m。';
   }
 
   @override
   String pressureLessonBenefitPassReceived(Object number) {
-    return '良かった点：#$numberにパスがつながりました。';
+    return '#$numberがパスを保持。';
   }
 
   @override
   String pressureLessonBenefitForwardPassReceived(
       Object number, Object distance) {
-    return '良かった点：#$numberへのパスでボールが${distance}m前進しました。';
+    return '#$numberが保持・+${distance}m。';
   }
 
   @override
   String pressureLessonBenefitSimulatedLane(Object number) {
-    return '良かった点：#$numberへの前方パスコースが新たに開きました。';
+    return '#$numberへの前方レーンが開通。';
   }
 
   @override
   String pressureLessonBenefitControlledProgress(Object distance) {
-    return '良かった点：ボールを保ち${distance}m前進しました。';
+    return '保持・+${distance}m。';
   }
 
   @override
-  String get pressureLessonBenefitRetainedControl =>
-      '良かった点：プレッシャーの中でボールを保ちました。';
+  String get pressureLessonBenefitRetainedControl => '保持。';
 
   @override
   String pressureLessonLimitationInterception(Object number, Object time) {
-    return '原因：経路に入った守備#$numberに$time秒後に奪われました。';
+    return '$time秒後に#$numberが遮断。';
   }
 
   @override
   String pressureLessonLimitationOffside(Object number) {
-    return '原因：パスを出した時点で#$numberがオフサイド位置におり、その後プレーに関与しました。';
+    return 'リリース時に#$numberがオフサイド。';
   }
 
   @override
-  String get pressureLessonLimitationLoose => '原因：攻撃側がボールを収められず、ルーズボールになりました。';
+  String get pressureLessonLimitationLoose => '攻撃側が収められずルーズ。';
 
   @override
-  String get pressureLessonLimitationForwardWindow =>
-      '比較点：前方パスも可能な場面で後方への連係を選びました。';
+  String get pressureLessonLimitationForwardWindow => '使える前方選択を見送り。';
 
   @override
   String pressureLessonLimitationClosingPressure(
       Object number, Object distance) {
-    return '注意：動きの後、守備#$numberとの間隔は${distance}mです。';
+    return '圧力：#$number、${distance}m。';
   }
 
   @override
   String pressureLessonLimitationProgress(Object distance) {
-    return '次の確認：前進距離${distance}m。新たな前方パスコースは開きませんでした。';
+    return '前進${distance}m・新規レーンなし。';
   }
 
   @override
   String pressureLessonLimitationRemainingPressure(
       Object number, Object distance) {
-    return '次の確認：最も近い守備は#$number、距離は${distance}mです。';
+    return '最寄りの守備#$number、${distance}m。';
   }
 
   @override
@@ -21546,8 +21645,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get pressureEpisodeSupportNoMeasuredBenefit =>
-      '結果：この動きはパス経路を測定可能な形では改善しませんでした。';
+  String get pressureEpisodeSupportNoMeasuredBenefit => 'この移動区間のパス経路改善は未確認。';
 
   @override
   String pressureEpisodeSupportBlockedLane(Object receiver, Object defender) {
@@ -21597,7 +21695,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String pressureEpisodeSummaryCoverage(Object count, Object total) {
-    return '初回完了：6つの学習タイプで$count/$total状況。';
+    return '初回完了：4つの学習タイプで$count/$total状況。';
   }
 
   @override
@@ -21615,7 +21713,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '結果は単純化したモデル内の判断を測るもので、実戦への転移を証明しません。';
 
   @override
-  String get pressureEpisodeRestart => '18の攻撃をもう一度';
+  String get pressureEpisodeRestart => '12の状況をもう一度';
 
   @override
   String get pressureEpisodeOutcomePenetration => '結果：前進して保持';
@@ -21636,7 +21734,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get pressureEpisodeOutcomeLoose => '結果：ルーズボール';
 
   @override
-  String get pressureEpisodeOutcomeUnresolved => '結果：保持・未解決';
+  String get pressureEpisodeOutcomeUnresolved => '攻撃レビュー';
 
   @override
   String pressureEpisodeDecisionCount(Object count) {
@@ -21738,6 +21836,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get pressureSceneRunNotReached => '経路：円は制限された希望地点、軌跡は実際の到達位置です。';
 
   @override
+  String get pressureSceneActiveRunReleaseCheck => '走行中。パス時に経路を再確認。';
+
+  @override
   String pressureSceneSupportSeparation(
       Object number, Object distance, Object defender) {
     return '効果：静止した場合より、#$numberは#$defenderとの距離を${distance}m広げました。';
@@ -21827,11 +21928,163 @@ class AppLocalizationsJa extends AppLocalizations {
   String get pressureSceneExampleAvailable => '同じ場面の開始点から学習例を確認できます。';
 
   @override
+  String get pressureSceneExampleUnavailable =>
+      'この実際の状態では原則を物理的に示せないため、モデル例を提示しません。';
+
+  @override
   String get pressureSceneExampleTitle => '学習例 · 簡略モデル';
 
   @override
   String get pressureSceneExampleLimit =>
       'この目標に合う一つの妥当な展開で、専門家認定の最善プレーではありません。';
+
+  @override
+  String get pressureCoachingRouteOpen => '前方ルートが一つ以上使える状態';
+
+  @override
+  String get pressureCoachingRouteClosed => '前方ルートが守備で閉じた状態';
+
+  @override
+  String get pressureCoachingOnside => 'このリリース時点ではオンサイド';
+
+  @override
+  String get pressureCoachingBeyondLine => 'リリース基準線より前';
+
+  @override
+  String pressureCoachingObservationPressure(
+      Object defender, Object movement, Object gap) {
+    return '選択前：守備#$defenderが$movement、距離${gap}m。';
+  }
+
+  @override
+  String pressureCoachingObservationSupport(Object actor, Object route) {
+    return '選択前：#$actorがサポートし、$route。';
+  }
+
+  @override
+  String pressureCoachingObservationRunner(
+      Object runner, Object movement, Object position) {
+    return '選択前：ランナー#$runnerは$movement、$position。';
+  }
+
+  @override
+  String get pressureCoachingObservationForwardOpen =>
+      '選択前：実際につながる前方パスが一つ以上ありました。';
+
+  @override
+  String get pressureCoachingObservationForwardClosed =>
+      '選択前：つながる前方パスはなく、後方の出口は残っていました。';
+
+  @override
+  String get pressureCoachingObservationNoOutlet =>
+      '選択前：前方パスも安全な後方出口も使えませんでした。';
+
+  @override
+  String get pressureCoachingIdeaFits => '判断は適合';
+
+  @override
+  String get pressureCoachingIdeaTradeoff => '妥当な代償';
+
+  @override
+  String get pressureCoachingIdeaNotCreated => '機会なし';
+
+  @override
+  String get pressureCoachingIdeaConflicts => '判断は不適合';
+
+  @override
+  String get pressureCoachingIdeaInsufficient => '根拠不足';
+
+  @override
+  String get pressureCoachingReasonAwayPressure => 'タッチがより空いた通路へ向かいました';
+
+  @override
+  String get pressureCoachingReasonReleaseEarly => '圧力が届く前にパス路が開いていました';
+
+  @override
+  String get pressureCoachingReasonIntoPressure => 'タッチが圧力の通路へ向かいました';
+
+  @override
+  String get pressureCoachingReasonSafeTradeoff => '安全な出口は前進を譲りました';
+
+  @override
+  String get pressureCoachingReasonCarryClear => '運ぶ方向は空いたスペースでした';
+
+  @override
+  String get pressureCoachingReasonCarryPressure => '運ぶ方向は圧力の中でした';
+
+  @override
+  String get pressureCoachingReasonBackwardOutlet => '安全な後方出口が開いていました';
+
+  @override
+  String get pressureCoachingReasonClosedRunnerOutlet => '走路が閉じ、安全な出口が適合しました';
+
+  @override
+  String get pressureCoachingReasonSupportTargetOpen => '目標地点が使えるパス角度を作りました';
+
+  @override
+  String get pressureCoachingReasonSupportTargetCovered => '目標地点のパス関係は塞がれていました';
+
+  @override
+  String get pressureCoachingReasonSupportUnchanged => 'パス関係は改善しませんでした';
+
+  @override
+  String get pressureCoachingReasonRunnerAdjusted => 'ランナーは閉じた線の後ろへ調整しました';
+
+  @override
+  String get pressureCoachingReasonRunnerWindow => '動くランナーへのリリース窓が使えました';
+
+  @override
+  String get pressureCoachingReasonRunnerUnavailable => 'ランナーへの窓はまだ使えませんでした';
+
+  @override
+  String get pressureCoachingReasonRunnerOffside => 'ランナーはリリース線より前でした';
+
+  @override
+  String get pressureCoachingReasonReceiverOffside => '選んだ受け手はリリース線より前でした';
+
+  @override
+  String get pressureCoachingReasonRecycleFits => '前進が閉じ、循環が適合しました';
+
+  @override
+  String get pressureCoachingReasonRecycleTradeoff => '循環は安全ですが前進路も開いていました';
+
+  @override
+  String get pressureCoachingReasonBlockedRoute => '選んだ経路は動作前から塞がれていました';
+
+  @override
+  String get pressureCoachingReasonForwardAvailable => '選んだ前方経路は使えました';
+
+  @override
+  String get pressureCoachingReasonInsufficient => 'この説明の根拠が不足しています';
+
+  @override
+  String get pressureCoachingRiskNone => '特定リスクなし';
+
+  @override
+  String get pressureCoachingRiskPressure => '近い圧力が残る';
+
+  @override
+  String get pressureCoachingRiskCoveredLane => 'レーンは塞がれたまま';
+
+  @override
+  String get pressureCoachingRiskProgress => '前進を失う可能性';
+
+  @override
+  String get pressureCoachingRiskOffside => 'リリース窓が閉じる可能性';
+
+  @override
+  String get pressureCoachingRiskExecution => '実行リスクが残る';
+
+  @override
+  String pressureCoachingJudgment(
+      Object assessment, Object reason, Object risk) {
+    return '$assessment：$reason。リスク：$risk。';
+  }
+
+  @override
+  String pressureCoachingActualOutcome(Object benefit, Object limitation) {
+    return '実際の結果：$benefit $limitation';
+  }
 
   @override
   String get pressureSceneReplayExample => '学習例を再生';
