@@ -14,18 +14,78 @@ enum PressureActorRole {
   tracker,
 }
 
-enum PressureDecisionStage { firstContact, nextConnection }
+enum PressureDecisionStage { firstContact, nextConnection, support, reRead }
 
-enum PressureActionKind { firstTouch, pass, carry }
+enum PressureActionKind { firstTouch, pass, carry, offBallRun }
+
+/// The six football questions taught by the public Scan Pass lesson.
+enum PressureLearningFamily {
+  pressureReception,
+  drawAndRelease,
+  supportAfterPass,
+  runnerTiming,
+  thirdPlayer,
+  recycleAndSwitch,
+}
+
+enum PressureLessonVariant { guided, contrast, unseen }
+
+enum PressureLearningObjective {
+  receiveAwayFromPressure,
+  commitThenRelease,
+  moveAfterPassing,
+  timeTheThroughPass,
+  connectTheThirdPlayer,
+  recycleWhenForwardPlayCloses,
+}
+
+enum PressureObservationFact {
+  pressureSide,
+  pressureSpeed,
+  coverLane,
+  focusSupportLane,
+  runnerSpeed,
+  trackerDepth,
+  farSideOutlet,
+  offsideReference,
+}
+
+enum PressureContrastFeature {
+  approachSide,
+  presserCommitment,
+  coverPosition,
+  runnerStart,
+  trackerReaction,
+  farSideClosure,
+}
+
+enum PressureEpisodeDecisionKind { receive, onBall, support }
+
+enum PressureEpisodeOutcome {
+  penetration,
+  pressureEscape,
+  safeRecycle,
+  intercepted,
+  offside,
+  loose,
+  retainedUnresolved,
+}
+
+enum PressureAutomaticKind { pass, carry, recycle }
 
 enum PressureOptionKind {
   touchInside,
   touchOutside,
+  touchLeft,
+  touchRight,
   immediatePass,
   immediateRunnerPass,
   immediateBackPass,
   passSupport,
   passRunner,
+  passFocus,
+  passOther,
+  recycle,
   carryForward,
 }
 
@@ -297,11 +357,13 @@ class PressureDecisionOption {
   final String key;
   final PressureOptionKind kind;
   final PressureAction action;
+  final PressureActorRole? targetRole;
 
   const PressureDecisionOption({
     required this.key,
     required this.kind,
     required this.action,
+    this.targetRole,
   });
 }
 
@@ -478,17 +540,43 @@ class PressureObservation {
 class PressureLessonScenario {
   final String id;
   final bool heldOut;
+  final PressureLearningFamily family;
+  final PressureLessonVariant variant;
+  final PressureLearningObjective learningObjective;
+  final List<PressureObservationFact> observationFacts;
+  final PressureContrastFeature contrastFeature;
+  final PressureEpisodeDecisionKind initialDecisionKind;
+  final PressureActorRole focusRole;
   final PressureWorld observationStart;
 
   const PressureLessonScenario({
     required this.id,
     required this.heldOut,
+    this.family = PressureLearningFamily.pressureReception,
+    this.variant = PressureLessonVariant.guided,
+    this.learningObjective = PressureLearningObjective.receiveAwayFromPressure,
+    this.observationFacts = const [
+      PressureObservationFact.pressureSide,
+      PressureObservationFact.coverLane,
+    ],
+    this.contrastFeature = PressureContrastFeature.approachSide,
+    this.initialDecisionKind = PressureEpisodeDecisionKind.receive,
+    this.focusRole = PressureActorRole.receiver,
     required this.observationStart,
   });
+
+  bool get showMovementGuidance => variant == PressureLessonVariant.guided;
 
   PressureLessonScenario relabeled(String value) => PressureLessonScenario(
         id: value,
         heldOut: heldOut,
+        family: family,
+        variant: variant,
+        learningObjective: learningObjective,
+        observationFacts: observationFacts,
+        contrastFeature: contrastFeature,
+        initialDecisionKind: initialDecisionKind,
+        focusRole: focusRole,
         observationStart: observationStart,
       );
 }
@@ -548,115 +636,552 @@ class PressureLessonSession {
       }).length;
 }
 
-class PressureLessonCatalog {
-  static const int trainingCount = 6;
-  static const int heldOutCount = 2;
-  static const int situationCount = trainingCount + heldOutCount;
+/// The automatic action taken by the current ball holder while the learner's
+/// focus player moves off the ball. It is produced by the same physical pass
+/// and carry resolver as learner actions.
+class PressureAutomaticContinuation {
+  final PressureAutomaticKind kind;
+  final PressureSimulationResult result;
 
+  const PressureAutomaticContinuation({
+    required this.kind,
+    required this.result,
+  });
+}
+
+class PressureLaneChange {
+  final PressureActorRole receiverRole;
+  final PressureActorRole? beforeDefenderRole;
+  final PressureActorRole? afterDefenderRole;
+  final bool usableBefore;
+  final bool usableAfter;
+  final double clearanceChangeMetres;
+
+  const PressureLaneChange({
+    required this.receiverRole,
+    required this.beforeDefenderRole,
+    required this.afterDefenderRole,
+    required this.usableBefore,
+    required this.usableAfter,
+    required this.clearanceChangeMetres,
+  });
+}
+
+/// Physical outcome of one off-ball support judgment.
+class PressureSupportResult {
+  final PressureWorld before;
+  final PressureWorld afterMovement;
+  final PressureWorld after;
+  final PressureActorRole focusRole;
+  final ScanPassPoint requestedTarget;
+  final ScanPassPoint boundedTarget;
+  final ScanPassPoint executedTarget;
+  final double movementDistanceMetres;
+  final PressureTrace movementTrace;
+  final PressureAutomaticContinuation? continuation;
+  final List<PressureLaneChange> laneChanges;
+  final PressureWorld stationaryCounterfactual;
+  final PressureContactEvidence? contact;
+
+  const PressureSupportResult({
+    required this.before,
+    required this.afterMovement,
+    required this.after,
+    required this.focusRole,
+    required this.requestedTarget,
+    required this.boundedTarget,
+    required this.executedTarget,
+    required this.movementDistanceMetres,
+    required this.movementTrace,
+    required this.continuation,
+    required this.laneChanges,
+    required this.stationaryCounterfactual,
+    required this.contact,
+  });
+
+  PressureTrace get trace => continuation == null
+      ? movementTrace
+      : PressureTrace.join([movementTrace, continuation!.result.trace]);
+
+  PressureLaneChange? get demonstratedPositiveLaneChange {
+    final changed = laneChanges
+        .where((lane) =>
+            lane.usableAfter &&
+            (!lane.usableBefore || lane.clearanceChangeMetres >= .35))
+        .toList()
+      ..sort((a, b) {
+        final opened = (b.usableBefore ? 0 : 1).compareTo(
+          a.usableBefore ? 0 : 1,
+        );
+        if (opened != 0) return opened;
+        return b.clearanceChangeMetres.compareTo(a.clearanceChangeMetres);
+      });
+    return changed.firstOrNull;
+  }
+
+  PressureLaneChange? get demonstratedNegativeLaneChange {
+    final changed = laneChanges
+        .where((lane) =>
+            (lane.usableBefore && !lane.usableAfter) ||
+            lane.clearanceChangeMetres <= -.35)
+        .toList()
+      ..sort((a, b) {
+        final closed = (b.usableAfter ? 0 : 1).compareTo(
+          a.usableAfter ? 0 : 1,
+        );
+        if (closed != 0) return closed;
+        return a.clearanceChangeMetres.compareTo(b.clearanceChangeMetres);
+      });
+    return changed.firstOrNull;
+  }
+
+  PressureLaneChange? get demonstratedLaneChange =>
+      demonstratedPositiveLaneChange ?? demonstratedNegativeLaneChange;
+}
+
+/// One selectable item in the complete learner-decision timeline.
+class PressureEpisodeDecision {
+  final int index;
+  final PressureEpisodeDecisionKind kind;
+  final PressureWorld before;
+  final PressureWorld after;
+  final List<PressureDecisionOption> availableOptions;
+  final PressureDecisionOption? selectedOption;
+  final ScanPassPoint requestedTarget;
+  final ScanPassPoint executedTarget;
+  final PressureTrace learnerTrace;
+  final PressureSimulationResult? actionResult;
+  final PressureSupportResult? supportResult;
+
+  const PressureEpisodeDecision({
+    required this.index,
+    required this.kind,
+    required this.before,
+    required this.after,
+    required this.availableOptions,
+    required this.selectedOption,
+    required this.requestedTarget,
+    required this.executedTarget,
+    required this.learnerTrace,
+    required this.actionResult,
+    required this.supportResult,
+  });
+
+  PressureTrace get fullTrace => supportResult?.trace ?? learnerTrace;
+
+  Iterable<PressureAutomaticContinuation> get automaticContinuations sync* {
+    final automatic = supportResult?.continuation;
+    if (automatic != null) yield automatic;
+  }
+
+  bool get lost => after.possession != PressurePossession.attack;
+  bool get offside =>
+      actionResult?.offside == true ||
+      supportResult?.continuation?.result.offside == true;
+}
+
+class PressureEpisodeState {
+  final PressureLessonScenario scenario;
+  final PressureObservation observation;
+  final PressureWorld world;
+  final PressureEpisodeDecisionKind? pendingDecision;
+  final List<PressureEpisodeDecision> timeline;
+  final PressureEpisodeOutcome? outcome;
+  final double initialBallX;
+  final int maxDecisions;
+
+  PressureEpisodeState({
+    required this.scenario,
+    required this.observation,
+    required this.world,
+    required this.pendingDecision,
+    required List<PressureEpisodeDecision> timeline,
+    required this.outcome,
+    required this.initialBallX,
+    this.maxDecisions = 5,
+  }) : timeline = List.unmodifiable(timeline);
+
+  bool get isComplete => outcome != null;
+
+  PressureEpisodeState copyWith({
+    PressureWorld? world,
+    PressureEpisodeDecisionKind? pendingDecision,
+    bool clearPendingDecision = false,
+    List<PressureEpisodeDecision>? timeline,
+    PressureEpisodeOutcome? outcome,
+    bool clearOutcome = false,
+  }) =>
+      PressureEpisodeState(
+        scenario: scenario,
+        observation: observation,
+        world: world ?? this.world,
+        pendingDecision: clearPendingDecision
+            ? null
+            : (pendingDecision ?? this.pendingDecision),
+        timeline: timeline ?? this.timeline,
+        outcome: clearOutcome ? null : (outcome ?? this.outcome),
+        initialBallX: initialBallX,
+        maxDecisions: maxDecisions,
+      );
+}
+
+class PressureEpisodeAttempt {
+  final int situationIndex;
+  final PressureLessonScenario scenario;
+  final List<PressureEpisodeDecision> timeline;
+  final PressureEpisodeOutcome outcome;
+
+  PressureEpisodeAttempt({
+    required this.situationIndex,
+    required this.scenario,
+    required List<PressureEpisodeDecision> timeline,
+    required this.outcome,
+  }) : timeline = List.unmodifiable(timeline);
+
+  PressureWorld get terminal => timeline.last.after;
+  int get decisionCount => timeline.length;
+}
+
+/// Session measurements intentionally retain only the first completed attack
+/// for each catalog situation. Retry and comparison simulations never replace
+/// this map.
+class PressureEpisodeSession {
+  final List<PressureLessonScenario> situations;
+  final Map<int, PressureEpisodeAttempt> firstAttempts;
+
+  PressureEpisodeSession({
+    required List<PressureLessonScenario> situations,
+    Map<int, PressureEpisodeAttempt> firstAttempts = const {},
+  })  : situations = List.unmodifiable(situations),
+        firstAttempts = Map.unmodifiable(firstAttempts);
+
+  PressureEpisodeSession recordFirstAttempt(PressureEpisodeAttempt attempt) {
+    if (firstAttempts.containsKey(attempt.situationIndex)) return this;
+    return PressureEpisodeSession(
+      situations: situations,
+      firstAttempts: {...firstAttempts, attempt.situationIndex: attempt},
+    );
+  }
+
+  int get retainedAttacks => firstAttempts.values
+      .where(
+          (attempt) => attempt.terminal.possession == PressurePossession.attack)
+      .length;
+
+  int get unseenRetained => firstAttempts.values
+      .where((attempt) =>
+          attempt.scenario.variant == PressureLessonVariant.unseen &&
+          attempt.terminal.possession == PressurePossession.attack)
+      .length;
+
+  int get unseenAttempts => firstAttempts.values
+      .where(
+          (attempt) => attempt.scenario.variant == PressureLessonVariant.unseen)
+      .length;
+}
+
+class PressureLessonCatalog {
+  static const int familyCount = 6;
+  static const int variantsPerFamily = 3;
+  static const int trainingCount = 12;
+  static const int heldOutCount = 6;
+  static const int situationCount = familyCount * variantsPerFamily;
+
+  /// Guided and contrast cases stay paired. The six unseen combinations are
+  /// deliberately placed after all learning pairs.
   static List<PressureLessonScenario> build({int seed = 19}) {
-    final random = math.Random(seed);
-    final training = <_PressureScenarioSpec>[
-      const _PressureScenarioSpec(
-        id: 'outside-arrival',
-        presserOffset: ScanPassPoint(-1.1, -5.0),
-        presserIntent: ScanPassPoint(1.2, 2.2),
-        coverOffset: ScanPassPoint(6.0, 4.0),
-        coverIntent: ScanPassPoint(-.4, -.3),
-        coverReactivity: .55,
-        runnerIntent: ScanPassPoint(2.7, .15),
-        trackerOffset: ScanPassPoint(2.0, 2.0),
-      ),
-      const _PressureScenarioSpec(
-        id: 'inside-arrival',
-        presserOffset: ScanPassPoint(-.8, 3.4),
-        presserIntent: ScanPassPoint(1.0, -2.3),
-        coverOffset: ScanPassPoint(7.0, -3.6),
-        coverIntent: ScanPassPoint(-.2, .2),
-        runnerIntent: ScanPassPoint(2.3, -.25),
-      ),
-      const _PressureScenarioSpec(
-        id: 'near-cover',
-        presserOffset: ScanPassPoint(-1.5, -3.8),
-        presserIntent: ScanPassPoint(1.35, 2.2),
-        coverOffset: ScanPassPoint(3.0, 3.0),
-        coverIntent: ScanPassPoint(-1.0, -1.1),
-        coverReactivity: .55,
-        runnerIntent: ScanPassPoint(2.9, .25),
-        trackerOffset: ScanPassPoint(2.0, 1.0),
-      ),
-      const _PressureScenarioSpec(
-        id: 'holding-line',
-        presserOffset: ScanPassPoint(1.8, -5.4),
-        presserIntent: ScanPassPoint(-.2, -.4),
-        presserReactivity: .24,
-        coverOffset: ScanPassPoint(8.0, 9.2),
-        coverIntent: ScanPassPoint(-.3, -.2),
-        coverReactivity: .35,
-        runnerIntent: ScanPassPoint(3.1, -.15),
-      ),
-      const _PressureScenarioSpec(
-        id: 'late-runner',
-        presserOffset: ScanPassPoint(-1.0, 3.8),
-        presserIntent: ScanPassPoint(1.0, -1.8),
-        coverOffset: ScanPassPoint(8.5, 4.0),
-        coverIntent: ScanPassPoint(.1, .7),
-        runnerIntent: ScanPassPoint(.8, .1),
-        trackerOffset: ScanPassPoint(10.0, -.8),
-      ),
-      const _PressureScenarioSpec(
-        id: 'runner-breaks-cover',
-        presserOffset: ScanPassPoint(-1.4, -3.5),
-        presserIntent: ScanPassPoint(1.0, 1.7),
-        coverOffset: ScanPassPoint(6.5, 6.2),
-        coverIntent: ScanPassPoint(-.4, .8),
-        runnerIntent: ScanPassPoint(3.6, -1.0),
-        trackerOffset: ScanPassPoint(8.0, 2.5),
-      ),
-    ];
-    training.shuffle(random);
-    final heldOut = <_PressureScenarioSpec>[
-      const _PressureScenarioSpec(
-        id: 'combined-a',
-        heldOut: true,
-        presserOffset: ScanPassPoint(-2.0, -4.1),
-        presserIntent: ScanPassPoint(1.7, 2.5),
-        coverOffset: ScanPassPoint(4.8, 4.7),
-        coverIntent: ScanPassPoint(-.8, -.6),
-        runnerIntent: ScanPassPoint(3.2, -.7),
-        trackerOffset: ScanPassPoint(8.5, 1.4),
-      ),
-      const _PressureScenarioSpec(
-        id: 'combined-b',
-        heldOut: true,
-        presserOffset: ScanPassPoint(.8, 4.8),
-        presserIntent: ScanPassPoint(.2, -1.2),
-        presserReactivity: .58,
-        coverOffset: ScanPassPoint(6.1, 7.6),
-        coverIntent: ScanPassPoint(-1.1, -.7),
-        runnerIntent: ScanPassPoint(1.4, .8),
-        trackerOffset: ScanPassPoint(7.5, -1.8),
-      ),
+    final specs = <_PressureScenarioSpec>[
+      for (final family in PressureLearningFamily.values) ...[
+        _spec(family, PressureLessonVariant.guided),
+        _spec(family, PressureLessonVariant.contrast),
+      ],
+      for (final family in PressureLearningFamily.values)
+        _spec(family, PressureLessonVariant.unseen),
     ];
     return List.unmodifiable([
-      for (final spec in [...training, ...heldOut]) _scenario(spec, random),
+      for (final spec in specs)
+        _scenario(
+          spec,
+          math.Random(
+            seed * 997 +
+                spec.family.index * 131 +
+                (spec.variant == PressureLessonVariant.unseen ? 7919 : 0),
+          ),
+        ),
     ]);
+  }
+
+  static _PressureScenarioSpec _spec(
+    PressureLearningFamily family,
+    PressureLessonVariant variant,
+  ) {
+    final unseen = variant == PressureLessonVariant.unseen;
+    switch (family) {
+      case PressureLearningFamily.pressureReception:
+        return _PressureScenarioSpec(
+          family: family,
+          variant: variant,
+          objective: PressureLearningObjective.receiveAwayFromPressure,
+          facts: const [
+            PressureObservationFact.pressureSide,
+            PressureObservationFact.pressureSpeed,
+            PressureObservationFact.coverLane,
+          ],
+          contrastFeature: PressureContrastFeature.approachSide,
+          initialDecisionKind: PressureEpisodeDecisionKind.receive,
+          passer: unseen
+              ? const ScanPassPoint(43, 45)
+              : const ScanPassPoint(51, 20),
+          focus: unseen
+              ? const ScanPassPoint(56, 43)
+              : const ScanPassPoint(63, 21),
+          support: unseen
+              ? const ScanPassPoint(62, 31)
+              : const ScanPassPoint(68, 32),
+          runner: unseen
+              ? const ScanPassPoint(69, 47)
+              : const ScanPassPoint(74, 17),
+          presser: variant == PressureLessonVariant.contrast
+              ? const ScanPassPoint(61.5, 25.2)
+              : unseen
+                  ? const ScanPassPoint(54.5, 38.5)
+                  : const ScanPassPoint(61.8, 16.5),
+          cover: unseen
+              ? const ScanPassPoint(63, 39)
+              : const ScanPassPoint(68, 25.5),
+          tracker: unseen
+              ? const ScanPassPoint(73, 46)
+              : const ScanPassPoint(77, 18.5),
+          presserIntent: variant == PressureLessonVariant.contrast
+              ? const ScanPassPoint(.8, -2.2)
+              : const ScanPassPoint(1.0, 2.1),
+          runnerIntent: const ScanPassPoint(2.4, -.2),
+        );
+      case PressureLearningFamily.drawAndRelease:
+        return _PressureScenarioSpec(
+          family: family,
+          variant: variant,
+          objective: PressureLearningObjective.commitThenRelease,
+          facts: const [
+            PressureObservationFact.pressureSpeed,
+            PressureObservationFact.coverLane,
+            PressureObservationFact.focusSupportLane,
+          ],
+          contrastFeature: PressureContrastFeature.presserCommitment,
+          initialDecisionKind: PressureEpisodeDecisionKind.onBall,
+          initialCarrierRole: PressureActorRole.receiver,
+          passer: unseen
+              ? const ScanPassPoint(50, 14)
+              : const ScanPassPoint(49, 35),
+          focus: unseen
+              ? const ScanPassPoint(60, 18)
+              : const ScanPassPoint(59, 34),
+          support: unseen
+              ? const ScanPassPoint(68, 29)
+              : const ScanPassPoint(68, 44),
+          runner: unseen
+              ? const ScanPassPoint(74, 12)
+              : const ScanPassPoint(74, 29),
+          presser: variant == PressureLessonVariant.guided
+              ? const ScanPassPoint(64, 34)
+              : unseen
+                  ? const ScanPassPoint(62, 22)
+                  : const ScanPassPoint(62, 34),
+          cover: unseen
+              ? const ScanPassPoint(65, 23)
+              : const ScanPassPoint(68, 38),
+          tracker: unseen
+              ? const ScanPassPoint(76, 15)
+              : const ScanPassPoint(77, 29),
+          presserIntent: variant == PressureLessonVariant.contrast
+              ? const ScanPassPoint(-.45, .05)
+              : const ScanPassPoint(-2.4, 0),
+          presserReactivity:
+              variant == PressureLessonVariant.contrast ? .38 : .92,
+          runnerIntent: const ScanPassPoint(2.7, -.1),
+        );
+      case PressureLearningFamily.supportAfterPass:
+        return _PressureScenarioSpec(
+          family: family,
+          variant: variant,
+          objective: PressureLearningObjective.moveAfterPassing,
+          facts: const [
+            PressureObservationFact.focusSupportLane,
+            PressureObservationFact.coverLane,
+            PressureObservationFact.pressureSpeed,
+          ],
+          contrastFeature: PressureContrastFeature.coverPosition,
+          initialDecisionKind: PressureEpisodeDecisionKind.support,
+          initialCarrierRole: PressureActorRole.support,
+          passer: unseen
+              ? const ScanPassPoint(52, 50)
+              // Keep the recycling lane clear of the presser's return shadow
+              // with enough margin for the paired cases' starting jitter.
+              : const ScanPassPoint(54, 34.5),
+          focus: unseen
+              ? const ScanPassPoint(61, 46)
+              : const ScanPassPoint(61, 27),
+          support: unseen
+              ? const ScanPassPoint(67, 40)
+              : const ScanPassPoint(67, 34),
+          runner: unseen
+              ? const ScanPassPoint(76, 49)
+              : const ScanPassPoint(76, 24),
+          presser: unseen
+              ? const ScanPassPoint(62.5, 43)
+              : const ScanPassPoint(62.5, 29.5),
+          cover: variant == PressureLessonVariant.contrast
+              ? const ScanPassPoint(64, 25)
+              : unseen
+                  ? const ScanPassPoint(68, 48)
+                  : const ScanPassPoint(70, 29),
+          tracker: unseen
+              ? const ScanPassPoint(78, 48)
+              : const ScanPassPoint(79, 24),
+          presserIntent: const ScanPassPoint(1.2, .25),
+          coverIntent: variant == PressureLessonVariant.contrast
+              ? const ScanPassPoint(-.8, .35)
+              : const ScanPassPoint(-.35, -.1),
+          coverReactivity:
+              variant == PressureLessonVariant.contrast ? .82 : .68,
+          runnerIntent: const ScanPassPoint(2.0, 0),
+        );
+      case PressureLearningFamily.runnerTiming:
+        return _PressureScenarioSpec(
+          family: family,
+          variant: variant,
+          objective: PressureLearningObjective.timeTheThroughPass,
+          facts: const [
+            PressureObservationFact.runnerSpeed,
+            PressureObservationFact.trackerDepth,
+            PressureObservationFact.offsideReference,
+          ],
+          contrastFeature: PressureContrastFeature.runnerStart,
+          initialDecisionKind: PressureEpisodeDecisionKind.onBall,
+          initialCarrierRole: PressureActorRole.receiver,
+          passer: unseen
+              ? const ScanPassPoint(55, 49)
+              : const ScanPassPoint(53, 40),
+          focus: unseen
+              ? const ScanPassPoint(65, 47)
+              : const ScanPassPoint(64, 39),
+          support: unseen
+              ? const ScanPassPoint(69, 34)
+              : const ScanPassPoint(68, 49),
+          runner: variant == PressureLessonVariant.contrast
+              ? const ScanPassPoint(79, 34)
+              : unseen
+                  ? const ScanPassPoint(82, 53)
+                  : const ScanPassPoint(75, 34),
+          presser: unseen
+              ? const ScanPassPoint(62, 51)
+              : const ScanPassPoint(61, 44),
+          cover: unseen
+              ? const ScanPassPoint(72, 44)
+              : const ScanPassPoint(72, 41),
+          tracker: unseen
+              ? const ScanPassPoint(87, 51)
+              : const ScanPassPoint(80, 35),
+          presserIntent: const ScanPassPoint(1.2, -.9),
+          runnerIntent: variant == PressureLessonVariant.contrast
+              ? const ScanPassPoint(.7, 0)
+              : const ScanPassPoint(3.2, -.35),
+        );
+      case PressureLearningFamily.thirdPlayer:
+        return _PressureScenarioSpec(
+          family: family,
+          variant: variant,
+          objective: PressureLearningObjective.connectTheThirdPlayer,
+          facts: const [
+            PressureObservationFact.focusSupportLane,
+            PressureObservationFact.runnerSpeed,
+            PressureObservationFact.trackerDepth,
+          ],
+          contrastFeature: PressureContrastFeature.trackerReaction,
+          initialDecisionKind: PressureEpisodeDecisionKind.onBall,
+          initialCarrierRole: PressureActorRole.receiver,
+          passer: unseen
+              ? const ScanPassPoint(47, 47)
+              : const ScanPassPoint(49, 20),
+          focus: unseen
+              ? const ScanPassPoint(57, 43)
+              : const ScanPassPoint(58, 24),
+          support: unseen
+              ? const ScanPassPoint(66, 49)
+              : const ScanPassPoint(67, 31),
+          runner: unseen
+              ? const ScanPassPoint(74, 40)
+              : const ScanPassPoint(76, 21),
+          presser: unseen
+              ? const ScanPassPoint(59, 47)
+              : const ScanPassPoint(59, 19),
+          cover: unseen
+              ? const ScanPassPoint(67, 44)
+              : const ScanPassPoint(68, 26),
+          tracker: unseen
+              ? const ScanPassPoint(78, 44)
+              : const ScanPassPoint(80, 22),
+          presserIntent: const ScanPassPoint(.8, 1.4),
+          runnerIntent: const ScanPassPoint(2.5, -.2),
+          trackerReactivity:
+              variant == PressureLessonVariant.contrast ? .95 : .55,
+        );
+      case PressureLearningFamily.recycleAndSwitch:
+        return _PressureScenarioSpec(
+          family: family,
+          variant: variant,
+          objective: PressureLearningObjective.recycleWhenForwardPlayCloses,
+          facts: const [
+            PressureObservationFact.coverLane,
+            PressureObservationFact.farSideOutlet,
+            PressureObservationFact.pressureSpeed,
+          ],
+          contrastFeature: PressureContrastFeature.farSideClosure,
+          initialDecisionKind: PressureEpisodeDecisionKind.onBall,
+          initialCarrierRole: PressureActorRole.receiver,
+          passer: unseen
+              ? const ScanPassPoint(61, 17)
+              : const ScanPassPoint(61, 52),
+          focus: unseen
+              ? const ScanPassPoint(72, 19)
+              : const ScanPassPoint(73, 50),
+          support: unseen
+              ? const ScanPassPoint(65, 46)
+              : const ScanPassPoint(61, 22),
+          runner: unseen
+              ? const ScanPassPoint(82, 14)
+              : const ScanPassPoint(83, 47),
+          presser: unseen
+              ? const ScanPassPoint(70, 23)
+              : const ScanPassPoint(71, 45),
+          cover: variant == PressureLessonVariant.contrast
+              ? const ScanPassPoint(68, 35)
+              : unseen
+                  ? const ScanPassPoint(69, 40)
+                  : const ScanPassPoint(76, 43),
+          tracker: unseen
+              ? const ScanPassPoint(78, 16)
+              : const ScanPassPoint(79, 48),
+          presserIntent: const ScanPassPoint(1.4, 1.0),
+          runnerIntent: const ScanPassPoint(1.3, 0),
+        );
+    }
   }
 
   static PressureLessonScenario _scenario(
     _PressureScenarioSpec spec,
     math.Random random,
   ) {
-    double jitter() => (random.nextDouble() - .5) * .34;
+    double jitter() => (random.nextDouble() - .5) * .22;
     ScanPassPoint j(ScanPassPoint point) =>
         ScanPassPoint(point.x + jitter(), point.y + jitter());
-    const receiver = ScanPassPoint(64.5, 22.0);
-    final passer = j(const ScanPassPoint(52.5, 21.3));
-    final receiverStart = j(receiver);
-    final support = j(const ScanPassPoint(70.0, 32.7));
-    final runner = j(const ScanPassPoint(73.8, 18.2));
-    final presser = j(receiver + spec.presserOffset);
-    final cover = j(receiver + spec.coverOffset);
-    final tracker = j(runner + spec.trackerOffset);
+    final passer = j(spec.passer);
+    final focus = j(spec.focus);
+    final support = j(spec.support);
+    final runner = j(spec.runner);
+    final presser = j(spec.presser);
+    final cover = j(spec.cover);
+    final tracker = j(spec.tracker);
     final actors = <PressureActor>[
       PressureActor(
         id: 'esp-2-carvajal',
@@ -664,8 +1189,8 @@ class PressureLessonCatalog {
         team: PressureTeam.attack,
         role: PressureActorRole.passer,
         position: passer,
-        velocity: const ScanPassPoint(.5, .05),
-        intentVelocity: const ScanPassPoint(.5, .05),
+        velocity: const ScanPassPoint(.45, .02),
+        intentVelocity: const ScanPassPoint(.45, .02),
         maxSpeed: 5.8,
       ),
       PressureActor(
@@ -673,9 +1198,9 @@ class PressureLessonCatalog {
         number: 19,
         team: PressureTeam.attack,
         role: PressureActorRole.receiver,
-        position: receiverStart,
-        velocity: const ScanPassPoint(.45, .08),
-        intentVelocity: const ScanPassPoint(.45, .08),
+        position: focus,
+        velocity: const ScanPassPoint(.35, .04),
+        intentVelocity: const ScanPassPoint(.35, .04),
         maxSpeed: 7.2,
         maxAcceleration: 6.8,
       ),
@@ -685,8 +1210,8 @@ class PressureLessonCatalog {
         team: PressureTeam.attack,
         role: PressureActorRole.support,
         position: support,
-        velocity: const ScanPassPoint(.75, -.2),
-        intentVelocity: const ScanPassPoint(.75, -.2),
+        velocity: const ScanPassPoint(.65, -.1),
+        intentVelocity: const ScanPassPoint(.65, -.1),
         maxSpeed: 6.5,
       ),
       PressureActor(
@@ -737,16 +1262,24 @@ class PressureLessonCatalog {
         home: tracker,
         maxSpeed: 6.9,
         maxAcceleration: 5.0,
-        reactivity: .74,
+        reactivity: spec.trackerReactivity,
       ),
     ];
+    final carrier =
+        actors.firstWhere((actor) => actor.role == spec.initialCarrierRole);
     return PressureLessonScenario(
-      id: spec.id,
-      heldOut: spec.heldOut,
+      id: '${spec.family.name}-${spec.variant.name}',
+      heldOut: spec.variant == PressureLessonVariant.unseen,
+      family: spec.family,
+      variant: spec.variant,
+      learningObjective: spec.objective,
+      observationFacts: spec.facts,
+      contrastFeature: spec.contrastFeature,
+      initialDecisionKind: spec.initialDecisionKind,
       observationStart: PressureWorld(
         clock: 0,
         actors: actors,
-        ball: PressureBall(position: passer, carrierId: 'esp-2-carvajal'),
+        ball: PressureBall(position: carrier.position, carrierId: carrier.id),
         possession: PressurePossession.attack,
       ),
     );
@@ -754,28 +1287,48 @@ class PressureLessonCatalog {
 }
 
 class _PressureScenarioSpec {
-  final String id;
-  final bool heldOut;
-  final ScanPassPoint presserOffset;
+  final PressureLearningFamily family;
+  final PressureLessonVariant variant;
+  final PressureLearningObjective objective;
+  final List<PressureObservationFact> facts;
+  final PressureContrastFeature contrastFeature;
+  final PressureEpisodeDecisionKind initialDecisionKind;
+  final PressureActorRole initialCarrierRole;
+  final ScanPassPoint passer;
+  final ScanPassPoint focus;
+  final ScanPassPoint support;
+  final ScanPassPoint runner;
+  final ScanPassPoint presser;
+  final ScanPassPoint cover;
+  final ScanPassPoint tracker;
   final ScanPassPoint presserIntent;
-  final double presserReactivity;
-  final ScanPassPoint coverOffset;
   final ScanPassPoint coverIntent;
-  final double coverReactivity;
   final ScanPassPoint runnerIntent;
-  final ScanPassPoint trackerOffset;
+  final double presserReactivity;
+  final double coverReactivity;
+  final double trackerReactivity;
 
   const _PressureScenarioSpec({
-    required this.id,
-    this.heldOut = false,
-    required this.presserOffset,
+    required this.family,
+    required this.variant,
+    required this.objective,
+    required this.facts,
+    required this.contrastFeature,
+    required this.initialDecisionKind,
+    this.initialCarrierRole = PressureActorRole.passer,
+    required this.passer,
+    required this.focus,
+    required this.support,
+    required this.runner,
+    required this.presser,
+    required this.cover,
+    required this.tracker,
     required this.presserIntent,
-    this.presserReactivity = .88,
-    required this.coverOffset,
-    required this.coverIntent,
-    this.coverReactivity = .70,
+    this.coverIntent = const ScanPassPoint(-.35, -.1),
     required this.runnerIntent,
-    this.trackerOffset = const ScanPassPoint(7.0, 1.5),
+    this.presserReactivity = .82,
+    this.coverReactivity = .68,
+    this.trackerReactivity = .72,
   });
 }
 
@@ -796,6 +1349,19 @@ class ScanPassPressureEngine {
   PressureObservation observe(PressureLessonScenario scenario) {
     var world = scenario.observationStart;
     final frames = <PressureWorld>[world];
+    if (scenario.initialDecisionKind != PressureEpisodeDecisionKind.receive) {
+      final holdAt = world.ball.position;
+      const horizon = .65;
+      while (world.clock + 1e-8 < horizon) {
+        final dt = math.min(stepSeconds, horizon - world.clock);
+        world = _advanceCarried(world, dt, controlledTarget: holdAt);
+        frames.add(world);
+      }
+      return PressureObservation(
+        trace: PressureTrace(frames),
+        decisionState: world,
+      );
+    }
     const preRelease = 1.65;
     while (world.clock + 1e-8 < preRelease) {
       final dt = math.min(stepSeconds, preRelease - world.clock);
@@ -826,29 +1392,49 @@ class ScanPassPressureEngine {
     final carrier = world.carrier;
     if (carrier == null || carrier.team != PressureTeam.attack) return const [];
     if (stage == PressureDecisionStage.firstContact) {
-      final inside =
-          _clamp(world.ball.position + const ScanPassPoint(.9, 1.75));
-      final outside =
-          _clamp(world.ball.position + const ScanPassPoint(.7, -1.75));
+      final channel = carrier.position.y < fieldWidthMetres / 3
+          ? PressureFieldChannel.right
+          : carrier.position.y > fieldWidthMetres * 2 / 3
+              ? PressureFieldChannel.left
+              : PressureFieldChannel.central;
+      final firstKind = channel == PressureFieldChannel.central
+          ? PressureOptionKind.touchLeft
+          : PressureOptionKind.touchInside;
+      final secondKind = channel == PressureFieldChannel.central
+          ? PressureOptionKind.touchRight
+          : PressureOptionKind.touchOutside;
+      final towardCentre = channel == PressureFieldChannel.left ? -1.75 : 1.75;
+      final firstTarget = _clamp(world.ball.position +
+          ScanPassPoint(.9,
+              channel == PressureFieldChannel.central ? 1.75 : towardCentre));
+      final secondTarget = _clamp(world.ball.position +
+          ScanPassPoint(.7,
+              channel == PressureFieldChannel.central ? -1.75 : -towardCentre));
       final support = world.actorByRole(PressureActorRole.support);
       final runner = world.actorByRole(PressureActorRole.runner);
       final passer = world.actorByRole(PressureActorRole.passer);
       return List.unmodifiable([
         PressureDecisionOption(
-          key: 'touch-inside',
-          kind: PressureOptionKind.touchInside,
+          key: channel == PressureFieldChannel.central
+              ? 'touch-left'
+              : 'touch-inside',
+          kind: firstKind,
           action: PressureAction(
-              label: 'inside',
+              label:
+                  channel == PressureFieldChannel.central ? 'left' : 'inside',
               kind: PressureActionKind.firstTouch,
-              target: inside),
+              target: firstTarget),
         ),
         PressureDecisionOption(
-          key: 'touch-outside',
-          kind: PressureOptionKind.touchOutside,
+          key: channel == PressureFieldChannel.central
+              ? 'touch-right'
+              : 'touch-outside',
+          kind: secondKind,
           action: PressureAction(
-              label: 'outside',
+              label:
+                  channel == PressureFieldChannel.central ? 'right' : 'outside',
               kind: PressureActionKind.firstTouch,
-              target: outside),
+              target: secondTarget),
         ),
         PressureDecisionOption(
           key: 'pass-now',
@@ -858,6 +1444,7 @@ class ScanPassPressureEngine {
             kind: PressureActionKind.pass,
             target: _leadTarget(world, support),
           ),
+          targetRole: PressureActorRole.support,
         ),
         PressureDecisionOption(
           key: 'pass-runner-now',
@@ -867,6 +1454,7 @@ class ScanPassPressureEngine {
             kind: PressureActionKind.pass,
             target: _leadTarget(world, runner),
           ),
+          targetRole: PressureActorRole.runner,
         ),
         PressureDecisionOption(
           key: 'pass-back-now',
@@ -876,31 +1464,38 @@ class ScanPassPressureEngine {
             kind: PressureActionKind.pass,
             target: _leadTarget(world, passer),
           ),
+          targetRole: PressureActorRole.passer,
         ),
       ]);
     }
-    final support = world.actorByRole(PressureActorRole.support);
-    final runner = world.actorByRole(PressureActorRole.runner);
+    final teammates = world
+        .team(PressureTeam.attack)
+        .where((actor) => actor.id != carrier.id)
+        .toList();
+    teammates.sort((a, b) => b.position.x.compareTo(a.position.x));
     return List.unmodifiable([
-      if (support.id != carrier.id)
+      for (final teammate in teammates)
         PressureDecisionOption(
-          key: 'pass-support',
-          kind: PressureOptionKind.passSupport,
+          key: switch (teammate.role) {
+            PressureActorRole.support => 'pass-support',
+            PressureActorRole.runner => 'pass-runner',
+            PressureActorRole.receiver => 'pass-focus',
+            PressureActorRole.passer => 'pass-recycle',
+            _ => 'pass-${teammate.role.name}',
+          },
+          kind: switch (teammate.role) {
+            PressureActorRole.support => PressureOptionKind.passSupport,
+            PressureActorRole.runner => PressureOptionKind.passRunner,
+            PressureActorRole.receiver => PressureOptionKind.passFocus,
+            PressureActorRole.passer => PressureOptionKind.recycle,
+            _ => PressureOptionKind.passOther,
+          },
           action: PressureAction(
-            label: 'support',
+            label: teammate.role.name,
             kind: PressureActionKind.pass,
-            target: _leadTarget(world, support),
+            target: _leadTarget(world, teammate),
           ),
-        ),
-      if (runner.id != carrier.id)
-        PressureDecisionOption(
-          key: 'pass-runner',
-          kind: PressureOptionKind.passRunner,
-          action: PressureAction(
-            label: 'runner',
-            kind: PressureActionKind.pass,
-            target: _leadTarget(world, runner),
-          ),
+          targetRole: teammate.role,
         ),
       PressureDecisionOption(
         key: 'carry-space',
@@ -914,50 +1509,543 @@ class ScanPassPressureEngine {
     ]);
   }
 
+  PressureEpisodeState startEpisode(
+    PressureLessonScenario scenario, {
+    int maxDecisions = 5,
+  }) {
+    final observation = observe(scenario);
+    return PressureEpisodeState(
+      scenario: scenario,
+      observation: observation,
+      world: observation.decisionState,
+      pendingDecision: scenario.initialDecisionKind,
+      timeline: const [],
+      outcome: null,
+      initialBallX: observation.decisionState.ball.position.x,
+      maxDecisions: maxDecisions,
+    );
+  }
+
+  List<PressureDecisionOption> episodeOptions(PressureEpisodeState episode) {
+    return switch (episode.pendingDecision) {
+      PressureEpisodeDecisionKind.receive =>
+        optionsFor(episode.world, PressureDecisionStage.firstContact),
+      PressureEpisodeDecisionKind.onBall =>
+        optionsFor(episode.world, PressureDecisionStage.reRead),
+      PressureEpisodeDecisionKind.support || null => const [],
+    };
+  }
+
+  PressureEpisodeState chooseEpisodeOption(
+    PressureEpisodeState episode,
+    PressureDecisionOption option,
+  ) {
+    final kind = episode.pendingDecision;
+    if (episode.isComplete ||
+        (kind != PressureEpisodeDecisionKind.receive &&
+            kind != PressureEpisodeDecisionKind.onBall)) {
+      return episode;
+    }
+    final options = episodeOptions(episode);
+    if (!options.any((candidate) => candidate.key == option.key)) {
+      return episode;
+    }
+    final result = _simulateOption(episode.world, option);
+    final decision = PressureEpisodeDecision(
+      index: episode.timeline.length,
+      kind: kind!,
+      before: episode.world,
+      after: result.after,
+      availableOptions: options,
+      selectedOption: option,
+      requestedTarget: option.action.target,
+      executedTarget: result.after.ball.position,
+      learnerTrace: result.trace,
+      actionResult: result,
+      supportResult: null,
+    );
+    return _continueEpisode(episode, decision);
+  }
+
+  PressureEpisodeState chooseSupportTarget(
+    PressureEpisodeState episode,
+    ScanPassPoint requestedTarget,
+  ) {
+    if (episode.isComplete ||
+        episode.pendingDecision != PressureEpisodeDecisionKind.support) {
+      return episode;
+    }
+    final result = simulateSupport(
+      episode.world,
+      requestedTarget,
+      focusRole: episode.scenario.focusRole,
+    );
+    final decision = PressureEpisodeDecision(
+      index: episode.timeline.length,
+      kind: PressureEpisodeDecisionKind.support,
+      before: episode.world,
+      after: result.after,
+      availableOptions: const [],
+      selectedOption: null,
+      requestedTarget: requestedTarget,
+      executedTarget: result.executedTarget,
+      learnerTrace: result.movementTrace,
+      actionResult: null,
+      supportResult: result,
+    );
+    return _continueEpisode(episode, decision);
+  }
+
+  /// Restores the selected snapshot by identity and discards only its suffix.
+  /// Earlier decisions are retained unchanged for causal retry.
+  PressureEpisodeState retryFrom(
+    PressureEpisodeState completed,
+    int decisionIndex,
+  ) {
+    if (decisionIndex < 0 || decisionIndex >= completed.timeline.length) {
+      return completed;
+    }
+    final selected = completed.timeline[decisionIndex];
+    return PressureEpisodeState(
+      scenario: completed.scenario,
+      observation: completed.observation,
+      world: selected.before,
+      pendingDecision: selected.kind,
+      timeline: completed.timeline.take(decisionIndex).toList(),
+      outcome: null,
+      initialBallX: completed.initialBallX,
+      maxDecisions: completed.maxDecisions,
+    );
+  }
+
+  /// Runs another choice from the selected decision snapshot. It never mutates
+  /// the original timeline and uses the same defender and teammate policy.
+  PressureEpisodeDecision alternativeOption(
+    PressureEpisodeDecision original,
+    PressureDecisionOption option,
+  ) {
+    final result = _simulateOption(original.before, option);
+    return PressureEpisodeDecision(
+      index: original.index,
+      kind: original.kind,
+      before: original.before,
+      after: result.after,
+      availableOptions: original.availableOptions,
+      selectedOption: option,
+      requestedTarget: option.action.target,
+      executedTarget: result.after.ball.position,
+      learnerTrace: result.trace,
+      actionResult: result,
+      supportResult: null,
+    );
+  }
+
+  PressureEpisodeDecision alternativeSupport(
+    PressureEpisodeDecision original,
+    ScanPassPoint target,
+  ) {
+    final result = simulateSupport(
+      original.before,
+      target,
+      focusRole:
+          original.supportResult?.focusRole ?? PressureActorRole.receiver,
+    );
+    return PressureEpisodeDecision(
+      index: original.index,
+      kind: PressureEpisodeDecisionKind.support,
+      before: original.before,
+      after: result.after,
+      availableOptions: const [],
+      selectedOption: null,
+      requestedTarget: target,
+      executedTarget: result.executedTarget,
+      learnerTrace: result.movementTrace,
+      actionResult: null,
+      supportResult: result,
+    );
+  }
+
+  PressureSupportResult simulateSupport(
+    PressureWorld before,
+    ScanPassPoint requestedTarget, {
+    PressureActorRole focusRole = PressureActorRole.receiver,
+  }) {
+    final focus = before.actorByRole(focusRole);
+    final delta = requestedTarget - focus.position;
+    final boundedDistance = math.min(8.0, delta.distance);
+    final boundedTarget = _clamp(focus.position +
+        (delta.distance <= 1e-9
+            ? const ScanPassPoint(0, 0)
+            : _unit(delta) * boundedDistance));
+    // Release before a holding carrier would be reached, rather than making
+    // every support judgment consume a fixed half-second. This budget depends
+    // only on the shared starting world, so stationary and moving alternatives
+    // receive exactly the same teammate reaction time.
+    final pressureArrival = _pressureArrivalSeconds(before);
+    final releaseSeconds = (pressureArrival - .12).clamp(.08, .68).toDouble();
+    final movement = _advanceSupportMovement(
+      before,
+      focusRole: focusRole,
+      target: boundedTarget,
+      maximumDuration: releaseSeconds,
+      reactToOpening: true,
+    );
+    var world = movement.after;
+    final afterMovement = movement.after;
+    final movementTrace = movement.trace;
+    var contact = movement.contact;
+    PressureAutomaticContinuation? continuation;
+    if (world.possession == PressurePossession.attack &&
+        world.carrier?.team == PressureTeam.attack) {
+      continuation = _adaptiveContinuation(
+        world,
+        focusRole,
+        boundedTarget,
+      );
+      world = continuation.result.after;
+      contact ??= continuation.result.contact;
+    }
+    final stationaryMotion = _advanceSupportMovement(
+      before,
+      focusRole: focusRole,
+      target: focus.position,
+      maximumDuration: afterMovement.clock - before.clock,
+      reactToOpening: false,
+    );
+    final stationary = stationaryMotion.after;
+    final comparableLaneWorlds =
+        stationary.possession == afterMovement.possession &&
+            stationary.carrier?.role == afterMovement.carrier?.role;
+    final completeTrace = continuation == null
+        ? movementTrace
+        : PressureTrace.join([movementTrace, continuation.result.trace]);
+    final focusPath = completeTrace.frames
+        .map((frame) => frame.actorByRole(focusRole).position)
+        .toList();
+    var movementDistance = 0.0;
+    for (var index = 1; index < focusPath.length; index++) {
+      movementDistance += focusPath[index - 1].distanceTo(focusPath[index]);
+    }
+    return PressureSupportResult(
+      before: before,
+      afterMovement: afterMovement,
+      after: world,
+      focusRole: focusRole,
+      requestedTarget: requestedTarget,
+      boundedTarget: boundedTarget,
+      executedTarget: world.actorByRole(focusRole).position,
+      movementDistanceMetres: movementDistance,
+      movementTrace: movementTrace,
+      continuation: continuation,
+      laneChanges: comparableLaneWorlds
+          ? _laneChanges(stationary, afterMovement)
+          : const [],
+      stationaryCounterfactual: stationary,
+      contact: contact,
+    );
+  }
+
+  _PressureSupportMotion _advanceSupportMovement(
+    PressureWorld before, {
+    required PressureActorRole focusRole,
+    required ScanPassPoint target,
+    required double maximumDuration,
+    required bool reactToOpening,
+  }) {
+    var world = before;
+    final frames = <PressureWorld>[world];
+    PressureContactEvidence? contact;
+    final holdTarget = before.carrier?.position;
+    final initiallySafe = connections(before)
+        .where((connection) => connection.safe && connection.forward)
+        .map((connection) => connection.receiverRole)
+        .toSet();
+    var nextOpeningCheck = math.min(.32, maximumDuration);
+    while (world.clock < before.clock + maximumDuration - 1e-8 &&
+        world.possession == PressurePossession.attack) {
+      final elapsed = world.clock - before.clock;
+      final dt = math.min(
+        stepSeconds,
+        before.clock + maximumDuration - world.clock,
+      );
+      final previous = world;
+      world = _advanceCarried(
+        world,
+        dt,
+        controlledTarget: holdTarget,
+        controlledOffBallRole: focusRole,
+        controlledOffBallTarget: target,
+      );
+      final hit = _carrierContact(previous, world);
+      if (hit != null) {
+        world = _contactWorldBetween(previous, world, hit);
+        contact = PressureContactEvidence(
+          clock: hit.clock,
+          defenderNumber: hit.actor.number,
+          defenderId: hit.actor.id,
+          point: world.ball.position,
+        );
+      }
+      frames.add(world);
+      final now = elapsed + dt;
+      if (reactToOpening && now + 1e-8 >= nextOpeningCheck) {
+        final opened = connections(world).any((connection) =>
+            connection.safe &&
+            connection.forward &&
+            !initiallySafe.contains(connection.receiverRole));
+        if (opened) break;
+        nextOpeningCheck += .12;
+      }
+    }
+    return _PressureSupportMotion(
+      after: world,
+      trace: PressureTrace(frames),
+      contact: contact,
+    );
+  }
+
+  PressureEpisodeState _continueEpisode(
+    PressureEpisodeState episode,
+    PressureEpisodeDecision decision,
+  ) {
+    final timeline = [...episode.timeline, decision];
+    final after = decision.after;
+    PressureEpisodeOutcome? outcome;
+    if (decision.offside) {
+      outcome = PressureEpisodeOutcome.offside;
+    } else if (after.possession == PressurePossession.defense) {
+      outcome = PressureEpisodeOutcome.intercepted;
+    } else if (after.possession == PressurePossession.loose) {
+      outcome = PressureEpisodeOutcome.loose;
+    } else if (after.ball.position.x >= 90) {
+      outcome = PressureEpisodeOutcome.penetration;
+    } else if (after.carrier?.team == PressureTeam.attack) {
+      final carrier = after.carrier!;
+      final clearance = _nearestDefender(after, carrier.position)
+          .position
+          .distanceTo(carrier.position);
+      final pressureLine = math.max(
+        after.actorByRole(PressureActorRole.presser).position.x,
+        after.actorByRole(PressureActorRole.cover).position.x,
+      );
+      final nextConnection = connections(after).any(
+        (connection) => connection.safe && connection.forward,
+      );
+      final escaped = after.ball.position.x >= pressureLine + 3 &&
+          after.ball.position.x - episode.initialBallX >= 8 &&
+          clearance >= 2.1 &&
+          nextConnection;
+      final recycleMoment = timeline.where((item) {
+        final automaticKind = item.supportResult?.continuation?.kind;
+        return item.selectedOption?.kind == PressureOptionKind.recycle ||
+            automaticKind == PressureAutomaticKind.recycle;
+      }).firstOrNull;
+      final recycled = recycleMoment != null;
+      final forwardWasClosed = recycleMoment != null &&
+          !connections(recycleMoment.before).any(
+            (connection) => connection.safe && connection.forward,
+          );
+      final switchedWidth = (after.ball.position.y -
+                  episode.observation.decisionState.ball.position.y)
+              .abs() >=
+          12;
+      if (escaped) {
+        outcome = PressureEpisodeOutcome.pressureEscape;
+      } else if (recycled &&
+          forwardWasClosed &&
+          switchedWidth &&
+          clearance >= 2) {
+        outcome = PressureEpisodeOutcome.safeRecycle;
+      }
+    }
+    if (outcome == null && timeline.length >= episode.maxDecisions) {
+      outcome = PressureEpisodeOutcome.retainedUnresolved;
+    }
+    PressureEpisodeDecisionKind? pending;
+    if (outcome == null) {
+      if (decision.kind == PressureEpisodeDecisionKind.support) {
+        pending = after.carrier?.role == episode.scenario.focusRole
+            ? PressureEpisodeDecisionKind.onBall
+            : PressureEpisodeDecisionKind.support;
+      } else if (decision.selectedOption?.action.kind ==
+          PressureActionKind.pass) {
+        pending = PressureEpisodeDecisionKind.support;
+      } else {
+        pending = PressureEpisodeDecisionKind.onBall;
+      }
+    }
+    return PressureEpisodeState(
+      scenario: episode.scenario,
+      observation: episode.observation,
+      world: after,
+      pendingDecision: pending,
+      timeline: timeline,
+      outcome: outcome,
+      initialBallX: episode.initialBallX,
+      maxDecisions: episode.maxDecisions,
+    );
+  }
+
+  PressureAutomaticContinuation _adaptiveContinuation(
+    PressureWorld world,
+    PressureActorRole focusRole,
+    ScanPassPoint focusTarget,
+  ) {
+    final options = optionsFor(world, PressureDecisionStage.reRead);
+    final candidates = <({
+      PressureDecisionOption option,
+      PressureSimulationResult result,
+      double score,
+    })>[];
+    for (final option in options) {
+      final result = _simulateWithOffBallTarget(
+        world,
+        option,
+        focusRole,
+        focusTarget,
+      );
+      var score = result.after.possession == PressurePossession.attack
+          ? 100.0
+          : -1000.0;
+      if (result.offside) score -= 800;
+      score += result.assessment.actionProgressMetres * 1.35;
+      score += result.assessment.pressureClearanceMetres * 3.0;
+      score += result.assessment.connections
+              .where((connection) => connection.safe && connection.forward)
+              .length *
+          7.0;
+      if (option.kind == PressureOptionKind.recycle) {
+        final forwardOpen = connections(world)
+            .any((connection) => connection.safe && connection.forward);
+        score += forwardOpen ? -7 : 9;
+      }
+      candidates.add((option: option, result: result, score: score));
+    }
+    candidates.sort((a, b) => b.score.compareTo(a.score));
+    final selected = candidates.first;
+    final kind = selected.option.action.kind == PressureActionKind.carry
+        ? PressureAutomaticKind.carry
+        : selected.option.kind == PressureOptionKind.recycle
+            ? PressureAutomaticKind.recycle
+            : PressureAutomaticKind.pass;
+    return PressureAutomaticContinuation(kind: kind, result: selected.result);
+  }
+
+  PressureSimulationResult _simulateWithOffBallTarget(
+    PressureWorld world,
+    PressureDecisionOption option,
+    PressureActorRole focusRole,
+    ScanPassPoint focusTarget,
+  ) {
+    final controlledRole = world.carrier?.role == focusRole ? null : focusRole;
+    final action = option.action;
+    return switch (action.kind) {
+      PressureActionKind.pass => _simulatePass(
+          world,
+          PressureAction(
+            label: action.label,
+            kind: action.kind,
+            target: option.targetRole == focusRole && controlledRole != null
+                ? _controlledLeadTarget(
+                    world,
+                    world.actorByRole(focusRole),
+                    focusTarget,
+                  )
+                : action.target,
+          ),
+          forcedReceiverRole: option.targetRole,
+          controlledOffBallRole: controlledRole,
+          controlledOffBallTarget: focusTarget,
+        ),
+      PressureActionKind.carry => _simulateControlled(
+          world,
+          action,
+          minimum: .4,
+          maximum: 3,
+          settleSeconds: .28,
+          controlledOffBallRole: controlledRole,
+          controlledOffBallTarget: focusTarget,
+        ),
+      PressureActionKind.firstTouch ||
+      PressureActionKind.offBallRun =>
+        simulate(world, action),
+    };
+  }
+
+  List<PressureLaneChange> _laneChanges(
+    PressureWorld before,
+    PressureWorld after,
+  ) {
+    final beforeByRole = {
+      for (final lane in connections(before)) lane.receiverRole: lane,
+    };
+    final afterByRole = {
+      for (final lane in connections(after)) lane.receiverRole: lane,
+    };
+    final roles = {...beforeByRole.keys, ...afterByRole.keys};
+    return List.unmodifiable([
+      for (final role in roles)
+        PressureLaneChange(
+          receiverRole: role,
+          beforeDefenderRole: beforeByRole[role]?.blockingDefenderRole,
+          afterDefenderRole: afterByRole[role]?.blockingDefenderRole,
+          usableBefore: beforeByRole[role]?.safe ?? false,
+          usableAfter: afterByRole[role]?.safe ?? false,
+          clearanceChangeMetres:
+              (afterByRole[role]?.closestDefenderMetres ?? 0) -
+                  (beforeByRole[role]?.closestDefenderMetres ?? 0),
+        ),
+    ]);
+  }
+
   PressureSituationContext situationContext(
     PressureWorld world,
     PressureDecisionStage stage,
   ) {
     final carrier = world.carrier;
     final receiver = world.actorByRole(PressureActorRole.receiver);
-    final focus = carrier == null || carrier.role == PressureActorRole.passer
-        ? receiver
-        : carrier;
-    final presser = world.actorByRole(PressureActorRole.presser);
+    final currentFocus = carrier ?? receiver;
+    final nearestPressure = _nearestDefender(world, currentFocus.position);
     final cover = world.actorByRole(PressureActorRole.cover);
     final support = world.actorByRole(PressureActorRole.support);
     final runner = world.actorByRole(PressureActorRole.runner);
-    final pressureDelta = presser.position.y - focus.position.y;
+    final pressureDelta = nearestPressure.position.y - currentFocus.position.y;
     final approachSide = pressureDelta < -1
         ? PressureApproachSide.outside
         : pressureDelta > 1
             ? PressureApproachSide.inside
             : PressureApproachSide.level;
+    final laneTarget = support.id == carrier?.id ? receiver : support;
     final coverLanePoint = _closestPointOnSegment(
       cover.position,
       world.ball.position,
-      support.position,
+      laneTarget.position,
     );
     return PressureSituationContext(
       stage: stage,
-      fieldBand: focus.position.x >= fieldLengthMetres * 2 / 3
+      fieldBand: currentFocus.position.x >= fieldLengthMetres * 2 / 3
           ? PressureFieldBand.attackingThird
           : PressureFieldBand.middleThird,
-      fieldChannel: focus.position.y < fieldWidthMetres / 3
+      fieldChannel: currentFocus.position.y < fieldWidthMetres / 3
           ? PressureFieldChannel.right
-          : focus.position.y > fieldWidthMetres * 2 / 3
+          : currentFocus.position.y > fieldWidthMetres * 2 / 3
               ? PressureFieldChannel.left
               : PressureFieldChannel.central,
-      carrierNumber: (carrier ?? focus).number,
-      focusNumber: focus.number,
-      presserNumber: presser.number,
+      carrierNumber: currentFocus.number,
+      focusNumber: receiver.number,
+      presserNumber: nearestPressure.number,
       approachSide: approachSide,
-      pressureMovement: _movingToward(presser, focus.position, focus.velocity)
+      pressureMovement: _movingToward(
+        nearestPressure,
+        currentFocus.position,
+        currentFocus.velocity,
+      )
           ? PressureMovement.closing
           : PressureMovement.holding,
-      pressureDistanceMetres: presser.position.distanceTo(focus.position),
+      pressureDistanceMetres:
+          nearestPressure.position.distanceTo(currentFocus.position),
       coverNumber: cover.number,
-      supportNumber: support.number,
+      supportNumber: laneTarget.number,
       coverMovement: _movingToward(
         cover,
         coverLanePoint,
@@ -1120,7 +2208,23 @@ class ScanPassPressureEngine {
           maximum: 3.0,
           settleSeconds: .28,
         ),
+      PressureActionKind.offBallRun => _stationaryResult(before, action),
     };
+  }
+
+  PressureSimulationResult _simulateOption(
+    PressureWorld before,
+    PressureDecisionOption option,
+  ) {
+    if (option.action.kind != PressureActionKind.pass ||
+        option.targetRole == null) {
+      return simulate(before, option.action);
+    }
+    return _simulatePass(
+      before,
+      option.action,
+      forcedReceiverRole: option.targetRole,
+    );
   }
 
   List<PressureSimulationResult> compare(
@@ -1183,6 +2287,8 @@ class ScanPassPressureEngine {
     required double minimum,
     required double maximum,
     required double settleSeconds,
+    PressureActorRole? controlledOffBallRole,
+    ScanPassPoint? controlledOffBallTarget,
   }) {
     final carrier = before.carrier;
     if (carrier == null || carrier.team != PressureTeam.attack) {
@@ -1204,7 +2310,13 @@ class ScanPassPressureEngine {
         movementSteps < 200) {
       final dt = stepSeconds;
       final previous = world;
-      world = _advanceCarried(world, dt, controlledTarget: carrierTarget);
+      world = _advanceCarried(
+        world,
+        dt,
+        controlledTarget: carrierTarget,
+        controlledOffBallRole: controlledOffBallRole,
+        controlledOffBallTarget: controlledOffBallTarget,
+      );
       final hit = _carrierContact(previous, world);
       if (hit != null) {
         world = _contactWorldBetween(previous, world, hit);
@@ -1225,7 +2337,13 @@ class ScanPassPressureEngine {
       while (settled + 1e-8 < settleSeconds) {
         final dt = math.min(stepSeconds, settleSeconds - settled);
         final previous = world;
-        world = _advanceCarried(world, dt, controlledTarget: carrierTarget);
+        world = _advanceCarried(
+          world,
+          dt,
+          controlledTarget: carrierTarget,
+          controlledOffBallRole: controlledOffBallRole,
+          controlledOffBallTarget: controlledOffBallTarget,
+        );
         final hit = _carrierContact(previous, world);
         if (hit != null) {
           world = _contactWorldBetween(previous, world, hit);
@@ -1259,12 +2377,16 @@ class ScanPassPressureEngine {
     ScanPassPoint? forcedTarget,
     PressureActorRole? forcedReceiverRole,
     double settleSeconds = .22,
+    PressureActorRole? controlledOffBallRole,
+    ScanPassPoint? controlledOffBallTarget,
   }) {
     final motion = _runPass(
       before,
       _clamp(forcedTarget ?? action.target),
       forcedReceiverRole: forcedReceiverRole,
       settleSeconds: settleSeconds,
+      controlledOffBallRole: controlledOffBallRole,
+      controlledOffBallTarget: controlledOffBallTarget,
     );
     if (motion == null) return _stationaryResult(before, action);
     final intendedReceived = motion.intendedReception != null;
@@ -1305,6 +2427,8 @@ class ScanPassPressureEngine {
     ScanPassPoint requestedTarget, {
     PressureActorRole? forcedReceiverRole,
     required double settleSeconds,
+    PressureActorRole? controlledOffBallRole,
+    ScanPassPoint? controlledOffBallTarget,
   }) {
     final carrier = before.carrier;
     if (carrier == null || carrier.team != PressureTeam.attack) return null;
@@ -1343,7 +2467,13 @@ class ScanPassPressureEngine {
       final nextBall = elapsed + dt >= duration
           ? target
           : _clamp(startBall + direction * (passSpeedMetresPerSecond * dt));
-      final nextActors = _advanceActors(world, dt, controlledTarget: null);
+      final nextActors = _advanceActors(
+        world,
+        dt,
+        controlledTarget: null,
+        controlledOffBallRole: controlledOffBallRole,
+        controlledOffBallTarget: controlledOffBallTarget,
+      );
       final next = PressureWorld(
         clock: world.clock + dt,
         actors: nextActors,
@@ -1392,7 +2522,13 @@ class ScanPassPressureEngine {
       while (settled + 1e-8 < settleSeconds) {
         final dt = math.min(stepSeconds, settleSeconds - settled);
         final previous = world;
-        world = _advanceCarried(world, dt, controlledTarget: receivedAt);
+        world = _advanceCarried(
+          world,
+          dt,
+          controlledTarget: receivedAt,
+          controlledOffBallRole: controlledOffBallRole,
+          controlledOffBallTarget: controlledOffBallTarget,
+        );
         final hit = _carrierContact(previous, world);
         if (hit != null) {
           world = _contactWorldBetween(previous, world, hit);
@@ -1508,9 +2644,16 @@ class ScanPassPressureEngine {
     PressureWorld world,
     double dt, {
     required ScanPassPoint? controlledTarget,
+    PressureActorRole? controlledOffBallRole,
+    ScanPassPoint? controlledOffBallTarget,
   }) {
-    final actors =
-        _advanceActors(world, dt, controlledTarget: controlledTarget);
+    final actors = _advanceActors(
+      world,
+      dt,
+      controlledTarget: controlledTarget,
+      controlledOffBallRole: controlledOffBallRole,
+      controlledOffBallTarget: controlledOffBallTarget,
+    );
     final carrierId = world.ball.carrierId;
     if (carrierId == null) {
       return world.copyWith(clock: world.clock + dt, actors: actors);
@@ -1536,13 +2679,20 @@ class ScanPassPressureEngine {
     PressureWorld world,
     double dt, {
     required ScanPassPoint? controlledTarget,
+    PressureActorRole? controlledOffBallRole,
+    ScanPassPoint? controlledOffBallTarget,
   }) {
     final values = <PressureActor>[];
     final carrier = world.carrier;
     for (final actor in world.actors) {
       ScanPassPoint desired;
-      if (carrier?.id == actor.id && controlledTarget != null) {
-        final remaining = controlledTarget - actor.position;
+      final actorTarget = carrier?.id == actor.id
+          ? controlledTarget
+          : actor.role == controlledOffBallRole
+              ? controlledOffBallTarget
+              : null;
+      if (actorTarget != null) {
+        final remaining = actorTarget - actor.position;
         final brakingSpeed = math.sqrt(
           math.max(0, 2 * actor.maxAcceleration * remaining.distance),
         );
@@ -1560,11 +2710,10 @@ class ScanPassPressureEngine {
         actor.maxAcceleration * dt,
       );
       var position = _clamp(actor.position + velocity * dt);
-      if (carrier?.id == actor.id &&
-          controlledTarget != null &&
-          actor.position.distanceTo(controlledTarget) <= .015 &&
+      if (actorTarget != null &&
+          actor.position.distanceTo(actorTarget) <= .015 &&
           actor.velocity.distance <= actor.maxAcceleration * dt + .01) {
-        position = controlledTarget;
+        position = actorTarget;
         velocity = const ScanPassPoint(0, 0);
       }
       values.add(actor.copyWith(position: position, velocity: velocity));
@@ -1583,7 +2732,16 @@ class ScanPassPressureEngine {
       case PressureActorRole.presser:
         final passerHasBall = ballCarrier?.role == PressureActorRole.passer;
         final incoming = ballCarrier == null && world.ball.inFlight;
-        final target = passerHasBall || incoming
+        final incomingShape = passerHasBall &&
+            receiver.position.x > ballFocus.x + 4 &&
+            actor.position.distanceTo(receiver.position) + 1 <
+                actor.position.distanceTo(ballFocus);
+        final incomingMark = incoming &&
+            actor.position.distanceTo(receiver.position) <
+                actor.position.distanceTo(ballFocus);
+        final immediateBallThreat = ballCarrier?.team == PressureTeam.attack &&
+            actor.position.distanceTo(ballFocus) <= 3.2;
+        final target = !immediateBallThreat && (incomingShape || incomingMark)
             ? _markingPoint(
                 actor,
                 receiver,
@@ -1597,26 +2755,44 @@ class ScanPassPressureEngine {
             pursuit * math.max(.28, actor.reactivity);
       case PressureActorRole.cover:
         final support = world.actorByRole(PressureActorRole.support);
+        final focus = world.actorByRole(PressureActorRole.receiver);
+        final laneTarget = support.id == ballCarrier?.id ? focus : support;
         final midpoint = ScanPassPoint(
-          ballFocus.x + (support.position.x - ballFocus.x) * .55,
-          ballFocus.y + (support.position.y - ballFocus.y) * .55,
+          ballFocus.x + (laneTarget.position.x - ballFocus.x) * .55,
+          ballFocus.y + (laneTarget.position.y - ballFocus.y) * .55,
         );
-        final target = actor.home.lerp(midpoint, actor.reactivity * .58);
-        return actor.intentVelocity * (1 - actor.reactivity) +
-            _unit(target - actor.position) * actor.maxSpeed * actor.reactivity;
+        final nearestDistance = world
+            .team(PressureTeam.defense)
+            .map((defender) => defender.position.distanceTo(ballFocus))
+            .reduce(math.min);
+        final ballDistance = actor.position.distanceTo(ballFocus);
+        final mustChallenge = ballCarrier?.team == PressureTeam.attack &&
+            (ballDistance <= 3.2 || ballDistance <= nearestDistance + .75);
+        final response =
+            mustChallenge ? math.max(.68, actor.reactivity) : actor.reactivity;
+        final target = mustChallenge
+            ? ballFocus
+            : actor.home.lerp(midpoint, actor.reactivity * .58);
+        return actor.intentVelocity * (1 - response) +
+            _velocityToPoint(actor, target) * response;
       case PressureActorRole.tracker:
         final runner = world.actorByRole(PressureActorRole.runner);
-        final target = world.ball.inFlight && ballCarrier == null
-            ? world.ball.position
-            : _markingPoint(
-                actor,
-                runner,
-                (actor.home.distanceTo(runner.home) * .42)
-                    .clamp(2.4, 4.2)
-                    .toDouble(),
-              );
-        return actor.intentVelocity * ((1 - actor.reactivity) * .15) +
-            _velocityToPoint(actor, target) * actor.reactivity;
+        final runnerHasBall = ballCarrier?.id == runner.id;
+        final target = runnerHasBall
+            ? ballFocus
+            : world.ball.inFlight && ballCarrier == null
+                ? world.ball.position
+                : _markingPoint(
+                    actor,
+                    runner,
+                    (actor.home.distanceTo(runner.home) * .42)
+                        .clamp(2.4, 4.2)
+                        .toDouble(),
+                  );
+        final response =
+            runnerHasBall ? math.max(.72, actor.reactivity) : actor.reactivity;
+        return actor.intentVelocity * ((1 - response) * .15) +
+            _velocityToPoint(actor, target) * response;
       default:
         return actor.intentVelocity;
     }
@@ -1766,6 +2942,42 @@ class ScanPassPressureEngine {
     return target;
   }
 
+  /// Predicts the receiver's position while they continue toward the selected
+  /// support destination with the same acceleration, braking and separation
+  /// rules used by the live pass simulation.
+  ScanPassPoint _controlledLeadTarget(
+    PressureWorld world,
+    PressureActor receiver,
+    ScanPassPoint controlledTarget,
+  ) {
+    var passTarget = receiver.position;
+    for (var iteration = 0; iteration < 6; iteration++) {
+      final flight = (world.ball.position.distanceTo(passTarget) /
+              passSpeedMetresPerSecond)
+          .clamp(0.0, 3.0)
+          .toDouble();
+      var projection = world;
+      var elapsed = 0.0;
+      while (elapsed + 1e-8 < flight) {
+        final dt = math.min(stepSeconds, flight - elapsed);
+        final heldCarrier = projection.carrier?.position;
+        projection = projection.copyWith(
+          clock: projection.clock + dt,
+          actors: _advanceActors(
+            projection,
+            dt,
+            controlledTarget: heldCarrier,
+            controlledOffBallRole: receiver.role,
+            controlledOffBallTarget: controlledTarget,
+          ),
+        );
+        elapsed += dt;
+      }
+      passTarget = projection.actorByRole(receiver.role).position;
+    }
+    return _clamp(passTarget);
+  }
+
   ScanPassPoint _markingPoint(
     PressureActor defender,
     PressureActor attacker,
@@ -1798,8 +3010,21 @@ class ScanPassPressureEngine {
     ScanPassPoint desired,
     PressureWorld world,
   ) {
-    if (actor.team != PressureTeam.defense) return desired;
     var adjusted = desired;
+    if (actor.team == PressureTeam.attack) {
+      for (final teammate in world.team(PressureTeam.attack)) {
+        if (teammate.id == actor.id) continue;
+        final delta = actor.position - teammate.position;
+        const preferred = 1.8;
+        if (delta.distance >= preferred) continue;
+        final away = delta.distance <= 1e-9
+            ? ScanPassPoint(0, actor.role.index.isEven ? 1 : -1)
+            : _unit(delta);
+        final strength = (preferred - delta.distance) / preferred;
+        adjusted += away * (actor.maxSpeed * (.7 + strength));
+      }
+      return adjusted;
+    }
     for (final attacker in world.team(PressureTeam.attack)) {
       if (attacker.id == world.ball.carrierId) continue;
       final delta = actor.position - attacker.position;
@@ -1909,6 +3134,18 @@ class _PressureMotion {
     required this.intendedReceiverRole,
     required this.onsideAtRelease,
     required this.intendedReception,
+  });
+}
+
+class _PressureSupportMotion {
+  final PressureWorld after;
+  final PressureTrace trace;
+  final PressureContactEvidence? contact;
+
+  const _PressureSupportMotion({
+    required this.after,
+    required this.trace,
+    required this.contact,
   });
 }
 

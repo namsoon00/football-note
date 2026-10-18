@@ -21131,11 +21131,11 @@ class AppLocalizationsJa extends AppLocalizations {
       'ヤマルのアシストにつながる攻撃は別の歴史的な例であり、この合成トレーニング状況の正解ではありません。';
 
   @override
-  String get pressureLessonSummaryTitle => '8つの判断を振り返りました';
+  String get pressureLessonSummaryTitle => '判断を振り返りました';
 
   @override
   String get pressureLessonSummaryCoverage =>
-      '最初の試行で、外側・内側のプレッシャー、カバー位置、走り出しのタイミングが変わる状況を扱いました。';
+      '最初の試行で、変化するプレッシャー、サポート、カバーとランのタイミングを扱いました。';
 
   @override
   String pressureLessonSummaryConnections(Object count, Object total) {
@@ -21151,7 +21151,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '次の焦点：ファーストタッチの直後に次のパスコースをもう一度確認しましょう。';
 
   @override
-  String get pressureLessonRestart => '8つの状況をもう一度始める';
+  String get pressureLessonRestart => '状況をもう一度始める';
 
   @override
   String pressureLessonSituationMenu(Object number) {
@@ -21387,5 +21387,259 @@ class AppLocalizationsJa extends AppLocalizations {
   String pressureLessonReviewSituationFacts(
       Object location, Object carrier, Object presser, Object distance) {
     return '$location · 判断時：ボール#$carrier、守備#$presserと${distance}m';
+  }
+
+  @override
+  String pressureEpisodeIdentity(
+      Object current, Object total, Object family, Object variant) {
+    return '状況 $current/$total · $family · $variant';
+  }
+
+  @override
+  String pressureEpisodeFacts(
+      Object location, Object owner, Object learner, Object pressure) {
+    return '$location · ボール#$owner · 学習者#$learner · $pressure';
+  }
+
+  @override
+  String pressureEpisodePressureFact(
+      Object defender, Object movement, Object side, Object gap) {
+    return '#$defender $sideから$movement・${gap}m';
+  }
+
+  @override
+  String pressureEpisodeRunnerFact(Object runner, Object movement) {
+    return 'ランナー#$runner：$movement';
+  }
+
+  @override
+  String pressureEpisodeCoverFact(
+      Object outlet, Object defender, Object movement, Object gap) {
+    return '#$outletへのパス線：#$defenderが$movement・線まで${gap}m';
+  }
+
+  @override
+  String pressureEpisodeReturnLaneFact(
+      Object outlet, Object defender, Object movement, Object gap) {
+    return '#$outletへのリターン：#$defenderが$movement・線まで${gap}m';
+  }
+
+  @override
+  String get pressureEpisodePressureSideRight => '右';
+
+  @override
+  String get pressureEpisodePressureSideLeft => '左';
+
+  @override
+  String get pressureEpisodePressureSideLevel => '正面';
+
+  @override
+  String get pressureEpisodePressureClosing => '接近';
+
+  @override
+  String get pressureEpisodePressureHolding => '維持';
+
+  @override
+  String get pressureEpisodeFamilyReception => 'プレッシャー下の受け方';
+
+  @override
+  String get pressureEpisodeFamilyDrawRelease => '引きつけて離す';
+
+  @override
+  String get pressureEpisodeFamilySupport => 'パス後のサポート';
+
+  @override
+  String get pressureEpisodeFamilyRunnerTiming => 'ランナーのタイミング';
+
+  @override
+  String get pressureEpisodeFamilyThirdPlayer => '第3の選手との連係';
+
+  @override
+  String get pressureEpisodeFamilyRecycle => 'リサイクルと展開';
+
+  @override
+  String get pressureEpisodeVariantGuided => 'ガイド';
+
+  @override
+  String get pressureEpisodeVariantContrast => '対比';
+
+  @override
+  String get pressureEpisodeVariantUnseen => '新しい組合せ';
+
+  @override
+  String get pressureEpisodeContextObserve => 'ボール、プレッシャー、カバー、次のランを観察します。';
+
+  @override
+  String get pressureEpisodeContextExecuting => '守備の反応を見ます。次の判断は実際の結果位置から続きます。';
+
+  @override
+  String pressureEpisodeContextReview(Object current, Object total) {
+    return '判断 $current/$total を確認中・後の軌跡は非表示です。';
+  }
+
+  @override
+  String get pressureEpisodeTaskReceive => 'ファーストタッチかワンタッチパスの後、変化を読み直します。';
+
+  @override
+  String get pressureEpisodeTaskOnBall => 'この状態から有効なパスか運びを選びます。';
+
+  @override
+  String pressureEpisodeTaskSupport(Object number) {
+    return 'ピッチを1回タップし、学習者#$numberのサポート位置を決めます。';
+  }
+
+  @override
+  String get pressureEpisodeChooseReceive => 'ファーストタッチかワンタッチパス';
+
+  @override
+  String get pressureEpisodeTouchLeft => '左へファーストタッチ';
+
+  @override
+  String get pressureEpisodeTouchRight => '右へファーストタッチ';
+
+  @override
+  String get pressureEpisodeChooseOnBall => '守備を読み直して、もう一度選びます。';
+
+  @override
+  String get pressureEpisodeReviewInstruction => '選んだ判断を確認します。';
+
+  @override
+  String pressureEpisodeChooseSupport(Object number) {
+    return '学習者#$numberのサポート位置を選びます。';
+  }
+
+  @override
+  String get pressureEpisodeSupportHint => '空いた場所を1回タップ・移動は最大8m';
+
+  @override
+  String pressureEpisodeLearnerMarker(Object number) {
+    return '#$number 学習者';
+  }
+
+  @override
+  String get pressureEpisodeDecisionReceive => '受ける';
+
+  @override
+  String get pressureEpisodeDecisionOnBall => 'オンボール';
+
+  @override
+  String get pressureEpisodeDecisionSupport => 'サポート';
+
+  @override
+  String pressureEpisodeTimelineItem(Object index, Object label) {
+    return '$index $label';
+  }
+
+  @override
+  String pressureEpisodeReviewSupportAction(Object number, Object distance) {
+    return '選択：#$numberがボールなしで${distance}m動きました。';
+  }
+
+  @override
+  String pressureEpisodeSupportOpenedLane(Object receiver, Object defender) {
+    return '効果：動きにより守備#$defenderの先の#$receiverへの経路が開きました。';
+  }
+
+  @override
+  String pressureEpisodeSupportWidenedLane(Object receiver, Object distance) {
+    return '効果：#$receiverへの経路の余裕が${distance}m増えました。';
+  }
+
+  @override
+  String get pressureEpisodeSupportNoMeasuredBenefit =>
+      '結果：この動きはパス経路を測定可能な形では改善しませんでした。';
+
+  @override
+  String pressureEpisodeSupportBlockedLane(Object receiver, Object defender) {
+    return '原因：守備#$defenderの後ろで#$receiverへの経路が閉じました。';
+  }
+
+  @override
+  String pressureEpisodeSupportLaneStillBlocked(
+      Object receiver, Object defender) {
+    return '原因：#$receiverへのレーンは#$defenderに塞がれたままでした。';
+  }
+
+  @override
+  String get pressureEpisodeSupportLanesUnchanged =>
+      '次の確認：特定のレーンへの効果は測定されませんでした。';
+
+  @override
+  String get pressureEpisodeSupportNoContinuation =>
+      '次の確認：味方にコントロールされた継続プレーがありませんでした。';
+
+  @override
+  String pressureEpisodeAutomaticPass(Object from, Object to) {
+    return '結果：#$fromは使える#$toへのパスを選びました。';
+  }
+
+  @override
+  String pressureEpisodeAutomaticRecycle(Object from, Object to) {
+    return '結果：前進が閉じたため#$fromは#$toへ戻しました。';
+  }
+
+  @override
+  String pressureEpisodeAutomaticCarry(Object number) {
+    return '結果：#$numberはボールを保って運びました。';
+  }
+
+  @override
+  String get pressureEpisodeAlternativeAvailable =>
+      '比較：同じ状態から別の実測経路と守備反応が生まれます。';
+
+  @override
+  String pressureEpisodeAlternativeSupport(Object distance) {
+    return '別のサポート：同じ味方方針で${distance}m移動。';
+  }
+
+  @override
+  String get pressureEpisodeSummaryTitle => 'つながった攻撃の確認';
+
+  @override
+  String pressureEpisodeSummaryCoverage(Object count, Object total) {
+    return '初回完了：6つの学習タイプで$count/$total状況。';
+  }
+
+  @override
+  String pressureEpisodeSummaryRetained(Object count, Object total) {
+    return '初回で保持した攻撃：$count/$total。';
+  }
+
+  @override
+  String pressureEpisodeSummaryUnseen(Object count, Object total) {
+    return '新しい組合せで保持：$count/$total・再試行は除外。';
+  }
+
+  @override
+  String get pressureEpisodeSummaryLimit =>
+      '結果は単純化したモデル内の判断を測るもので、実戦への転移を証明しません。';
+
+  @override
+  String get pressureEpisodeRestart => '18の攻撃をもう一度';
+
+  @override
+  String get pressureEpisodeOutcomePenetration => '結果：前進して保持';
+
+  @override
+  String get pressureEpisodeOutcomeEscape => '結果：プレッシャー回避';
+
+  @override
+  String get pressureEpisodeOutcomeRecycle => '結果：安全にリサイクル';
+
+  @override
+  String get pressureEpisodeOutcomeIntercepted => '結果：インターセプト';
+
+  @override
+  String get pressureEpisodeOutcomeOffside => '結果：オフサイド';
+
+  @override
+  String get pressureEpisodeOutcomeLoose => '結果：ルーズボール';
+
+  @override
+  String get pressureEpisodeOutcomeUnresolved => '結果：保持・未解決';
+
+  @override
+  String pressureEpisodeDecisionCount(Object count) {
+    return '判断$count回';
   }
 }

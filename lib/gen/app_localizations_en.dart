@@ -21996,11 +21996,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Yamal\'s assist sequence is a separate historical example, not the answer key for these synthetic situations.';
 
   @override
-  String get pressureLessonSummaryTitle => 'Eight decisions reviewed';
+  String get pressureLessonSummaryTitle => 'Decisions reviewed';
 
   @override
   String get pressureLessonSummaryCoverage =>
-      'Your first attempts covered both outside and inside pressure, plus changing cover and runner timing.';
+      'Your first attempts covered changing pressure, support, cover and runner timing.';
 
   @override
   String pressureLessonSummaryConnections(Object count, Object total) {
@@ -22016,7 +22016,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Next focus: look again at the next lane immediately after the first contact.';
 
   @override
-  String get pressureLessonRestart => 'Run the eight situations again';
+  String get pressureLessonRestart => 'Run the situations again';
 
   @override
   String pressureLessonSituationMenu(Object number) {
@@ -22261,5 +22261,266 @@ class AppLocalizationsEn extends AppLocalizations {
   String pressureLessonReviewSituationFacts(
       Object location, Object carrier, Object presser, Object distance) {
     return '$location · at decision: ball #$carrier, defender #$presser $distance m away';
+  }
+
+  @override
+  String pressureEpisodeIdentity(
+      Object current, Object total, Object family, Object variant) {
+    return 'Situation $current/$total · $family · $variant';
+  }
+
+  @override
+  String pressureEpisodeFacts(
+      Object location, Object owner, Object learner, Object pressure) {
+    return '$location · ball #$owner · learner #$learner · $pressure';
+  }
+
+  @override
+  String pressureEpisodePressureFact(
+      Object defender, Object movement, Object side, Object gap) {
+    return '#$defender $movement from $side, $gap m';
+  }
+
+  @override
+  String pressureEpisodeRunnerFact(Object runner, Object movement) {
+    return 'Runner #$runner: $movement';
+  }
+
+  @override
+  String pressureEpisodeCoverFact(
+      Object outlet, Object defender, Object movement, Object gap) {
+    return 'To #$outlet: #$defender $movement, $gap m from pass lane';
+  }
+
+  @override
+  String pressureEpisodeReturnLaneFact(
+      Object outlet, Object defender, Object movement, Object gap) {
+    return 'Return to #$outlet: #$defender $movement, $gap m from lane';
+  }
+
+  @override
+  String get pressureEpisodePressureSideRight => 'right';
+
+  @override
+  String get pressureEpisodePressureSideLeft => 'left';
+
+  @override
+  String get pressureEpisodePressureSideLevel => 'level';
+
+  @override
+  String get pressureEpisodePressureClosing => 'closing';
+
+  @override
+  String get pressureEpisodePressureHolding => 'holding';
+
+  @override
+  String get pressureEpisodeFamilyReception => 'pressure reception';
+
+  @override
+  String get pressureEpisodeFamilyDrawRelease => 'draw and release';
+
+  @override
+  String get pressureEpisodeFamilySupport => 'support after passing';
+
+  @override
+  String get pressureEpisodeFamilyRunnerTiming => 'runner timing';
+
+  @override
+  String get pressureEpisodeFamilyThirdPlayer => 'third-player link';
+
+  @override
+  String get pressureEpisodeFamilyRecycle => 'recycle and switch';
+
+  @override
+  String get pressureEpisodeVariantGuided => 'guided';
+
+  @override
+  String get pressureEpisodeVariantContrast => 'contrast';
+
+  @override
+  String get pressureEpisodeVariantUnseen => 'new combination';
+
+  @override
+  String get pressureEpisodeContextObserve =>
+      'Observe the ball, pressure, cover and next runner.';
+
+  @override
+  String get pressureEpisodeContextExecuting =>
+      'Watch the defense react; the next pause uses the resulting positions.';
+
+  @override
+  String pressureEpisodeContextReview(Object current, Object total) {
+    return 'Reviewing decision $current of $total; later traces are hidden.';
+  }
+
+  @override
+  String get pressureEpisodeTaskReceive =>
+      'Receive or play first time, then read what changes.';
+
+  @override
+  String get pressureEpisodeTaskOnBall =>
+      'Choose the useful pass or carry from this state.';
+
+  @override
+  String pressureEpisodeTaskSupport(Object number) {
+    return 'Move learner #$number into useful support with one pitch tap.';
+  }
+
+  @override
+  String get pressureEpisodeChooseReceive => 'First touch or first-time pass.';
+
+  @override
+  String get pressureEpisodeTouchLeft => 'First touch left';
+
+  @override
+  String get pressureEpisodeTouchRight => 'First touch right';
+
+  @override
+  String get pressureEpisodeChooseOnBall =>
+      'Re-read the defense and choose again.';
+
+  @override
+  String get pressureEpisodeReviewInstruction =>
+      'Review the selected judgment.';
+
+  @override
+  String pressureEpisodeChooseSupport(Object number) {
+    return 'Choose learner #$number\'s support position.';
+  }
+
+  @override
+  String get pressureEpisodeSupportHint => 'One tap · maximum run 8 m';
+
+  @override
+  String pressureEpisodeLearnerMarker(Object number) {
+    return '#$number LEARNER';
+  }
+
+  @override
+  String get pressureEpisodeDecisionReceive => 'receive';
+
+  @override
+  String get pressureEpisodeDecisionOnBall => 'on ball';
+
+  @override
+  String get pressureEpisodeDecisionSupport => 'support';
+
+  @override
+  String pressureEpisodeTimelineItem(Object index, Object label) {
+    return '$index $label';
+  }
+
+  @override
+  String pressureEpisodeReviewSupportAction(Object number, Object distance) {
+    return 'Choice: #$number ran $distance m off the ball.';
+  }
+
+  @override
+  String pressureEpisodeSupportOpenedLane(Object receiver, Object defender) {
+    return 'Worked: the run opened a playable lane to #$receiver beyond defender #$defender.';
+  }
+
+  @override
+  String pressureEpisodeSupportWidenedLane(Object receiver, Object distance) {
+    return 'Worked: the lane to #$receiver gained $distance m clearance.';
+  }
+
+  @override
+  String get pressureEpisodeSupportNoMeasuredBenefit =>
+      'Result: the run did not measurably improve a passing lane.';
+
+  @override
+  String pressureEpisodeSupportBlockedLane(Object receiver, Object defender) {
+    return 'Cause: the lane to #$receiver closed behind defender #$defender.';
+  }
+
+  @override
+  String pressureEpisodeSupportLaneStillBlocked(
+      Object receiver, Object defender) {
+    return 'Cause: the lane to #$receiver stayed covered by defender #$defender.';
+  }
+
+  @override
+  String get pressureEpisodeSupportLanesUnchanged =>
+      'Next check: no lane-specific effect was measured.';
+
+  @override
+  String get pressureEpisodeSupportNoContinuation =>
+      'Next check: the teammate had no controlled continuation.';
+
+  @override
+  String pressureEpisodeAutomaticPass(Object from, Object to) {
+    return 'Consequence: #$from chose the usable pass to #$to.';
+  }
+
+  @override
+  String pressureEpisodeAutomaticRecycle(Object from, Object to) {
+    return 'Consequence: #$from recycled to #$to as forward play closed.';
+  }
+
+  @override
+  String pressureEpisodeAutomaticCarry(Object number) {
+    return 'Consequence: #$number kept the ball and carried.';
+  }
+
+  @override
+  String get pressureEpisodeAlternativeAvailable =>
+      'Compare: the same state produces a different measured route and response.';
+
+  @override
+  String pressureEpisodeAlternativeSupport(Object distance) {
+    return 'Alternative support run: $distance m using the same teammate policy.';
+  }
+
+  @override
+  String get pressureEpisodeSummaryTitle => 'Connected attacks reviewed';
+
+  @override
+  String pressureEpisodeSummaryCoverage(Object count, Object total) {
+    return 'First attempts completed: $count of $total across six learning families.';
+  }
+
+  @override
+  String pressureEpisodeSummaryRetained(Object count, Object total) {
+    return 'Retained first-attempt attacks: $count of $total.';
+  }
+
+  @override
+  String pressureEpisodeSummaryUnseen(Object count, Object total) {
+    return 'New combinations retained: $count of $total; retries are excluded.';
+  }
+
+  @override
+  String get pressureEpisodeSummaryLimit =>
+      'These results measure decisions in this simplified model, not proven match transfer.';
+
+  @override
+  String get pressureEpisodeRestart => 'Run the 18 attacks again';
+
+  @override
+  String get pressureEpisodeOutcomePenetration =>
+      'Result: penetration retained';
+
+  @override
+  String get pressureEpisodeOutcomeEscape => 'Result: pressure escaped';
+
+  @override
+  String get pressureEpisodeOutcomeRecycle => 'Result: safe recycle';
+
+  @override
+  String get pressureEpisodeOutcomeIntercepted => 'Result: intercepted';
+
+  @override
+  String get pressureEpisodeOutcomeOffside => 'Result: offside';
+
+  @override
+  String get pressureEpisodeOutcomeLoose => 'Result: loose ball';
+
+  @override
+  String get pressureEpisodeOutcomeUnresolved => 'Result: retained, unresolved';
+
+  @override
+  String pressureEpisodeDecisionCount(Object count) {
+    return '$count decisions';
   }
 }

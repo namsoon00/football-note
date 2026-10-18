@@ -3,23 +3,64 @@
 ## Current default
 
 `ScanPassGameScreen` opens `ScanPassPressureLessonScreen` directly. There is no
-catalog, setup split, countdown, score, XP or answer-revealing scenario title.
-The learner watches roughly 2-3 seconds of the incoming pass and defender
-approach, then uses one neutral on-pitch control to choose a 1-2.5 m first touch
-or an immediate pass. A retained first touch opens a second one-tap decision
-from the actual resulting positions. An immediate pass, interception or loose
-ball can finish the situation without demanding a meaningless extra action.
-The pitch reserves a compact situation ribbon above play during observation,
-both decisions, execution, retry and review. Its situation name, field band,
-channel, current carrier, pressure distance/movement and task are derived from
-the displayed immutable world rather than a raw scenario id. The description
-therefore changes after a first touch and returns verbatim with the exact retry
-snapshot. It names only current facts and never highlights a preferred option.
-During review, the ribbon explicitly labels the facts as the pre-decision
-state and the displayed pitch as the result frame, so a former carrier is not
-mistaken for the current ball owner after an interception.
+setup split, countdown, score, XP or answer-revealing scenario title. The public
+lesson is now one bounded, continuous attack: observe, choose, watch the defense
+react, re-read the resulting world, choose again, and then inspect the attack's
+actual consequence. A retained attack normally contains three to five learner
+judgments. Interception, offside or a genuinely loose ball can end it sooner;
+the model never manufactures a pass or possession merely to reach a click count.
 
-The tactical camera fits the current carrier, reachable action endpoints,
+The learner/focus player is normally #19 and remains visibly ringed throughout
+the attack. The current ball owner is independent: after #19 passes, the next
+judgment is usually #19's off-ball support run while a teammate owns the ball.
+First-time passes continue into that support phase and do not require a fake
+first touch. On-ball choices retain the neutral first-touch/pass/carry controls.
+Off-ball support uses one free-space pitch tap, capped at 8 m by the physical
+resolver. Review records the requested point, actual bounded endpoint and
+sampled distance separately from the actual final position, so a distant tap
+or interrupted run is never reported as reached.
+
+Every pause uses the actual prior result. Actor positions, velocities, ball
+state and possession carry forward without reset or a catalog-authored outcome.
+Support movement uses the same acceleration, speed, separation and contact
+steps as the rest of the pressure engine. Standing still consumes the same
+reaction window rather than skipping the defense, and the ball holder is held
+at the player's body position rather than the ball's foot offset. The bounded
+run remains active during the teammate continuation until #19 receives or the
+attack ends. While that happens the carrier can be tackled. The release window
+is bounded by the simulated time for pressure to reach a holding carrier, with
+the same budget for moving and stationary support choices. After that finite
+reaction interval, or when a new usable forward lane appears, the carrier
+evaluates physically simulated passes to the learner, another forward or a
+recycling teammate, plus a short carry, using one geometry-based policy. It is
+not forced to return the ball to #19 and no receiver-role bonus or penalty is
+used. A pass intended for #19 leads the selected run under the same
+acceleration, braking and separation rules used during flight. Intended-player
+identity is preserved, but control still requires sampled physical contact. An
+episode has at most five learner judgments; retained attacks without a decisive
+result at that horizon are honestly labelled retained/unresolved.
+
+Positive endings are not gated by a minimum number of clicks. Penetration means
+the retained ball crossed the declared attacking reference. Pressure escape
+requires the retained carrier to move beyond the visible presser/cover line
+with clearance and a usable next connection, not merely accumulate 12 m. Safe
+recycle requires a real recycle followed by material width change while the
+prior forward route was closed. A physically decisive branch may therefore end
+in one or two judgments, while ordinary retained attacks naturally use three
+to five.
+
+The compact situation ribbon remains present during observation, every
+judgment, execution, retry and review. It names the learning family and variant,
+field band/channel, current ball owner, learner and current task. It also shows
+one neutral fact for the current judgment: nearest pressure, runner movement,
+cover relative to the relevant outlet, or the covered return lane after a
+pass. That fact is recomputed when ownership or the decision changes and does
+not score an option. Guided cases show the reachable support radius; contrast
+and unseen cases remove that movement hint while preserving identity, owner,
+learner and task. No title or movement arrow reveals a preferred route before
+selection.
+
+The tactical camera fits the current carrier, learner, reachable action endpoints,
 relevant pressure/cover and nearby next space. It does not widen the view merely
 to include the distant 92 m offside reference or every future trajectory; an
 edge cue keeps that reference accessible when it is outside the crop. A small
@@ -29,42 +70,54 @@ and its evidence rather than all unchosen routes. Every
 pitch mark, player, ball, trace, option endpoint and hit target uses the same
 world-to-screen transform. The transform stays fixed through a decision and its
 execution, and can change at the explicit boundary into a second decision or a
-selected review action. The just-completed action is reviewed first; the
-first touch remains individually selectable. Full replay may return to the observation crop. The
+selected review action. The just-completed or decisive judgment is reviewed
+first; all learner judgments remain individually selectable in a horizontal
+timeline. Full replay may return to the observation crop. The
 historical reference keeps its existing field framing.
 
-The session contains six learning situations followed seamlessly by two unseen
-combinations. The six vary outside pressure, inside pressure, cover distance,
-a holding/retreating defender and runner timing. The final two combine and
-jitter those physical features; they are not cosmetic mirrors or replays of a
-training id. A seed changes the training order and small starting offsets while
-the last two remain held-out combinations. The learner sees only ordinary
-`Situation 1 / 8` progress before deciding.
+The catalog contains six learning families with three variants each: a guided
+base, a paired contrast changing one named football feature, and a held-out new
+combination. The twelve learning cases stay in base/contrast pairs; the six new
+combinations follow them. Guided and contrast partners reuse the same seeded
+nuisance jitter, so only the named presser, cover, runner or tracker feature
+changes; unseen cases receive independent jitter. Scenario ids, labels and
+objectives never enter action resolution. The learner sees ordinary
+`Situation 1 / 18` progress and no separate drill/test menu.
 
 The teaching definitions are checked against the physical resolver:
 
-| Situation | What the learner reads | Learning consequence |
+| Family | Explicit objective | Observation facts | Controlled contrast | Meaningful branches and evidence |
 | --- | --- | --- |
-| Outside pressure | The presser approaches from the flank while the support and runner lanes are covered | A short contact changes the passing angle and leaves a usable forward connection |
-| Inside pressure | The presser blocks the inside and a teammate runs beyond the cover | The outside contact and an already-open early pass can be compared from the same state |
-| Near cover | A second defender covers the nearby outlet and the runner is marked | Immediate forward passes can be intercepted; contact changes the angle before the next pass |
-| Holding line | The presser holds a larger gap | Several actions can retain possession; an open early connection does not require an extra touch |
-| Late runner | The forward has not separated from the tracking defender | Distinguish the early through pass from a safer support connection or a changed angle |
-| Runner breaks cover | The teammate accelerates away from the marking line | Recognize an early forward pass while it is available |
+| Pressure reception | Receive away from pressure without discarding a valid first-time pass | Approach side/speed and cover lane | Presser approach side, with other starting jitter shared | Touch toward/away from centre on a flank, left/right centrally, or play support/runner/back immediately; evidence is contact, retained reception, separation and the resulting connection |
+| Draw and release | Carry or hold just enough to commit pressure before releasing | Presser speed, cover lane and support lane | Presser position, velocity and reactivity as one commitment feature | Early release, short carry, teammate pass or recycle; defender movement and lane clearance must measurably change |
+| Support after passing | Move the original passer into a useful next line without demanding the return | Focus support lane, cover lane and ball-holder pressure | Cover position/reaction, with the same presser and nuisance state | One-tap support can invite a pass, open another runner, preserve a recycle or leave the carrier exposed; credit requires a same-duration stationary-counterfactual lane difference |
+| Runner timing | Match release to runner speed and the offside reference | Runner speed, tracker depth and offside line | Runner start/speed only | Pass to feet, lead the run, carry or recycle; evidence is sampled reception, interception or kick-time offside involvement |
+| Third-player combination | Connect through one teammate so another player becomes usable | First support lane, runner motion and tracker depth | Tracker reactivity only | Direct pass, support movement, third-player continuation or carry; the third-player lane must actually open or be used |
+| Recycle and switch | Keep the attack when forward play closes and move toward the far-side outlet | Closed cover lane, far-side outlet and pressure speed | Far-side cover position only | Force forward, carry, recycle or switch; safe recycle requires actual width after the recycle and remains distinct from penetration |
 
-The outside-pressure and near-cover setups are checked across multiple seeds:
-they contain blocked immediate forward lanes that a retained first contact can
-open. Other cases preserve a useful early-pass option. No route is declared
-correct in catalog metadata; changing the geometry changes the resolution.
+Each unseen case combines a different location with multiple pressure, cover or
+run cues learned earlier. Layouts span right, central and left channels and
+middle/attacking thirds; the support family begins with a teammate already on
+the ball. Catalog auditing checks several seeds for an attacking carrier,
+bounded motion and at least one defensible retained option. The same immediate
+runner pass is neither present nor successful as a universal solution.
 
 All coordinates use the declared 105 m x 68 m field. The resolver reads the
 immutable world snapshot, action endpoint, actor positions, velocities and
-stable press/cover/track roles. It never reads the scenario id, action label,
-previous choice or lesson progress. Players move in bounded small time steps.
+stable press/cover/track roles. It never reads the scenario id, family, variant,
+objective, action label, previous choice or lesson progress. Players move in
+bounded small time steps.
 Passes have no carrier during flight, and possession changes only when the
 sampled ball path and a moving player make contact. The presser follows the
-ball/receiver, the cover defender protects a physical lane, and the tracker
-follows the runner, so the defenders do not all swarm one point. First-contact
+nearest relevant ball owner; only an actual incoming-reception shape makes that
+defender hold the receiver. The cover defender protects a physical lane (and
+never a zero-length carrier-to-self lane), while the tracker follows an
+off-ball runner, so the defenders do not all swarm one point. Responsibility
+changes with the ball: the tracker closes/challenges when its runner owns the
+ball, and a cover defender physically nearest to an immediate carrier threat
+contests it instead of abandoning the ball for a fixed lane. Low off-ball
+tracking reactivity therefore cannot become permanent refusal to tackle.
+First-contact
 endpoints, animated paths and review arrows all come from the same sampled
 trace. A displayed connection is called safe only when a pass run through this
 same motion/contact simulation reaches that receiver and remains controlled;
@@ -78,25 +131,40 @@ offside restart occurs only if the intended receiver beyond both limits
 actually receives the pass. A defender contact first remains an interception;
 the rule never moves or teleports an actor.
 
-Decision quality is separate from a later goal or shot. When a situation has a
-first touch and a next action, review keeps them as two selectable judgments.
-Each action names the selected movement (and pass destination shirt number),
+Decision quality is separate from a later goal or shot. Review stores an
+arbitrary small timeline. Each item owns its exact before snapshot, requested
+tap, bounded target, executed endpoint, sampled learner trace, automatic
+continuation, evidence frame, benefit and limitation. Each action names the
+selected movement (and pass destination shirt number),
 one supported benefit or an explicit absence of credited benefit, and the
 limiting cause/tradeoff. A completed pass is credited only when the intended
 attacker actually controls it. Increased separation comes from the before/after
 nearest-defender distance. A newly opened lane is described as an available
 next pass from the post-action state, not a pass already completed. A later
 interception therefore cannot erase a useful first touch, and a turnover cannot
-inherit praise for a merely possible connection.
+inherit praise for a merely possible connection. Support praise is issued only
+when the chosen run outperforms a stationary focus-player counterfactual
+advanced for the same pressure-bounded duration under the same defender policy.
+Lane sets are compared only while possession and carrier identity agree; a
+different turnover or continuation cannot make every actual lane look newly
+opened. A positive lane must actually be usable after the run; a widened but
+still unusable lane is not praised. Positive and negative evidence are selected
+separately, identify the receiver and the baseline/current blocking defender
+respectively, and require changed usability or at least 0.35 m of clearance. A
+return lane that remains covered names its current blocker; automatic
+pass/carry/recycle is shown as a separate consequence. Motion without such
+evidence is reported without invented decoy credit.
 
 Review freezes at the relevant action evidence: the actual contact frame for an
 interception, otherwise the action's resulting frame. It draws the selected
 ball route, the decisive defender's sampled motion, a faint decision-origin
-marker and the recorded contact point. Only a supported newly opened lane is drawn
-as a separate subdued projection. Retry targets the judgment currently selected
-in review. The same-state alternative is clearly labelled as a different choice, and returning
-to the learner restores that selected original action rather than the terminal
-pose of the whole attempt.
+marker and the recorded contact point. Only a supported newly opened lane is
+drawn as a separate subdued projection. Selecting an earlier judgment hides
+every later trace. Retry restores that judgment's snapshot by identity, retains
+the earlier timeline prefix and discards only the later suffix. Same-state
+alternatives use the identical defender and adaptive-teammate policy without
+mutating the attempt. Returning from comparison restores the selected original
+action rather than the terminal pose of the whole attack.
 
 The context categories and coaching summaries are inspectable heuristics over
 the same 2D simulation. Terms such as closing pressure use relative velocity;
@@ -109,10 +177,10 @@ endorsement is shown.
 
 Retry restores the exact selected decision snapshot. Full replay and alternative
 comparison do not replace the original attempt, and session progress records
-only the first attempt for each situation, including the final two. The summary
-describes the pressure types encountered, how often a safe next connection was
-created, and one next learning focus; it does not claim measured match improvement
-or eye-scanning skill transfer. The old curriculum, possession and 2v2 flow
+only the first completed attack for each situation, including all six unseen
+variants. Retry and alternative results do not replace those records. The
+summary separates retained first attempts and retained unseen combinations; it
+does not claim measured match improvement or eye-scanning skill transfer. The old curriculum, possession and 2v2 flow
 engines remain internal compatibility surfaces and do not drive public results.
 
 The current lesson counts a completed, retained forward pass as progress even

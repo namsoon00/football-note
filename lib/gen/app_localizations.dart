@@ -37263,13 +37263,13 @@ abstract class AppLocalizations {
   /// No description provided for @pressureLessonSummaryTitle.
   ///
   /// In en, this message translates to:
-  /// **'Eight decisions reviewed'**
+  /// **'Decisions reviewed'**
   String get pressureLessonSummaryTitle;
 
   /// No description provided for @pressureLessonSummaryCoverage.
   ///
   /// In en, this message translates to:
-  /// **'Your first attempts covered both outside and inside pressure, plus changing cover and runner timing.'**
+  /// **'Your first attempts covered changing pressure, support, cover and runner timing.'**
   String get pressureLessonSummaryCoverage;
 
   /// No description provided for @pressureLessonSummaryConnections.
@@ -37293,7 +37293,7 @@ abstract class AppLocalizations {
   /// No description provided for @pressureLessonRestart.
   ///
   /// In en, this message translates to:
-  /// **'Run the eight situations again'**
+  /// **'Run the situations again'**
   String get pressureLessonRestart;
 
   /// No description provided for @pressureLessonSituationMenu.
@@ -37658,6 +37658,402 @@ abstract class AppLocalizations {
   /// **'{location} · at decision: ball #{carrier}, defender #{presser} {distance} m away'**
   String pressureLessonReviewSituationFacts(
       Object location, Object carrier, Object presser, Object distance);
+
+  /// No description provided for @pressureEpisodeIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Situation {current}/{total} · {family} · {variant}'**
+  String pressureEpisodeIdentity(
+      Object current, Object total, Object family, Object variant);
+
+  /// No description provided for @pressureEpisodeFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'{location} · ball #{owner} · learner #{learner} · {pressure}'**
+  String pressureEpisodeFacts(
+      Object location, Object owner, Object learner, Object pressure);
+
+  /// No description provided for @pressureEpisodePressureFact.
+  ///
+  /// In en, this message translates to:
+  /// **'#{defender} {movement} from {side}, {gap} m'**
+  String pressureEpisodePressureFact(
+      Object defender, Object movement, Object side, Object gap);
+
+  /// No description provided for @pressureEpisodeRunnerFact.
+  ///
+  /// In en, this message translates to:
+  /// **'Runner #{runner}: {movement}'**
+  String pressureEpisodeRunnerFact(Object runner, Object movement);
+
+  /// No description provided for @pressureEpisodeCoverFact.
+  ///
+  /// In en, this message translates to:
+  /// **'To #{outlet}: #{defender} {movement}, {gap} m from pass lane'**
+  String pressureEpisodeCoverFact(
+      Object outlet, Object defender, Object movement, Object gap);
+
+  /// No description provided for @pressureEpisodeReturnLaneFact.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to #{outlet}: #{defender} {movement}, {gap} m from lane'**
+  String pressureEpisodeReturnLaneFact(
+      Object outlet, Object defender, Object movement, Object gap);
+
+  /// No description provided for @pressureEpisodePressureSideRight.
+  ///
+  /// In en, this message translates to:
+  /// **'right'**
+  String get pressureEpisodePressureSideRight;
+
+  /// No description provided for @pressureEpisodePressureSideLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'left'**
+  String get pressureEpisodePressureSideLeft;
+
+  /// No description provided for @pressureEpisodePressureSideLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'level'**
+  String get pressureEpisodePressureSideLevel;
+
+  /// No description provided for @pressureEpisodePressureClosing.
+  ///
+  /// In en, this message translates to:
+  /// **'closing'**
+  String get pressureEpisodePressureClosing;
+
+  /// No description provided for @pressureEpisodePressureHolding.
+  ///
+  /// In en, this message translates to:
+  /// **'holding'**
+  String get pressureEpisodePressureHolding;
+
+  /// No description provided for @pressureEpisodeFamilyReception.
+  ///
+  /// In en, this message translates to:
+  /// **'pressure reception'**
+  String get pressureEpisodeFamilyReception;
+
+  /// No description provided for @pressureEpisodeFamilyDrawRelease.
+  ///
+  /// In en, this message translates to:
+  /// **'draw and release'**
+  String get pressureEpisodeFamilyDrawRelease;
+
+  /// No description provided for @pressureEpisodeFamilySupport.
+  ///
+  /// In en, this message translates to:
+  /// **'support after passing'**
+  String get pressureEpisodeFamilySupport;
+
+  /// No description provided for @pressureEpisodeFamilyRunnerTiming.
+  ///
+  /// In en, this message translates to:
+  /// **'runner timing'**
+  String get pressureEpisodeFamilyRunnerTiming;
+
+  /// No description provided for @pressureEpisodeFamilyThirdPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'third-player link'**
+  String get pressureEpisodeFamilyThirdPlayer;
+
+  /// No description provided for @pressureEpisodeFamilyRecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'recycle and switch'**
+  String get pressureEpisodeFamilyRecycle;
+
+  /// No description provided for @pressureEpisodeVariantGuided.
+  ///
+  /// In en, this message translates to:
+  /// **'guided'**
+  String get pressureEpisodeVariantGuided;
+
+  /// No description provided for @pressureEpisodeVariantContrast.
+  ///
+  /// In en, this message translates to:
+  /// **'contrast'**
+  String get pressureEpisodeVariantContrast;
+
+  /// No description provided for @pressureEpisodeVariantUnseen.
+  ///
+  /// In en, this message translates to:
+  /// **'new combination'**
+  String get pressureEpisodeVariantUnseen;
+
+  /// No description provided for @pressureEpisodeContextObserve.
+  ///
+  /// In en, this message translates to:
+  /// **'Observe the ball, pressure, cover and next runner.'**
+  String get pressureEpisodeContextObserve;
+
+  /// No description provided for @pressureEpisodeContextExecuting.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the defense react; the next pause uses the resulting positions.'**
+  String get pressureEpisodeContextExecuting;
+
+  /// No description provided for @pressureEpisodeContextReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewing decision {current} of {total}; later traces are hidden.'**
+  String pressureEpisodeContextReview(Object current, Object total);
+
+  /// No description provided for @pressureEpisodeTaskReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive or play first time, then read what changes.'**
+  String get pressureEpisodeTaskReceive;
+
+  /// No description provided for @pressureEpisodeTaskOnBall.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the useful pass or carry from this state.'**
+  String get pressureEpisodeTaskOnBall;
+
+  /// No description provided for @pressureEpisodeTaskSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Move learner #{number} into useful support with one pitch tap.'**
+  String pressureEpisodeTaskSupport(Object number);
+
+  /// No description provided for @pressureEpisodeChooseReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch or first-time pass.'**
+  String get pressureEpisodeChooseReceive;
+
+  /// No description provided for @pressureEpisodeTouchLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch left'**
+  String get pressureEpisodeTouchLeft;
+
+  /// No description provided for @pressureEpisodeTouchRight.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch right'**
+  String get pressureEpisodeTouchRight;
+
+  /// No description provided for @pressureEpisodeChooseOnBall.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-read the defense and choose again.'**
+  String get pressureEpisodeChooseOnBall;
+
+  /// No description provided for @pressureEpisodeReviewInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the selected judgment.'**
+  String get pressureEpisodeReviewInstruction;
+
+  /// No description provided for @pressureEpisodeChooseSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose learner #{number}\'s support position.'**
+  String pressureEpisodeChooseSupport(Object number);
+
+  /// No description provided for @pressureEpisodeSupportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One tap · maximum run 8 m'**
+  String get pressureEpisodeSupportHint;
+
+  /// No description provided for @pressureEpisodeLearnerMarker.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} LEARNER'**
+  String pressureEpisodeLearnerMarker(Object number);
+
+  /// No description provided for @pressureEpisodeDecisionReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'receive'**
+  String get pressureEpisodeDecisionReceive;
+
+  /// No description provided for @pressureEpisodeDecisionOnBall.
+  ///
+  /// In en, this message translates to:
+  /// **'on ball'**
+  String get pressureEpisodeDecisionOnBall;
+
+  /// No description provided for @pressureEpisodeDecisionSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'support'**
+  String get pressureEpisodeDecisionSupport;
+
+  /// No description provided for @pressureEpisodeTimelineItem.
+  ///
+  /// In en, this message translates to:
+  /// **'{index} {label}'**
+  String pressureEpisodeTimelineItem(Object index, Object label);
+
+  /// No description provided for @pressureEpisodeReviewSupportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Choice: #{number} ran {distance} m off the ball.'**
+  String pressureEpisodeReviewSupportAction(Object number, Object distance);
+
+  /// No description provided for @pressureEpisodeSupportOpenedLane.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked: the run opened a playable lane to #{receiver} beyond defender #{defender}.'**
+  String pressureEpisodeSupportOpenedLane(Object receiver, Object defender);
+
+  /// No description provided for @pressureEpisodeSupportWidenedLane.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked: the lane to #{receiver} gained {distance} m clearance.'**
+  String pressureEpisodeSupportWidenedLane(Object receiver, Object distance);
+
+  /// No description provided for @pressureEpisodeSupportNoMeasuredBenefit.
+  ///
+  /// In en, this message translates to:
+  /// **'Result: the run did not measurably improve a passing lane.'**
+  String get pressureEpisodeSupportNoMeasuredBenefit;
+
+  /// No description provided for @pressureEpisodeSupportBlockedLane.
+  ///
+  /// In en, this message translates to:
+  /// **'Cause: the lane to #{receiver} closed behind defender #{defender}.'**
+  String pressureEpisodeSupportBlockedLane(Object receiver, Object defender);
+
+  /// No description provided for @pressureEpisodeSupportLaneStillBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Cause: the lane to #{receiver} stayed covered by defender #{defender}.'**
+  String pressureEpisodeSupportLaneStillBlocked(
+      Object receiver, Object defender);
+
+  /// No description provided for @pressureEpisodeSupportLanesUnchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Next check: no lane-specific effect was measured.'**
+  String get pressureEpisodeSupportLanesUnchanged;
+
+  /// No description provided for @pressureEpisodeSupportNoContinuation.
+  ///
+  /// In en, this message translates to:
+  /// **'Next check: the teammate had no controlled continuation.'**
+  String get pressureEpisodeSupportNoContinuation;
+
+  /// No description provided for @pressureEpisodeAutomaticPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Consequence: #{from} chose the usable pass to #{to}.'**
+  String pressureEpisodeAutomaticPass(Object from, Object to);
+
+  /// No description provided for @pressureEpisodeAutomaticRecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Consequence: #{from} recycled to #{to} as forward play closed.'**
+  String pressureEpisodeAutomaticRecycle(Object from, Object to);
+
+  /// No description provided for @pressureEpisodeAutomaticCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Consequence: #{number} kept the ball and carried.'**
+  String pressureEpisodeAutomaticCarry(Object number);
+
+  /// No description provided for @pressureEpisodeAlternativeAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare: the same state produces a different measured route and response.'**
+  String get pressureEpisodeAlternativeAvailable;
+
+  /// No description provided for @pressureEpisodeAlternativeSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternative support run: {distance} m using the same teammate policy.'**
+  String pressureEpisodeAlternativeSupport(Object distance);
+
+  /// No description provided for @pressureEpisodeSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected attacks reviewed'**
+  String get pressureEpisodeSummaryTitle;
+
+  /// No description provided for @pressureEpisodeSummaryCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'First attempts completed: {count} of {total} across six learning families.'**
+  String pressureEpisodeSummaryCoverage(Object count, Object total);
+
+  /// No description provided for @pressureEpisodeSummaryRetained.
+  ///
+  /// In en, this message translates to:
+  /// **'Retained first-attempt attacks: {count} of {total}.'**
+  String pressureEpisodeSummaryRetained(Object count, Object total);
+
+  /// No description provided for @pressureEpisodeSummaryUnseen.
+  ///
+  /// In en, this message translates to:
+  /// **'New combinations retained: {count} of {total}; retries are excluded.'**
+  String pressureEpisodeSummaryUnseen(Object count, Object total);
+
+  /// No description provided for @pressureEpisodeSummaryLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'These results measure decisions in this simplified model, not proven match transfer.'**
+  String get pressureEpisodeSummaryLimit;
+
+  /// No description provided for @pressureEpisodeRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Run the 18 attacks again'**
+  String get pressureEpisodeRestart;
+
+  /// No description provided for @pressureEpisodeOutcomePenetration.
+  ///
+  /// In en, this message translates to:
+  /// **'Result: penetration retained'**
+  String get pressureEpisodeOutcomePenetration;
+
+  /// No description provided for @pressureEpisodeOutcomeEscape.
+  ///
+  /// In en, this message translates to:
+  /// **'Result: pressure escaped'**
+  String get pressureEpisodeOutcomeEscape;
+
+  /// No description provided for @pressureEpisodeOutcomeRecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Result: safe recycle'**
+  String get pressureEpisodeOutcomeRecycle;
+
+  /// No description provided for @pressureEpisodeOutcomeIntercepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Result: intercepted'**
+  String get pressureEpisodeOutcomeIntercepted;
+
+  /// No description provided for @pressureEpisodeOutcomeOffside.
+  ///
+  /// In en, this message translates to:
+  /// **'Result: offside'**
+  String get pressureEpisodeOutcomeOffside;
+
+  /// No description provided for @pressureEpisodeOutcomeLoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Result: loose ball'**
+  String get pressureEpisodeOutcomeLoose;
+
+  /// No description provided for @pressureEpisodeOutcomeUnresolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Result: retained, unresolved'**
+  String get pressureEpisodeOutcomeUnresolved;
+
+  /// No description provided for @pressureEpisodeDecisionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} decisions'**
+  String pressureEpisodeDecisionCount(Object count);
 }
 
 class _AppLocalizationsDelegate
