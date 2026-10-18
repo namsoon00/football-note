@@ -13,7 +13,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   WidgetController.hitTestWarningShouldBeFatal = true;
 
-  testWidgets('public lesson carries a retained pass into one-tap support',
+  testWidgets('public lesson follows a retained pass to the actual carrier',
       (tester) async {
     await tester.pumpWidget(_app(
       home: ScanPassGameScreen(
@@ -34,42 +34,34 @@ void main() {
     expect(find.textContaining('pressure reception'), findsOneWidget);
 
     final received = _world(tester);
-    await _tapBestOnBall(tester);
-    expect(_world(tester).clock, greaterThan(received.clock));
-
-    if (find
-        .byKey(const ValueKey<String>('pressure-support-surface'))
-        .hitTestable()
-        .evaluate()
-        .isEmpty) {
-      await _tapBestOnBall(tester);
-    }
-    expect(
-      find
-          .byKey(const ValueKey<String>('pressure-support-surface'))
-          .hitTestable(),
-      findsOneWidget,
-      reason: 'A retained pass must continue to the passer support judgment.',
-    );
-    final supportWorld = _world(tester);
-    expect(supportWorld.carrier?.number, isNot(19));
+    expect(received.carrier?.number, 19);
+    expect(_painter(tester).decisionActorId, received.carrier?.id);
+    await _tapBestPass(tester);
+    final changed = _world(tester);
+    expect(changed.clock, greaterThan(received.clock));
+    expect(changed.carrier?.number, isNot(19));
+    expect(_painter(tester).decisionActorId, changed.carrier?.id);
+    expect(find.byKey(const ValueKey<String>('pressure-support-surface')),
+        findsNothing);
     expect(
       tester
           .widget<Text>(
               find.byKey(const ValueKey<String>('pressure-situation-facts')))
           .data,
-      contains('learner #19'),
+      contains('deciding #${changed.carrier!.number}'),
     );
-    await _tapSupport(
-        tester,
-        supportWorld.actorByRole(PressureActorRole.receiver).position +
-            const ScanPassPoint(4.5, 4));
-    expect(_world(tester).clock, greaterThan(supportWorld.clock));
+    expect(
+      tester
+          .widget<Text>(
+              find.byKey(const ValueKey<String>('pressure-situation-task')))
+          .data,
+      contains('#${changed.carrier!.number}'),
+    );
     expect(tester.takeException(), isNull);
   });
 
   testWidgets(
-      'representative attack reaches 3+ decisions with variable replay and exact suffix retry',
+      'representative scene has 2-3 judgments with replay and exact suffix retry',
       (tester) async {
     await tester.pumpWidget(_app(
       home: const ScanPassPressureLessonScreen(
@@ -84,8 +76,8 @@ void main() {
     expect(find.byKey(const ValueKey<String>('pressure-review-panel')),
         findsOneWidget);
     final timelineCount = _timelineCount(tester);
-    expect(timelineCount, greaterThanOrEqualTo(3));
-    expect(timelineCount, lessThanOrEqualTo(5));
+    expect(timelineCount, greaterThanOrEqualTo(1));
+    expect(timelineCount, lessThanOrEqualTo(3));
     expect(
       find
           .byKey(
@@ -159,6 +151,104 @@ void main() {
     expect(learner.position.distanceTo(endpoint!), lessThanOrEqualTo(8.01));
     expect(learner.position.distanceTo(endpoint), greaterThan(.2));
     expect(_world(tester).clock, greaterThan(before.clock));
+    expect(_world(tester).carrier?.id, before.carrier?.id);
+    expect(_painter(tester).decisionActorId, _world(tester).carrier?.id);
+    expect(find.byKey(const ValueKey<String>('pressure-support-surface')),
+        findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('third-player task ring follows #19 to #10 to #17',
+      (tester) async {
+    await tester.pumpWidget(_app(
+      home: const ScanPassPressureLessonScreen(
+        seed: 0,
+        observationDuration: Duration.zero,
+        executionDuration: Duration.zero,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await _openSituation(tester, 9);
+    expect(_world(tester).carrier?.number, 19);
+    expect(_painter(tester).decisionActorId, _world(tester).carrier?.id);
+    await _tap(tester, 'pressure-action-pass-support');
+    expect(_world(tester).carrier?.number, 10);
+    expect(_painter(tester).decisionActorId, _world(tester).carrier?.id);
+    expect(_situationFacts(tester), contains('deciding #10'));
+    await _tap(tester, 'pressure-action-pass-runner');
+    expect(_world(tester).carrier?.number, 17);
+    expect(_painter(tester).decisionActorId, _world(tester).carrier?.id);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('full replay updates the ring and task with each recorded actor',
+      (tester) async {
+    await tester.pumpWidget(_app(
+      home: const ScanPassPressureLessonScreen(
+        seed: 0,
+        observationDuration: Duration.zero,
+        executionDuration: Duration(milliseconds: 250),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await _openSituation(tester, 9);
+    await _tap(tester, 'pressure-action-pass-support');
+    await _tap(tester, 'pressure-action-pass-runner');
+    await _tap(tester, 'pressure-action-carry-space');
+    expect(find.byKey(const ValueKey<String>('pressure-review-panel')),
+        findsOneWidget);
+
+    await _tap(tester, 'pressure-replay', settle: false);
+    final seen = <int>[];
+    for (var step = 0; step < 30; step++) {
+      await tester.pump(const Duration(milliseconds: 80));
+      if (find
+          .byKey(const ValueKey<String>('pressure-review-panel'))
+          .evaluate()
+          .isNotEmpty) {
+        break;
+      }
+      final actorId = _painter(tester).decisionActorId as String?;
+      if (actorId == null) continue;
+      final number = _world(tester).actorById(actorId).number;
+      if (seen.lastOrNull != number) seen.add(number);
+      expect(_situationFacts(tester), contains('deciding #$number'));
+      expect(
+        tester
+            .widget<Text>(
+                find.byKey(const ValueKey<String>('pressure-situation-task')))
+            .data,
+        contains('#$number'),
+      );
+    }
+    expect(seen, containsAllInOrder([19, 10, 17]));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('support review labels an actual interception as a turnover',
+      (tester) async {
+    await tester.pumpWidget(_app(
+      home: const ScanPassPressureLessonScreen(
+        seed: 19,
+        observationDuration: Duration.zero,
+        executionDuration: Duration.zero,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await _openSituation(tester, 5);
+    final mover = _world(tester).actorByRole(PressureActorRole.receiver);
+    await _tapSupport(
+      tester,
+      mover.position + const ScanPassPoint(4.5, 4),
+    );
+    await _tap(tester, 'pressure-action-pass-focus');
+    await _tap(tester, 'pressure-review-decision-0');
+    final consequence = tester
+        .widget<Text>(
+            find.byKey(const ValueKey<String>('pressure-review-consequence')))
+        .data!;
+    expect(consequence, contains('intercepted'));
+    expect(consequence, isNot(contains('controlled')));
     expect(tester.takeException(), isNull);
   });
 
@@ -192,6 +282,54 @@ void main() {
       originalAction,
     );
     expect(identical(_painter(tester).reviewResult, originalResult), isTrue);
+  });
+
+  testWidgets('final review exposes a replayable reduced-model example',
+      (tester) async {
+    await tester.pumpWidget(_app(
+      home: const ScanPassPressureLessonScreen(
+        seed: 19,
+        observationDuration: Duration.zero,
+        executionDuration: Duration.zero,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await _playToReview(tester);
+    expect(find.byKey(const ValueKey<String>('pressure-example')).hitTestable(),
+        findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('pressure-review-example-available')),
+      findsOneWidget,
+    );
+    final firstAttemptAction = tester
+        .widget<Text>(
+            find.byKey(const ValueKey<String>('pressure-review-action')))
+        .data;
+    await _tap(tester, 'pressure-example');
+    expect(find.textContaining('Learning example'), findsWidgets);
+    expect(find.byKey(const ValueKey<String>('pressure-return-attempt')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('pressure-example-decision-0')),
+        findsOneWidget);
+    final exampleCount = _timelineCount(tester);
+    expect(exampleCount, inInclusiveRange(1, 3));
+    await _tap(tester, 'pressure-example-decision-0');
+    final exampleActorId = _painter(tester).decisionActorId as String;
+    final exampleActor = _world(tester).actorById(exampleActorId).number;
+    expect(_situationFacts(tester), contains('deciding #$exampleActor'));
+    await _tap(tester, 'pressure-replay');
+    expect(find.byKey(const ValueKey<String>('pressure-example-decision-0')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('pressure-return-attempt')),
+        findsOneWidget);
+    await _tap(tester, 'pressure-return-attempt');
+    expect(
+      tester
+          .widget<Text>(
+              find.byKey(const ValueKey<String>('pressure-review-action')))
+          .data,
+      firstAttemptAction,
+    );
   });
 
   testWidgets('historical reference returns to the unchanged timeline review',
@@ -479,6 +617,29 @@ Future<void> _tapBestOnBall(WidgetTester tester) async {
   }
   expect(best, isNotNull);
   await _tap(tester, 'pressure-action-${best!.key}');
+}
+
+Future<void> _tapBestPass(WidgetTester tester) async {
+  const engine = ScanPassPressureEngine();
+  final world = _world(tester);
+  final options = engine.optionsFor(
+    world,
+    PressureDecisionStage.firstContact,
+  );
+  PressureDecisionOption? retained;
+  for (final option in options
+      .where((option) => option.action.kind == PressureActionKind.pass)) {
+    final finder =
+        find.byKey(ValueKey<String>('pressure-action-${option.key}'));
+    if (finder.hitTestable().evaluate().isEmpty) continue;
+    final result = engine.simulate(world, option.action);
+    if (result.after.possession == PressurePossession.attack) {
+      retained = option;
+      break;
+    }
+  }
+  expect(retained, isNotNull);
+  await _tap(tester, 'pressure-action-${retained!.key}');
 }
 
 Future<void> _tapSupport(

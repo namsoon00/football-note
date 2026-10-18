@@ -21610,7 +21610,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String pressureEpisodeSupportOpenedLane(Object receiver, Object defender) {
-    return '효과: 움직임이 수비 #$defender 너머 #$receiver에게 연결할 길을 열었습니다.';
+    return '효과: #$receiver 패스길이 열렸습니다(기존 수비 #$defender).';
   }
 
   @override
@@ -21630,7 +21630,7 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String pressureEpisodeSupportLaneStillBlocked(
       Object receiver, Object defender) {
-    return '원인: #$receiver 패스 길을 #$defender이(가) 계속 막았습니다.';
+    return '제약: #$receiver 패스길 차단(수비 #$defender)';
   }
 
   @override
@@ -21714,5 +21714,207 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String pressureEpisodeDecisionCount(Object count) {
     return '판단 $count회';
+  }
+
+  @override
+  String pressureSceneFacts(
+      Object location, Object owner, Object actor, Object pressure) {
+    return '$location · 공 #$owner · 판단 #$actor · $pressure';
+  }
+
+  @override
+  String pressureSceneFactsBallFree(
+      Object location, Object actor, Object pressure) {
+    return '$location · 공 이동/루스볼 · 판단 #$actor · $pressure';
+  }
+
+  @override
+  String pressureSceneFactsContinuation(
+      Object location, Object owner, Object pressure) {
+    return '$location · 공 #$owner · 마지막 전개 · $pressure';
+  }
+
+  @override
+  String pressureSceneFactsFreeContinuation(Object location, Object pressure) {
+    return '$location · 공 이동/루스볼 · 마지막 전개 · $pressure';
+  }
+
+  @override
+  String pressureSceneGoalTask(Object goal, Object task) {
+    return '목표: $goal · $task';
+  }
+
+  @override
+  String get pressureSceneGoalReception => '압박 회피와 다음 연결';
+
+  @override
+  String get pressureSceneGoalDrawRelease => '수비 유인과 패스';
+
+  @override
+  String get pressureSceneGoalSupport => '동료의 패스길 만들기';
+
+  @override
+  String get pressureSceneGoalRunner => '침투와 패스 타이밍';
+
+  @override
+  String get pressureSceneGoalThirdPlayer => '제3자 연결';
+
+  @override
+  String get pressureSceneGoalRecycle => '소유 유지와 방향 전환';
+
+  @override
+  String pressureSceneTaskObserve(Object number) {
+    return '#$number와 공 주변 움직임 관찰';
+  }
+
+  @override
+  String pressureSceneTaskReceive(Object number) {
+    return '#$number: 퍼스트 터치 방향·원터치 패스 선택';
+  }
+
+  @override
+  String pressureSceneTaskOnBall(Object number) {
+    return '#$number: 다음 패스·운반 선택';
+  }
+
+  @override
+  String pressureSceneTaskSupport(Object actor, Object carrier) {
+    return '공 #$carrier · #$actor: 지원 공간 선택';
+  }
+
+  @override
+  String pressureSceneTaskExecuting(Object number) {
+    return '#$number의 선택 실행 중';
+  }
+
+  @override
+  String pressureSceneTaskReview(Object number, Object current, Object total) {
+    return '#$number 판단 $current/$total 복기';
+  }
+
+  @override
+  String pressureSceneDecisionMarker(Object number) {
+    return '#$number 판단';
+  }
+
+  @override
+  String pressureSceneTimelineItem(Object index, Object number, Object label) {
+    return '$index · #$number $label';
+  }
+
+  @override
+  String pressureSceneSupportStarted(Object number, Object distance) {
+    return '선택: #$number 오프더볼 이동 · 이번 구간 ${distance}m';
+  }
+
+  @override
+  String get pressureSceneRunNotReached =>
+      '경로: 원은 제한된 요청 지점이고, 궤적은 실제 도달 위치입니다.';
+
+  @override
+  String pressureSceneSupportSeparation(
+      Object number, Object distance, Object defender) {
+    return '효과: 제자리에 있을 때보다 #$number이 #$defender와의 거리를 ${distance}m 늘렸습니다.';
+  }
+
+  @override
+  String pressureSceneLaterPass(Object from, Object to) {
+    return '이후 행동: #$from의 패스를 #$to이(가) 소유했습니다.';
+  }
+
+  @override
+  String pressureSceneLaterPassDifferent(Object from, Object to, Object mover) {
+    return '이후: #$from → #$to 연결 · #$mover 공 없이 지원';
+  }
+
+  @override
+  String pressureSceneLaterPassIntercepted(
+      Object from, Object defender, Object target) {
+    return '이후 행동: #$defender이(가) #$target을 향한 #$from의 패스를 가로챘습니다.';
+  }
+
+  @override
+  String pressureSceneLaterPassLoose(Object from, Object target) {
+    return '이후 행동: #$target을 향한 #$from의 패스가 루스볼로 남았습니다.';
+  }
+
+  @override
+  String pressureSceneLaterPassOffside(Object from, Object target) {
+    return '이후 행동: #$target이(가) 오프사이드 위치에서 #$from의 패스를 받았습니다.';
+  }
+
+  @override
+  String pressureSceneLaterCarry(Object number) {
+    return '이후 행동: #$number이(가) 공을 운반했습니다.';
+  }
+
+  @override
+  String pressureSceneLaterTurnover(Object number, Object defender) {
+    return '이후 행동: #$defender이(가) #$number에게서 공을 빼앗았습니다.';
+  }
+
+  @override
+  String pressureSceneLaterLoose(Object number) {
+    return '이후 행동: #$number의 행동 뒤 공이 루스볼이 됐습니다.';
+  }
+
+  @override
+  String pressureSceneTailPass(Object from, Object to) {
+    return '마지막 핵심 판단 뒤 전개: #$from이 #$to에게 패스했습니다.';
+  }
+
+  @override
+  String pressureSceneTailCarry(Object number) {
+    return '마지막 핵심 판단 뒤 전개: #$number이 공을 운반했습니다.';
+  }
+
+  @override
+  String pressureSceneTailPassIntercepted(
+      Object from, Object defender, Object target) {
+    return '마지막 핵심 판단 뒤 전개: #$defender이(가) #$target을 향한 #$from의 패스를 가로챘습니다.';
+  }
+
+  @override
+  String pressureSceneTailPassLoose(Object from, Object target) {
+    return '마지막 핵심 판단 뒤 전개: #$target을 향한 #$from의 패스가 루스볼로 남았습니다.';
+  }
+
+  @override
+  String pressureSceneTailPassOffside(Object from, Object target) {
+    return '마지막 핵심 판단 뒤 전개: #$target이(가) 오프사이드 위치에서 #$from의 패스를 받았습니다.';
+  }
+
+  @override
+  String pressureSceneTailTurnover(Object number, Object defender) {
+    return '마지막 핵심 판단 뒤 전개: #$defender이(가) #$number에게서 공을 빼앗았습니다.';
+  }
+
+  @override
+  String pressureSceneTailLoose(Object number) {
+    return '마지막 핵심 판단 뒤 전개: #$number의 행동 뒤 공이 루스볼이 됐습니다.';
+  }
+
+  @override
+  String get pressureSceneStationaryComparison => '같은 시간 동안 움직이지 않은 경우와 비교합니다.';
+
+  @override
+  String get pressureSceneExampleAvailable => '같은 장면 시작점의 학습 예시를 볼 수 있습니다.';
+
+  @override
+  String get pressureSceneExampleTitle => '학습 예시 · 단순화 모델';
+
+  @override
+  String get pressureSceneExampleLimit =>
+      '이 목표에 맞는 한 가지 타당한 전개이며 전문가 인증 최선의 플레이가 아닙니다.';
+
+  @override
+  String get pressureSceneReplayExample => '학습 예시 재생';
+
+  @override
+  String get pressureSceneReturnAttempt => '내 시도로 돌아가기';
+
+  @override
+  String pressureSceneSummaryJudgments(Object count) {
+    return '첫 시도에서 완료한 판단: $count회.';
   }
 }

@@ -825,7 +825,31 @@ void main() {
       }
     });
 
-    test('retained immediate pass continues into support', () {
+    test('scene recipes are typed, distinct and capped at three judgments', () {
+      final catalog = PressureLessonCatalog.build(seed: 19);
+      final signatures = <PressureLearningFamily, String>{};
+      for (final scenario in catalog) {
+        expect(scenario.sceneJudgments, isNotEmpty);
+        expect(scenario.sceneJudgments.length, lessThanOrEqualTo(3));
+        expect(
+            scenario.sceneJudgments.first.kind, scenario.initialDecisionKind);
+        signatures[scenario.family] = scenario.sceneJudgments
+            .map((beat) => '${beat.kind.name}:${beat.actorRule.name}:'
+                '${beat.actorRole?.name}')
+            .join('|');
+      }
+      expect(signatures.values.toSet(), hasLength(6));
+      expect(
+        catalog
+            .where((scenario) =>
+                scenario.family == PressureLearningFamily.pressureReception)
+            .every((scenario) => scenario.sceneJudgments.every(
+                (beat) => beat.kind != PressureEpisodeDecisionKind.support)),
+        isTrue,
+      );
+    });
+
+    test('a retained pass hands the next judgment to the actual carrier', () {
       var episode =
           engine.startEpisode(PressureLessonCatalog.build(seed: 19).first);
       final passes = engine
@@ -838,16 +862,42 @@ void main() {
 
       expect(episode.isComplete, isFalse);
       expect(episode.timeline, hasLength(1));
-      expect(episode.pendingDecision, PressureEpisodeDecisionKind.support);
+      expect(episode.pendingDecision, PressureEpisodeDecisionKind.onBall);
+      expect(episode.pendingActorId, episode.world.ball.carrierId);
+      expect(episode.pendingActorId, isNot(episode.timeline.single.actorId));
+      expect(episode.timeline.single.actorNumber, 19);
       expect(episode.world, same(episode.timeline.single.after));
     });
 
-    test('a representative retained attack has three to five judgments', () {
+    test('third-player scene follows actual #19 to #10 to #17 ownership', () {
+      var episode =
+          engine.startEpisode(PressureLessonCatalog.build(seed: 0)[8]);
+      expect(episode.world.carrier?.number, 19);
+      expect(episode.pendingActorId, episode.world.carrier?.id);
+      episode = engine.chooseEpisodeOption(
+        episode,
+        engine.episodeOptions(episode).firstWhere(
+            (option) => option.targetRole == PressureActorRole.support),
+      );
+      expect(episode.world.carrier?.number, 10);
+      expect(episode.pendingActorId, episode.world.carrier?.id);
+      episode = engine.chooseEpisodeOption(
+        episode,
+        engine.episodeOptions(episode).firstWhere(
+            (option) => option.targetRole == PressureActorRole.runner),
+      );
+      expect(episode.timeline.last.after.carrier?.number, 17);
+      expect(
+          episode.timeline.map((decision) => decision.actorNumber), [19, 10]);
+    });
+
+    test('complete scenes use at most three key judgments and a separate tail',
+        () {
       var episode =
           engine.startEpisode(PressureLessonCatalog.build(seed: 19).first);
       while (!episode.isComplete) {
         if (episode.pendingDecision == PressureEpisodeDecisionKind.support) {
-          final focus = episode.world.actorByRole(episode.scenario.focusRole);
+          final focus = episode.world.actorById(episode.pendingActorId!);
           episode = engine.chooseSupportTarget(
             episode,
             focus.position + const ScanPassPoint(4.5, 4),
@@ -857,11 +907,7 @@ void main() {
         }
       }
 
-      expect(episode.timeline.length, inInclusiveRange(3, 5));
-      expect(
-          episode.timeline
-              .any((item) => item.kind == PressureEpisodeDecisionKind.support),
-          isTrue);
+      expect(episode.timeline.length, inInclusiveRange(1, 3));
       expect(episode.timeline.first.before,
           same(episode.observation.decisionState));
       for (var index = 1; index < episode.timeline.length; index++) {
@@ -871,25 +917,52 @@ void main() {
       final replay = PressureTrace.join([
         episode.observation.trace,
         for (final item in episode.timeline) item.fullTrace,
+        if (episode.tail != null) episode.tail!.trace,
       ]);
       expect(replay.last, same(episode.world));
+      if (episode.tail != null) {
+        expect(episode.tail!.before, same(episode.timeline.last.after));
+        expect(episode.tail!.trace.first, same(episode.tail!.before));
+        expect(episode.tail!.actions.length, lessThanOrEqualTo(1));
+      }
     });
 
-    test('two support destinations change lanes and adaptive continuation', () {
-      final scenario = PressureLessonCatalog.build(seed: 0)[2];
-      var episode = engine.startEpisode(scenario);
-      episode = engine.chooseEpisodeOption(
-        episode,
-        engine
-            .episodeOptions(episode)
-            .firstWhere((option) => option.key == 'pass-recycle'),
-      );
+    test('one-tap movement stops before the carrier decision', () {
+      final scenario = PressureLessonCatalog.build(seed: 0)[4];
+      final episode = engine.startEpisode(scenario);
       expect(episode.pendingDecision, PressureEpisodeDecisionKind.support);
-      final focus = episode.world.actorByRole(scenario.focusRole);
-      final left = engine.simulateSupport(episode.world, focus.position);
+      final carrierId = episode.world.ball.carrierId;
+      final mover = episode.world.actorById(episode.pendingActorId!);
+      final moved = engine.chooseSupportTarget(
+        episode,
+        mover.position + const ScanPassPoint(5, -5),
+      );
+      final support = moved.timeline.single.supportResult!;
+
+      expect(support.continuation, isNull);
+      expect(moved.isComplete, isFalse);
+      expect(moved.pendingDecision, PressureEpisodeDecisionKind.onBall);
+      expect(moved.pendingActorId, carrierId);
+      expect(moved.world.ball.carrierId, carrierId);
+      expect(moved.runPlan?.actorId, mover.id);
+      expect(moved.runPlan?.isActive, isTrue);
+      expect(moved.world, same(support.afterMovement));
+    });
+
+    test('two support destinations produce genuinely different lane evidence',
+        () {
+      final scenario = PressureLessonCatalog.build(seed: 0)[4];
+      final episode = engine.startEpisode(scenario);
+      final mover = episode.world.actorById(episode.pendingActorId!);
+      final left = engine.simulateSupport(
+        episode.world,
+        mover.position + const ScanPassPoint(0, 7),
+        actorId: mover.id,
+      );
       final right = engine.simulateSupport(
         episode.world,
-        focus.position + const ScanPassPoint(4, -4),
+        mover.position + const ScanPassPoint(0, -7),
+        actorId: mover.id,
       );
       final leftLanes = left.laneChanges
           .where((lane) => lane.usableAfter)
@@ -902,17 +975,18 @@ void main() {
 
       expect(_physicalSignature(left.afterMovement),
           isNot(_physicalSignature(right.afterMovement)));
-      expect(leftLanes, isNot(rightLanes));
-      expect(left.continuation?.result.intendedReceiverRole,
-          isNot(right.continuation?.result.intendedReceiverRole));
-      expect(left.continuation?.result.intendedReceiverRole,
-          PressureActorRole.runner);
-      expect(right.continuation?.result.intendedReceiverRole,
-          PressureActorRole.receiver);
-      expect(right.after.carrier?.role, PressureActorRole.receiver);
+      expect(
+        leftLanes != rightLanes ||
+            left.laneChanges.any((lane) => right.laneChanges.every((other) =>
+                other.receiverRole != lane.receiverRole ||
+                (other.clearanceChangeMetres - lane.clearanceChangeMetres)
+                        .abs() >
+                    .05)),
+        isTrue,
+      );
       expect(right.movementDistanceMetres, greaterThan(0));
-      _expectBoundedTrace(left.trace);
-      _expectBoundedTrace(right.trace);
+      _expectBoundedTrace(left.movementTrace);
+      _expectBoundedTrace(right.movementTrace);
     });
 
     test('tracker closes and challenges when its runner owns the ball', () {
@@ -975,55 +1049,68 @@ void main() {
       _expectBoundedTrace(result.trace);
     });
 
-    test('selected support trajectory earns a physically received return', () {
-      final scenario = PressureLessonCatalog.build(seed: 0)[2];
-      var episode = engine.startEpisode(scenario);
+    test('selected route persists through a user pass to a different attacker',
+        () {
+      var episode =
+          engine.startEpisode(PressureLessonCatalog.build(seed: 0)[4]);
+      final mover = episode.world.actorById(episode.pendingActorId!);
+      episode = engine.chooseSupportTarget(
+        episode,
+        mover.position + const ScanPassPoint(5, -5),
+      );
+      final atPause = episode.world.actorById(mover.id);
+      final pass = engine.episodeOptions(episode).firstWhere((option) =>
+          option.action.kind == PressureActionKind.pass &&
+          option.targetRole != mover.role &&
+          engine.simulate(episode.world, option.action).after.possession ==
+              PressurePossession.attack);
+      episode = engine.chooseEpisodeOption(episode, pass);
+      final onBall = episode.timeline.last;
+      final afterPass = onBall.after.actorById(mover.id);
+
+      expect(onBall.actorId, onBall.before.ball.carrierId);
+      expect(onBall.actionResult!.after.carrier?.id, isNot(mover.id));
+      expect(
+          afterPass.position
+              .distanceTo(episode.timeline.first.supportResult!.boundedTarget),
+          lessThan(atPause.position.distanceTo(
+              episode.timeline.first.supportResult!.boundedTarget)));
+      expect(onBall.runPlanBefore?.actorId, mover.id);
+      expect(onBall.runPlanAfter, isNotNull);
+    });
+
+    test('a useful non-reception run opens a lane used by another attacker',
+        () {
+      var episode =
+          engine.startEpisode(PressureLessonCatalog.build(seed: 0)[2]);
       episode = engine.chooseEpisodeOption(
         episode,
         engine
             .episodeOptions(episode)
-            .firstWhere((option) => option.key == 'pass-recycle'),
+            .firstWhere((option) => option.key == 'pass-support'),
       );
-      final focus = episode.world.actorByRole(scenario.focusRole);
-      final result = engine.simulateSupport(
-        episode.world,
-        focus.position + const ScanPassPoint(4, -4),
+      final mover = episode.world.actorById(episode.pendingActorId!);
+      expect(mover.number, 19);
+      episode = engine.chooseSupportTarget(
+        episode,
+        mover.position + const ScanPassPoint(0, 8),
       );
-      final automatic = result.continuation!.result;
-
-      expect(automatic.intendedReceiverRole, scenario.focusRole);
-      expect(automatic.after.carrier?.role, scenario.focusRole);
-      expect(automatic.after.possession, PressurePossession.attack);
-      expect(
-        automatic.action.target.distanceTo(result.boundedTarget),
-        lessThan(focus.position.distanceTo(result.boundedTarget)),
-      );
-      expect(
-        result.afterMovement.clock - result.before.clock,
-        closeTo(
-          result.stationaryCounterfactual.clock - result.before.clock,
-          1e-8,
-        ),
-      );
-      _expectBoundedTrace(result.trace);
-    });
-
-    test('teammate continuation is not a forced return to the learner', () {
-      final scenario = PressureLessonCatalog.build(seed: 19)[4];
-      final episode = engine.startEpisode(scenario);
-      final focus = episode.world.actorByRole(scenario.focusRole);
-      final result = engine.simulateSupport(
-        episode.world,
-        focus.position + const ScanPassPoint(4, -5),
-      );
-
-      expect(result.continuation, isNotNull);
-      expect(result.continuation!.result.action.kind, PressureActionKind.pass);
-      expect(result.continuation!.result.intendedReceiverRole,
-          isNot(scenario.focusRole));
-      expect(result.after.possession, PressurePossession.attack);
-      expect(result.after.carrier!.role,
-          result.continuation!.result.intendedReceiverRole);
+      final support = episode.timeline.last.supportResult!;
+      final lane = support.demonstratedPositiveLaneChange;
+      expect(lane, isNotNull);
+      expect(lane!.receiverRole, PressureActorRole.passer);
+      expect(lane.usableBefore, isFalse);
+      expect(lane.usableAfter, isTrue);
+      final pass = engine
+          .episodeOptions(episode)
+          .firstWhere((option) => option.key == 'pass-recycle');
+      episode = engine.chooseEpisodeOption(episode, pass);
+      final later = episode.timeline.last.actionResult!;
+      expect(later.before.carrier?.number, 10);
+      expect(later.after.carrier?.number, 2);
+      expect(later.after.carrier?.id, isNot(mover.id));
+      expect(support.movementDistanceMetres, greaterThan(1.6));
+      expect(support.continuation, isNull);
     });
 
     test(
@@ -1031,38 +1118,49 @@ void main() {
         () {
       final scenario = PressureLessonCatalog.build(seed: 19)[4];
       final episode = engine.startEpisode(scenario);
-      final focus = episode.world.actorByRole(scenario.focusRole);
-      final result = engine.simulateSupport(episode.world, focus.position);
-
-      expect(result.afterMovement.clock - result.before.clock,
-          greaterThanOrEqualTo(.5));
-      expect(result.movementDistanceMetres, lessThan(.08));
-      expect(result.continuation, isNotNull);
-      expect(result.demonstratedPositiveLaneChange, isNull);
-      expect(result.demonstratedNegativeLaneChange, isNull);
-    });
-
-    test('support target persists while the teammate continues the attack', () {
-      final scenario = PressureLessonCatalog.build(seed: 0)[2];
-      var episode = engine.startEpisode(scenario);
-      episode = engine.chooseEpisodeOption(
-        episode,
-        engine
-            .episodeOptions(episode)
-            .firstWhere((option) => option.key == 'pass-recycle'),
-      );
-      final focus = episode.world.actorByRole(scenario.focusRole);
+      final focus = episode.world.actorById(episode.pendingActorId!);
       final result = engine.simulateSupport(
         episode.world,
-        focus.position + const ScanPassPoint(-5, 0),
+        focus.position,
+        actorId: focus.id,
       );
-      final atRelease = result.afterMovement.actorByRole(scenario.focusRole);
-      final atEnd = result.after.actorByRole(scenario.focusRole);
 
-      expect(result.continuation, isNotNull);
-      expect(atEnd.position.distanceTo(result.boundedTarget),
-          lessThan(atRelease.position.distanceTo(result.boundedTarget)));
-      expect(result.executedTarget, atEnd.position);
+      expect(result.afterMovement.clock - result.before.clock,
+          greaterThanOrEqualTo(.24));
+      expect(result.movementDistanceMetres, lessThan(.08));
+      expect(result.continuation, isNull);
+      expect(result.demonstratedPositiveLaneChange, isNull);
+      expect(result.demonstratedNegativeLaneChange, isNull);
+      expect(result.separationChangeMetres.abs(), lessThan(.01));
+      expect(
+          result.afterMovement.clock - result.before.clock,
+          closeTo(result.stationaryCounterfactual.clock - result.before.clock,
+              1e-8));
+    });
+
+    test('support separation credit uses the same-duration stationary mover',
+        () {
+      final episode =
+          engine.startEpisode(PressureLessonCatalog.build(seed: 19)[4]);
+      final mover = episode.world.actorById(episode.pendingActorId!);
+      final moved = engine.simulateSupport(
+        episode.world,
+        mover.position + const ScanPassPoint(-4.5, -4.5),
+        actorId: mover.id,
+      );
+      final stationary = engine.simulateSupport(
+        episode.world,
+        mover.position,
+        actorId: mover.id,
+      );
+
+      expect(moved.afterMovement.clock, stationary.afterMovement.clock);
+      expect(moved.separationChangeMetres, greaterThan(.35));
+      expect(stationary.separationChangeMetres.abs(), lessThan(.01));
+      expect(
+        moved.stationaryCounterfactual.actorById(mover.id).position,
+        mover.position,
+      );
     });
 
     test('support target is physically bounded and can still lose to contact',
@@ -1202,6 +1300,97 @@ void main() {
       expect(session.firstAttempts[0], same(attempt));
     });
 
+    test('retry, alternatives and teaching example retain explicit actors', () {
+      final scenario = PressureLessonCatalog.build(seed: 0)[8];
+      var episode = engine.startEpisode(scenario);
+      episode = engine.chooseEpisodeOption(
+        episode,
+        engine.episodeOptions(episode).firstWhere(
+            (option) => option.targetRole == PressureActorRole.support),
+      );
+      final second = episode;
+      final original = engine
+          .chooseEpisodeOption(
+            second,
+            engine.episodeOptions(second).firstWhere(
+                (option) => option.targetRole == PressureActorRole.runner),
+          )
+          .timeline
+          .last;
+      final alternative = engine.alternativeOption(
+        original,
+        original.availableOptions
+            .firstWhere((option) => option.key != original.selectedOption!.key),
+      );
+      expect(alternative.before, same(original.before));
+      expect(alternative.actorId, original.actorId);
+      expect(alternative.actorNumber, 10);
+
+      final completed = _completeEpisode(engine, second);
+      final retry = engine.retryFrom(completed, 1);
+      expect(retry.pendingActorId, completed.timeline[1].actorId);
+      expect(retry.world, same(completed.timeline[1].before));
+      expect(retry.runPlan, same(completed.timeline[1].runPlanBefore));
+
+      final example = engine.teachingExample(scenario);
+      expect(example.observation.decisionState.clock,
+          engine.startEpisode(scenario).observation.decisionState.clock);
+      expect(example.timeline.length, lessThanOrEqualTo(3));
+      expect(example.timeline.first.actorNumber, 19);
+      expect(example.trace.last, same(example.terminal));
+      expect(example.outcome, isNotNull);
+    });
+
+    test('each guided teaching example is physical, bounded and defensible',
+        () {
+      for (final scenario in PressureLessonCatalog.build(seed: 19)
+          .where((item) => item.variant == PressureLessonVariant.guided)) {
+        final example = engine.teachingExample(scenario);
+        expect(example.timeline, isNotEmpty, reason: scenario.id);
+        expect(example.timeline.length, lessThanOrEqualTo(3),
+            reason: scenario.id);
+        expect(example.terminal.possession, PressurePossession.attack,
+            reason: '${scenario.id} must not present an avoidable loss.');
+        var replay = engine.startEpisode(scenario);
+        for (final decision in example.timeline) {
+          expect(replay.pendingActorId, decision.actorId, reason: scenario.id);
+          replay = decision.supportResult == null
+              ? engine.chooseEpisodeOption(replay, decision.selectedOption!)
+              : engine.chooseSupportTarget(replay, decision.requestedTarget);
+          expect(_physicalSignature(replay.timeline.last.after),
+              _physicalSignature(decision.after),
+              reason: scenario.id);
+        }
+        expect(_physicalSignature(replay.world),
+            _physicalSignature(example.terminal),
+            reason: scenario.id);
+
+        final support = example.timeline
+            .map((decision) => decision.supportResult)
+            .whereType<PressureSupportResult>()
+            .firstOrNull;
+        if (support != null) {
+          final supportIndex = example.timeline
+              .indexWhere((decision) => decision.supportResult != null);
+          final later = example.timeline
+              .skip(supportIndex + 1)
+              .map((decision) => decision.actionResult)
+              .whereType<PressureSimulationResult>()
+              .firstOrNull;
+          final moverReceived =
+              later?.after.possession == PressurePossession.attack &&
+                  later?.after.carrier?.id == support.actorId;
+          expect(
+            support.demonstratedPositiveLaneChange != null ||
+                support.separationChangeMetres >= .35 ||
+                moverReceived,
+            isTrue,
+            reason: '${scenario.id} needs observable goal evidence.',
+          );
+        }
+      }
+    });
+
     test('catalog starts stay actionable across several seeds', () {
       for (final seed in [0, 1, 2, 3, 4, 5, 6, 7, 19, 41]) {
         for (final scenario in PressureLessonCatalog.build(seed: seed)) {
@@ -1256,6 +1445,25 @@ PressureEpisodeState _bestRetainedEpisodeChoice(
     }
   }
   return best!;
+}
+
+PressureEpisodeState _completeEpisode(
+  ScanPassPressureEngine engine,
+  PressureEpisodeState episode,
+) {
+  var current = episode;
+  while (!current.isComplete) {
+    if (current.pendingDecision == PressureEpisodeDecisionKind.support) {
+      final actor = current.world.actorById(current.pendingActorId!);
+      current = engine.chooseSupportTarget(
+        current,
+        actor.position + const ScanPassPoint(5, 4),
+      );
+    } else {
+      current = _bestRetainedEpisodeChoice(engine, current);
+    }
+  }
+  return current;
 }
 
 double _rank(PressureSimulationResult result) {

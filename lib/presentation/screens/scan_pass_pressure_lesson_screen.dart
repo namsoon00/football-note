@@ -2,7 +2,13 @@ part of 'scan_pass_game_screen.dart';
 
 enum _PressureLessonPhase { observing, choosing, executing, review, summary }
 
-enum _PressurePlayback { observation, learnerAction, replay, alternative }
+enum _PressurePlayback {
+  observation,
+  learnerAction,
+  replay,
+  alternative,
+  example,
+}
 
 class ScanPassPressureLessonScreen extends StatefulWidget {
   final int? seed;
@@ -47,8 +53,11 @@ class _ScanPassPressureLessonScreenState
   PressureEpisodeDecision? _activeDecision;
   PressureEpisodeState? _completedEpisode;
   PressureEpisodeDecision? _alternativeDecision;
+  PressureTeachingExample? _teachingExample;
   int _reviewIndex = 0;
+  int _exampleReviewIndex = 0;
   bool _showingAlternative = false;
+  bool _showingExample = false;
   bool _manualPause = false;
   bool _modalOpen = false;
   bool _foreground = true;
@@ -65,8 +74,41 @@ class _ScanPassPressureLessonScreenState
     return timeline[_reviewIndex.clamp(0, timeline.length - 1)];
   }
 
-  PressureEpisodeDecision? get _displayedDecision =>
-      _showingAlternative ? _alternativeDecision : _reviewedDecision;
+  PressureEpisodeDecision? get _displayedDecision => _showingExample
+      ? _teachingExample?.timeline.elementAtOrNull(_exampleReviewIndex)
+      : _showingAlternative
+          ? _alternativeDecision
+          : _reviewedDecision;
+
+  PressureEpisodeDecision? _playbackDecision(PressureWorld world) {
+    if (_phase != _PressureLessonPhase.executing) return null;
+    final timeline = switch (_playback) {
+      _PressurePlayback.learnerAction => _activeDecision == null
+          ? const <PressureEpisodeDecision>[]
+          : [_activeDecision!],
+      _PressurePlayback.alternative => _alternativeDecision == null
+          ? const <PressureEpisodeDecision>[]
+          : [_alternativeDecision!],
+      _PressurePlayback.replay =>
+        _completedEpisode?.timeline ?? const <PressureEpisodeDecision>[],
+      _PressurePlayback.example =>
+        _teachingExample?.timeline ?? const <PressureEpisodeDecision>[],
+      _PressurePlayback.observation => const <PressureEpisodeDecision>[],
+    };
+    for (final decision in timeline.reversed) {
+      if (world.clock + 1e-8 >= decision.fullTrace.first.clock &&
+          world.clock <= decision.fullTrace.last.clock + 1e-8) {
+        return decision;
+      }
+    }
+    return null;
+  }
+
+  PressureEpisodeDecision? get _motionDecision {
+    final trace = _activeTrace;
+    if (trace == null) return null;
+    return _playbackDecision(trace.frameAt(_motion.value));
+  }
 
   @override
   void initState() {
@@ -145,8 +187,11 @@ class _ScanPassPressureLessonScreenState
     _activeDecision = null;
     _completedEpisode = null;
     _alternativeDecision = null;
+    _teachingExample = null;
     _reviewIndex = 0;
+    _exampleReviewIndex = 0;
     _showingAlternative = false;
+    _showingExample = false;
     _manualPause = false;
   }
 
@@ -220,6 +265,9 @@ class _ScanPassPressureLessonScreenState
 
   void _executeDecision(PressureEpisodeState next) {
     final decision = next.timeline.last;
+    final executionTrace = next.isComplete && next.tail != null
+        ? PressureTrace.join([decision.fullTrace, next.tail!.trace])
+        : decision.fullTrace;
     _episode = next;
     _activeDecision = decision;
     setState(() {
@@ -227,15 +275,20 @@ class _ScanPassPressureLessonScreenState
       _playback = _PressurePlayback.learnerAction;
       _options = const [];
       _showingAlternative = false;
+      _showingExample = false;
       _alternativeDecision = null;
-      _activeTrace = decision.fullTrace;
+      _activeTrace = executionTrace;
       _viewBounds = _boundsForDecision(decision);
     });
-    _playTrace(decision.fullTrace, widget.executionDuration, () {
+    _playTrace(executionTrace, widget.executionDuration, () {
       setState(() {
-        _current = decision.after;
-        _decisionSnapshot = decision.after;
-        _completedTraces = [..._completedTraces, decision.fullTrace];
+        _current = next.world;
+        _decisionSnapshot = next.world;
+        _completedTraces = [
+          ..._completedTraces,
+          decision.fullTrace,
+          if (next.tail != null) next.tail!.trace,
+        ];
         _activeTrace = null;
         _activeDecision = null;
         if (_episode.isComplete) {
@@ -255,9 +308,11 @@ class _ScanPassPressureLessonScreenState
       situationIndex: _situationIndex,
       scenario: _episode.scenario,
       timeline: _episode.timeline,
+      tail: _episode.tail,
       outcome: _episode.outcome!,
     );
     _session = _session.recordFirstAttempt(attempt);
+    _teachingExample = _engine.teachingExample(_episode.scenario);
     _reviewIndex = _episode.timeline.length - 1;
     _buildAlternative();
     _setReviewFrame();
@@ -275,43 +330,23 @@ class _ScanPassPressureLessonScreenState
     _alternativeDecision = null;
     if (selected == null) return;
     if (selected.kind == PressureEpisodeDecisionKind.support) {
-      final focus = selected.before.actorByRole(_episode.scenario.focusRole);
-      final chosen = selected.supportResult!.boundedTarget - focus.position;
-      final alternativeTarget = ScanPassPoint(
-        focus.position.x +
-            math.max(3.5, chosen.x.abs()) * (chosen.x < 0 ? -1 : 1),
-        focus.position.y - (chosen.y.abs() < 1 ? 5.5 : chosen.y),
-      );
+      final actor = selected.before.actorById(selected.actorId);
       _alternativeDecision =
-          _engine.alternativeSupport(selected, alternativeTarget);
+          _engine.alternativeSupport(selected, actor.position);
       return;
     }
     final chosenKey = selected.selectedOption?.key;
     final candidates = selected.availableOptions
         .where((option) => option.key != chosenKey)
         .map((option) => _engine.alternativeOption(selected, option))
-        .toList()
-      ..sort((a, b) => _qualityRank(b).compareTo(_qualityRank(a)));
+        .toList();
     if (candidates.isNotEmpty) _alternativeDecision = candidates.first;
-  }
-
-  int _qualityRank(PressureEpisodeDecision decision) {
-    final result =
-        decision.actionResult ?? decision.supportResult?.continuation?.result;
-    if (result == null) return decision.lost ? 0 : 1;
-    return switch (result.assessment.quality) {
-      PressureDecisionQuality.strong => 3,
-      PressureDecisionQuality.sound => 2,
-      PressureDecisionQuality.compromised => 1,
-      PressureDecisionQuality.lost => 0,
-    };
   }
 
   void _setReviewFrame() {
     final decision = _displayedDecision;
     if (decision == null) return;
-    final result =
-        decision.actionResult ?? decision.supportResult?.continuation?.result;
+    final result = decision.actionResult;
     _current = result == null
         ? decision.after
         : _engine.actionEvidence(result).freezeFrame;
@@ -336,6 +371,7 @@ class _ScanPassPressureLessonScreenState
       _activeDecision = null;
       _alternativeDecision = null;
       _showingAlternative = false;
+      _showingExample = false;
     });
   }
 
@@ -349,6 +385,7 @@ class _ScanPassPressureLessonScreenState
       _playback = _PressurePlayback.alternative;
       _activeTrace = decision.fullTrace;
       _showingAlternative = true;
+      _showingExample = false;
     });
     _playTrace(decision.fullTrace, widget.executionDuration, () {
       setState(() {
@@ -362,6 +399,7 @@ class _ScanPassPressureLessonScreenState
   void _returnToAttempt() {
     setState(() {
       _showingAlternative = false;
+      _showingExample = false;
       _setReviewFrame();
       _activeTrace = null;
       _phase = _PressureLessonPhase.review;
@@ -374,6 +412,7 @@ class _ScanPassPressureLessonScreenState
     final trace = PressureTrace.join([
       _observation.trace,
       for (final decision in attempt.timeline) decision.fullTrace,
+      if (attempt.tail != null) attempt.tail!.trace,
     ]);
     setState(() {
       _current = trace.first;
@@ -382,6 +421,7 @@ class _ScanPassPressureLessonScreenState
       _playback = _PressurePlayback.replay;
       _activeTrace = trace;
       _showingAlternative = false;
+      _showingExample = false;
     });
     final perSecond = widget.executionDuration == Duration.zero
         ? Duration.zero
@@ -395,15 +435,68 @@ class _ScanPassPressureLessonScreenState
     });
   }
 
+  void _playTeachingExample() {
+    final example = _teachingExample;
+    if (example == null) return;
+    final trace = example.trace;
+    setState(() {
+      _exampleReviewIndex = 0;
+      _current = trace.first;
+      _viewBounds = _pressureTraceViewBounds(trace);
+      _phase = _PressureLessonPhase.executing;
+      _playback = _PressurePlayback.example;
+      _activeTrace = trace;
+      _showingAlternative = false;
+      _showingExample = true;
+    });
+    final duration = widget.executionDuration == Duration.zero
+        ? Duration.zero
+        : Duration(
+            milliseconds: math.max(1100, (trace.duration * 420).round()));
+    _playTrace(trace, duration, () {
+      setState(() {
+        _exampleReviewIndex = example.timeline.length - 1;
+        _activeTrace = null;
+        _phase = _PressureLessonPhase.review;
+        _setReviewFrame();
+      });
+    });
+  }
+
   void _selectReviewDecision(int index) {
     if (index == _reviewIndex) return;
     setState(() {
       _reviewIndex = index;
       _showingAlternative = false;
+      _showingExample = false;
       _activeTrace = null;
       _buildAlternative();
       _setReviewFrame();
     });
+  }
+
+  void _selectExampleDecision(int index) {
+    if (index == _exampleReviewIndex) return;
+    setState(() {
+      _exampleReviewIndex = index;
+      _activeTrace = null;
+      _setReviewFrame();
+    });
+  }
+
+  PressureSimulationResult? _laterActionResult(int index) {
+    if (_showingAlternative) return null;
+    final timeline = _showingExample
+        ? _teachingExample?.timeline
+        : _completedEpisode?.timeline;
+    if (timeline == null) return null;
+    for (final decision in timeline.skip(index + 1)) {
+      if (decision.actionResult != null) return decision.actionResult;
+    }
+    return (_showingExample ? _teachingExample?.tail : _completedEpisode?.tail)
+        ?.actions
+        .firstOrNull
+        ?.result;
   }
 
   void _nextSituation() {
@@ -493,11 +586,16 @@ class _ScanPassPressureLessonScreenState
             AppBarActionButton.icon(
               key: const ValueKey<String>('pressure-replay'),
               icon: Icons.replay,
-              tooltip: _showingAlternative
-                  ? l10n.pressureLessonReplayAlternative
-                  : l10n.pressureLessonReplayMine,
-              onPressed:
-                  _showingAlternative ? _playAlternative : _replayAttempt,
+              tooltip: _showingExample
+                  ? l10n.pressureSceneReplayExample
+                  : _showingAlternative
+                      ? l10n.pressureLessonReplayAlternative
+                      : l10n.pressureLessonReplayMine,
+              onPressed: _showingExample
+                  ? _playTeachingExample
+                  : _showingAlternative
+                      ? _playAlternative
+                      : _replayAttempt,
             ),
             AppBarActionButton.icon(
               key: const ValueKey<String>('pressure-reference'),
@@ -602,9 +700,13 @@ class _ScanPassPressureLessonScreenState
     _ScanPassColors colors, {
     required bool portrait,
   }) {
+    // The short review pitch has room to spread the scene horizontally.
+    // Keep the painter, overview and coordinate transforms on one orientation.
+    final pitchPortrait = portrait && _phase != _PressureLessonPhase.review;
     final trace = _activeTrace;
     final displayed = trace?.frameAt(_motion.value) ?? _current;
     final displayedDecision = _displayedDecision;
+    final playbackDecision = _playbackDecision(displayed);
     final reviewResult =
         displayedDecision?.kind == PressureEpisodeDecisionKind.support
             ? null
@@ -618,33 +720,53 @@ class _ScanPassPressureLessonScreenState
     final contextKind = _phase == _PressureLessonPhase.review
         ? displayedDecision?.kind
         : _phase == _PressureLessonPhase.executing
-            ? _activeDecision?.kind ?? _episode.pendingDecision
+            ? playbackDecision?.kind
             : _episode.pendingDecision;
     final contextStage = switch (contextKind) {
       PressureEpisodeDecisionKind.receive => PressureDecisionStage.firstContact,
       PressureEpisodeDecisionKind.support => PressureDecisionStage.support,
       _ => PressureDecisionStage.reRead,
     };
-    final focusRole = _episode.scenario.focusRole;
+    final decisionActorId = _phase == _PressureLessonPhase.review
+        ? displayedDecision?.actorId
+        : _phase == _PressureLessonPhase.executing
+            ? playbackDecision?.actorId
+            : _episode.pendingActorId;
     final supportTarget = _phase == _PressureLessonPhase.executing
-        ? _activeDecision?.supportResult?.boundedTarget
+        ? playbackDecision?.supportResult?.boundedTarget
         : _phase == _PressureLessonPhase.review
             ? displayedDecision?.supportResult?.boundedTarget
             : _episode.timeline.lastOrNull?.supportResult?.boundedTarget;
+    final displayIndex = _showingExample ? _exampleReviewIndex : _reviewIndex;
+    final displayTimeline = _showingExample
+        ? _teachingExample?.timeline
+        : _completedEpisode?.timeline;
+    final displayObservation = _showingExample
+        ? _teachingExample?.observation
+        : _completedEpisode?.observation;
     final reviewTraces = <PressureTrace>[
-      _observation.trace,
-      if (_completedEpisode != null)
-        for (final decision
-            in _completedEpisode!.timeline.take(_reviewIndex + 1))
+      if (displayObservation != null) displayObservation.trace,
+      if (displayTimeline != null)
+        for (final decision in displayTimeline.take(displayIndex + 1))
           decision.fullTrace,
     ];
+    final effectiveViewBounds =
+        _phase == _PressureLessonPhase.executing && playbackDecision != null
+            ? _boundsForDecision(playbackDecision)
+            : _viewBounds;
     return RepaintBoundary(
       key: const ValueKey<String>('pressure-lesson-capture'),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         _buildSituationRibbon(
           l10n,
           colors,
-          _engine.situationContext(contextWorld, contextStage),
+          _engine.situationContext(
+            contextWorld,
+            contextStage,
+            decisionActorId: decisionActorId,
+          ),
+          hasCarrier: contextWorld.carrier != null,
+          hasDecisionActor: decisionActorId != null,
         ),
         const SizedBox(height: 6),
         _buildInstruction(l10n, colors),
@@ -659,7 +781,7 @@ class _ScanPassPressureLessonScreenState
                   key: const ValueKey<String>('pressure-pitch'),
                   painter: _PressureLessonPitchPainter(
                     displayWorld: displayed,
-                    portrait: portrait,
+                    portrait: pitchPortrait,
                     completedTraces: _phase == _PressureLessonPhase.review
                         ? reviewTraces
                         : _playback == _PressurePlayback.replay && _isMoving
@@ -673,13 +795,20 @@ class _ScanPassPressureLessonScreenState
                     reviewEvidence: _phase == _PressureLessonPhase.review
                         ? reviewEvidence
                         : null,
+                    reviewSupport: _phase == _PressureLessonPhase.review
+                        ? displayedDecision?.supportResult
+                        : null,
+                    reviewLaterResult: _phase == _PressureLessonPhase.review &&
+                            displayedDecision?.supportResult != null
+                        ? _laterActionResult(displayIndex)
+                        : null,
                     l10n: l10n,
                     names: _pressureNames(l10n),
                     brightness: Theme.of(context).brightness,
                     fontFamily:
                         Theme.of(context).textTheme.bodyMedium?.fontFamily,
-                    viewBounds: _viewBounds,
-                    focusRole: focusRole,
+                    viewBounds: effectiveViewBounds,
+                    decisionActorId: decisionActorId,
                     showSupportRange: _isChoosing &&
                         _episode.pendingDecision ==
                             PressureEpisodeDecisionKind.support &&
@@ -698,7 +827,7 @@ class _ScanPassPressureLessonScreenState
                         onTapDown: (details) => _chooseSupportAtOffset(
                           details.localPosition,
                           Size(constraints.maxWidth, constraints.maxHeight),
-                          portrait,
+                          pitchPortrait,
                         ),
                       );
                     }),
@@ -706,18 +835,23 @@ class _ScanPassPressureLessonScreenState
                 if (_isChoosing &&
                     _episode.pendingDecision !=
                         PressureEpisodeDecisionKind.support)
-                  _buildChoiceLayer(displayed, portrait: portrait, l10n: l10n),
+                  _buildChoiceLayer(
+                    displayed,
+                    portrait: pitchPortrait,
+                    l10n: l10n,
+                  ),
                 Positioned.fill(
                   child: IgnorePointer(
                     child: LayoutBuilder(builder: (context, constraints) {
                       final geometry = _MatchPitchGeometry(
                         Size(constraints.maxWidth, constraints.maxHeight),
-                        portrait: portrait,
-                        viewBounds: _viewBounds,
+                        portrait: pitchPortrait,
+                        viewBounds: effectiveViewBounds,
                       );
                       final rect = _pressureOverviewRect(
                         geometry,
-                        _isMoving ? _decisionSnapshot : displayed,
+                        playbackDecision?.before ??
+                            (_isMoving ? _decisionSnapshot : displayed),
                       );
                       return Stack(children: [
                         Positioned.fromRect(
@@ -729,8 +863,8 @@ class _ScanPassPressureLessonScreenState
                               key: const ValueKey<String>('pressure-overview'),
                               painter: _PressureOverviewPainter(
                                 world: displayed,
-                                viewBounds: _viewBounds,
-                                portrait: portrait,
+                                viewBounds: effectiveViewBounds,
+                                portrait: pitchPortrait,
                                 brightness: Theme.of(context).brightness,
                               ),
                             ),
@@ -764,8 +898,10 @@ class _ScanPassPressureLessonScreenState
   Widget _buildSituationRibbon(
     AppLocalizations l10n,
     _ScanPassColors colors,
-    PressureSituationContext situation,
-  ) {
+    PressureSituationContext situation, {
+    required bool hasCarrier,
+    required bool hasDecisionActor,
+  }) {
     final location = _pressureLocation(l10n, situation);
     final scenario = _episode.scenario;
     final family = _familyLabel(l10n, scenario.family);
@@ -789,13 +925,30 @@ class _ScanPassPressureLessonScreenState
         situation.pressureDistanceMetres.toStringAsFixed(1),
       ),
     );
-    final facts = l10n.pressureEpisodeFacts(
-      location,
-      situation.carrierNumber,
-      scenario.observationStart.actorByRole(scenario.focusRole).number,
-      pressure,
+    final facts = switch ((hasCarrier, hasDecisionActor)) {
+      (true, true) => l10n.pressureSceneFacts(
+          location,
+          situation.carrierNumber,
+          situation.focusNumber,
+          pressure,
+        ),
+      (false, true) => l10n.pressureSceneFactsBallFree(
+          location,
+          situation.focusNumber,
+          pressure,
+        ),
+      (true, false) => l10n.pressureSceneFactsContinuation(
+          location,
+          situation.carrierNumber,
+          pressure,
+        ),
+      (false, false) =>
+        l10n.pressureSceneFactsFreeContinuation(location, pressure),
+    };
+    final task = l10n.pressureSceneGoalTask(
+      _learningGoal(l10n, scenario.learningObjective),
+      _contextTask(l10n),
     );
-    final task = _contextTask(l10n);
     return DecoratedBox(
       key: const ValueKey<String>('pressure-situation-ribbon'),
       decoration: BoxDecoration(
@@ -827,20 +980,20 @@ class _ScanPassPressureLessonScreenState
             ),
             const SizedBox(height: 2),
             Text(
-              facts,
-              key: const ValueKey<String>('pressure-situation-facts'),
+              task,
+              key: const ValueKey<String>('pressure-situation-task'),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colors.text,
                     height: 1.1,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 1),
             Text(
-              task,
-              key: const ValueKey<String>('pressure-situation-task'),
+              facts,
+              key: const ValueKey<String>('pressure-situation-facts'),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -1053,32 +1206,43 @@ class _ScanPassPressureLessonScreenState
   }
 
   Widget _buildInstruction(AppLocalizations l10n, _ScanPassColors colors) {
+    final pendingActorNumber = _episode.pendingActorId == null
+        ? _episode.world.carrier?.number
+        : _episode.world.actorById(_episode.pendingActorId!).number;
     final title = switch (_phase) {
       _PressureLessonPhase.observing => l10n.pressureLessonObserve,
       _PressureLessonPhase.choosing => switch (_episode.pendingDecision) {
           PressureEpisodeDecisionKind.receive =>
-            l10n.pressureEpisodeChooseReceive,
+            l10n.pressureSceneTaskReceive(pendingActorNumber!),
           PressureEpisodeDecisionKind.onBall =>
-            l10n.pressureEpisodeChooseOnBall,
-          PressureEpisodeDecisionKind.support =>
-            l10n.pressureEpisodeChooseSupport(
-              _episode.world.actorByRole(_episode.scenario.focusRole).number,
+            l10n.pressureSceneTaskOnBall(pendingActorNumber!),
+          PressureEpisodeDecisionKind.support => l10n.pressureSceneTaskSupport(
+              pendingActorNumber!,
+              _episode.world.carrier!.number,
             ),
           null => l10n.pressureLessonChooseNext,
         },
       _PressureLessonPhase.executing => switch (_playback) {
           _PressurePlayback.alternative => l10n.pressureLessonAlternativeView,
           _PressurePlayback.replay => l10n.pressureLessonReplayView,
+          _PressurePlayback.example => l10n.pressureSceneExampleTitle,
           _ => l10n.pressureLessonExecuting,
         },
       _PressureLessonPhase.review => l10n.pressureEpisodeReviewInstruction,
       _PressureLessonPhase.summary => l10n.pressureEpisodeSummaryTitle,
     };
-    final hint = _isChoosing
-        ? _episode.pendingDecision == PressureEpisodeDecisionKind.support
-            ? l10n.pressureEpisodeSupportHint
-            : l10n.pressureLessonOneTapHint
-        : l10n.pressureLessonSyntheticNote;
+    final hint = _phase == _PressureLessonPhase.review
+        ? l10n.pressureEpisodeContextReview(
+            (_showingExample ? _exampleReviewIndex : _reviewIndex) + 1,
+            _showingExample
+                ? _teachingExample!.timeline.length
+                : _completedEpisode!.timeline.length,
+          )
+        : _isChoosing
+            ? _episode.pendingDecision == PressureEpisodeDecisionKind.support
+                ? l10n.pressureEpisodeSupportHint
+                : l10n.pressureLessonOneTapHint
+            : l10n.pressureLessonSyntheticNote;
     return DecoratedBox(
       key: ValueKey<String>('pressure-phase-${_phase.name}'),
       decoration: BoxDecoration(
@@ -1103,7 +1267,7 @@ class _ScanPassPressureLessonScreenState
                 Text(
                   title,
                   key: const ValueKey<String>('pressure-instruction'),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: colors.text,
@@ -1131,7 +1295,12 @@ class _ScanPassPressureLessonScreenState
 
   Widget _buildReview(AppLocalizations l10n, _ScanPassColors colors) {
     final decision = _displayedDecision!;
-    final timeline = _completedEpisode!.timeline;
+    final timeline = _showingExample
+        ? _teachingExample!.timeline
+        : _completedEpisode!.timeline;
+    final selectedIndex = _showingExample ? _exampleReviewIndex : _reviewIndex;
+    final tail =
+        _showingExample ? _teachingExample?.tail : _completedEpisode?.tail;
     return Column(
       key: const ValueKey<String>('pressure-review-panel'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1142,10 +1311,12 @@ class _ScanPassPressureLessonScreenState
           children: [
             Expanded(
               child: Text(
-                _showingAlternative
-                    ? l10n.pressureLessonAlternative
-                    : _outcomeLabel(l10n, _completedEpisode!.outcome!),
-                key: _showingAlternative
+                _showingExample
+                    ? l10n.pressureSceneExampleTitle
+                    : _showingAlternative
+                        ? l10n.pressureLessonAlternative
+                        : _outcomeLabel(l10n, _completedEpisode!.outcome!),
+                key: _showingAlternative || _showingExample
                     ? null
                     : const ValueKey<String>('pressure-episode-outcome'),
                 maxLines: 1,
@@ -1185,13 +1356,19 @@ class _ScanPassPressureLessonScreenState
                         if (index > 0) const SizedBox(width: 5),
                         ChoiceChip(
                           key: ValueKey<String>(
-                              'pressure-review-decision-$index'),
-                          label: Text(l10n.pressureEpisodeTimelineItem(
+                            _showingExample
+                                ? 'pressure-example-decision-$index'
+                                : 'pressure-review-decision-$index',
+                          ),
+                          label: Text(l10n.pressureSceneTimelineItem(
                             index + 1,
+                            timeline[index].actorNumber,
                             _decisionKindLabel(l10n, timeline[index].kind),
                           )),
-                          selected: index == _reviewIndex,
-                          onSelected: (_) => _selectReviewDecision(index),
+                          selected: index == selectedIndex,
+                          onSelected: (_) => _showingExample
+                              ? _selectExampleDecision(index)
+                              : _selectReviewDecision(index),
                           visualDensity: VisualDensity.compact,
                         ),
                       ],
@@ -1225,18 +1402,51 @@ class _ScanPassPressureLessonScreenState
                   text: _decisionLimitationLine(l10n, decision),
                   colors: colors,
                 ),
-                if (decision.supportResult?.continuation != null)
+                if (decision.supportResult != null &&
+                    _laterActionResult(selectedIndex) != null)
                   _reviewLine(
                     key: 'pressure-review-consequence',
                     icon: Icons.fast_forward_outlined,
-                    text: _supportConsequenceLine(l10n, decision),
+                    text: _laterActionLine(
+                      l10n,
+                      _laterActionResult(selectedIndex)!,
+                      decision.actorNumber,
+                    ),
                     colors: colors,
                   ),
-                if (!_showingAlternative && _alternativeDecision != null)
+                if (!_showingAlternative &&
+                    tail?.actions.firstOrNull != null &&
+                    selectedIndex == timeline.length - 1)
+                  _reviewLine(
+                    key: 'pressure-review-tail',
+                    icon: Icons.subdirectory_arrow_right,
+                    text: _tailLine(
+                      l10n,
+                      tail!.actions.first,
+                    ),
+                    colors: colors,
+                  ),
+                if (_showingExample)
+                  _reviewLine(
+                    key: 'pressure-review-example-limit',
+                    icon: Icons.school_outlined,
+                    text: l10n.pressureSceneExampleLimit,
+                    colors: colors,
+                  ),
+                if (!_showingAlternative &&
+                    !_showingExample &&
+                    _alternativeDecision != null)
                   _reviewLine(
                     key: 'pressure-review-alternative',
                     icon: Icons.compare_arrows_outlined,
                     text: l10n.pressureEpisodeAlternativeAvailable,
+                    colors: colors,
+                  ),
+                if (!_showingAlternative && !_showingExample)
+                  _reviewLine(
+                    key: 'pressure-review-example-available',
+                    icon: Icons.school_outlined,
+                    text: l10n.pressureSceneExampleAvailable,
                     colors: colors,
                   ),
               ],
@@ -1244,17 +1454,23 @@ class _ScanPassPressureLessonScreenState
           ),
         ),
         const SizedBox(height: 6),
-        if (_showingAlternative)
+        if (_showingAlternative || _showingExample)
           FilledButton(
             key: const ValueKey<String>('pressure-return-attempt'),
             onPressed: _returnToAttempt,
-            child: Text(l10n.pressureLessonReturnMine),
+            child: Text(l10n.pressureSceneReturnAttempt),
           )
         else
           Row(children: [
             Expanded(
               child: OutlinedButton(
                 key: const ValueKey<String>('pressure-retry'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
+                  ),
+                ),
                 onPressed: _retryReviewedDecision,
                 child: Text(l10n.pressureLessonRetry),
               ),
@@ -1263,6 +1479,12 @@ class _ScanPassPressureLessonScreenState
             Expanded(
               child: FilledButton(
                 key: const ValueKey<String>('pressure-next'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
+                  ),
+                ),
                 onPressed: _nextSituation,
                 child: Text(
                     _situationIndex == PressureLessonCatalog.situationCount - 1
@@ -1277,6 +1499,17 @@ class _ScanPassPressureLessonScreenState
                 icon: Icons.compare_arrows_outlined,
                 tooltip: l10n.pressureLessonCompare,
                 onPressed: _playAlternative,
+                compact: true,
+                margin: EdgeInsets.zero,
+              ),
+            ],
+            if (_teachingExample != null) ...[
+              const SizedBox(width: 4),
+              AppBarActionButton.icon(
+                key: const ValueKey<String>('pressure-example'),
+                icon: Icons.school_outlined,
+                tooltip: l10n.pressureSceneReplayExample,
+                onPressed: _playTeachingExample,
                 compact: true,
                 margin: EdgeInsets.zero,
               ),
@@ -1331,6 +1564,9 @@ class _ScanPassPressureLessonScreenState
           Text(l10n.pressureEpisodeSummaryCoverage(
               attempts, PressureLessonCatalog.situationCount)),
           const SizedBox(height: 5),
+          Text(l10n
+              .pressureSceneSummaryJudgments(_session.firstAttemptJudgments)),
+          const SizedBox(height: 5),
           Text(l10n.pressureEpisodeSummaryRetained(
               _session.retainedAttacks, attempts)),
           const SizedBox(height: 5),
@@ -1355,8 +1591,8 @@ class _ScanPassPressureLessonScreenState
   ) {
     final support = decision.supportResult;
     if (support != null) {
-      return l10n.pressureEpisodeReviewSupportAction(
-        decision.before.actorByRole(support.focusRole).number,
+      return l10n.pressureSceneSupportStarted(
+        decision.actorNumber,
         support.movementDistanceMetres.toStringAsFixed(1),
       );
     }
@@ -1397,6 +1633,15 @@ class _ScanPassPressureLessonScreenState
       return l10n.pressureEpisodeSupportWidenedLane(
         receiver.number,
         lane.clearanceChangeMetres.toStringAsFixed(1),
+      );
+    }
+    if (support.separationChangeMetres >= .35) {
+      final defender =
+          support.afterMovement.actorByRole(support.separationDefenderRole);
+      return l10n.pressureSceneSupportSeparation(
+        decision.actorNumber,
+        support.separationChangeMetres.toStringAsFixed(1),
+        defender.number,
       );
     }
     return l10n.pressureEpisodeSupportNoMeasuredBenefit;
@@ -1488,32 +1733,84 @@ class _ScanPassPressureLessonScreenState
         defender.number,
       );
     }
-    if (support.continuation == null) {
-      return l10n.pressureEpisodeSupportNoContinuation;
-    }
-    return l10n.pressureEpisodeSupportLanesUnchanged;
+    return l10n.pressureSceneRunNotReached;
   }
 
-  String _supportConsequenceLine(
+  String _laterActionLine(
     AppLocalizations l10n,
-    PressureEpisodeDecision decision,
+    PressureSimulationResult result,
+    int moverNumber,
   ) {
-    final support = decision.supportResult!;
-    final automatic = support.continuation!;
-    final from = automatic.result.before.carrier!.number;
-    final to = automatic.result.after.carrier?.number;
-    return switch (automatic.kind) {
-      PressureAutomaticKind.pass when to != null =>
-        l10n.pressureEpisodeAutomaticPass(from, to),
-      PressureAutomaticKind.recycle
-          when to != null &&
-              automatic.result.action.target.x <
-                  automatic.result.before.ball.position.x - .5 =>
-        l10n.pressureEpisodeAutomaticRecycle(from, to),
-      PressureAutomaticKind.recycle when to != null =>
-        l10n.pressureEpisodeAutomaticPass(from, to),
-      _ => l10n.pressureEpisodeAutomaticCarry(from),
+    final from = result.before.carrier!.number;
+    if (result.action.kind != PressureActionKind.pass) {
+      return switch (result.after.possession) {
+        PressurePossession.attack => l10n.pressureSceneLaterCarry(from),
+        PressurePossession.defense => l10n.pressureSceneLaterTurnover(
+            from,
+            result.after.carrier?.number ?? result.contact!.defenderNumber,
+          ),
+        PressurePossession.loose => l10n.pressureSceneLaterLoose(from),
+      };
+    }
+    final target = _intendedReceiverNumber(result);
+    if (result.offside) {
+      return l10n.pressureSceneLaterPassOffside(from, target);
+    }
+    return switch (result.after.possession) {
+      PressurePossession.attack => result.after.carrier!.number == moverNumber
+          ? l10n.pressureSceneLaterPass(from, result.after.carrier!.number)
+          : l10n.pressureSceneLaterPassDifferent(
+              from,
+              result.after.carrier!.number,
+              moverNumber,
+            ),
+      PressurePossession.defense => l10n.pressureSceneLaterPassIntercepted(
+          from,
+          result.after.carrier?.number ?? result.contact!.defenderNumber,
+          target,
+        ),
+      PressurePossession.loose =>
+        l10n.pressureSceneLaterPassLoose(from, target),
     };
+  }
+
+  String _tailLine(
+    AppLocalizations l10n,
+    PressureAutomaticContinuation action,
+  ) {
+    final result = action.result;
+    final from = result.before.carrier!.number;
+    if (result.action.kind != PressureActionKind.pass) {
+      return switch (result.after.possession) {
+        PressurePossession.attack => l10n.pressureSceneTailCarry(from),
+        PressurePossession.defense => l10n.pressureSceneTailTurnover(
+            from,
+            result.after.carrier?.number ?? result.contact!.defenderNumber,
+          ),
+        PressurePossession.loose => l10n.pressureSceneTailLoose(from),
+      };
+    }
+    final target = _intendedReceiverNumber(result);
+    if (result.offside) {
+      return l10n.pressureSceneTailPassOffside(from, target);
+    }
+    return switch (result.after.possession) {
+      PressurePossession.attack =>
+        l10n.pressureSceneTailPass(from, result.after.carrier!.number),
+      PressurePossession.defense => l10n.pressureSceneTailPassIntercepted(
+          from,
+          result.after.carrier?.number ?? result.contact!.defenderNumber,
+          target,
+        ),
+      PressurePossession.loose => l10n.pressureSceneTailPassLoose(from, target),
+    };
+  }
+
+  int _intendedReceiverNumber(PressureSimulationResult result) {
+    final role = result.intendedReceiverRole;
+    return role == null
+        ? result.before.carrier!.number
+        : result.before.actorByRole(role).number;
   }
 
   String _judgmentCue(
@@ -1525,14 +1822,6 @@ class _ScanPassPressureLessonScreenState
       PressureMovement.closing => l10n.pressureEpisodePressureClosing,
       PressureMovement.holding => l10n.pressureEpisodePressureHolding,
     };
-    if (situation.stage == PressureDecisionStage.support) {
-      return l10n.pressureEpisodeReturnLaneFact(
-        situation.supportNumber,
-        situation.coverNumber,
-        coverMovement,
-        situation.coverLaneDistanceMetres.toStringAsFixed(1),
-      );
-    }
     if (_episode.scenario.family == PressureLearningFamily.runnerTiming) {
       final runnerMovement = switch (situation.runnerMovement) {
         PressureRunnerMovement.breakingForward =>
@@ -1544,6 +1833,14 @@ class _ScanPassPressureLessonScreenState
       return l10n.pressureEpisodeRunnerFact(
         situation.runnerNumber,
         runnerMovement,
+      );
+    }
+    if (situation.stage == PressureDecisionStage.support) {
+      return l10n.pressureEpisodeReturnLaneFact(
+        situation.supportNumber,
+        situation.coverNumber,
+        coverMovement,
+        situation.coverLaneDistanceMetres.toStringAsFixed(1),
       );
     }
     if (_episode.scenario.family == PressureLearningFamily.thirdPlayer ||
@@ -1627,6 +1924,25 @@ class _ScanPassPressureLessonScreenState
           l10n.pressureEpisodeFamilyRecycle,
       };
 
+  String _learningGoal(
+    AppLocalizations l10n,
+    PressureLearningObjective objective,
+  ) =>
+      switch (objective) {
+        PressureLearningObjective.receiveAwayFromPressure =>
+          l10n.pressureSceneGoalReception,
+        PressureLearningObjective.commitThenRelease =>
+          l10n.pressureSceneGoalDrawRelease,
+        PressureLearningObjective.moveAfterPassing =>
+          l10n.pressureSceneGoalSupport,
+        PressureLearningObjective.timeTheThroughPass =>
+          l10n.pressureSceneGoalRunner,
+        PressureLearningObjective.connectTheThirdPlayer =>
+          l10n.pressureSceneGoalThirdPlayer,
+        PressureLearningObjective.recycleWhenForwardPlayCloses =>
+          l10n.pressureSceneGoalRecycle,
+      };
+
   String _variantLabel(
     AppLocalizations l10n,
     PressureLessonVariant variant,
@@ -1674,27 +1990,44 @@ class _ScanPassPressureLessonScreenState
       return l10n.pressureEpisodeSummaryTitle;
     }
     if (_phase == _PressureLessonPhase.review) {
-      return l10n.pressureEpisodeContextReview(
-        _reviewIndex + 1,
-        _completedEpisode!.timeline.length,
+      final decision = _displayedDecision!;
+      final index = _showingExample ? _exampleReviewIndex : _reviewIndex;
+      final length = _showingExample
+          ? _teachingExample!.timeline.length
+          : _completedEpisode!.timeline.length;
+      return l10n.pressureSceneTaskReview(
+        decision.actorNumber,
+        index + 1,
+        length,
       );
     }
     if (_phase == _PressureLessonPhase.executing) {
-      if (_playback == _PressurePlayback.alternative) {
-        return l10n.pressureLessonContextTaskAlternative;
-      }
-      return _playback == _PressurePlayback.replay
-          ? l10n.pressureLessonContextTaskReplay
-          : l10n.pressureEpisodeContextExecuting;
+      final actor = _motionDecision?.actorNumber;
+      if (actor != null) return l10n.pressureSceneTaskExecuting(actor);
+      return switch (_playback) {
+        _PressurePlayback.example => l10n.pressureSceneExampleTitle,
+        _PressurePlayback.alternative =>
+          l10n.pressureLessonContextTaskAlternative,
+        _PressurePlayback.replay => l10n.pressureLessonContextTaskReplay,
+        _ => l10n.pressureLessonExecuting,
+      };
     }
     if (_phase == _PressureLessonPhase.observing) {
-      return l10n.pressureEpisodeContextObserve;
+      return l10n.pressureSceneTaskObserve(
+        _episode.world.actorById(_episode.pendingActorId!).number,
+      );
     }
+    final actorNumber =
+        _episode.world.actorById(_episode.pendingActorId!).number;
     return switch (_episode.pendingDecision) {
-      PressureEpisodeDecisionKind.receive => l10n.pressureEpisodeTaskReceive,
-      PressureEpisodeDecisionKind.onBall => l10n.pressureEpisodeTaskOnBall,
-      PressureEpisodeDecisionKind.support => l10n.pressureEpisodeTaskSupport(
-          _episode.world.actorByRole(_episode.scenario.focusRole).number),
+      PressureEpisodeDecisionKind.receive =>
+        l10n.pressureSceneTaskReceive(actorNumber),
+      PressureEpisodeDecisionKind.onBall =>
+        l10n.pressureSceneTaskOnBall(actorNumber),
+      PressureEpisodeDecisionKind.support => l10n.pressureSceneTaskSupport(
+          actorNumber,
+          _episode.world.carrier!.number,
+        ),
       null => l10n.pressureEpisodeContextExecuting,
     };
   }
@@ -1779,7 +2112,10 @@ class _ScanPassPressureLessonScreenState
   Rect _boundsForEpisode(PressureEpisodeState episode) {
     final options =
         episode.pendingDecision == PressureEpisodeDecisionKind.support
-            ? _supportBoundsOptions(episode.world)
+            ? _supportBoundsOptions(
+                episode.world,
+                actorId: episode.pendingActorId!,
+              )
             : _engine.episodeOptions(episode);
     return _pressureDecisionViewBounds(episode.world, options);
   }
@@ -1796,7 +2132,10 @@ class _ScanPassPressureLessonScreenState
     return _pressureDecisionViewBounds(
       decision.before,
       [
-        ..._supportBoundsOptions(decision.before),
+        ..._supportBoundsOptions(
+          decision.before,
+          actorId: decision.actorId,
+        ),
         PressureDecisionOption(
           key: 'support-executed',
           kind: PressureOptionKind.carryForward,
@@ -1805,12 +2144,27 @@ class _ScanPassPressureLessonScreenState
             target: decision.executedTarget,
           ),
         ),
+        if (decision.supportResult?.demonstratedLaneChange case final lane?)
+          PressureDecisionOption(
+            key: 'support-evidence-receiver',
+            kind: PressureOptionKind.passOther,
+            action: PressureAction(
+              kind: PressureActionKind.pass,
+              target: decision.supportResult!.afterMovement
+                  .actorByRole(lane.receiverRole)
+                  .position,
+            ),
+            targetRole: lane.receiverRole,
+          ),
       ],
     );
   }
 
-  List<PressureDecisionOption> _supportBoundsOptions(PressureWorld world) {
-    final focus = world.actorByRole(_episode.scenario.focusRole).position;
+  List<PressureDecisionOption> _supportBoundsOptions(
+    PressureWorld world, {
+    required String actorId,
+  }) {
+    final focus = world.actorById(actorId).position;
     return [
       for (final delta in const [
         ScanPassPoint(8, 0),
@@ -2141,12 +2495,14 @@ class _PressureLessonPitchPainter extends CustomPainter {
   final double activeProgress;
   final PressureSimulationResult? reviewResult;
   final PressureActionEvidence? reviewEvidence;
+  final PressureSupportResult? reviewSupport;
+  final PressureSimulationResult? reviewLaterResult;
   final AppLocalizations l10n;
   final Map<String, String> names;
   final Brightness brightness;
   final String? fontFamily;
   final Rect viewBounds;
-  final PressureActorRole focusRole;
+  final String? decisionActorId;
   final bool showSupportRange;
   final ScanPassPoint? supportTarget;
 
@@ -2158,12 +2514,14 @@ class _PressureLessonPitchPainter extends CustomPainter {
     required this.activeProgress,
     required this.reviewResult,
     required this.reviewEvidence,
+    required this.reviewSupport,
+    required this.reviewLaterResult,
     required this.l10n,
     required this.names,
     required this.brightness,
     required this.fontFamily,
     required this.viewBounds,
-    required this.focusRole,
+    required this.decisionActorId,
     required this.showSupportRange,
     required this.supportTarget,
   });
@@ -2205,10 +2563,20 @@ class _PressureLessonPitchPainter extends CustomPainter {
     if (review != null && evidence != null) {
       _drawReview(canvas, geometry, review, evidence);
     }
+    if (reviewSupport != null) {
+      _drawSupportReview(
+        canvas,
+        geometry,
+        reviewSupport!,
+        reviewLaterResult,
+      );
+    }
   }
 
   void _drawFocus(Canvas canvas, _MatchPitchGeometry geometry) {
-    final focus = displayWorld.actorByRole(focusRole);
+    final actorId = decisionActorId;
+    if (actorId == null) return;
+    final focus = displayWorld.actorById(actorId);
     final point = geometry.toOffset(_normalise(focus.position));
     final accent = brightness == Brightness.dark
         ? const Color(0xFFFFD166)
@@ -2244,7 +2612,7 @@ class _PressureLessonPitchPainter extends CustomPainter {
     }
     final label = TextPainter(
       text: TextSpan(
-        text: l10n.pressureEpisodeLearnerMarker(focus.number),
+        text: l10n.pressureSceneDecisionMarker(focus.number),
         style: TextStyle(
           color: brightness == Brightness.dark
               ? const Color(0xFFF9F4E8)
@@ -2677,6 +3045,143 @@ class _PressureLessonPitchPainter extends CustomPainter {
     _pressureDrawArrowHead(canvas, from, to, connectionPaint);
   }
 
+  void _drawSupportReview(
+    Canvas canvas,
+    _MatchPitchGeometry geometry,
+    PressureSupportResult support,
+    PressureSimulationResult? later,
+  ) {
+    final frames = support.movementTrace.frames;
+    final runFrames = <PressureWorld>[
+      ...frames,
+      if (later != null)
+        ...later.trace.frames.skip(
+          later.trace.first.clock <= frames.last.clock + 1e-8 ? 1 : 0,
+        ),
+    ];
+    final runPoints = runFrames
+        .map((frame) => geometry
+            .toOffset(_normalise(frame.actorById(support.actorId).position)))
+        .toList();
+    final runPaint = Paint()
+      ..color = brightness == Brightness.dark
+          ? const Color(0xFF8EC5FF)
+          : const Color(0xFF245E83)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.7
+      ..strokeCap = StrokeCap.round;
+    _pressureDrawPolyline(canvas, runPoints, runPaint);
+    if (runPoints.length > 1) {
+      _pressureDrawArrowHead(
+        canvas,
+        _pressureArrowStart(runPoints),
+        runPoints.last,
+        runPaint,
+      );
+    }
+    final requested = geometry.toOffset(_normalise(support.boundedTarget));
+    _pressureDrawDashedLine(
+      canvas,
+      runPoints.first,
+      requested,
+      Paint()
+        ..color = runPaint.color.withValues(alpha: .52)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4,
+      dash: 5,
+      gap: 4,
+    );
+    canvas.drawCircle(requested, 7, runPaint);
+    canvas.drawCircle(
+      runPoints.last,
+      4,
+      Paint()
+        ..color = runPaint.color
+        ..style = PaintingStyle.fill,
+    );
+
+    final lane = support.demonstratedLaneChange;
+    final defenderRole = lane == null
+        ? support.separationChangeMetres.abs() >= .35
+            ? support.separationDefenderRole
+            : null
+        : lane.afterDefenderRole ??
+            lane.beforeDefenderRole ??
+            PressureActorRole.cover;
+    if (defenderRole != null) {
+      final defenderPoints = frames
+          .map((frame) => geometry
+              .toOffset(_normalise(frame.actorByRole(defenderRole).position)))
+          .toList();
+      final defenderPaint = Paint()
+        ..color = const Color(0xFFB15F49).withValues(alpha: .82)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
+      _pressureDrawDashedPolyline(
+        canvas,
+        defenderPoints,
+        defenderPaint,
+        dash: 5,
+        gap: 3,
+      );
+      if (defenderPoints.length > 1) {
+        _pressureDrawArrowHead(
+          canvas,
+          _pressureArrowStart(defenderPoints),
+          defenderPoints.last,
+          defenderPaint,
+        );
+      }
+      if (lane != null) {
+        final laneFrom =
+            geometry.toOffset(_normalise(support.afterMovement.ball.position));
+        final laneTo = geometry.toOffset(_normalise(
+            support.afterMovement.actorByRole(lane.receiverRole).position));
+        final lanePaint = Paint()
+          ..color = (lane.usableAfter
+                  ? const Color(0xFF2E8B68)
+                  : const Color(0xFF8B6E45))
+              .withValues(alpha: .72)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.8;
+        _pressureDrawDashedLine(
+          canvas,
+          laneFrom,
+          laneTo,
+          lanePaint,
+          dash: 8,
+          gap: 5,
+        );
+        _pressureDrawArrowHead(canvas, laneFrom, laneTo, lanePaint);
+      }
+    }
+
+    if (later?.action.kind == PressureActionKind.pass) {
+      final passPoints = later!.trace.frames
+          .map((frame) => geometry.toOffset(_normalise(frame.ball.position)))
+          .toList();
+      final laterPaint = Paint()
+        ..color = const Color(0xFF7A5AA6).withValues(alpha: .68)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.1;
+      _pressureDrawDashedPolyline(
+        canvas,
+        passPoints,
+        laterPaint,
+        dash: 7,
+        gap: 4,
+      );
+      if (passPoints.length > 1) {
+        _pressureDrawArrowHead(
+          canvas,
+          _pressureArrowStart(passPoints),
+          passPoints.last,
+          laterPaint,
+        );
+      }
+    }
+  }
+
   @override
   bool shouldRepaint(covariant _PressureLessonPitchPainter oldDelegate) =>
       oldDelegate.displayWorld != displayWorld ||
@@ -2686,11 +3191,13 @@ class _PressureLessonPitchPainter extends CustomPainter {
       oldDelegate.activeProgress != activeProgress ||
       oldDelegate.reviewResult != reviewResult ||
       oldDelegate.reviewEvidence != reviewEvidence ||
+      oldDelegate.reviewSupport != reviewSupport ||
+      oldDelegate.reviewLaterResult != reviewLaterResult ||
       oldDelegate.l10n != l10n ||
       oldDelegate.viewBounds != viewBounds ||
       oldDelegate.brightness != brightness ||
       oldDelegate.fontFamily != fontFamily ||
-      oldDelegate.focusRole != focusRole ||
+      oldDelegate.decisionActorId != decisionActorId ||
       oldDelegate.showSupportRange != showSupportRange ||
       oldDelegate.supportTarget != supportTarget;
 }
@@ -2760,6 +3267,40 @@ Rect _pressureObservationViewBounds(PressureObservation observation) {
     options,
     observation: observation.trace,
   );
+}
+
+Rect _pressureTraceViewBounds(PressureTrace trace) {
+  var minX = double.infinity;
+  var maxX = double.negativeInfinity;
+  var minY = double.infinity;
+  var maxY = double.negativeInfinity;
+  for (final frame in trace.frames) {
+    minX = math.min(minX, frame.ball.position.x);
+    maxX = math.max(maxX, frame.ball.position.x);
+    minY = math.min(minY, frame.ball.position.y);
+    maxY = math.max(maxY, frame.ball.position.y);
+    for (final actor in frame.actors) {
+      minX = math.min(minX, actor.position.x);
+      maxX = math.max(maxX, actor.position.x);
+      minY = math.min(minY, actor.position.y);
+      maxY = math.max(maxY, actor.position.y);
+    }
+  }
+  var left = (minX - 3).clamp(0.0, 105.0).toDouble();
+  var right = (maxX + 3).clamp(0.0, 105.0).toDouble();
+  var top = (minY - 3).clamp(0.0, 68.0).toDouble();
+  var bottom = (maxY + 3).clamp(0.0, 68.0).toDouble();
+  if (right - left < 28) {
+    final center = (left + right) / 2;
+    left = (center - 14).clamp(0.0, 77.0).toDouble();
+    right = left + 28;
+  }
+  if (bottom - top < 22) {
+    final center = (top + bottom) / 2;
+    top = (center - 11).clamp(0.0, 46.0).toDouble();
+    bottom = top + 22;
+  }
+  return Rect.fromLTRB(left / 105, top / 68, right / 105, bottom / 68);
 }
 
 Rect _pressureDecisionViewBounds(

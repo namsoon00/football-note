@@ -22417,7 +22417,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pressureEpisodeSupportOpenedLane(Object receiver, Object defender) {
-    return 'Worked: the run opened a playable lane to #$receiver beyond defender #$defender.';
+    return 'Worked: lane to #$receiver opened (previous blocker #$defender).';
   }
 
   @override
@@ -22437,7 +22437,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String pressureEpisodeSupportLaneStillBlocked(
       Object receiver, Object defender) {
-    return 'Cause: the lane to #$receiver stayed covered by defender #$defender.';
+    return 'Still blocked: #$receiver lane, defender #$defender.';
   }
 
   @override
@@ -22522,5 +22522,209 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String pressureEpisodeDecisionCount(Object count) {
     return '$count decisions';
+  }
+
+  @override
+  String pressureSceneFacts(
+      Object location, Object owner, Object actor, Object pressure) {
+    return '$location · ball #$owner · deciding #$actor · $pressure';
+  }
+
+  @override
+  String pressureSceneFactsBallFree(
+      Object location, Object actor, Object pressure) {
+    return '$location · ball in flight/loose · deciding #$actor · $pressure';
+  }
+
+  @override
+  String pressureSceneFactsContinuation(
+      Object location, Object owner, Object pressure) {
+    return '$location · ball #$owner · end continuation · $pressure';
+  }
+
+  @override
+  String pressureSceneFactsFreeContinuation(Object location, Object pressure) {
+    return '$location · ball in flight/loose · end continuation · $pressure';
+  }
+
+  @override
+  String pressureSceneGoalTask(Object goal, Object task) {
+    return 'Goal: $goal · $task';
+  }
+
+  @override
+  String get pressureSceneGoalReception => 'receive and connect';
+
+  @override
+  String get pressureSceneGoalDrawRelease => 'draw pressure and release';
+
+  @override
+  String get pressureSceneGoalSupport => 'create a teammate\'s outlet';
+
+  @override
+  String get pressureSceneGoalRunner => 'read the run and release';
+
+  @override
+  String get pressureSceneGoalThirdPlayer => 'third-player connection';
+
+  @override
+  String get pressureSceneGoalRecycle => 'keep possession and switch';
+
+  @override
+  String pressureSceneTaskObserve(Object number) {
+    return 'Watch #$number and nearby movement.';
+  }
+
+  @override
+  String pressureSceneTaskReceive(Object number) {
+    return '#$number: first touch or first-time pass';
+  }
+
+  @override
+  String pressureSceneTaskOnBall(Object number) {
+    return '#$number: choose the next pass or carry';
+  }
+
+  @override
+  String pressureSceneTaskSupport(Object actor, Object carrier) {
+    return 'Ball #$carrier · #$actor: choose support space';
+  }
+
+  @override
+  String pressureSceneTaskExecuting(Object number) {
+    return '#$number\'s choice is playing';
+  }
+
+  @override
+  String pressureSceneTaskReview(Object number, Object current, Object total) {
+    return '#$number · review $current/$total';
+  }
+
+  @override
+  String pressureSceneDecisionMarker(Object number) {
+    return '#$number DECIDES';
+  }
+
+  @override
+  String pressureSceneTimelineItem(Object index, Object number, Object label) {
+    return '$index · #$number $label';
+  }
+
+  @override
+  String pressureSceneSupportStarted(Object number, Object distance) {
+    return 'Choice: #$number\'s run started now and reached $distance m in this beat.';
+  }
+
+  @override
+  String get pressureSceneRunNotReached =>
+      'Route: the circle is the bounded request; the trace shows the position actually reached.';
+
+  @override
+  String pressureSceneSupportSeparation(
+      Object number, Object distance, Object defender) {
+    return 'Benefit: versus standing still, #$number gained ${distance}m from #$defender.';
+  }
+
+  @override
+  String pressureSceneLaterPass(Object from, Object to) {
+    return 'Later action: #$from\'s pass was controlled by #$to.';
+  }
+
+  @override
+  String pressureSceneLaterPassDifferent(Object from, Object to, Object mover) {
+    return 'Later action: #$from found #$to, while moving #$mover stayed off the ball.';
+  }
+
+  @override
+  String pressureSceneLaterPassIntercepted(
+      Object from, Object defender, Object target) {
+    return 'Later action: #$defender intercepted #$from\'s pass toward #$target.';
+  }
+
+  @override
+  String pressureSceneLaterPassLoose(Object from, Object target) {
+    return 'Later action: #$from\'s pass toward #$target remained loose.';
+  }
+
+  @override
+  String pressureSceneLaterPassOffside(Object from, Object target) {
+    return 'Later action: #$target received #$from\'s pass from an offside position.';
+  }
+
+  @override
+  String pressureSceneLaterCarry(Object number) {
+    return 'Later action: #$number carried the ball.';
+  }
+
+  @override
+  String pressureSceneLaterTurnover(Object number, Object defender) {
+    return 'Later action: #$defender took the ball from #$number.';
+  }
+
+  @override
+  String pressureSceneLaterLoose(Object number) {
+    return 'Later action: #$number\'s action left the ball loose.';
+  }
+
+  @override
+  String pressureSceneTailPass(Object from, Object to) {
+    return 'After the last key judgment: #$from\'s pass was controlled by #$to.';
+  }
+
+  @override
+  String pressureSceneTailCarry(Object number) {
+    return 'After the last key judgment: #$number carried the ball.';
+  }
+
+  @override
+  String pressureSceneTailPassIntercepted(
+      Object from, Object defender, Object target) {
+    return 'After the last key judgment: #$defender intercepted #$from\'s pass toward #$target.';
+  }
+
+  @override
+  String pressureSceneTailPassLoose(Object from, Object target) {
+    return 'After the last key judgment: #$from\'s pass toward #$target remained loose.';
+  }
+
+  @override
+  String pressureSceneTailPassOffside(Object from, Object target) {
+    return 'After the last key judgment: #$target received #$from\'s pass from an offside position.';
+  }
+
+  @override
+  String pressureSceneTailTurnover(Object number, Object defender) {
+    return 'After the last key judgment: #$defender took the ball from #$number.';
+  }
+
+  @override
+  String pressureSceneTailLoose(Object number) {
+    return 'After the last key judgment: #$number\'s action left the ball loose.';
+  }
+
+  @override
+  String get pressureSceneStationaryComparison =>
+      'Compare with the same-duration stationary mover.';
+
+  @override
+  String get pressureSceneExampleAvailable =>
+      'Learning example available from the same scene start.';
+
+  @override
+  String get pressureSceneExampleTitle => 'Learning example · reduced model';
+
+  @override
+  String get pressureSceneExampleLimit =>
+      'One defensible rollout for this goal—not expert-certified best play.';
+
+  @override
+  String get pressureSceneReplayExample => 'Play learning example';
+
+  @override
+  String get pressureSceneReturnAttempt => 'Return to my attempt';
+
+  @override
+  String pressureSceneSummaryJudgments(Object count) {
+    return 'First-attempt judgments completed: $count.';
   }
 }
