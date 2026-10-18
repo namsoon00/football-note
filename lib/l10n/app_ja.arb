@@ -12230,7 +12230,7 @@
   "pressureEpisodeVariantUnseen": "新しい組合せ",
   "pressureEpisodeContextObserve": "ボール、プレッシャー、カバー、次のランを観察します。",
   "pressureEpisodeContextExecuting": "守備の反応を見ます。次の判断は実際の結果位置から続きます。",
-  "pressureEpisodeContextReview": "判断 {current}/{total} を確認中・後の軌跡は非表示です。",
+  "pressureEpisodeContextReview": "判断{current}/{total}前の状況・ピッチは実行結果",
   "@pressureEpisodeContextReview": {"placeholders": {"current": {}, "total": {}}},
   "pressureEpisodeTaskReceive": "ファーストタッチかワンタッチパスの後、変化を読み直します。",
   "pressureEpisodeTaskOnBall": "この状態から有効なパスか運びを選びます。",

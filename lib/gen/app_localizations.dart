@@ -37799,7 +37799,7 @@ abstract class AppLocalizations {
   /// No description provided for @pressureEpisodeContextReview.
   ///
   /// In en, this message translates to:
-  /// **'Reviewing decision {current} of {total}; later traces are hidden.'**
+  /// **'Before decision {current}/{total} · pitch shows its result'**
   String pressureEpisodeContextReview(Object current, Object total);
 
   /// No description provided for @pressureEpisodeTaskReceive.

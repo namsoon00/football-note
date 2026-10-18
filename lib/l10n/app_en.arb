@@ -12230,7 +12230,7 @@
   "pressureEpisodeVariantUnseen": "new combination",
   "pressureEpisodeContextObserve": "Observe the ball, pressure, cover and next runner.",
   "pressureEpisodeContextExecuting": "Watch the defense react; the next pause uses the resulting positions.",
-  "pressureEpisodeContextReview": "Reviewing decision {current} of {total}; later traces are hidden.",
+  "pressureEpisodeContextReview": "Before decision {current}/{total} · pitch shows its result",
   "@pressureEpisodeContextReview": {"placeholders": {"current": {}, "total": {}}},
   "pressureEpisodeTaskReceive": "Receive or play first time, then read what changes.",
   "pressureEpisodeTaskOnBall": "Choose the useful pass or carry from this state.",

@@ -22350,7 +22350,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pressureEpisodeContextReview(Object current, Object total) {
-    return 'Reviewing decision $current of $total; later traces are hidden.';
+    return 'Before decision $current/$total · pitch shows its result';
   }
 
   @override
