@@ -21204,11 +21204,11 @@ class AppLocalizationsKo extends AppLocalizations {
       '야말의 도움 전개는 별도의 역사적 예시이며, 이 가상 훈련 상황의 정답표가 아닙니다.';
 
   @override
-  String get pressureLessonSummaryTitle => '8번의 판단을 살펴봤어요';
+  String get pressureLessonSummaryTitle => '판단을 살펴봤어요';
 
   @override
   String get pressureLessonSummaryCoverage =>
-      '첫 시도에서 바깥쪽·안쪽 압박, 커버 위치, 주자 타이밍이 달라지는 상황을 모두 경험했습니다.';
+      '첫 시도에서 압박, 지원, 커버와 침투 타이밍 변화를 경험했습니다.';
 
   @override
   String pressureLessonSummaryConnections(Object count, Object total) {
@@ -21224,7 +21224,7 @@ class AppLocalizationsKo extends AppLocalizations {
       '다음 초점: 첫 터치 직후 다음 패스 길을 다시 확인하세요.';
 
   @override
-  String get pressureLessonRestart => '8개 상황 다시 시작';
+  String get pressureLessonRestart => '상황 다시 시작';
 
   @override
   String pressureLessonSituationMenu(Object number) {
@@ -21459,5 +21459,260 @@ class AppLocalizationsKo extends AppLocalizations {
   String pressureLessonReviewSituationFacts(
       Object location, Object carrier, Object presser, Object distance) {
     return '$location · 판단 전 공 #$carrier, 수비 #$presser와 ${distance}m';
+  }
+
+  @override
+  String pressureEpisodeIdentity(
+      Object current, Object total, Object family, Object variant) {
+    return '상황 $current/$total · $family · $variant';
+  }
+
+  @override
+  String pressureEpisodeFacts(
+      Object location, Object owner, Object learner, Object pressure) {
+    return '$location · 공 #$owner · 학습자 #$learner · $pressure';
+  }
+
+  @override
+  String pressureEpisodePressureFact(
+      Object defender, Object movement, Object side, Object gap) {
+    return '#$defender $side $movement · ${gap}m';
+  }
+
+  @override
+  String pressureEpisodeRunnerFact(Object runner, Object movement) {
+    return '러너 #$runner: $movement';
+  }
+
+  @override
+  String pressureEpisodeCoverFact(
+      Object outlet, Object defender, Object movement, Object gap) {
+    return '#$outlet 패스길: #$defender $movement · 길과 ${gap}m';
+  }
+
+  @override
+  String pressureEpisodeReturnLaneFact(
+      Object outlet, Object defender, Object movement, Object gap) {
+    return '#$outlet 리턴길: #$defender $movement · 길과 ${gap}m';
+  }
+
+  @override
+  String get pressureEpisodePressureSideRight => '오른쪽';
+
+  @override
+  String get pressureEpisodePressureSideLeft => '왼쪽';
+
+  @override
+  String get pressureEpisodePressureSideLevel => '정면';
+
+  @override
+  String get pressureEpisodePressureClosing => '접근';
+
+  @override
+  String get pressureEpisodePressureHolding => '유지';
+
+  @override
+  String get pressureEpisodeFamilyReception => '압박 속 볼 받기';
+
+  @override
+  String get pressureEpisodeFamilyDrawRelease => '수비 유인 후 패스';
+
+  @override
+  String get pressureEpisodeFamilySupport => '패스 후 지원';
+
+  @override
+  String get pressureEpisodeFamilyRunnerTiming => '침투 타이밍';
+
+  @override
+  String get pressureEpisodeFamilyThirdPlayer => '제3자 연계';
+
+  @override
+  String get pressureEpisodeFamilyRecycle => '재순환과 전환';
+
+  @override
+  String get pressureEpisodeVariantGuided => '안내';
+
+  @override
+  String get pressureEpisodeVariantContrast => '대조';
+
+  @override
+  String get pressureEpisodeVariantUnseen => '새 조합';
+
+  @override
+  String get pressureEpisodeContextObserve => '공, 압박, 커버와 다음 침투를 관찰하세요.';
+
+  @override
+  String get pressureEpisodeContextExecuting =>
+      '수비 반응을 보세요. 다음 판단은 실제 결과 위치에서 이어집니다.';
+
+  @override
+  String pressureEpisodeContextReview(Object current, Object total) {
+    return '판단 $current/$total 검토 중 · 이후 경로는 숨겼습니다.';
+  }
+
+  @override
+  String get pressureEpisodeTaskReceive => '퍼스트 터치 또는 원터치 패스 후 변화를 다시 읽으세요.';
+
+  @override
+  String get pressureEpisodeTaskOnBall => '현재 상태에서 유용한 패스나 운반을 고르세요.';
+
+  @override
+  String pressureEpisodeTaskSupport(Object number) {
+    return '피치 한 번 터치로 학습자 #$number의 지원 위치를 정하세요.';
+  }
+
+  @override
+  String get pressureEpisodeChooseReceive => '퍼스트 터치 또는 원터치 패스';
+
+  @override
+  String get pressureEpisodeTouchLeft => '왼쪽 첫 터치';
+
+  @override
+  String get pressureEpisodeTouchRight => '오른쪽 첫 터치';
+
+  @override
+  String get pressureEpisodeChooseOnBall => '수비를 다시 읽고 다음 선택을 하세요.';
+
+  @override
+  String get pressureEpisodeReviewInstruction => '선택한 판단을 검토하세요.';
+
+  @override
+  String pressureEpisodeChooseSupport(Object number) {
+    return '학습자 #$number의 지원 위치를 고르세요.';
+  }
+
+  @override
+  String get pressureEpisodeSupportHint => '빈 공간 한 번 터치 · 이동 최대 8m';
+
+  @override
+  String pressureEpisodeLearnerMarker(Object number) {
+    return '#$number 학습자';
+  }
+
+  @override
+  String get pressureEpisodeDecisionReceive => '볼 받기';
+
+  @override
+  String get pressureEpisodeDecisionOnBall => '온더볼';
+
+  @override
+  String get pressureEpisodeDecisionSupport => '지원';
+
+  @override
+  String pressureEpisodeTimelineItem(Object index, Object label) {
+    return '$index $label';
+  }
+
+  @override
+  String pressureEpisodeReviewSupportAction(Object number, Object distance) {
+    return '선택: #$number이 공 없이 ${distance}m 이동했습니다.';
+  }
+
+  @override
+  String pressureEpisodeSupportOpenedLane(Object receiver, Object defender) {
+    return '효과: 움직임이 수비 #$defender 너머 #$receiver에게 연결할 길을 열었습니다.';
+  }
+
+  @override
+  String pressureEpisodeSupportWidenedLane(Object receiver, Object distance) {
+    return '효과: #$receiver 패스 길의 여유가 ${distance}m 늘었습니다.';
+  }
+
+  @override
+  String get pressureEpisodeSupportNoMeasuredBenefit =>
+      '결과: 이 움직임은 패스 길을 측정 가능하게 개선하지 못했습니다.';
+
+  @override
+  String pressureEpisodeSupportBlockedLane(Object receiver, Object defender) {
+    return '원인: 수비 #$defender 뒤에서 #$receiver 패스 길이 닫혔습니다.';
+  }
+
+  @override
+  String pressureEpisodeSupportLaneStillBlocked(
+      Object receiver, Object defender) {
+    return '원인: #$receiver 패스 길을 #$defender이(가) 계속 막았습니다.';
+  }
+
+  @override
+  String get pressureEpisodeSupportLanesUnchanged =>
+      '다음 확인: 특정 패스 길의 변화는 측정되지 않았습니다.';
+
+  @override
+  String get pressureEpisodeSupportNoContinuation =>
+      '다음 확인: 동료에게 통제된 후속 플레이가 없었습니다.';
+
+  @override
+  String pressureEpisodeAutomaticPass(Object from, Object to) {
+    return '결과: #$from이 사용 가능한 #$to 패스를 선택했습니다.';
+  }
+
+  @override
+  String pressureEpisodeAutomaticRecycle(Object from, Object to) {
+    return '결과: 전진이 닫혀 #$from이 #$to에게 재순환했습니다.';
+  }
+
+  @override
+  String pressureEpisodeAutomaticCarry(Object number) {
+    return '결과: #$number이 공을 지키며 운반했습니다.';
+  }
+
+  @override
+  String get pressureEpisodeAlternativeAvailable =>
+      '비교: 같은 상태에서 다른 실제 경로와 수비 반응이 나옵니다.';
+
+  @override
+  String pressureEpisodeAlternativeSupport(Object distance) {
+    return '대안 지원 움직임: 같은 동료 정책으로 ${distance}m 이동.';
+  }
+
+  @override
+  String get pressureEpisodeSummaryTitle => '연결된 공격 검토';
+
+  @override
+  String pressureEpisodeSummaryCoverage(Object count, Object total) {
+    return '첫 시도 완료: 6개 학습 유형 중 $count/$total개 상황.';
+  }
+
+  @override
+  String pressureEpisodeSummaryRetained(Object count, Object total) {
+    return '첫 시도에서 소유 유지: $count/$total회.';
+  }
+
+  @override
+  String pressureEpisodeSummaryUnseen(Object count, Object total) {
+    return '새 조합 소유 유지: $count/$total회 · 재시도 제외.';
+  }
+
+  @override
+  String get pressureEpisodeSummaryLimit =>
+      '이 결과는 단순화한 모델 안의 판단을 측정하며 실전 전이를 증명하지 않습니다.';
+
+  @override
+  String get pressureEpisodeRestart => '18개 공격 다시 시작';
+
+  @override
+  String get pressureEpisodeOutcomePenetration => '결과: 침투 후 소유';
+
+  @override
+  String get pressureEpisodeOutcomeEscape => '결과: 압박 탈출';
+
+  @override
+  String get pressureEpisodeOutcomeRecycle => '결과: 안전한 재순환';
+
+  @override
+  String get pressureEpisodeOutcomeIntercepted => '결과: 가로채기';
+
+  @override
+  String get pressureEpisodeOutcomeOffside => '결과: 오프사이드';
+
+  @override
+  String get pressureEpisodeOutcomeLoose => '결과: 루스볼';
+
+  @override
+  String get pressureEpisodeOutcomeUnresolved => '결과: 소유 유지·미해결';
+
+  @override
+  String pressureEpisodeDecisionCount(Object count) {
+    return '판단 $count회';
   }
 }
