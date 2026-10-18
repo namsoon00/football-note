@@ -21474,7 +21474,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String pressureEpisodeContextReview(Object current, Object total) {
-    return '判断 $current/$total を確認中・後の軌跡は非表示です。';
+    return '判断$current/$total前の状況・ピッチは実行結果';
   }
 
   @override

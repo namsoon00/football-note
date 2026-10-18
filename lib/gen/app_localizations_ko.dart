@@ -21547,7 +21547,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String pressureEpisodeContextReview(Object current, Object total) {
-    return '판단 $current/$total 검토 중 · 이후 경로는 숨겼습니다.';
+    return '판단 $current/$total 전 상황 · 피치는 실행 결과';
   }
 
   @override

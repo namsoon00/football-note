@@ -1674,9 +1674,6 @@ class _ScanPassPressureLessonScreenState
       return l10n.pressureEpisodeSummaryTitle;
     }
     if (_phase == _PressureLessonPhase.review) {
-      if (_showingAlternative) {
-        return l10n.pressureLessonContextTaskAlternative;
-      }
       return l10n.pressureEpisodeContextReview(
         _reviewIndex + 1,
         _completedEpisode!.timeline.length,

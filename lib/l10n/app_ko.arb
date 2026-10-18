@@ -12230,7 +12230,7 @@
   "pressureEpisodeVariantUnseen": "새 조합",
   "pressureEpisodeContextObserve": "공, 압박, 커버와 다음 침투를 관찰하세요.",
   "pressureEpisodeContextExecuting": "수비 반응을 보세요. 다음 판단은 실제 결과 위치에서 이어집니다.",
-  "pressureEpisodeContextReview": "판단 {current}/{total} 검토 중 · 이후 경로는 숨겼습니다.",
+  "pressureEpisodeContextReview": "판단 {current}/{total} 전 상황 · 피치는 실행 결과",
   "@pressureEpisodeContextReview": {"placeholders": {"current": {}, "total": {}}},
   "pressureEpisodeTaskReceive": "퍼스트 터치 또는 원터치 패스 후 변화를 다시 읽으세요.",
   "pressureEpisodeTaskOnBall": "현재 상태에서 유용한 패스나 운반을 고르세요.",
