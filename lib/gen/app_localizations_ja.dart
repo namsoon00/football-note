@@ -21537,7 +21537,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String pressureEpisodeSupportOpenedLane(Object receiver, Object defender) {
-    return '効果：動きにより守備#$defenderの先の#$receiverへの経路が開きました。';
+    return '効果：#$receiverへのコースが開いた（元の守備#$defender）。';
   }
 
   @override
@@ -21557,7 +21557,7 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String pressureEpisodeSupportLaneStillBlocked(
       Object receiver, Object defender) {
-    return '原因：#$receiverへのレーンは#$defenderに塞がれたままでした。';
+    return '制約：#$receiverのコースは守備#$defenderが遮断';
   }
 
   @override
@@ -21641,5 +21641,206 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String pressureEpisodeDecisionCount(Object count) {
     return '判断$count回';
+  }
+
+  @override
+  String pressureSceneFacts(
+      Object location, Object owner, Object actor, Object pressure) {
+    return '$location · ボール#$owner · 判断#$actor · $pressure';
+  }
+
+  @override
+  String pressureSceneFactsBallFree(
+      Object location, Object actor, Object pressure) {
+    return '$location · ボール移動中/ルーズ · 判断#$actor · $pressure';
+  }
+
+  @override
+  String pressureSceneFactsContinuation(
+      Object location, Object owner, Object pressure) {
+    return '$location · ボール#$owner · 最後の展開 · $pressure';
+  }
+
+  @override
+  String pressureSceneFactsFreeContinuation(Object location, Object pressure) {
+    return '$location · ボール移動中/ルーズ · 最後の展開 · $pressure';
+  }
+
+  @override
+  String pressureSceneGoalTask(Object goal, Object task) {
+    return '目標：$goal · $task';
+  }
+
+  @override
+  String get pressureSceneGoalReception => '圧力を外して次へつなぐ';
+
+  @override
+  String get pressureSceneGoalDrawRelease => '守備を引きつけて離す';
+
+  @override
+  String get pressureSceneGoalSupport => '味方の選択肢を作る';
+
+  @override
+  String get pressureSceneGoalRunner => '走りとパスのタイミング';
+
+  @override
+  String get pressureSceneGoalThirdPlayer => '3人目への連係';
+
+  @override
+  String get pressureSceneGoalRecycle => '保持して逆側へ展開';
+
+  @override
+  String pressureSceneTaskObserve(Object number) {
+    return '#$numberと周囲の動きを観察';
+  }
+
+  @override
+  String pressureSceneTaskReceive(Object number) {
+    return '#$number：タッチ方向かワンタッチパス';
+  }
+
+  @override
+  String pressureSceneTaskOnBall(Object number) {
+    return '#$number：次のパス・運ぶ方向を選択';
+  }
+
+  @override
+  String pressureSceneTaskSupport(Object actor, Object carrier) {
+    return '保持#$carrier · #$actorの移動先を選択';
+  }
+
+  @override
+  String pressureSceneTaskExecuting(Object number) {
+    return '#$numberの選択を実行中';
+  }
+
+  @override
+  String pressureSceneTaskReview(Object number, Object current, Object total) {
+    return '#$number · 判断$current/$totalの確認';
+  }
+
+  @override
+  String pressureSceneDecisionMarker(Object number) {
+    return '#$number 判断';
+  }
+
+  @override
+  String pressureSceneTimelineItem(Object index, Object number, Object label) {
+    return '$index · #$number $label';
+  }
+
+  @override
+  String pressureSceneSupportStarted(Object number, Object distance) {
+    return '選択：#$numberは今走り始め、この区間で${distance}m進みました。';
+  }
+
+  @override
+  String get pressureSceneRunNotReached => '経路：円は制限された希望地点、軌跡は実際の到達位置です。';
+
+  @override
+  String pressureSceneSupportSeparation(
+      Object number, Object distance, Object defender) {
+    return '効果：静止した場合より、#$numberは#$defenderとの距離を${distance}m広げました。';
+  }
+
+  @override
+  String pressureSceneLaterPass(Object from, Object to) {
+    return 'その後のプレー：#$fromのパスを#$toが保持しました。';
+  }
+
+  @override
+  String pressureSceneLaterPassDifferent(Object from, Object to, Object mover) {
+    return 'その後のプレー：#$fromが#$toへつなぎ、動いた#$moverはオフボールのままでした。';
+  }
+
+  @override
+  String pressureSceneLaterPassIntercepted(
+      Object from, Object defender, Object target) {
+    return 'その後のプレー：#$targetを狙った#$fromのパスを#$defenderが奪いました。';
+  }
+
+  @override
+  String pressureSceneLaterPassLoose(Object from, Object target) {
+    return 'その後のプレー：#$targetを狙った#$fromのパスはルーズボールになりました。';
+  }
+
+  @override
+  String pressureSceneLaterPassOffside(Object from, Object target) {
+    return 'その後のプレー：#$targetがオフサイド位置で#$fromのパスを受けました。';
+  }
+
+  @override
+  String pressureSceneLaterCarry(Object number) {
+    return 'その後のプレー：#$numberがボールを運びました。';
+  }
+
+  @override
+  String pressureSceneLaterTurnover(Object number, Object defender) {
+    return 'その後のプレー：#$defenderが#$numberからボールを奪いました。';
+  }
+
+  @override
+  String pressureSceneLaterLoose(Object number) {
+    return 'その後のプレー：#$numberのプレーでボールがルーズになりました。';
+  }
+
+  @override
+  String pressureSceneTailPass(Object from, Object to) {
+    return '最後の主要判断後：#$fromが#$toへパスしました。';
+  }
+
+  @override
+  String pressureSceneTailCarry(Object number) {
+    return '最後の主要判断後：#$numberが運びました。';
+  }
+
+  @override
+  String pressureSceneTailPassIntercepted(
+      Object from, Object defender, Object target) {
+    return '最後の主要判断後：#$targetを狙った#$fromのパスを#$defenderが奪いました。';
+  }
+
+  @override
+  String pressureSceneTailPassLoose(Object from, Object target) {
+    return '最後の主要判断後：#$targetを狙った#$fromのパスはルーズボールになりました。';
+  }
+
+  @override
+  String pressureSceneTailPassOffside(Object from, Object target) {
+    return '最後の主要判断後：#$targetがオフサイド位置で#$fromのパスを受けました。';
+  }
+
+  @override
+  String pressureSceneTailTurnover(Object number, Object defender) {
+    return '最後の主要判断後：#$defenderが#$numberからボールを奪いました。';
+  }
+
+  @override
+  String pressureSceneTailLoose(Object number) {
+    return '最後の主要判断後：#$numberのプレーでボールがルーズになりました。';
+  }
+
+  @override
+  String get pressureSceneStationaryComparison => '同じ時間、動かなかった場合と比較します。';
+
+  @override
+  String get pressureSceneExampleAvailable => '同じ場面の開始点から学習例を確認できます。';
+
+  @override
+  String get pressureSceneExampleTitle => '学習例 · 簡略モデル';
+
+  @override
+  String get pressureSceneExampleLimit =>
+      'この目標に合う一つの妥当な展開で、専門家認定の最善プレーではありません。';
+
+  @override
+  String get pressureSceneReplayExample => '学習例を再生';
+
+  @override
+  String get pressureSceneReturnAttempt => '自分の試行に戻る';
+
+  @override
+  String pressureSceneSummaryJudgments(Object count) {
+    return '初回試行で完了した判断：$count回。';
   }
 }

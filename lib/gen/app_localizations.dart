@@ -37901,7 +37901,7 @@ abstract class AppLocalizations {
   /// No description provided for @pressureEpisodeSupportOpenedLane.
   ///
   /// In en, this message translates to:
-  /// **'Worked: the run opened a playable lane to #{receiver} beyond defender #{defender}.'**
+  /// **'Worked: lane to #{receiver} opened (previous blocker #{defender}).'**
   String pressureEpisodeSupportOpenedLane(Object receiver, Object defender);
 
   /// No description provided for @pressureEpisodeSupportWidenedLane.
@@ -37925,7 +37925,7 @@ abstract class AppLocalizations {
   /// No description provided for @pressureEpisodeSupportLaneStillBlocked.
   ///
   /// In en, this message translates to:
-  /// **'Cause: the lane to #{receiver} stayed covered by defender #{defender}.'**
+  /// **'Still blocked: #{receiver} lane, defender #{defender}.'**
   String pressureEpisodeSupportLaneStillBlocked(
       Object receiver, Object defender);
 
@@ -38054,6 +38054,276 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} decisions'**
   String pressureEpisodeDecisionCount(Object count);
+
+  /// No description provided for @pressureSceneFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'{location} · ball #{owner} · deciding #{actor} · {pressure}'**
+  String pressureSceneFacts(
+      Object location, Object owner, Object actor, Object pressure);
+
+  /// No description provided for @pressureSceneFactsBallFree.
+  ///
+  /// In en, this message translates to:
+  /// **'{location} · ball in flight/loose · deciding #{actor} · {pressure}'**
+  String pressureSceneFactsBallFree(
+      Object location, Object actor, Object pressure);
+
+  /// No description provided for @pressureSceneFactsContinuation.
+  ///
+  /// In en, this message translates to:
+  /// **'{location} · ball #{owner} · end continuation · {pressure}'**
+  String pressureSceneFactsContinuation(
+      Object location, Object owner, Object pressure);
+
+  /// No description provided for @pressureSceneFactsFreeContinuation.
+  ///
+  /// In en, this message translates to:
+  /// **'{location} · ball in flight/loose · end continuation · {pressure}'**
+  String pressureSceneFactsFreeContinuation(Object location, Object pressure);
+
+  /// No description provided for @pressureSceneGoalTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal: {goal} · {task}'**
+  String pressureSceneGoalTask(Object goal, Object task);
+
+  /// No description provided for @pressureSceneGoalReception.
+  ///
+  /// In en, this message translates to:
+  /// **'receive and connect'**
+  String get pressureSceneGoalReception;
+
+  /// No description provided for @pressureSceneGoalDrawRelease.
+  ///
+  /// In en, this message translates to:
+  /// **'draw pressure and release'**
+  String get pressureSceneGoalDrawRelease;
+
+  /// No description provided for @pressureSceneGoalSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'create a teammate\'s outlet'**
+  String get pressureSceneGoalSupport;
+
+  /// No description provided for @pressureSceneGoalRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'read the run and release'**
+  String get pressureSceneGoalRunner;
+
+  /// No description provided for @pressureSceneGoalThirdPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'third-player connection'**
+  String get pressureSceneGoalThirdPlayer;
+
+  /// No description provided for @pressureSceneGoalRecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'keep possession and switch'**
+  String get pressureSceneGoalRecycle;
+
+  /// No description provided for @pressureSceneTaskObserve.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch #{number} and nearby movement.'**
+  String pressureSceneTaskObserve(Object number);
+
+  /// No description provided for @pressureSceneTaskReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number}: first touch or first-time pass'**
+  String pressureSceneTaskReceive(Object number);
+
+  /// No description provided for @pressureSceneTaskOnBall.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number}: choose the next pass or carry'**
+  String pressureSceneTaskOnBall(Object number);
+
+  /// No description provided for @pressureSceneTaskSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball #{carrier} · #{actor}: choose support space'**
+  String pressureSceneTaskSupport(Object actor, Object carrier);
+
+  /// No description provided for @pressureSceneTaskExecuting.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number}\'s choice is playing'**
+  String pressureSceneTaskExecuting(Object number);
+
+  /// No description provided for @pressureSceneTaskReview.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} · review {current}/{total}'**
+  String pressureSceneTaskReview(Object number, Object current, Object total);
+
+  /// No description provided for @pressureSceneDecisionMarker.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} DECIDES'**
+  String pressureSceneDecisionMarker(Object number);
+
+  /// No description provided for @pressureSceneTimelineItem.
+  ///
+  /// In en, this message translates to:
+  /// **'{index} · #{number} {label}'**
+  String pressureSceneTimelineItem(Object index, Object number, Object label);
+
+  /// No description provided for @pressureSceneSupportStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Choice: #{number}\'s run started now and reached {distance} m in this beat.'**
+  String pressureSceneSupportStarted(Object number, Object distance);
+
+  /// No description provided for @pressureSceneRunNotReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Route: the circle is the bounded request; the trace shows the position actually reached.'**
+  String get pressureSceneRunNotReached;
+
+  /// No description provided for @pressureSceneSupportSeparation.
+  ///
+  /// In en, this message translates to:
+  /// **'Benefit: versus standing still, #{number} gained {distance}m from #{defender}.'**
+  String pressureSceneSupportSeparation(
+      Object number, Object distance, Object defender);
+
+  /// No description provided for @pressureSceneLaterPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Later action: #{from}\'s pass was controlled by #{to}.'**
+  String pressureSceneLaterPass(Object from, Object to);
+
+  /// No description provided for @pressureSceneLaterPassDifferent.
+  ///
+  /// In en, this message translates to:
+  /// **'Later action: #{from} found #{to}, while moving #{mover} stayed off the ball.'**
+  String pressureSceneLaterPassDifferent(Object from, Object to, Object mover);
+
+  /// No description provided for @pressureSceneLaterPassIntercepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Later action: #{defender} intercepted #{from}\'s pass toward #{target}.'**
+  String pressureSceneLaterPassIntercepted(
+      Object from, Object defender, Object target);
+
+  /// No description provided for @pressureSceneLaterPassLoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Later action: #{from}\'s pass toward #{target} remained loose.'**
+  String pressureSceneLaterPassLoose(Object from, Object target);
+
+  /// No description provided for @pressureSceneLaterPassOffside.
+  ///
+  /// In en, this message translates to:
+  /// **'Later action: #{target} received #{from}\'s pass from an offside position.'**
+  String pressureSceneLaterPassOffside(Object from, Object target);
+
+  /// No description provided for @pressureSceneLaterCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Later action: #{number} carried the ball.'**
+  String pressureSceneLaterCarry(Object number);
+
+  /// No description provided for @pressureSceneLaterTurnover.
+  ///
+  /// In en, this message translates to:
+  /// **'Later action: #{defender} took the ball from #{number}.'**
+  String pressureSceneLaterTurnover(Object number, Object defender);
+
+  /// No description provided for @pressureSceneLaterLoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Later action: #{number}\'s action left the ball loose.'**
+  String pressureSceneLaterLoose(Object number);
+
+  /// No description provided for @pressureSceneTailPass.
+  ///
+  /// In en, this message translates to:
+  /// **'After the last key judgment: #{from}\'s pass was controlled by #{to}.'**
+  String pressureSceneTailPass(Object from, Object to);
+
+  /// No description provided for @pressureSceneTailCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'After the last key judgment: #{number} carried the ball.'**
+  String pressureSceneTailCarry(Object number);
+
+  /// No description provided for @pressureSceneTailPassIntercepted.
+  ///
+  /// In en, this message translates to:
+  /// **'After the last key judgment: #{defender} intercepted #{from}\'s pass toward #{target}.'**
+  String pressureSceneTailPassIntercepted(
+      Object from, Object defender, Object target);
+
+  /// No description provided for @pressureSceneTailPassLoose.
+  ///
+  /// In en, this message translates to:
+  /// **'After the last key judgment: #{from}\'s pass toward #{target} remained loose.'**
+  String pressureSceneTailPassLoose(Object from, Object target);
+
+  /// No description provided for @pressureSceneTailPassOffside.
+  ///
+  /// In en, this message translates to:
+  /// **'After the last key judgment: #{target} received #{from}\'s pass from an offside position.'**
+  String pressureSceneTailPassOffside(Object from, Object target);
+
+  /// No description provided for @pressureSceneTailTurnover.
+  ///
+  /// In en, this message translates to:
+  /// **'After the last key judgment: #{defender} took the ball from #{number}.'**
+  String pressureSceneTailTurnover(Object number, Object defender);
+
+  /// No description provided for @pressureSceneTailLoose.
+  ///
+  /// In en, this message translates to:
+  /// **'After the last key judgment: #{number}\'s action left the ball loose.'**
+  String pressureSceneTailLoose(Object number);
+
+  /// No description provided for @pressureSceneStationaryComparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare with the same-duration stationary mover.'**
+  String get pressureSceneStationaryComparison;
+
+  /// No description provided for @pressureSceneExampleAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning example available from the same scene start.'**
+  String get pressureSceneExampleAvailable;
+
+  /// No description provided for @pressureSceneExampleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning example · reduced model'**
+  String get pressureSceneExampleTitle;
+
+  /// No description provided for @pressureSceneExampleLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'One defensible rollout for this goal—not expert-certified best play.'**
+  String get pressureSceneExampleLimit;
+
+  /// No description provided for @pressureSceneReplayExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Play learning example'**
+  String get pressureSceneReplayExample;
+
+  /// No description provided for @pressureSceneReturnAttempt.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to my attempt'**
+  String get pressureSceneReturnAttempt;
+
+  /// No description provided for @pressureSceneSummaryJudgments.
+  ///
+  /// In en, this message translates to:
+  /// **'First-attempt judgments completed: {count}.'**
+  String pressureSceneSummaryJudgments(Object count);
 }
 
 class _AppLocalizationsDelegate
