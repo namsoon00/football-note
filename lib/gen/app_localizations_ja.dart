@@ -22096,4 +22096,186 @@ class AppLocalizationsJa extends AppLocalizations {
   String pressureSceneSummaryJudgments(Object count) {
     return '初回試行で完了した判断：$count回。';
   }
+
+  @override
+  String get realMatchReplayAppBarTitle => 'スキャンパス';
+
+  @override
+  String realMatchReplayHeaderMeta(Object date) {
+    return '実試合データ · Aリーグ · $date';
+  }
+
+  @override
+  String get realMatchReplayTitle => '前方スペースへつなぐトランジション攻撃';
+
+  @override
+  String get realMatchReplayVersus => '対';
+
+  @override
+  String get realMatchReplayPitchSemantics =>
+      'ブリスベン8番の運び、18番へのスペースパス、パース守備の帰陣、GK13番の保持までを実際の追跡位置で再生する2Dピッチです。';
+
+  @override
+  String realMatchReplayObservationKicker(Object phase) {
+    return '観察 · $phase';
+  }
+
+  @override
+  String realMatchReplayExplanationKicker(Object phase) {
+    return '解説 · $phase';
+  }
+
+  @override
+  String get realMatchReplayPhasePrepare => '準備';
+
+  @override
+  String get realMatchReplayPhasePrepareTitle => '8番の運びと18番の準備動作';
+
+  @override
+  String get realMatchReplayPhasePass => 'スペースパス';
+
+  @override
+  String get realMatchReplayPhasePassTitle => '動く18番の前方スペースへつなぐ';
+
+  @override
+  String get realMatchReplayPhaseAdvance => '前進';
+
+  @override
+  String get realMatchReplayPhaseAdvanceTitle => '18番がボールを前に置いて前進';
+
+  @override
+  String get realMatchReplayPhaseRecovery => '守備の帰陣';
+
+  @override
+  String get realMatchReplayPhaseRecoveryTitle => '守備が戻り、進行方向が変わる';
+
+  @override
+  String get realMatchReplayPhaseOutcome => '攻撃の終わり';
+
+  @override
+  String get realMatchReplayPhaseOutcomeTitle => 'シュート後からGKの保持まで観察';
+
+  @override
+  String get realMatchReplayPlay => '再生';
+
+  @override
+  String get realMatchReplayPause => '一時停止';
+
+  @override
+  String get realMatchReplayContinue => '再生を続ける';
+
+  @override
+  String get realMatchReplayGuidedReplay => '解説付きでもう一度見る';
+
+  @override
+  String get realMatchReplayRestart => '最初からもう一度見る';
+
+  @override
+  String realMatchReplayTime(Object current, Object total) {
+    return '$current / $total';
+  }
+
+  @override
+  String realMatchReplaySeconds(Object seconds) {
+    return '$seconds秒';
+  }
+
+  @override
+  String get realMatchReplayExplanationToggle => '解説を表示';
+
+  @override
+  String get realMatchReplaySpeedLabel => '再生速度';
+
+  @override
+  String get realMatchReplaySpeedNormal => '1×';
+
+  @override
+  String get realMatchReplaySpeedHalf => '0.5×';
+
+  @override
+  String get realMatchReplayZoomAction => '18番の動きを拡大';
+
+  @override
+  String get realMatchReplayPoseTitle => '18番 · 推定ポーズ';
+
+  @override
+  String get realMatchReplayPoseUnavailable => 'この瞬間のポーズは未確認';
+
+  @override
+  String get realMatchReplayPoseAvailable => '推定関節データ';
+
+  @override
+  String get realMatchReplayChaptersSemantics => 'この攻撃の主な瞬間';
+
+  @override
+  String get realMatchReplayChapterPrepare => '運ぶ・準備';
+
+  @override
+  String get realMatchReplayChapterPass => 'スペースパス';
+
+  @override
+  String get realMatchReplayChapterAdvance => '前進・加速';
+
+  @override
+  String get realMatchReplayChapterRecovery => '守備の帰陣';
+
+  @override
+  String get realMatchReplayPitchFocus => '状況を拡大 · 攻撃';
+
+  @override
+  String realMatchReplayMatchClock(Object start, Object end) {
+    return '$start–$end';
+  }
+
+  @override
+  String get realMatchReplayDisclosure =>
+      'SkillCorner · 一部位置は推定 · 動作・ユニフォームは簡略化';
+
+  @override
+  String get realMatchReplaySource => '出典';
+
+  @override
+  String get realMatchReplaySourceUnavailable => 'この端末では出典を開けませんでした。';
+
+  @override
+  String get realMatchReplayLoading => '実試合リプレイを読み込み中';
+
+  @override
+  String get realMatchReplayLoadFailed => 'アプリ内の試合リプレイを読み込めませんでした。';
+
+  @override
+  String get realMatchReplayRetry => '再試行';
+
+  @override
+  String get realMatchReplayAnnotationCarry8 => '8番、ボールを運ぶ';
+
+  @override
+  String get realMatchReplayAnnotationMove18 => '18番が先に動く';
+
+  @override
+  String get realMatchReplayAnnotationReceivingSpace => '実際にボールを受けた空間';
+
+  @override
+  String get realMatchReplayAnnotationConnect18 => '動く18番へつなぐ';
+
+  @override
+  String get realMatchReplayAnnotationAdvance18 => '18番、ボールを前に置いて前進';
+
+  @override
+  String get realMatchReplayAnnotationRecover19 => '19番も一緒に帰陣';
+
+  @override
+  String get realMatchReplayAnnotationTurn18 => '18番、進行方向を変える';
+
+  @override
+  String get realMatchReplayAnnotationClose1917 => '19番と17番が近づく';
+
+  @override
+  String get realMatchReplayAnnotationShotPath => 'シュート後のボール移動';
+
+  @override
+  String get realMatchReplayAnnotationKeeper13 => 'パースGK13番';
+
+  @override
+  String get realMatchReplayAnnotationKeeperPossession => '13番の保持として記録';
 }

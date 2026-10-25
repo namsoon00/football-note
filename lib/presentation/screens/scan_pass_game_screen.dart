@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -17,13 +18,16 @@ import '../../domain/scan_pass/scan_pass_game.dart' show ScanPassPoint;
 import '../../domain/scan_pass/scan_pass_judgment.dart';
 import '../../domain/scan_pass/scan_pass_possession_lesson.dart';
 import '../../domain/scan_pass/scan_pass_pressure_lesson.dart';
+import '../../domain/scan_pass/real_match_replay.dart';
 import '../../domain/scan_pass/scan_pass_space.dart';
+import '../scan_pass/replay_pitch_geometry.dart';
 import '../theme/app_motion.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/match_moment_official_video.dart';
 
 part 'scan_pass_possession_lesson_screen.dart';
 part 'scan_pass_pressure_lesson_screen.dart';
+part 'scan_pass_real_match_replay_screen.dart';
 part 'scan_pass_match_moment_screen.dart';
 part 'scan_pass_curriculum_screen.dart';
 part 'scan_pass_flow_screen.dart';
@@ -59,10 +63,7 @@ class ScanPassGameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScanPassPressureLessonScreen(
-      seed: seed,
-      observationDuration: previewDuration,
-      executionDuration: passAnimationDuration,
+    return ScanPassRealMatchReplayScreen(
       sourceLauncher: matchMomentSourceLauncher,
     );
   }

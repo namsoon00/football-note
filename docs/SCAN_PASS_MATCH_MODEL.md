@@ -1,6 +1,10 @@
 # Scan Pass: legacy continuous situation catalog
 
-The current public entry uses the [small-sided learning curriculum](SCAN_PASS_CURRICULUM.md), with 2–4 attackers and controlled dribbling through cone gates. The implementation below is retained for regression coverage and is no longer the default game.
+The current public entry is an actual-match observational replay. The
+[observation guide](SCAN_PASS_CURRICULUM.md) and
+[data provenance](SCAN_PASS_REPLAY_PROVENANCE.md) describe that experience. The
+simulation below is retained for regression coverage and is no longer the
+default game.
 
 The legacy screen opens directly on a catalog of 12 continuous attacking situations: central reception, half-space, touchline, layoff, third-player connection and attacking transition, each with a pressing and covering defensive setup. The six families have different spatial layouts; each defensive pair preserves the initial attacking shape. Titles and miniature pitch previews use the same scene configuration as play. A scenario starts directly with observation and an independent decision. Coach demonstration is optional within that scenario. Retry, next situation and catalog navigation remain available without a separate practice menu.
 
