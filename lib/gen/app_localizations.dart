@@ -38790,6 +38790,342 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'First-attempt judgments completed: {count}.'**
   String pressureSceneSummaryJudgments(Object count);
+
+  /// No description provided for @realMatchReplayAppBarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Pass'**
+  String get realMatchReplayAppBarTitle;
+
+  /// No description provided for @realMatchReplayHeaderMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual match data · A-League · {date}'**
+  String realMatchReplayHeaderMeta(Object date);
+
+  /// No description provided for @realMatchReplayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transition attack into space'**
+  String get realMatchReplayTitle;
+
+  /// No description provided for @realMatchReplayVersus.
+  ///
+  /// In en, this message translates to:
+  /// **'vs'**
+  String get realMatchReplayVersus;
+
+  /// No description provided for @realMatchReplayPitchSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'A 2D replay of actual tracked positions: Brisbane number 8 carries, passes into space for number 18, and Perth defenders recover before goalkeeper 13 takes possession.'**
+  String get realMatchReplayPitchSemantics;
+
+  /// No description provided for @realMatchReplayObservationKicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch · {phase}'**
+  String realMatchReplayObservationKicker(Object phase);
+
+  /// No description provided for @realMatchReplayExplanationKicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Commentary · {phase}'**
+  String realMatchReplayExplanationKicker(Object phase);
+
+  /// No description provided for @realMatchReplayPhasePrepare.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation'**
+  String get realMatchReplayPhasePrepare;
+
+  /// No description provided for @realMatchReplayPhasePrepareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Number 8 carries as number 18 starts moving'**
+  String get realMatchReplayPhasePrepareTitle;
+
+  /// No description provided for @realMatchReplayPhasePass.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass into space'**
+  String get realMatchReplayPhasePass;
+
+  /// No description provided for @realMatchReplayPhasePassTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The pass goes into number 18\'s moving path'**
+  String get realMatchReplayPhasePassTitle;
+
+  /// No description provided for @realMatchReplayPhaseAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance'**
+  String get realMatchReplayPhaseAdvance;
+
+  /// No description provided for @realMatchReplayPhaseAdvanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Number 18 advances with the ball ahead'**
+  String get realMatchReplayPhaseAdvanceTitle;
+
+  /// No description provided for @realMatchReplayPhaseRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Defensive recovery'**
+  String get realMatchReplayPhaseRecovery;
+
+  /// No description provided for @realMatchReplayPhaseRecoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The direction changes as defenders recover'**
+  String get realMatchReplayPhaseRecoveryTitle;
+
+  /// No description provided for @realMatchReplayPhaseOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'End of attack'**
+  String get realMatchReplayPhaseOutcome;
+
+  /// No description provided for @realMatchReplayPhaseOutcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep watching through the shot and goalkeeper possession'**
+  String get realMatchReplayPhaseOutcomeTitle;
+
+  /// No description provided for @realMatchReplayPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get realMatchReplayPlay;
+
+  /// No description provided for @realMatchReplayPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get realMatchReplayPause;
+
+  /// No description provided for @realMatchReplayContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get realMatchReplayContinue;
+
+  /// No description provided for @realMatchReplayGuidedReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay with commentary'**
+  String get realMatchReplayGuidedReplay;
+
+  /// No description provided for @realMatchReplayRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch again from the start'**
+  String get realMatchReplayRestart;
+
+  /// No description provided for @realMatchReplayTime.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {total}'**
+  String realMatchReplayTime(Object current, Object total);
+
+  /// No description provided for @realMatchReplaySeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} seconds'**
+  String realMatchReplaySeconds(Object seconds);
+
+  /// No description provided for @realMatchReplayExplanationToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show commentary'**
+  String get realMatchReplayExplanationToggle;
+
+  /// No description provided for @realMatchReplaySpeedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback speed'**
+  String get realMatchReplaySpeedLabel;
+
+  /// No description provided for @realMatchReplaySpeedNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'1×'**
+  String get realMatchReplaySpeedNormal;
+
+  /// No description provided for @realMatchReplaySpeedHalf.
+  ///
+  /// In en, this message translates to:
+  /// **'0.5×'**
+  String get realMatchReplaySpeedHalf;
+
+  /// No description provided for @realMatchReplayZoomAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Number 18 close-up'**
+  String get realMatchReplayZoomAction;
+
+  /// No description provided for @realMatchReplayPoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Number 18 · estimated pose'**
+  String get realMatchReplayPoseTitle;
+
+  /// No description provided for @realMatchReplayPoseUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Pose unavailable at this moment'**
+  String get realMatchReplayPoseUnavailable;
+
+  /// No description provided for @realMatchReplayPoseAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated joint data'**
+  String get realMatchReplayPoseAvailable;
+
+  /// No description provided for @realMatchReplayChaptersSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Key moments in this attack'**
+  String get realMatchReplayChaptersSemantics;
+
+  /// No description provided for @realMatchReplayChapterPrepare.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry · prepare'**
+  String get realMatchReplayChapterPrepare;
+
+  /// No description provided for @realMatchReplayChapterPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Space pass'**
+  String get realMatchReplayChapterPass;
+
+  /// No description provided for @realMatchReplayChapterAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance · accelerate'**
+  String get realMatchReplayChapterAdvance;
+
+  /// No description provided for @realMatchReplayChapterRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Defensive recovery'**
+  String get realMatchReplayChapterRecovery;
+
+  /// No description provided for @realMatchReplayPitchFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Focused situation · attack'**
+  String get realMatchReplayPitchFocus;
+
+  /// No description provided for @realMatchReplayMatchClock.
+  ///
+  /// In en, this message translates to:
+  /// **'{start}–{end}'**
+  String realMatchReplayMatchClock(Object start, Object end);
+
+  /// No description provided for @realMatchReplayDisclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'SkillCorner · estimated positions · simplified motion and kits'**
+  String get realMatchReplayDisclosure;
+
+  /// No description provided for @realMatchReplaySource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get realMatchReplaySource;
+
+  /// No description provided for @realMatchReplaySourceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The source could not be opened on this device.'**
+  String get realMatchReplaySourceUnavailable;
+
+  /// No description provided for @realMatchReplayLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading actual-match replay'**
+  String get realMatchReplayLoading;
+
+  /// No description provided for @realMatchReplayLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The bundled match replay could not be loaded.'**
+  String get realMatchReplayLoadFailed;
+
+  /// No description provided for @realMatchReplayRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get realMatchReplayRetry;
+
+  /// No description provided for @realMatchReplayAnnotationCarry8.
+  ///
+  /// In en, this message translates to:
+  /// **'Number 8 carries the ball'**
+  String get realMatchReplayAnnotationCarry8;
+
+  /// No description provided for @realMatchReplayAnnotationMove18.
+  ///
+  /// In en, this message translates to:
+  /// **'Number 18 moves first'**
+  String get realMatchReplayAnnotationMove18;
+
+  /// No description provided for @realMatchReplayAnnotationReceivingSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the ball was actually received'**
+  String get realMatchReplayAnnotationReceivingSpace;
+
+  /// No description provided for @realMatchReplayAnnotationConnect18.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with the moving number 18'**
+  String get realMatchReplayAnnotationConnect18;
+
+  /// No description provided for @realMatchReplayAnnotationAdvance18.
+  ///
+  /// In en, this message translates to:
+  /// **'Number 18 advances with the ball ahead'**
+  String get realMatchReplayAnnotationAdvance18;
+
+  /// No description provided for @realMatchReplayAnnotationRecover19.
+  ///
+  /// In en, this message translates to:
+  /// **'Number 19 recovers too'**
+  String get realMatchReplayAnnotationRecover19;
+
+  /// No description provided for @realMatchReplayAnnotationTurn18.
+  ///
+  /// In en, this message translates to:
+  /// **'Number 18 changes direction'**
+  String get realMatchReplayAnnotationTurn18;
+
+  /// No description provided for @realMatchReplayAnnotationClose1917.
+  ///
+  /// In en, this message translates to:
+  /// **'Numbers 19 and 17 close in'**
+  String get realMatchReplayAnnotationClose1917;
+
+  /// No description provided for @realMatchReplayAnnotationShotPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball movement after the shot'**
+  String get realMatchReplayAnnotationShotPath;
+
+  /// No description provided for @realMatchReplayAnnotationKeeper13.
+  ///
+  /// In en, this message translates to:
+  /// **'Perth goalkeeper number 13'**
+  String get realMatchReplayAnnotationKeeper13;
+
+  /// No description provided for @realMatchReplayAnnotationKeeperPossession.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded as number 13 possession'**
+  String get realMatchReplayAnnotationKeeperPossession;
 }
 
 class _AppLocalizationsDelegate

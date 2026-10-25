@@ -1,11 +1,36 @@
-# Scan Pass: source-principle curriculum
+# Scan Pass: actual-match observation and retained lessons
 
 ## Scope and validation status
 
-`ScanPassGameScreen` opens `ScanPassPressureLessonScreen` directly. The public
-curriculum contains 12 authored situations: four recognizable football problems,
-each with a guided start, a paired one-cue contrast, and a held-out transfer
-start. There is no setup mode, score, XP, or answer-revealing title.
+`ScanPassGameScreen` now opens `ScanPassRealMatchReplayScreen`. The public
+experience is one continuous 12.32-second observational replay from an actual
+A-League attack. It starts paused and lets the learner play, pause, scrub, jump
+to four chapters, switch between 1x and 0.5x, reveal concise explanations, and
+optionally inspect number 18's estimated recorded pose. There is no compulsory
+choice, quiz, rating, score, countdown, synthetic defender AI, or player control.
+
+The source is SkillCorner Open Data at pinned revision
+`4340d274572876239c154c90bc507a9b3250a656`: Brisbane Roar v Perth Glory on
+2024-12-21, match 1925299, from 77:34.48 through 77:46.80. The compact asset has
+309 position/ball frames at 25 fps, 155 pose snapshots at 12.5 fps, and exactly
+22 active players selected from playing-time ranges. It shows Walid Shour's
+successful pass to J. Brazete, Brazete's advance and shot, and ends with Perth
+goalkeeper 13 in possession. It does not claim a goal, save/block, exact contact,
+head scan, player intention, causal decoy value, or a universally best action.
+
+Some source positions and all displayed body poses are estimates. Missing poses
+use an explicitly simplified motion body only on the main pitch and are shown as
+unavailable in the close-up. Uniform bodies are simplified: source team colors
+and numbers are retained, while uniform design, skin and shorts are not a
+photographic reconstruction. This is an observation clip, not evidence of
+cognitive training, coach certification, or learning transfer.
+
+`ScanPassPressureLessonScreen` and the authored 12-situation model remain as
+direct legacy APIs for regression coverage, but they are no longer the public
+Home → Scan Pass default. The remainder of this document records that retained
+model and must not be read as a description of the default entry.
+
+## Retained pressure-lesson model
 
 This is a reduced seven-player model with four attackers, three defenders and
 no goalkeeper. The coordinates are authored teaching geometry on a 105 m x 68 m
@@ -15,12 +40,12 @@ validation of its cases. No coach has reviewed the cases and no learning or
 transfer study has been performed.
 
 Legacy draw-and-release, third-player and historical-reference APIs may remain
-for regression coverage. They are not part of the public 12-case catalog and
+for regression coverage. They are not part of the retained 12-case catalog and
 their sources are not presented as sources for these cases.
 
-## Public catalog
+## Legacy authored lesson catalog (direct entry only)
 
-The catalog order is the four guided/contrast pairs, followed by one held-out
+The retained catalog order is the four guided/contrast pairs, followed by one held-out
 case from each family. Guided and contrast partners have stable starts and
 differ in exactly the declared cue. There is no random positional jitter in a
 paired start.
@@ -92,7 +117,7 @@ Support credit compares the chosen movement with the same snapshot advanced for
 the same duration while the mover stays stationary. Credit requires an actually
 improved usable relation. An opened or materially improved passing lane is
 reported as an angle effect; changed defender spacing is reported separately
-and is never renamed as an opened lane. The authored public support examples
+and is never renamed as an opened lane. The retained support examples
 all create a measured usable lane and the next carrier uses that relationship.
 If a mover does not receive in another live choice, review names the teammate
 option that changed and does not invent decoy value.
@@ -172,7 +197,7 @@ attempt unchanged.
 
 ## Reference examples
 
-Public cases use a small family-specific conditional policy rather than the old
+Retained legacy cases use a small family-specific conditional policy rather than the old
 retention/progress/separation weighted selector. It reasons over live geometry:
 
 - reception: guided chooses the inside clear corridor and then physically
@@ -186,7 +211,7 @@ retention/progress/separation weighted selector. It reasons over live geometry:
 - recycle/switch: guided and transfer recycle from closed forward pictures and
   connect the new outlet, while the paired open picture uses the runner.
 
-Every selected step is run through ordinary physics. All 12 authored public
+Every selected step is run through ordinary physics. All 12 retained authored
 fixtures have a replayable goal-aligned example across the tested seeds. Once
 its local two-decision goal is demonstrated, the example ends at that actual
 world instead of adding a generic long reset that erases the evidence. If a
@@ -199,7 +224,8 @@ trajectories.
 
 ## UX and localization
 
-All public text is localized in `lib/l10n/app_en.arb`, `app_ko.arb`, and
+Both default replay and retained lesson text are localized in
+`lib/l10n/app_en.arb`, `app_ko.arb`, and
 `app_ja.arb` and accessed through generated localization classes. Generic role
 numbers identify the authored actors. A generic live-roster adapter paints those
 actual ids and numbers in distinct attack/defence kits, while historical match
@@ -216,7 +242,7 @@ player-covering permanent panel.
 
 Focused tests cover:
 
-- four public families, 12-case ordering, metadata and source mapping;
+- four retained families, 12-case ordering, metadata and source mapping;
 - one-cue paired starts and held-out geometry;
 - a physically retained first-touch-to-forward-#10 chain, including actual
   receipt and evidence that the touch preserved rather than opened its lane;
@@ -225,7 +251,7 @@ Focused tests cover:
 - idea assessment independent of contact outcome;
 - useful support movement versus a stationary counterfactual;
 - release-time offside and the visible line from the same world;
-- all 12 public reference examples through actual goal-aligned trajectories,
+- all 12 retained reference examples through actual goal-aligned trajectories,
   plus explicit unavailability for an invalid custom state;
 - local-objective terminal validation without a value-erasing automatic reset;
 - separate first-touch and safe-carry corridor reasoning;

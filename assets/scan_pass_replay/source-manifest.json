@@ -1,0 +1,38 @@
+{
+  "source": "SkillCorner Open Data",
+  "repository": "https://github.com/SkillCorner/opendata",
+  "commit": "4340d274572876239c154c90bc507a9b3250a656",
+  "matchId": 1925299,
+  "files": [
+    {
+      "path": "data/bodypose/sample_1925299_phase406.jsonl.gz",
+      "bytes": 1926895,
+      "sha256": "eb10f537c5c3b3c80018d5670f16cb788b14a3529d0be0b36a077bd1b41aeb4a"
+    },
+    {
+      "path": "data/matches/1925299/1925299_match.json",
+      "bytes": 28396,
+      "sha256": "f4345b32c0fdd7c9990df70050b3a74f57b1992cf762e20f2a4d309bd2fba7d2"
+    },
+    {
+      "path": "data/matches/1925299/1925299_phases_of_play.csv",
+      "bytes": 131104,
+      "sha256": "a1682a736a9cf1c311cb799f0a949f7e023dca4ebaa9dd294b138e8929271274"
+    },
+    {
+      "path": "data/matches/1925299/1925299_dynamic_events.csv",
+      "bytes": 5043601,
+      "sha256": "2557acbdcba6547d764b9f7c277c3d7e81a4d58692d6c20c2bfa28625ae0cce3"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1097,
+      "sha256": "3384cc66ffd008209759af5e6328677eabded72756fb1f56f4f82e68e9b3c6eb"
+    }
+  ],
+  "derivedAsset": {
+    "path": "assets/scan_pass_replay/replay-data.json",
+    "bytes": 509710,
+    "sha256": "cf73a11f566d974f3dada609e0d16111e6896dc522d88c08c257eb7332efaa71"
+  }
+}

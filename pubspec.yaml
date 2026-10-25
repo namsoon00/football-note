@@ -108,6 +108,7 @@ flutter:
     - assets/watch_cart/svg/
     - assets/animations/
     - assets/sounds/
+    - assets/scan_pass_replay/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

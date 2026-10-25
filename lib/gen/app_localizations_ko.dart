@@ -22177,4 +22177,185 @@ class AppLocalizationsKo extends AppLocalizations {
   String pressureSceneSummaryJudgments(Object count) {
     return '첫 시도에서 완료한 판단: $count회.';
   }
+
+  @override
+  String get realMatchReplayAppBarTitle => '스캔 패스';
+
+  @override
+  String realMatchReplayHeaderMeta(Object date) {
+    return '실제 경기 데이터 · A리그 · $date';
+  }
+
+  @override
+  String get realMatchReplayTitle => '앞 공간으로 연결하는 전환 공격';
+
+  @override
+  String get realMatchReplayVersus => '대';
+
+  @override
+  String get realMatchReplayPitchSemantics =>
+      '브리즈번 8번의 운반, 18번에게 보내는 공간 패스, 퍼스 수비의 복귀와 골키퍼 13번의 소유까지 실제 추적 위치로 재생하는 2D 경기장입니다.';
+
+  @override
+  String realMatchReplayObservationKicker(Object phase) {
+    return '관찰 · $phase';
+  }
+
+  @override
+  String realMatchReplayExplanationKicker(Object phase) {
+    return '해설 · $phase';
+  }
+
+  @override
+  String get realMatchReplayPhasePrepare => '준비';
+
+  @override
+  String get realMatchReplayPhasePrepareTitle => '8번의 운반과 18번의 준비 움직임';
+
+  @override
+  String get realMatchReplayPhasePass => '공간 패스';
+
+  @override
+  String get realMatchReplayPhasePassTitle => '18번이 이동할 공간으로 전달';
+
+  @override
+  String get realMatchReplayPhaseAdvance => '전진';
+
+  @override
+  String get realMatchReplayPhaseAdvanceTitle => '18번이 공을 앞에 두고 전진';
+
+  @override
+  String get realMatchReplayPhaseRecovery => '수비 대응';
+
+  @override
+  String get realMatchReplayPhaseRecoveryTitle => '수비가 복귀하며 진행 방향이 바뀜';
+
+  @override
+  String get realMatchReplayPhaseOutcome => '전개 결과';
+
+  @override
+  String get realMatchReplayPhaseOutcomeTitle => '슛 이후 골키퍼 소유까지 이어서 관찰';
+
+  @override
+  String get realMatchReplayPlay => '재생';
+
+  @override
+  String get realMatchReplayPause => '일시정지';
+
+  @override
+  String get realMatchReplayContinue => '계속 재생';
+
+  @override
+  String get realMatchReplayGuidedReplay => '해설로 다시 보기';
+
+  @override
+  String get realMatchReplayRestart => '처음부터 다시 보기';
+
+  @override
+  String realMatchReplayTime(Object current, Object total) {
+    return '$current / $total';
+  }
+
+  @override
+  String realMatchReplaySeconds(Object seconds) {
+    return '$seconds초';
+  }
+
+  @override
+  String get realMatchReplayExplanationToggle => '해설 표시';
+
+  @override
+  String get realMatchReplaySpeedLabel => '재생 속도';
+
+  @override
+  String get realMatchReplaySpeedNormal => '1×';
+
+  @override
+  String get realMatchReplaySpeedHalf => '0.5×';
+
+  @override
+  String get realMatchReplayZoomAction => '18번 동작 확대';
+
+  @override
+  String get realMatchReplayPoseTitle => '18번 · 추정 몸동작';
+
+  @override
+  String get realMatchReplayPoseUnavailable => '이 순간 자세 미확인';
+
+  @override
+  String get realMatchReplayPoseAvailable => '추정 관절 자료 재생';
+
+  @override
+  String get realMatchReplayChaptersSemantics => '이 공격의 주요 순간';
+
+  @override
+  String get realMatchReplayChapterPrepare => '운반·준비';
+
+  @override
+  String get realMatchReplayChapterPass => '공간 패스';
+
+  @override
+  String get realMatchReplayChapterAdvance => '전진·가속';
+
+  @override
+  String get realMatchReplayChapterRecovery => '수비 복귀';
+
+  @override
+  String get realMatchReplayPitchFocus => '상황 확대 · 공격';
+
+  @override
+  String realMatchReplayMatchClock(Object start, Object end) {
+    return '$start–$end';
+  }
+
+  @override
+  String get realMatchReplayDisclosure => 'SkillCorner · 일부 위치 추정 · 동작·유니폼 간략화';
+
+  @override
+  String get realMatchReplaySource => '출처';
+
+  @override
+  String get realMatchReplaySourceUnavailable => '이 기기에서 출처를 열지 못했습니다.';
+
+  @override
+  String get realMatchReplayLoading => '실제 경기 리플레이 불러오는 중';
+
+  @override
+  String get realMatchReplayLoadFailed => '앱에 포함된 경기 리플레이를 불러오지 못했습니다.';
+
+  @override
+  String get realMatchReplayRetry => '다시 시도';
+
+  @override
+  String get realMatchReplayAnnotationCarry8 => '8번, 공 운반';
+
+  @override
+  String get realMatchReplayAnnotationMove18 => '18번, 먼저 움직임';
+
+  @override
+  String get realMatchReplayAnnotationReceivingSpace => '실제로 공을 받은 공간';
+
+  @override
+  String get realMatchReplayAnnotationConnect18 => '움직이는 18번에게 연결';
+
+  @override
+  String get realMatchReplayAnnotationAdvance18 => '18번, 공을 앞에 두고 전진';
+
+  @override
+  String get realMatchReplayAnnotationRecover19 => '19번도 함께 복귀';
+
+  @override
+  String get realMatchReplayAnnotationTurn18 => '18번, 진행 방향을 바꿈';
+
+  @override
+  String get realMatchReplayAnnotationClose1917 => '19·17번이 가까워짐';
+
+  @override
+  String get realMatchReplayAnnotationShotPath => '슛 이후의 공 이동';
+
+  @override
+  String get realMatchReplayAnnotationKeeper13 => '퍼스 골키퍼 13번';
+
+  @override
+  String get realMatchReplayAnnotationKeeperPossession => '13번 소유로 기록';
 }

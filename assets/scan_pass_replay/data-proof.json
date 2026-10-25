@@ -1,0 +1,31 @@
+{
+  "frames": 309,
+  "activePlayers": 22,
+  "homePlayers": 11,
+  "awayPlayers": 11,
+  "poseFrames": 155,
+  "poseObservations": 2483,
+  "durationSeconds": 12.32,
+  "fps": 25,
+  "poseStep": 2,
+  "maxPositionQuantizationErrorMeters": 0.0040000000000048885,
+  "events": [
+    {
+      "event_id": "8_870",
+      "player_id": "287934",
+      "player_targeted_id": "965698",
+      "end_type": "pass",
+      "pass_outcome": "successful",
+      "end": 2.42
+    },
+    {
+      "event_id": "8_871",
+      "player_id": "965698",
+      "end_type": "shot",
+      "start": 4.22,
+      "end": 11.22
+    }
+  ],
+  "finalRecordedState": "Perth Glory goalkeeper 13 possession",
+  "sourceCommit": "4340d274572876239c154c90bc507a9b3250a656"
+}

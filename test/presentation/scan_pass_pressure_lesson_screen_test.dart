@@ -5,7 +5,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/scan_pass/scan_pass_game.dart'
     show ScanPassPoint;
 import 'package:football_note/domain/scan_pass/scan_pass_pressure_lesson.dart';
@@ -16,14 +15,13 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   WidgetController.hitTestWarningShouldBeFatal = true;
 
-  testWidgets('public lesson follows a retained pass to the actual carrier',
+  testWidgets('direct legacy lesson follows a retained pass to the carrier',
       (tester) async {
     await tester.pumpWidget(_app(
-      home: ScanPassGameScreen(
-        optionRepository: _Options(),
+      home: const ScanPassPressureLessonScreen(
         seed: 19,
-        previewDuration: Duration.zero,
-        passAnimationDuration: Duration.zero,
+        observationDuration: Duration.zero,
+        executionDuration: Duration.zero,
       ),
     ));
     await tester.pumpAndSettle();
@@ -919,21 +917,4 @@ Widget _app({
     ),
     home: home,
   );
-}
-
-class _Options implements OptionRepository {
-  @override
-  List<int> getIntOptions(String key, List<int> defaults) => defaults;
-
-  @override
-  List<String> getOptions(String key, List<String> defaults) => defaults;
-
-  @override
-  T? getValue<T>(String key) => null;
-
-  @override
-  Future<void> saveOptions(String key, List<dynamic> options) async {}
-
-  @override
-  Future<void> setValue(String key, dynamic value) async {}
 }

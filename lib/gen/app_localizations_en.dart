@@ -23017,4 +23017,199 @@ class AppLocalizationsEn extends AppLocalizations {
   String pressureSceneSummaryJudgments(Object count) {
     return 'First-attempt judgments completed: $count.';
   }
+
+  @override
+  String get realMatchReplayAppBarTitle => 'Scan Pass';
+
+  @override
+  String realMatchReplayHeaderMeta(Object date) {
+    return 'Actual match data · A-League · $date';
+  }
+
+  @override
+  String get realMatchReplayTitle => 'Transition attack into space';
+
+  @override
+  String get realMatchReplayVersus => 'vs';
+
+  @override
+  String get realMatchReplayPitchSemantics =>
+      'A 2D replay of actual tracked positions: Brisbane number 8 carries, passes into space for number 18, and Perth defenders recover before goalkeeper 13 takes possession.';
+
+  @override
+  String realMatchReplayObservationKicker(Object phase) {
+    return 'Watch · $phase';
+  }
+
+  @override
+  String realMatchReplayExplanationKicker(Object phase) {
+    return 'Commentary · $phase';
+  }
+
+  @override
+  String get realMatchReplayPhasePrepare => 'Preparation';
+
+  @override
+  String get realMatchReplayPhasePrepareTitle =>
+      'Number 8 carries as number 18 starts moving';
+
+  @override
+  String get realMatchReplayPhasePass => 'Pass into space';
+
+  @override
+  String get realMatchReplayPhasePassTitle =>
+      'The pass goes into number 18\'s moving path';
+
+  @override
+  String get realMatchReplayPhaseAdvance => 'Advance';
+
+  @override
+  String get realMatchReplayPhaseAdvanceTitle =>
+      'Number 18 advances with the ball ahead';
+
+  @override
+  String get realMatchReplayPhaseRecovery => 'Defensive recovery';
+
+  @override
+  String get realMatchReplayPhaseRecoveryTitle =>
+      'The direction changes as defenders recover';
+
+  @override
+  String get realMatchReplayPhaseOutcome => 'End of attack';
+
+  @override
+  String get realMatchReplayPhaseOutcomeTitle =>
+      'Keep watching through the shot and goalkeeper possession';
+
+  @override
+  String get realMatchReplayPlay => 'Play';
+
+  @override
+  String get realMatchReplayPause => 'Pause';
+
+  @override
+  String get realMatchReplayContinue => 'Continue';
+
+  @override
+  String get realMatchReplayGuidedReplay => 'Replay with commentary';
+
+  @override
+  String get realMatchReplayRestart => 'Watch again from the start';
+
+  @override
+  String realMatchReplayTime(Object current, Object total) {
+    return '$current / $total';
+  }
+
+  @override
+  String realMatchReplaySeconds(Object seconds) {
+    return '$seconds seconds';
+  }
+
+  @override
+  String get realMatchReplayExplanationToggle => 'Show commentary';
+
+  @override
+  String get realMatchReplaySpeedLabel => 'Playback speed';
+
+  @override
+  String get realMatchReplaySpeedNormal => '1×';
+
+  @override
+  String get realMatchReplaySpeedHalf => '0.5×';
+
+  @override
+  String get realMatchReplayZoomAction => 'Number 18 close-up';
+
+  @override
+  String get realMatchReplayPoseTitle => 'Number 18 · estimated pose';
+
+  @override
+  String get realMatchReplayPoseUnavailable =>
+      'Pose unavailable at this moment';
+
+  @override
+  String get realMatchReplayPoseAvailable => 'Estimated joint data';
+
+  @override
+  String get realMatchReplayChaptersSemantics => 'Key moments in this attack';
+
+  @override
+  String get realMatchReplayChapterPrepare => 'Carry · prepare';
+
+  @override
+  String get realMatchReplayChapterPass => 'Space pass';
+
+  @override
+  String get realMatchReplayChapterAdvance => 'Advance · accelerate';
+
+  @override
+  String get realMatchReplayChapterRecovery => 'Defensive recovery';
+
+  @override
+  String get realMatchReplayPitchFocus => 'Focused situation · attack';
+
+  @override
+  String realMatchReplayMatchClock(Object start, Object end) {
+    return '$start–$end';
+  }
+
+  @override
+  String get realMatchReplayDisclosure =>
+      'SkillCorner · estimated positions · simplified motion and kits';
+
+  @override
+  String get realMatchReplaySource => 'Source';
+
+  @override
+  String get realMatchReplaySourceUnavailable =>
+      'The source could not be opened on this device.';
+
+  @override
+  String get realMatchReplayLoading => 'Loading actual-match replay';
+
+  @override
+  String get realMatchReplayLoadFailed =>
+      'The bundled match replay could not be loaded.';
+
+  @override
+  String get realMatchReplayRetry => 'Retry';
+
+  @override
+  String get realMatchReplayAnnotationCarry8 => 'Number 8 carries the ball';
+
+  @override
+  String get realMatchReplayAnnotationMove18 => 'Number 18 moves first';
+
+  @override
+  String get realMatchReplayAnnotationReceivingSpace =>
+      'Where the ball was actually received';
+
+  @override
+  String get realMatchReplayAnnotationConnect18 =>
+      'Connect with the moving number 18';
+
+  @override
+  String get realMatchReplayAnnotationAdvance18 =>
+      'Number 18 advances with the ball ahead';
+
+  @override
+  String get realMatchReplayAnnotationRecover19 => 'Number 19 recovers too';
+
+  @override
+  String get realMatchReplayAnnotationTurn18 => 'Number 18 changes direction';
+
+  @override
+  String get realMatchReplayAnnotationClose1917 => 'Numbers 19 and 17 close in';
+
+  @override
+  String get realMatchReplayAnnotationShotPath =>
+      'Ball movement after the shot';
+
+  @override
+  String get realMatchReplayAnnotationKeeper13 => 'Perth goalkeeper number 13';
+
+  @override
+  String get realMatchReplayAnnotationKeeperPossession =>
+      'Recorded as number 13 possession';
 }
