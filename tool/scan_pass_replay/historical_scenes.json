@@ -1,0 +1,407 @@
+[
+  {
+    "id": "de-bruyne-pressure-receive",
+    "matchId": 4039,
+    "period": 1,
+    "startFrame": 3756,
+    "endFrame": 3842,
+    "category": "pressure",
+    "titleKey": "replaySceneDeBruynePressureReceive",
+    "focusKey": "replayFocusDeBruynePressureReceive",
+    "focusTrackableObject": 5821,
+    "attackingTeam": "home",
+    "coverageDecision": "All87 ballXYZ observations continuous; De Bruyne becomes observed before reception. Laporte→De Bruyne→Mendy shows a confirmed linked same-team sequence. No completion beyond the final recorded frame is asserted.",
+    "possessionEvidence": [
+      {
+        "trackableObject": 1152,
+        "startFrame": 3756,
+        "endFrame": 3768
+      },
+      {
+        "trackableObject": 5821,
+        "startFrame": 3780,
+        "endFrame": 3786
+      },
+      {
+        "trackableObject": 1302,
+        "startFrame": 3803,
+        "endFrame": 3814
+      }
+    ],
+    "steps": [
+      {
+        "sourceFrame": 3756,
+        "kind": "observe",
+        "actorTrackableObject": 1152,
+        "rationale": "Laporte is observed on the ball; De Bruyne is not yet visible and is not projected."
+      },
+      {
+        "sourceFrame": 3769,
+        "kind": "pass",
+        "actorTrackableObject": 1152,
+        "rationale": "Ball leaves Laporte and reaches the continuously observed De Bruyne; source possession changes from Laporte to De Bruyne.",
+        "targetTrackableObject": 5821
+      },
+      {
+        "sourceFrame": 3780,
+        "kind": "receive",
+        "actorTrackableObject": 5821,
+        "rationale": "De Bruyne source possession starts within1.9m of the ball while Henderson closes."
+      },
+      {
+        "sourceFrame": 3794,
+        "kind": "pass",
+        "actorTrackableObject": 5821,
+        "rationale": "Ball leaves De Bruyne after its close approach and connects to Mendy source possession; no foot contact is asserted.",
+        "targetTrackableObject": 1302
+      },
+      {
+        "sourceFrame": 3803,
+        "kind": "receive",
+        "actorTrackableObject": 1302,
+        "rationale": "Mendy source possession begins within0.7m of the ball."
+      },
+      {
+        "sourceFrame": 3815,
+        "kind": "pass",
+        "actorTrackableObject": 1302,
+        "rationale": "Mendy possession ends and recorded ball continues away. A subsequent recipient is not confirmed and is not named."
+      },
+      {
+        "sourceFrame": 3841,
+        "kind": "outcome",
+        "actorTrackableObject": 1302,
+        "rationale": "End of curated observed interval; later outcome is not inferred."
+      }
+    ]
+  },
+  {
+    "id": "salah-right-recycle",
+    "matchId": 4039,
+    "period": 1,
+    "startFrame": 18930,
+    "endFrame": 19032,
+    "category": "combination",
+    "titleKey": "replaySceneSalahRightRecycle",
+    "focusKey": "replayFocusSalahRightRecycle",
+    "focusTrackableObject": 7745,
+    "attackingTeam": "away",
+    "coverageDecision": "Parent-audited 10.2 s interval: continuous ball XY, 99 of 103 source ball samples include Z, no anonymous players, sane 8.1 m/s maximum player speed, and the focal player is observed for 94 frames.",
+    "possessionEvidence": [
+      {
+        "trackableObject": 7745,
+        "startFrame": 18950,
+        "endFrame": 18962
+      },
+      {
+        "trackableObject": 11537,
+        "startFrame": 18974,
+        "endFrame": 18985
+      },
+      {
+        "trackableObject": 11847,
+        "startFrame": 18994,
+        "endFrame": 19009
+      }
+    ],
+    "steps": [
+      {
+        "sourceFrame": 18930,
+        "kind": "observe",
+        "actorTrackableObject": 7745,
+        "rationale": "Salah is observed before his source possession run; Gomez is still outside broadcast coverage."
+      },
+      {
+        "sourceFrame": 18950,
+        "kind": "receive",
+        "actorTrackableObject": 7745,
+        "rationale": "First frame of Salah's source possession run."
+      },
+      {
+        "sourceFrame": 18962,
+        "kind": "pass",
+        "actorTrackableObject": 7745,
+        "rationale": "Recorded ball departs Salah. Gomez is not yet observed at departure, so his position is not invented; later source possession confirms the connection."
+      },
+      {
+        "sourceFrame": 18974,
+        "kind": "receive",
+        "actorTrackableObject": 11537,
+        "rationale": "First frame of Gomez's source possession run."
+      },
+      {
+        "sourceFrame": 18986,
+        "kind": "pass",
+        "actorTrackableObject": 11537,
+        "targetTrackableObject": 11847,
+        "rationale": "Continuous ball tracking connects Gomez's completed run to Alexander-Arnold's subsequent same-team run."
+      },
+      {
+        "sourceFrame": 18994,
+        "kind": "receive",
+        "actorTrackableObject": 11847,
+        "rationale": "First frame of Alexander-Arnold's source possession run."
+      },
+      {
+        "sourceFrame": 19015,
+        "kind": "outcome",
+        "actorTrackableObject": 11847,
+        "rationale": "End of the curated recorded connection; later outcome is not fabricated."
+      }
+    ]
+  },
+  {
+    "id": "messi-right-connection",
+    "matchId": 3442,
+    "period": 1,
+    "startFrame": 25268,
+    "endFrame": 25378,
+    "category": "combination",
+    "titleKey": "replaySceneMessiRightConnection",
+    "focusKey": "replayFocusMessiRightConnection",
+    "focusTrackableObject": 6260,
+    "attackingTeam": "away",
+    "coverageDecision": "Parent-audited 11.0 s interval: continuous ball XY, focal player visible in every frame, at least 16 identified players visible per frame, no anonymous player within 15 m of the ball, and sane source speeds.",
+    "possessionEvidence": [
+      {
+        "trackableObject": 6260,
+        "startFrame": 25272,
+        "endFrame": 25279
+      },
+      {
+        "trackableObject": 6260,
+        "startFrame": 25288,
+        "endFrame": 25308
+      },
+      {
+        "trackableObject": 11514,
+        "startFrame": 25346,
+        "endFrame": 25354
+      }
+    ],
+    "steps": [
+      {
+        "sourceFrame": 25268,
+        "kind": "observe",
+        "actorTrackableObject": 6260,
+        "targetTrackableObject": 11514,
+        "rationale": "Messi and Semedo are continuously observed before the linked source possession runs."
+      },
+      {
+        "sourceFrame": 25276,
+        "kind": "receive",
+        "actorTrackableObject": 6260,
+        "rationale": "Observed frame within the initial Messi source possession run, spaced from the opening coaching stop."
+      },
+      {
+        "sourceFrame": 25288,
+        "kind": "carry",
+        "actorTrackableObject": 6260,
+        "endFrame": 25308,
+        "rationale": "Continuous observed Messi and ball trajectories during his longer source possession run."
+      },
+      {
+        "sourceFrame": 25309,
+        "kind": "pass",
+        "actorTrackableObject": 6260,
+        "targetTrackableObject": 11514,
+        "rationale": "Continuous ball XY connects Messi's completed run to Semedo's subsequent same-team run; the pass label is a conservative derived annotation."
+      },
+      {
+        "sourceFrame": 25346,
+        "kind": "receive",
+        "actorTrackableObject": 11514,
+        "rationale": "First frame of Semedo's source possession run."
+      },
+      {
+        "sourceFrame": 25377,
+        "kind": "outcome",
+        "actorTrackableObject": 11514,
+        "rationale": "End of the curated recorded interval; no later completion or outcome is claimed."
+      }
+    ]
+  },
+  {
+    "id": "kroos-central-recycle",
+    "matchId": 3442,
+    "period": 1,
+    "startFrame": 23897,
+    "endFrame": 24004,
+    "category": "buildUp",
+    "titleKey": "replaySceneKroosCentralRecycle",
+    "focusKey": "replayFocusKroosCentralRecycle",
+    "focusTrackableObject": 10530,
+    "attackingTeam": "home",
+    "coverageDecision": "Parent-audited 10.7 s interval: continuous ball XY, Kroos visible in every frame, at least 14 identified players visible per frame, no anonymous player within 15 m of the ball, and sane source speeds.",
+    "possessionEvidence": [
+      {
+        "trackableObject": 10530,
+        "startFrame": 23897,
+        "endFrame": 23902
+      },
+      {
+        "trackableObject": 10530,
+        "startFrame": 23917,
+        "endFrame": 23934
+      },
+      {
+        "trackableObject": 1684,
+        "startFrame": 23947,
+        "endFrame": 23971
+      },
+      {
+        "trackableObject": 8886,
+        "startFrame": 23981,
+        "endFrame": 24004
+      }
+    ],
+    "steps": [
+      {
+        "sourceFrame": 23897,
+        "kind": "observe",
+        "actorTrackableObject": 10530,
+        "targetTrackableObject": 1684,
+        "rationale": "Kroos and Casemiro are continuously observed at the interval start."
+      },
+      {
+        "sourceFrame": 23917,
+        "kind": "carry",
+        "actorTrackableObject": 10530,
+        "endFrame": 23934,
+        "rationale": "Continuous observed Kroos and ball trajectories during the longer source possession run."
+      },
+      {
+        "sourceFrame": 23935,
+        "kind": "pass",
+        "actorTrackableObject": 10530,
+        "targetTrackableObject": 1684,
+        "rationale": "Continuous ball XY connects Kroos's completed run to Casemiro's subsequent same-team run."
+      },
+      {
+        "sourceFrame": 23947,
+        "kind": "receive",
+        "actorTrackableObject": 1684,
+        "rationale": "First frame of Casemiro's source possession run."
+      },
+      {
+        "sourceFrame": 23972,
+        "kind": "pass",
+        "actorTrackableObject": 1684,
+        "rationale": "Recorded ball departs Casemiro; Varane is not yet observed at departure, so no recipient position is invented. Later source possession confirms Varane reception."
+      },
+      {
+        "sourceFrame": 23981,
+        "kind": "receive",
+        "actorTrackableObject": 8886,
+        "rationale": "First frame of Varane's source possession run."
+      },
+      {
+        "sourceFrame": 24003,
+        "kind": "outcome",
+        "actorTrackableObject": 8886,
+        "rationale": "End of the curated recorded interval; no later action is invented."
+      }
+    ]
+  },
+  {
+    "id": "vinicius-carry-inside",
+    "matchId": 3442,
+    "period": 2,
+    "startFrame": 55945,
+    "endFrame": 56065,
+    "category": "combination",
+    "titleKey": "replaySceneViniciusCarryInside",
+    "focusKey": "replayFocusViniciusCarryInside",
+    "focusTrackableObject": 12397,
+    "attackingTeam": "home",
+    "coverageDecision": "Parent-audited 12.0 s interval: continuous ball XY, Vinícius visible in every frame, no anonymous players, sane 9.3 m/s maximum player speed, and a linked same-team sequence through Kroos toward Benzema.",
+    "possessionEvidence": [
+      {
+        "trackableObject": 8886,
+        "startFrame": 55945,
+        "endFrame": 55953
+      },
+      {
+        "trackableObject": 12397,
+        "startFrame": 55965,
+        "endFrame": 55995
+      },
+      {
+        "trackableObject": 12397,
+        "startFrame": 55998,
+        "endFrame": 56002
+      },
+      {
+        "trackableObject": 10530,
+        "startFrame": 56012,
+        "endFrame": 56030
+      },
+      {
+        "trackableObject": 5720,
+        "startFrame": 56059,
+        "endFrame": 56065
+      }
+    ],
+    "steps": [
+      {
+        "sourceFrame": 55945,
+        "kind": "observe",
+        "actorTrackableObject": 8886,
+        "targetTrackableObject": 12397,
+        "rationale": "Varane and Vinícius are continuously observed at the interval start."
+      },
+      {
+        "sourceFrame": 55954,
+        "kind": "pass",
+        "actorTrackableObject": 8886,
+        "targetTrackableObject": 12397,
+        "rationale": "Continuous ball XY connects Varane's source possession run to Vinícius's subsequent same-team run."
+      },
+      {
+        "sourceFrame": 55965,
+        "kind": "receive",
+        "actorTrackableObject": 12397,
+        "rationale": "First frame of Vinícius's source possession run."
+      },
+      {
+        "sourceFrame": 55970,
+        "kind": "carry",
+        "actorTrackableObject": 12397,
+        "endFrame": 56002,
+        "rationale": "Continuous observed Vinícius and ball trajectories across his two nearby source possession runs."
+      },
+      {
+        "sourceFrame": 56003,
+        "kind": "pass",
+        "actorTrackableObject": 12397,
+        "targetTrackableObject": 10530,
+        "rationale": "Continuous ball XY connects Vinícius's completed run to Kroos's subsequent same-team run."
+      },
+      {
+        "sourceFrame": 56012,
+        "kind": "receive",
+        "actorTrackableObject": 10530,
+        "rationale": "First frame of Kroos's source possession run."
+      },
+      {
+        "sourceFrame": 56031,
+        "kind": "pass",
+        "actorTrackableObject": 10530,
+        "targetTrackableObject": 5720,
+        "rationale": "Continuous ball XY continues toward Benzema's later same-team possession; the one-frame Isco label is not used as a coaching annotation."
+      },
+      {
+        "sourceFrame": 56059,
+        "kind": "receive",
+        "actorTrackableObject": 5720,
+        "rationale": "First frame of Benzema's source possession run."
+      },
+      {
+        "sourceFrame": 56064,
+        "kind": "outcome",
+        "actorTrackableObject": 5720,
+        "rationale": "End of the curated recorded interval; the connection beyond this point is not invented."
+      }
+    ]
+  }
+]

@@ -23245,6 +23245,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String realMatchReplaySelectedMatch(Object home, Object away) {
+    return '$home vs $away';
+  }
+
+  @override
+  String realMatchReplaySceneDateClock(Object date, Object clock) {
+    return '$date · $clock';
+  }
+
+  @override
   String get realMatchReplayViewLabel => 'Pitch view';
 
   @override
@@ -23262,6 +23272,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get realMatchReplayTrackingDisclosure =>
       'SkillCorner · tracked positions · procedural body motion · simplified kits';
+
+  @override
+  String get realMatchReplayBroadcastDisclosure =>
+      'Positions are estimated from SkillCorner broadcast tracking. Off-camera players are omitted. Pass and carry markers are derived from possession and movement. Body motion and kit designs are simplified.';
+
+  @override
+  String get realMatchReplayBallHeightUnavailable =>
+      'Some ball-height samples are missing, so this scene is shown in 2D.';
 
   @override
   String realMatchReplayPoseAction(Object number) {
@@ -23475,7 +23493,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get replayOutcomeLost => 'possession lost';
 
   @override
-  String get replayOutcomeEnd => 'sequence ended';
+  String get replayOutcomeEnd => 'recorded segment ended; play continues';
 
   @override
   String get replaySceneTransitionWing => 'Into wide space on transition';
@@ -23618,6 +23636,46 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get replayFocusCarryTurnover =>
       'Watch the carry direction and approaching defender together, then follow what happens next.';
+
+  @override
+  String get replaySceneDeBruynePressureReceive =>
+      'De Bruyne connects wide under pressure';
+
+  @override
+  String get replayFocusDeBruynePressureReceive =>
+      'Watch the passing lane from De Bruyne to Mendy as pressure closes in.';
+
+  @override
+  String get replaySceneSalahRightRecycle =>
+      'Salah starts a right-side recycle';
+
+  @override
+  String get replayFocusSalahRightRecycle =>
+      'Watch the passing angles as the ball moves from Salah through Gomez to Alexander-Arnold.';
+
+  @override
+  String get replaySceneMessiRightConnection =>
+      'Messi carries on the right, then finds Semedo';
+
+  @override
+  String get replayFocusMessiRightConnection =>
+      'Watch the gaps between defenders and the wide space as Messi carries and connects with Semedo.';
+
+  @override
+  String get replaySceneKroosCentralRecycle =>
+      'Kroos recycles through Casemiro';
+
+  @override
+  String get replayFocusKroosCentralRecycle =>
+      'Watch the passing angles as Kroos connects with Casemiro and the ball continues toward Varane.';
+
+  @override
+  String get replaySceneViniciusCarryInside =>
+      'Vinícius carries inside, then links with Kroos';
+
+  @override
+  String get replayFocusViniciusCarryInside =>
+      'Follow Vinícius carrying, laying the ball back to Kroos, and the connection toward Benzema.';
 
   @override
   String get realMatchReplayExpandPitch => 'Expand pitch';

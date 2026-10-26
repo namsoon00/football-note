@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/scan_pass/real_match_replay.dart';
 
@@ -21,12 +22,12 @@ void main() {
     };
   });
 
-  test('catalog exposes twenty distinct scenes across every category', () {
+  test('catalog exposes 25 distinct scenes across every category', () {
     expect(catalog.version, 1);
-    expect(catalog.scenes, hasLength(20));
+    expect(catalog.scenes, hasLength(25));
     expect(
       catalog.scenes.map((scene) => scene.id).toSet(),
-      hasLength(20),
+      hasLength(25),
     );
     expect(
       catalog.scenes.map((scene) => scene.category).toSet(),
@@ -43,6 +44,275 @@ void main() {
     expect(
       scenes.values.map((scene) => scene.scene.homeColor).toSet().length,
       greaterThan(1),
+    );
+    expect(
+      catalog.scenes.take(5).map((scene) => scene.id),
+      orderedEquals(<String>[
+        'de-bruyne-pressure-receive',
+        'salah-right-recycle',
+        'messi-right-connection',
+        'kroos-central-recycle',
+        'vinicius-carry-inside',
+      ]),
+    );
+    expect(
+      catalog.scenes.skip(5).map((scene) => scene.id),
+      containsAll(<String>[
+        'transition-wing',
+        'keeper-build',
+        'central-build',
+        'carry-turnover',
+      ]),
+    );
+  });
+
+  test('mixed revisions and source URLs match every scene payload', () {
+    const historicalCommit = '1ed50b775f93075c2a6d00d0d795f13b7b89709e';
+    const currentCommit = '4340d274572876239c154c90bc507a9b3250a656';
+    expect(catalog.sourceCommit, currentCommit);
+    expect(catalog.scenes.take(5).map((scene) => scene.sourceCommit).toSet(),
+        <String>{historicalCommit});
+    expect(catalog.scenes.skip(5).map((scene) => scene.sourceCommit).toSet(),
+        <String>{currentCommit});
+    for (final entry in catalog.scenes) {
+      final data = scenes[entry.id]!;
+      expect(data.sourceCommit, entry.sourceCommit, reason: entry.id);
+      expect(data.sourceUrl, entry.sourceUrl, reason: entry.id);
+      expect(Uri.parse(data.sourceUrl).isScheme('https'), isTrue,
+          reason: entry.id);
+      if (entry.sourceCommit == historicalCommit) {
+        expect(Uri.parse(data.sourceUrl).host, 'github.com');
+        expect(data.sourceUrl, endsWith('/data/matches/${entry.matchId}'));
+      }
+    }
+  });
+
+  test(
+      'historical roster uses trackable ids, real numbers, names and kit colors',
+      () {
+    final deBruyne = scenes['de-bruyne-pressure-receive']!;
+    final salah = scenes['salah-right-recycle']!;
+    final messi = scenes['messi-right-connection']!;
+    final kroos = scenes['kroos-central-recycle']!;
+    final vinicius = scenes['vinicius-carry-inside']!;
+
+    expect(deBruyne.player(5821).name, 'Kevin de Bruyne');
+    expect(deBruyne.player(5821).number, 17);
+    expect(salah.player(7745).name, 'Mohamed Salah');
+    expect(salah.player(7745).number, 11);
+    expect(messi.player(6260).name, 'Lionel Messi');
+    expect(messi.player(6260).number, 10);
+    expect(kroos.player(10530).name, 'Toni Kroos');
+    expect(kroos.player(10530).number, 8);
+    expect(vinicius.player(12397).name, 'Junior Vinicius');
+    expect(vinicius.player(12397).number, 25);
+    expect(deBruyne.scene.homeColor, '#00fff5');
+    expect(deBruyne.scene.awayColor, '#c10021');
+    expect(messi.scene.homeColor, '#ffffff');
+    expect(messi.scene.awayColor, '#0500cf');
+  });
+
+  test('historical proof pins hashes, coordinates, coverage and rationale', () {
+    final manifest = jsonDecode(
+      File('assets/scan_pass_replay/historical-source-manifest.json')
+          .readAsStringSync(),
+    ) as Map<String, dynamic>;
+    final proof = jsonDecode(
+      File('assets/scan_pass_replay/historical-catalog-proof.json')
+          .readAsStringSync(),
+    ) as Map<String, dynamic>;
+    expect(manifest['commit'], '1ed50b775f93075c2a6d00d0d795f13b7b89709e');
+    expect((manifest['files'] as List<dynamic>), hasLength(6));
+    expect((proof['scenes'] as List<dynamic>), hasLength(5));
+    for (final value in manifest['derivedAssets'] as List<dynamic>) {
+      final entry = value as Map<String, dynamic>;
+      final path = File(entry['path'] as String);
+      expect(path.lengthSync(), entry['bytes'],
+          reason: entry['path'] as String);
+      expect(sha256.convert(path.readAsBytesSync()).toString(), entry['sha256'],
+          reason: entry['path'] as String);
+    }
+    for (final value in proof['scenes'] as List<dynamic>) {
+      final entry = value as Map<String, dynamic>;
+      expect(entry['ballXYObservations'], entry['frames'],
+          reason: entry['id'] as String);
+      expect(entry['maxPositionQuantizationErrorMeters'],
+          lessThanOrEqualTo(.005001));
+      expect(entry['maxPlayerSpeedMetersPerSecond'], lessThan(15));
+      expect(entry['annotationRationale'], isNotEmpty);
+      expect(entry['rosterMapping'], isNotEmpty);
+      expect(entry['coverageDecision'], isNotEmpty);
+    }
+  });
+
+  test('sparse visibility never interpolates or integrates through a gap', () {
+    final payload = jsonDecode(
+      File('assets/scan_pass_replay/scenes/de-bruyne-pressure-receive.json')
+          .readAsStringSync(),
+    ) as Map<String, dynamic>;
+    final playerIndex = (payload['players'] as List<dynamic>).indexWhere(
+      (value) => (value as Map<String, dynamic>)['id'] == 5821,
+    );
+    final flags = payload['visibility'] as List<dynamic>;
+    final frames = payload['frames'] as List<dynamic>;
+    for (final frame in <int>[53, 54, 55]) {
+      expect((flags[frame] as List<dynamic>)[playerIndex], 1);
+    }
+    // Introduce a missing observation away from any authored actor step. The
+    // gap behavior must not depend on a particular source clip's incidental gap.
+    (flags[54] as List<dynamic>)[playerIndex] = 0;
+    (frames[54] as List<dynamic>)[playerIndex * 2] = 0;
+    (frames[54] as List<dynamic>)[playerIndex * 2 + 1] = 0;
+    final data = RealMatchReplayData.fromJson(payload);
+    final deBruyne = data.playerIndex(5821);
+    expect(data.sample(5.3).players[deBruyne], isNotNull);
+    expect(data.sample(5.35).players[deBruyne], isNull);
+    expect(data.sample(5.4).players[deBruyne], isNull);
+    expect(data.sample(5.45).players[deBruyne], isNull);
+    expect(data.sample(5.5).players[deBruyne], isNotNull);
+    expect(() => data.motion.stateAt(5.4, deBruyne), throwsStateError);
+    expect(data.motion.stateAt(5.5, deBruyne).gaitPhase,
+        data.motion.stateAt(5.3, deBruyne).gaitPhase);
+    final camera =
+        RealMatchReplayCoachingPlan.forData(data).cameraAt(data, 5.4);
+    expect(camera.width, greaterThan(0));
+    expect(camera.height, greaterThan(0));
+    expect(camera.minX, greaterThanOrEqualTo(-data.pitchLength));
+    expect(camera.maxX, lessThanOrEqualTo(data.pitchLength));
+  });
+
+  test('opening play does not invent an off-camera famous player', () {
+    final data = scenes['de-bruyne-pressure-receive']!;
+    expect(data.scene.steps.first.actorId, 1152);
+    expect(data.playerPointAt(0, 5821), isNull);
+    expect(data.playerPointAt(1.2, 5821), isNotNull);
+    expect(
+        data.scene.steps
+            .where((step) => step.kind == RealMatchReplayStepKind.pass),
+        hasLength(3));
+  });
+
+  test('passes remain visible before a receiver enters broadcast coverage', () {
+    for (final example in <(String, double, int, double)>[
+      ('salah-right-recycle', 3.2, 11537, 4.4),
+      ('kroos-central-recycle', 7.5, 8886, 8.4),
+    ]) {
+      final (id, passTime, receiver, receiveTime) = example;
+      final data = scenes[id]!;
+      final plan = RealMatchReplayCoachingPlan.forData(data);
+      final step = data.stepAt(passTime);
+      expect(step.kind, RealMatchReplayStepKind.pass, reason: id);
+      expect(step.targetId, isNull, reason: id);
+      expect(data.playerPointAt(passTime, receiver), isNull, reason: id);
+      expect(
+          plan.moments.any((moment) =>
+              moment.time == passTime &&
+              moment.step.kind == RealMatchReplayStepKind.pass),
+          isTrue,
+          reason: id);
+      expect(data.stepAt(receiveTime).actorId, receiver, reason: id);
+      expect(data.playerPointAt(receiveTime, receiver), isNotNull, reason: id);
+    }
+  });
+
+  test('parser rejects malformed visibility and absent authored actors', () {
+    Map<String, dynamic> payload() => jsonDecode(
+          File(
+            'assets/scan_pass_replay/scenes/de-bruyne-pressure-receive.json',
+          ).readAsStringSync(),
+        ) as Map<String, dynamic>;
+
+    final wrongWidth = payload();
+    (wrongWidth['visibility'] as List<dynamic>).first = <int>[1];
+    expect(
+        () => RealMatchReplayData.fromJson(wrongWidth), throwsFormatException);
+
+    final hiddenCoordinate = payload();
+    final visible = hiddenCoordinate['visibility'] as List<dynamic>;
+    final frames = hiddenCoordinate['frames'] as List<dynamic>;
+    final hiddenPlayer = (visible.first as List<dynamic>).indexOf(0);
+    expect(hiddenPlayer, greaterThanOrEqualTo(0));
+    (frames.first as List<dynamic>)[hiddenPlayer * 2] = 1;
+    expect(() => RealMatchReplayData.fromJson(hiddenCoordinate),
+        throwsFormatException);
+
+    final hiddenActor = payload();
+    final players = hiddenActor['players'] as List<dynamic>;
+    final firstVisibility =
+        (hiddenActor['visibility'] as List<dynamic>).first as List<dynamic>;
+    final firstHidden = firstVisibility.indexOf(0);
+    final hiddenId =
+        (players[firstHidden] as Map<String, dynamic>)['id'] as int;
+    ((hiddenActor['scene'] as Map<String, dynamic>)['steps'] as List<dynamic>)
+        .first['actorId'] = hiddenId;
+    expect(
+        () => RealMatchReplayData.fromJson(hiddenActor), throwsFormatException);
+
+    final absentFocus = payload();
+    final scene = absentFocus['scene'] as Map<String, dynamic>;
+    final focus = scene['focusPlayerId'] as int;
+    final focusIndex = (absentFocus['players'] as List<dynamic>).indexWhere(
+      (value) => (value as Map<String, dynamic>)['id'] == focus,
+    );
+    final absentFrames = absentFocus['frames'] as List<dynamic>;
+    final absentVisibility = absentFocus['visibility'] as List<dynamic>;
+    for (var index = 0; index < absentFrames.length; index++) {
+      (absentVisibility[index] as List<dynamic>)[focusIndex] = 0;
+      (absentFrames[index] as List<dynamic>)[focusIndex * 2] = 0;
+      (absentFrames[index] as List<dynamic>)[focusIndex * 2 + 1] = 0;
+    }
+    expect(
+        () => RealMatchReplayData.fromJson(absentFocus), throwsFormatException);
+  });
+
+  test('XY-only scenes never expose inferred height', () {
+    final deBruyne = scenes['de-bruyne-pressure-receive']!;
+    final messi = scenes['messi-right-connection']!;
+    expect(deBruyne.ballHeightAvailable, isTrue);
+    expect(deBruyne.frames.any((frame) => frame.last != 0), isTrue);
+    expect(messi.ballHeightAvailable, isFalse);
+    expect(messi.frames.every((frame) => frame.last == 0), isTrue);
+    expect(messi.sample(4.25).ball.z, 0);
+  });
+
+  test('visible anonymous team tracks stay drawable without invented identity',
+      () {
+    final payload = jsonDecode(
+      File(
+        'assets/scan_pass_replay/scenes/de-bruyne-pressure-receive.json',
+      ).readAsStringSync(),
+    ) as Map<String, dynamic>;
+    final usedIds = <int>{
+      ((payload['scene'] as Map<String, dynamic>)['focusPlayerId'] as int),
+    };
+    for (final value in (payload['scene'] as Map<String, dynamic>)['steps']
+        as List<dynamic>) {
+      final step = value as Map<String, dynamic>;
+      for (final key in <String>['actorId', 'targetId', 'secondaryId']) {
+        if (step[key] case final int id) usedIds.add(id);
+      }
+    }
+    final players = payload['players'] as List<dynamic>;
+    final anonymousIndex = players.indexWhere(
+      (value) => !usedIds.contains((value as Map<String, dynamic>)['id']),
+    );
+    expect(anonymousIndex, greaterThanOrEqualTo(0));
+    final anonymous = players[anonymousIndex] as Map<String, dynamic>;
+    anonymous
+      ..['number'] = null
+      ..['name'] = null
+      ..['trackId'] = 99001;
+
+    final data = RealMatchReplayData.fromJson(payload);
+    expect(data.players[anonymousIndex].identified, isFalse);
+    expect(data.players[anonymousIndex].trackId, 99001);
+    final visibleFrame = data.visibility.indexWhere(
+      (row) => row[anonymousIndex] == 1,
+    );
+    expect(visibleFrame, greaterThanOrEqualTo(0));
+    expect(
+      data.sample(visibleFrame / data.fps).players[anonymousIndex],
+      isNotNull,
     );
   });
 
@@ -259,17 +529,17 @@ void main() {
 
     for (var index = 0; index < data.players.length; index++) {
       expect(
-        rendered.players[index].x,
+        rendered.players[index]!.x,
         inInclusiveRange(
-          math.min(before.players[index].x, after.players[index].x),
-          math.max(before.players[index].x, after.players[index].x),
+          math.min(before.players[index]!.x, after.players[index]!.x),
+          math.max(before.players[index]!.x, after.players[index]!.x),
         ),
       );
       expect(
-        rendered.players[index].y,
+        rendered.players[index]!.y,
         inInclusiveRange(
-          math.min(before.players[index].y, after.players[index].y),
-          math.max(before.players[index].y, after.players[index].y),
+          math.min(before.players[index]!.y, after.players[index]!.y),
+          math.max(before.players[index]!.y, after.players[index]!.y),
         ),
       );
     }

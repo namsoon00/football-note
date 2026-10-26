@@ -22391,6 +22391,16 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String realMatchReplaySelectedMatch(Object home, Object away) {
+    return '$home 대 $away';
+  }
+
+  @override
+  String realMatchReplaySceneDateClock(Object date, Object clock) {
+    return '$date · $clock';
+  }
+
+  @override
   String get realMatchReplayViewLabel => '경기장 보기';
 
   @override
@@ -22408,6 +22418,14 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get realMatchReplayTrackingDisclosure =>
       'SkillCorner · 추적 위치 · 절차형 몸동작 · 유니폼 간략화';
+
+  @override
+  String get realMatchReplayBroadcastDisclosure =>
+      'SkillCorner 중계 영상에서 추정한 위치를 재생합니다. 화면 밖 선수는 생략하며, 패스·운반 표시는 공 소유 정보와 이동 경로를 바탕으로 정리했습니다. 선수 자세와 유니폼 디자인은 간략히 표현했습니다.';
+
+  @override
+  String get realMatchReplayBallHeightUnavailable =>
+      '공의 높이 기록이 일부 없어, 이 장면은 평면으로 표시합니다.';
 
   @override
   String realMatchReplayPoseAction(Object number) {
@@ -22621,7 +22639,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get replayOutcomeLost => '소유권 상실';
 
   @override
-  String get replayOutcomeEnd => '장면 종료';
+  String get replayOutcomeEnd => '기록 구간 종료 · 플레이는 계속됨';
 
   @override
   String get replaySceneTransitionWing => '역습에서 측면 공간으로';
@@ -22747,6 +22765,41 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get replayFocusCarryTurnover =>
       '드리블의 진행 방향과 접근하는 수비를 함께 보고 이후 전개까지 보세요.';
+
+  @override
+  String get replaySceneDeBruynePressureReceive => '더 브라위너의 압박 속 측면 연결';
+
+  @override
+  String get replayFocusDeBruynePressureReceive =>
+      '압박이 가까워질 때 더 브라위너가 멘디에게 연결하는 패스 길을 보세요.';
+
+  @override
+  String get replaySceneSalahRightRecycle => '살라가 시작하는 오른쪽 재전개';
+
+  @override
+  String get replayFocusSalahRightRecycle =>
+      '살라에서 고메스, 알렉산더아놀드로 공이 이어질 때 생기는 패스 각도를 보세요.';
+
+  @override
+  String get replaySceneMessiRightConnection => '메시, 오른쪽 운반 후 세메두 연결';
+
+  @override
+  String get replayFocusMessiRightConnection =>
+      '메시가 공을 운반한 뒤 세메두에게 연결하는 동안, 수비와 측면 공간의 간격을 보세요.';
+
+  @override
+  String get replaySceneKroosCentralRecycle => '크로스에서 카세미루로 중앙 재전개';
+
+  @override
+  String get replayFocusKroosCentralRecycle =>
+      '크로스가 카세미루에게 연결한 뒤 바란 쪽으로 공이 이어지는 패스 각도를 보세요.';
+
+  @override
+  String get replaySceneViniciusCarryInside => '비니시우스, 안쪽 운반 후 크로스 연결';
+
+  @override
+  String get replayFocusViniciusCarryInside =>
+      '비니시우스가 공을 운반한 뒤 크로스에게 내주고, 벤제마 쪽으로 연결되는 흐름을 보세요.';
 
   @override
   String get realMatchReplayExpandPitch => '경기장 크게 보기';

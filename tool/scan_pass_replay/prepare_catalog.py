@@ -16,6 +16,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 ASSETS = REPO / "assets/scan_pass_replay"
 COMMIT = "4340d274572876239c154c90bc507a9b3250a656"
+SOURCE_URL = f"https://github.com/SkillCorner/opendata/tree/{COMMIT}"
 JOINTS = [
     "nose", "neck", "lShoulder", "rShoulder", "lElbow", "rElbow",
     "lWrist", "rWrist", "lHip", "rHip", "lKnee", "rKnee",
@@ -354,7 +355,9 @@ def main():
                     raw[n] = frame
         for spec in selected:
             built[spec["id"]] = build_scene(spec, match, rows, raw)
-    catalog = dict(version=1, sourceCommit=COMMIT, scenes=[])
+    catalog = dict(
+        version=1, sourceCommit=COMMIT, sourceUrl=SOURCE_URL, scenes=[]
+    )
     derived = []
     for spec in specs:
         data, proof = original_scene(spec) if spec.get("original") else built[spec["id"]]
@@ -373,15 +376,48 @@ def main():
         proof["sha256"] = digest(path)
         proofs.append(proof)
         derived.append(dict(path=relative, bytes=path.stat().st_size, sha256=digest(path)))
+    historical_catalog_path = ASSETS / "historical-catalog.json"
+    if historical_catalog_path.exists():
+        historical_catalog = read_json(historical_catalog_path)
+        if historical_catalog.get("sourceCommit") != (
+            "1ed50b775f93075c2a6d00d0d795f13b7b89709e"
+        ):
+            raise ValueError("Unexpected historical catalog revision")
+        historical_ids = {entry["id"] for entry in historical_catalog["scenes"]}
+        if historical_ids & {entry["id"] for entry in catalog["scenes"]}:
+            raise ValueError("Historical catalog duplicates a current scene id")
+        catalog["scenes"] = historical_catalog["scenes"] + catalog["scenes"]
     save(ASSETS / "catalog.json", catalog)
     save(ASSETS / "catalog-proof.json", dict(sourceCommit=COMMIT, scenes=proofs), pretty=True)
-    for name in ("catalog.json", "catalog-proof.json"):
+    mixed_proof = {
+        "catalog": {
+            "path": "assets/scan_pass_replay/catalog.json",
+            "bytes": (ASSETS / "catalog.json").stat().st_size,
+            "sha256": digest(ASSETS / "catalog.json"),
+        },
+        "sourceCommits": sorted(
+            {entry.get("sourceCommit", COMMIT) for entry in catalog["scenes"]}
+        ),
+        "sceneCount": len(catalog["scenes"]),
+        "scenes": [
+            {
+                "id": entry["id"],
+                "sourceCommit": entry.get("sourceCommit", COMMIT),
+                "asset": entry["asset"],
+                "sha256": digest(REPO / entry["asset"]),
+            }
+            for entry in catalog["scenes"]
+        ],
+    }
+    save(ASSETS / "mixed-catalog-proof.json", mixed_proof, pretty=True)
+    for name in ("catalog.json", "catalog-proof.json", "mixed-catalog-proof.json"):
         path = ASSETS / name
         derived.append(dict(path=path.relative_to(REPO).as_posix(), bytes=path.stat().st_size, sha256=digest(path)))
     manifest["derivedAssets"] = derived
-    manifest["matchIds"] = sorted({s["matchId"] for s in catalog["scenes"]})
+    manifest["matchIds"] = sorted({s["matchId"] for s in specs if not s.get("original")})
     save(ASSETS / "source-manifest.json", manifest, pretty=True)
-    print(f'Rebuilt {len(catalog["scenes"])} scenes from {len(manifest["matchIds"])} matches.')
+    print(f'Rebuilt {len(specs)} current scenes from {len(manifest["matchIds"])} matches.')
+    print(f'Mixed catalog contains {len(catalog["scenes"])} scenes.')
     print(f'Total scene payload: {sum(p["bytes"] for p in derived)} bytes.')
 
 

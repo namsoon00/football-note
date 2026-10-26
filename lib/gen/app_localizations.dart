@@ -39176,6 +39176,18 @@ abstract class AppLocalizations {
   String realMatchReplaySceneRowMeta(
       Object match, Object clock, Object duration);
 
+  /// No description provided for @realMatchReplaySelectedMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'{home} vs {away}'**
+  String realMatchReplaySelectedMatch(Object home, Object away);
+
+  /// No description provided for @realMatchReplaySceneDateClock.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {clock}'**
+  String realMatchReplaySceneDateClock(Object date, Object clock);
+
   /// No description provided for @realMatchReplayViewLabel.
   ///
   /// In en, this message translates to:
@@ -39211,6 +39223,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SkillCorner · tracked positions · procedural body motion · simplified kits'**
   String get realMatchReplayTrackingDisclosure;
+
+  /// No description provided for @realMatchReplayBroadcastDisclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'Positions are estimated from SkillCorner broadcast tracking. Off-camera players are omitted. Pass and carry markers are derived from possession and movement. Body motion and kit designs are simplified.'**
+  String get realMatchReplayBroadcastDisclosure;
+
+  /// No description provided for @realMatchReplayBallHeightUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Some ball-height samples are missing, so this scene is shown in 2D.'**
+  String get realMatchReplayBallHeightUnavailable;
 
   /// No description provided for @realMatchReplayPoseAction.
   ///
@@ -39535,7 +39559,7 @@ abstract class AppLocalizations {
   /// No description provided for @replayOutcomeEnd.
   ///
   /// In en, this message translates to:
-  /// **'sequence ended'**
+  /// **'recorded segment ended; play continues'**
   String get replayOutcomeEnd;
 
   /// No description provided for @replaySceneTransitionWing.
@@ -39777,6 +39801,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Watch the carry direction and approaching defender together, then follow what happens next.'**
   String get replayFocusCarryTurnover;
+
+  /// No description provided for @replaySceneDeBruynePressureReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'De Bruyne connects wide under pressure'**
+  String get replaySceneDeBruynePressureReceive;
+
+  /// No description provided for @replayFocusDeBruynePressureReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the passing lane from De Bruyne to Mendy as pressure closes in.'**
+  String get replayFocusDeBruynePressureReceive;
+
+  /// No description provided for @replaySceneSalahRightRecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Salah starts a right-side recycle'**
+  String get replaySceneSalahRightRecycle;
+
+  /// No description provided for @replayFocusSalahRightRecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the passing angles as the ball moves from Salah through Gomez to Alexander-Arnold.'**
+  String get replayFocusSalahRightRecycle;
+
+  /// No description provided for @replaySceneMessiRightConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Messi carries on the right, then finds Semedo'**
+  String get replaySceneMessiRightConnection;
+
+  /// No description provided for @replayFocusMessiRightConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the gaps between defenders and the wide space as Messi carries and connects with Semedo.'**
+  String get replayFocusMessiRightConnection;
+
+  /// No description provided for @replaySceneKroosCentralRecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Kroos recycles through Casemiro'**
+  String get replaySceneKroosCentralRecycle;
+
+  /// No description provided for @replayFocusKroosCentralRecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the passing angles as Kroos connects with Casemiro and the ball continues toward Varane.'**
+  String get replayFocusKroosCentralRecycle;
+
+  /// No description provided for @replaySceneViniciusCarryInside.
+  ///
+  /// In en, this message translates to:
+  /// **'Vinícius carries inside, then links with Kroos'**
+  String get replaySceneViniciusCarryInside;
+
+  /// No description provided for @replayFocusViniciusCarryInside.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow Vinícius carrying, laying the ball back to Kroos, and the connection toward Benzema.'**
+  String get replayFocusViniciusCarryInside;
 
   /// No description provided for @realMatchReplayExpandPitch.
   ///

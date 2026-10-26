@@ -163,13 +163,18 @@
     },
     {
       "path": "assets/scan_pass_replay/catalog.json",
-      "bytes": 6398,
-      "sha256": "d35fe35a7335cf2f499ad5f6494c3bc84d4c9d367b17003307e42f2f2d992985"
+      "bytes": 9095,
+      "sha256": "3c09bab7cda42573b2db327a26ad01abe6057d41c1ae846803cefa8a40d1de11"
     },
     {
       "path": "assets/scan_pass_replay/catalog-proof.json",
       "bytes": 13791,
       "sha256": "b18a283c66c8b1cfa68912e0727d6a0ca3529b69b02c1c69a4c3cbbe0fa1a3c9"
+    },
+    {
+      "path": "assets/scan_pass_replay/mixed-catalog-proof.json",
+      "bytes": 6925,
+      "sha256": "5fdf22ea3ca07023fd33fa8803bb0b1d005761f79936e7f9c3008edc24d9da3a"
     }
   ],
   "matchIds": [

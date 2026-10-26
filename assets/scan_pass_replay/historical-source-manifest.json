@@ -1,0 +1,95 @@
+{
+  "source": "SkillCorner Open Data",
+  "repository": "https://github.com/SkillCorner/opendata",
+  "commit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+  "license": "MIT",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 5071,
+      "sha256": "14bda265b60d36f28bcfdfaf32ce380ef05309ea02f6f81966359baf857bd3fb",
+      "url": "https://raw.githubusercontent.com/SkillCorner/opendata/1ed50b775f93075c2a6d00d0d795f13b7b89709e/README.md"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1097,
+      "sha256": "3384cc66ffd008209759af5e6328677eabded72756fb1f56f4f82e68e9b3c6eb",
+      "url": "https://raw.githubusercontent.com/SkillCorner/opendata/1ed50b775f93075c2a6d00d0d795f13b7b89709e/LICENSE"
+    },
+    {
+      "path": "data/matches/4039/match_data.json",
+      "bytes": 15835,
+      "sha256": "87d52a56f94b04060553f8bffb70759a29f02cb2efb52bbf09862504ec7ac96e",
+      "url": "https://raw.githubusercontent.com/SkillCorner/opendata/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/4039/match_data.json"
+    },
+    {
+      "path": "data/matches/4039/structured_data.json",
+      "bytes": 55724843,
+      "sha256": "f42a98795e223925629a9db4fa1ddb616cadc046a19b151e4e6a71378a297ac2",
+      "url": "https://raw.githubusercontent.com/SkillCorner/opendata/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/4039/structured_data.json"
+    },
+    {
+      "path": "data/matches/3442/match_data.json",
+      "bytes": 14421,
+      "sha256": "5d20851a60fe0284ad01b69fdbf6bf2295684ed7839f300b223f2a10f7a918f9",
+      "url": "https://raw.githubusercontent.com/SkillCorner/opendata/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442/match_data.json"
+    },
+    {
+      "path": "data/matches/3442/structured_data.json",
+      "bytes": 69271465,
+      "sha256": "badc64a5dd43aa7b2a58ae109c2378d95f81f74be55e0aafa4c089e8d12a0102",
+      "url": "https://raw.githubusercontent.com/SkillCorner/opendata/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442/structured_data.json"
+    }
+  ],
+  "derivedAssets": [
+    {
+      "path": "assets/scan_pass_replay/scenes/de-bruyne-pressure-receive.json",
+      "bytes": 21524,
+      "sha256": "a3149763412eb0138dad6abaf5ff11045f267cde100ffaf635b31188b73c232c"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/salah-right-recycle.json",
+      "bytes": 29118,
+      "sha256": "815fb79b4890b4b3ffbdb122dfb4db84c0caa7ac45ed192d49e4cb606386601e"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/messi-right-connection.json",
+      "bytes": 28898,
+      "sha256": "b67138630444d9a3c8f57c5ba0ae7e01d5c296ebdf2047f115bf7494fae8941e"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/kroos-central-recycle.json",
+      "bytes": 25785,
+      "sha256": "894f5313ac9592cd9207e5f948c8bf435f104980c406b992f4ca8ffeab71c84d"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/vinicius-carry-inside.json",
+      "bytes": 24441,
+      "sha256": "77d7b4eb18d9d95607088796b7efd342c56bdf452f9f242772b7bcf884019839"
+    },
+    {
+      "path": "assets/scan_pass_replay/historical-catalog.json",
+      "bytes": 2779,
+      "sha256": "84ed096f68eda6a14188527a1b7dc9d58fb160058fbd58110eb827e38884bcfd"
+    },
+    {
+      "path": "assets/scan_pass_replay/historical-catalog-proof.json",
+      "bytes": 39218,
+      "sha256": "aa68869ec8f427584d3a57a6981cb65a1c090f6fe09665a133ff2fff673d23e9"
+    },
+    {
+      "path": "assets/scan_pass_replay/catalog.json",
+      "bytes": 9095,
+      "sha256": "3c09bab7cda42573b2db327a26ad01abe6057d41c1ae846803cefa8a40d1de11"
+    },
+    {
+      "path": "assets/scan_pass_replay/mixed-catalog-proof.json",
+      "bytes": 6925,
+      "sha256": "5fdf22ea3ca07023fd33fa8803bb0b1d005761f79936e7f9c3008edc24d9da3a"
+    }
+  ],
+  "matchIds": [
+    3442,
+    4039
+  ]
+}

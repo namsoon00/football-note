@@ -27,6 +27,13 @@ enum RealMatchReplayStepKind {
 
 enum RealMatchReplayOutcome { shot, kept, lost, end }
 
+enum RealMatchReplayCoverage { complete, broadcastVisible }
+
+enum RealMatchReplayAnnotationSource { provider, derived }
+
+const String skillCornerCurrentSourceUrl =
+    'https://github.com/SkillCorner/opendata/tree/4340d274572876239c154c90bc507a9b3250a656';
+
 class RealMatchReplayPoint {
   final double x;
   final double y;
@@ -48,10 +55,11 @@ class RealMatchReplayPoint {
 
 class RealMatchReplayPlayer {
   final int id;
-  final int number;
-  final String name;
+  final int? number;
+  final String? name;
   final bool home;
   final bool keeper;
+  final int? trackId;
 
   const RealMatchReplayPlayer({
     required this.id,
@@ -59,7 +67,10 @@ class RealMatchReplayPlayer {
     required this.name,
     required this.home,
     required this.keeper,
+    this.trackId,
   });
+
+  bool get identified => number != null && name != null;
 }
 
 class RealMatchReplayMatch {
@@ -205,6 +216,8 @@ class RealMatchReplayCatalogScene {
   final double startClock;
   final double duration;
   final bool hasPose;
+  final String sourceCommit;
+  final String sourceUrl;
 
   const RealMatchReplayCatalogScene({
     required this.id,
@@ -219,17 +232,21 @@ class RealMatchReplayCatalogScene {
     required this.startClock,
     required this.duration,
     required this.hasPose,
+    required this.sourceCommit,
+    required this.sourceUrl,
   });
 }
 
 class RealMatchReplayCatalog {
   final int version;
   final String sourceCommit;
+  final String sourceUrl;
   final List<RealMatchReplayCatalogScene> scenes;
 
   const RealMatchReplayCatalog({
     required this.version,
     required this.sourceCommit,
+    required this.sourceUrl,
     required this.scenes,
   });
 
@@ -244,6 +261,8 @@ class RealMatchReplayCatalog {
   factory RealMatchReplayCatalog.fromJson(Map<String, dynamic> json) {
     final version = _integer(json, 'version');
     final sourceCommit = _string(json, 'sourceCommit');
+    final sourceUrl =
+        _optionalString(json, 'sourceUrl') ?? skillCornerCurrentSourceUrl;
     final scenes = _list(json, 'scenes').map((value) {
       final item = _asMap(value, 'catalog scene');
       return RealMatchReplayCatalogScene(
@@ -263,9 +282,14 @@ class RealMatchReplayCatalog {
         startClock: _number(item, 'startClock'),
         duration: _number(item, 'duration'),
         hasPose: _boolean(item, 'hasPose'),
+        sourceCommit: _optionalString(item, 'sourceCommit') ?? sourceCommit,
+        sourceUrl: _optionalString(item, 'sourceUrl') ?? sourceUrl,
       );
     }).toList(growable: false);
-    if (version != 1 || sourceCommit.isEmpty || scenes.isEmpty) {
+    if (version != 1 ||
+        sourceCommit.isEmpty ||
+        !_validWebUrl(sourceUrl) ||
+        scenes.isEmpty) {
       throw const FormatException('Unsupported or empty replay catalog.');
     }
     final ids = <String>{};
@@ -276,6 +300,8 @@ class RealMatchReplayCatalog {
           scene.focusKey.isEmpty ||
           scene.home.isEmpty ||
           scene.away.isEmpty ||
+          scene.sourceCommit.isEmpty ||
+          !_validWebUrl(scene.sourceUrl) ||
           !_finitePositive(scene.duration) ||
           !_finiteNonNegative(scene.startClock) ||
           !ids.add(scene.id)) {
@@ -286,6 +312,7 @@ class RealMatchReplayCatalog {
     return RealMatchReplayCatalog(
       version: version,
       sourceCommit: sourceCommit,
+      sourceUrl: sourceUrl,
       scenes: scenes,
     );
   }
@@ -294,6 +321,7 @@ class RealMatchReplayCatalog {
       RealMatchReplayCatalog(
         version: 1,
         sourceCommit: data.sourceCommit,
+        sourceUrl: data.sourceUrl,
         scenes: <RealMatchReplayCatalogScene>[
           RealMatchReplayCatalogScene(
             id: data.scene.id,
@@ -308,6 +336,8 @@ class RealMatchReplayCatalog {
             startClock: data.startClock,
             duration: data.duration,
             hasPose: data.hasRecordedPose,
+            sourceCommit: data.sourceCommit,
+            sourceUrl: data.sourceUrl,
           ),
         ],
       );
@@ -322,7 +352,7 @@ class RealMatchReplayPose {
 class RealMatchReplaySample {
   final double time;
   final double sourceFrame;
-  final List<RealMatchReplayPoint> players;
+  final List<RealMatchReplayPoint?> players;
   final RealMatchReplayPoint ball;
 
   const RealMatchReplaySample({
@@ -350,9 +380,14 @@ class RealMatchReplayData {
   final List<RealMatchReplayPlayer> players;
   final List<String> joints;
   final List<Int32List> frames;
+  final List<Uint8List> visibility;
   final List<List<Int16List?>> poses;
   final List<RealMatchReplayEvent> events;
   final String sourceCommit;
+  final String sourceUrl;
+  final RealMatchReplayCoverage coverage;
+  final RealMatchReplayAnnotationSource annotationSource;
+  final bool ballHeightAvailable;
   final RealMatchReplayScene scene;
 
   late final Map<int, int> _playerIndexById = <int, int>{
@@ -373,9 +408,14 @@ class RealMatchReplayData {
     required this.players,
     required this.joints,
     required this.frames,
+    required this.visibility,
     required this.poses,
     required this.events,
     required this.sourceCommit,
+    required this.sourceUrl,
+    required this.coverage,
+    required this.annotationSource,
+    required this.ballHeightAvailable,
     required this.scene,
   });
 
@@ -400,10 +440,11 @@ class RealMatchReplayData {
       final item = _asMap(value, 'player');
       return RealMatchReplayPlayer(
         id: _integer(item, 'id'),
-        number: _integer(item, 'number'),
-        name: _string(item, 'name'),
+        number: _optionalInteger(item, 'number'),
+        name: _optionalString(item, 'name'),
         home: _boolean(item, 'home'),
         keeper: _boolean(item, 'keeper'),
+        trackId: _optionalInteger(item, 'trackId'),
       );
     }).toList(growable: false);
     final joints = jointJson
@@ -423,6 +464,30 @@ class RealMatchReplayData {
         row.map((entry) => _asInteger(entry, 'frame value')).toList(),
       );
     }).toList(growable: false);
+    final visibilityValue = json['visibility'];
+    final visibility = visibilityValue == null
+        ? List<Uint8List>.generate(
+            frames.length,
+            (_) => Uint8List.fromList(List<int>.filled(players.length, 1)),
+            growable: false,
+          )
+        : _asList(visibilityValue, 'visibility').map((value) {
+            final row = _asList(value, 'visibility frame');
+            if (row.length != players.length) {
+              throw const FormatException(
+                'Each visibility frame must match the active roster.',
+              );
+            }
+            return Uint8List.fromList(row.map((entry) {
+              final flag = _asInteger(entry, 'visibility value');
+              if (flag != 0 && flag != 1) {
+                throw const FormatException(
+                  'Replay visibility values must be zero or one.',
+                );
+              }
+              return flag;
+            }).toList(growable: false));
+          }).toList(growable: false);
     final poseWidth = joints.length * 3;
     final poses = poseJson.map((value) {
       final row = _asList(value, 'pose frame');
@@ -487,9 +552,27 @@ class RealMatchReplayData {
       players: players,
       joints: joints,
       frames: frames,
+      visibility: visibility,
       poses: poses,
       events: events,
       sourceCommit: _string(json, 'sourceCommit'),
+      sourceUrl:
+          _optionalString(json, 'sourceUrl') ?? skillCornerCurrentSourceUrl,
+      coverage: _enumByName(
+        RealMatchReplayCoverage.values,
+        _optionalString(json, 'coverage') ??
+            RealMatchReplayCoverage.complete.name,
+        'coverage',
+      ),
+      annotationSource: _enumByName(
+        RealMatchReplayAnnotationSource.values,
+        _optionalString(json, 'annotationSource') ??
+            RealMatchReplayAnnotationSource.provider.name,
+        'annotation source',
+      ),
+      ballHeightAvailable: json['ballHeightAvailable'] == null
+          ? true
+          : _boolean(json, 'ballHeightAvailable'),
       scene: scene,
     );
     data._validate();
@@ -513,6 +596,12 @@ class RealMatchReplayData {
   }
 
   RealMatchReplayPlayer player(int playerId) => players[playerIndex(playerId)];
+
+  bool isVisibleAtFrame(int frameIndex, int playerIndex) =>
+      visibility[frameIndex][playerIndex] == 1;
+
+  RealMatchReplayPoint? playerPointAt(double time, int playerId) =>
+      renderSample(time).players[playerIndex(playerId)];
 
   RealMatchReplayStep stepAt(double time) =>
       scene.stepAt(time.clamp(0, duration));
@@ -548,13 +637,18 @@ class RealMatchReplayData {
     final b = frames[upper];
     double linear(int index) =>
         (a[index] + (b[index] - a[index]) * fraction) / 100;
-    double smooth(int index) {
+    double smooth(int index, int playerIndex) {
       if (!smoothPlayers || lower == upper || fraction == 0) {
         return linear(index);
       }
-      final previous = frames[math.max(0, lower - 1)][index].toDouble();
-      final next =
-          frames[math.min(frames.length - 1, upper + 1)][index].toDouble();
+      final previousFrame = math.max(0, lower - 1);
+      final nextFrame = math.min(frames.length - 1, upper + 1);
+      final previous = isVisibleAtFrame(previousFrame, playerIndex)
+          ? frames[previousFrame][index].toDouble()
+          : a[index].toDouble();
+      final next = isVisibleAtFrame(nextFrame, playerIndex)
+          ? frames[nextFrame][index].toDouble()
+          : b[index].toDouble();
       final p0 = a[index].toDouble();
       final p1 = b[index].toDouble();
       final m0 = (p1 - previous) / 2;
@@ -571,12 +665,18 @@ class RealMatchReplayData {
     return RealMatchReplaySample(
       time: clamped,
       sourceFrame: sourceFrame,
-      players: List<RealMatchReplayPoint>.generate(
+      players: List<RealMatchReplayPoint?>.generate(
         players.length,
-        (index) => RealMatchReplayPoint(
-          smooth(index * 2),
-          smooth(index * 2 + 1),
-        ),
+        (index) {
+          if (!isVisibleAtFrame(lower, index) ||
+              (fraction > 0 && !isVisibleAtFrame(upper, index))) {
+            return null;
+          }
+          return RealMatchReplayPoint(
+            smooth(index * 2, index),
+            smooth(index * 2 + 1, index),
+          );
+        },
         growable: false,
       ),
       // The recorded ball path remains linear; renderer smoothing never snaps
@@ -594,6 +694,7 @@ class RealMatchReplayData {
       throw RangeError.index(playerIndex, players, 'playerIndex');
     }
     if (poses.isEmpty) return null;
+    if (renderSample(time).players[playerIndex] == null) return null;
     final clamped = time.clamp(0.0, duration);
     final poseFrame = (clamped * fps / poseStep).clamp(0.0, poses.length - 1.0);
     final lower = poseFrame.floor();
@@ -640,7 +741,9 @@ class RealMatchReplayData {
         match.away.isEmpty ||
         players.isEmpty ||
         frames.isEmpty ||
-        sourceCommit.isEmpty) {
+        sourceCommit.isEmpty ||
+        !_validWebUrl(sourceUrl) ||
+        visibility.length != frames.length) {
       throw const FormatException('Invalid replay metadata.');
     }
     final lastFrameTime = (frames.length - 1) / fps;
@@ -649,7 +752,12 @@ class RealMatchReplayData {
     }
     final ids = <int>{};
     for (final player in players) {
-      if (!ids.add(player.id) || player.number < 0 || player.name.isEmpty) {
+      final validIdentity = player.identified
+          ? player.number! >= 0 && player.name!.isNotEmpty
+          : player.number == null &&
+              player.name == null &&
+              player.trackId != null;
+      if (!ids.add(player.id) || !validIdentity) {
         throw const FormatException('Invalid or duplicate replay player.');
       }
     }
@@ -658,15 +766,28 @@ class RealMatchReplayData {
       throw const FormatException('Invalid replay joint names.');
     }
     final coordinateLimit = math.max(pitchLength, pitchWidth) * 2 * 100;
-    for (final frame in frames) {
+    for (var frameIndex = 0; frameIndex < frames.length; frameIndex++) {
+      final frame = frames[frameIndex];
+      final visible = visibility[frameIndex];
+      if (!visible.contains(1)) {
+        throw const FormatException('Replay frame has no visible players.');
+      }
       for (var index = 0; index < players.length * 2; index++) {
-        if (frame[index].abs() > coordinateLimit) {
+        final playerIndex = index ~/ 2;
+        if (visible[playerIndex] == 0 && frame[index] != 0) {
+          throw const FormatException(
+            'Hidden replay player coordinates must be empty.',
+          );
+        }
+        if (visible[playerIndex] == 1 && frame[index].abs() > coordinateLimit) {
           throw const FormatException(
               'Replay player coordinate is out of range.');
         }
       }
       final ballZ = frame.last;
-      if (ballZ < -500 || ballZ > 10000) {
+      if ((!ballHeightAvailable && ballZ != 0) ||
+          ballZ < -500 ||
+          ballZ > 10000) {
         throw const FormatException('Replay ball height is out of range.');
       }
     }
@@ -687,7 +808,10 @@ class RealMatchReplayData {
         throw const FormatException('Invalid or duplicate replay event.');
       }
     }
-    if (!ids.contains(scene.focusPlayerId) ||
+    final focusIndex = _playerIndexById[scene.focusPlayerId];
+    if (focusIndex == null ||
+        !players[focusIndex].identified ||
+        !visibility.any((row) => row[focusIndex] == 1) ||
         scene.attackDirection.abs() != 1 ||
         scene.id.isEmpty ||
         scene.titleKey.isEmpty ||
@@ -713,13 +837,20 @@ class RealMatchReplayData {
     }
     var previous = -1.0;
     for (final step in scene.steps) {
+      bool visibleIdentified(int? id) {
+        if (id == null) return true;
+        final index = _playerIndexById[id];
+        if (index == null || !players[index].identified) return false;
+        return sample(step.time).players[index] != null;
+      }
+
       if (!step.time.isFinite ||
           step.time <= previous ||
           step.time < 0 ||
           step.time >= duration ||
-          !ids.contains(step.actorId) ||
-          (step.targetId != null && !ids.contains(step.targetId)) ||
-          (step.secondaryId != null && !ids.contains(step.secondaryId)) ||
+          !visibleIdentified(step.actorId) ||
+          !visibleIdentified(step.targetId) ||
+          !visibleIdentified(step.secondaryId) ||
           (step.end != null &&
               (!step.end!.isFinite ||
                   step.end! < step.time ||
@@ -865,10 +996,24 @@ class RealMatchReplayCoachingPlan {
       data,
       math.min(segment + 1, moments.length - 1),
     );
-    return RealMatchReplayCamera.lerp(
+    final interpolated = RealMatchReplayCamera.lerp(
       currentCamera,
       nextCamera,
       cameraProgress,
+    );
+    final closePadding =
+        data.coverage == RealMatchReplayCoverage.broadcastVisible ? 5.0 : 0.0;
+    final padding = switch ((currentClose, nextClose)) {
+      (false, false) => 0.0,
+      (true, true) => closePadding,
+      (false, true) => closePadding * cameraProgress,
+      (true, false) => closePadding * (1 - cameraProgress),
+    };
+    return RealMatchReplayCamera(
+      minX: interpolated.minX - padding,
+      maxX: interpolated.maxX + padding,
+      minY: interpolated.minY - padding,
+      maxY: interpolated.maxY + padding,
     );
   }
 
@@ -977,6 +1122,7 @@ class RealMatchReplayCoachingPlan {
     final to = math.min(data.duration, from + 1);
     final a = data.renderSample(from).players[data.playerIndex(targetId)];
     final b = data.renderSample(to).players[data.playerIndex(targetId)];
+    if (a == null || b == null) return false;
     return _distance(a, b) >= 1.2;
   }
 
@@ -995,6 +1141,7 @@ class RealMatchReplayCoachingPlan {
     final a = data.renderSample(step.time).players[player];
     final b = data.renderSample(middle).players[player];
     final c = data.renderSample(end).players[player];
+    if (a == null || b == null || c == null) return false;
     if (_distance(a, b) < .5 || _distance(b, c) < .5) return false;
     final first = math.atan2(b.y - a.y, b.x - a.x);
     final second = math.atan2(c.y - b.y, c.x - b.x);
@@ -1019,11 +1166,14 @@ class RealMatchReplayCoachingPlan {
     final actor = steps.first.actorId;
     final actorPlayer = data.player(actor);
     final actorPoint = sample.players[data.playerIndex(actor)];
+    if (actorPoint == null) return data.scene.camera;
     int? nearestOpponent;
     var nearestDistance = double.infinity;
     for (var index = 0; index < data.players.length; index++) {
       if (data.players[index].home == actorPlayer.home) continue;
-      final distance = _distance(actorPoint, sample.players[index]);
+      final opponentPoint = sample.players[index];
+      if (opponentPoint == null) continue;
+      final distance = _distance(actorPoint, opponentPoint);
       if (distance < nearestDistance) {
         nearestDistance = distance;
         nearestOpponent = data.players[index].id;
@@ -1032,7 +1182,8 @@ class RealMatchReplayCoachingPlan {
     if (nearestOpponent != null) ids.add(nearestOpponent);
     final points = <RealMatchReplayPoint>[
       sample.ball,
-      for (final id in ids) sample.players[data.playerIndex(id)],
+      for (final id in ids)
+        if (sample.players[data.playerIndex(id)] case final point?) point,
     ];
     var minX = points.first.x;
     var maxX = points.first.x;
@@ -1141,8 +1292,22 @@ class RealMatchReplayMotionModel {
       var hasHeading = false;
       var phase = player * .73;
       for (var frame = 0; frame < data.frames.length; frame++) {
-        final before = math.max(0, frame - 2);
-        final after = math.min(data.frames.length - 1, frame + 2);
+        if (!data.isVisibleAtFrame(frame, player)) {
+          _speeds[player][frame] = 0;
+          _headings[player][frame] = heading;
+          _phases[player][frame] = phase;
+          continue;
+        }
+        var before = frame;
+        var after = frame;
+        while (before > math.max(0, frame - 2) &&
+            data.isVisibleAtFrame(before - 1, player)) {
+          before--;
+        }
+        while (after < math.min(data.frames.length - 1, frame + 2) &&
+            data.isVisibleAtFrame(after + 1, player)) {
+          after++;
+        }
         final elapsed = math.max(dt, (after - before) * dt);
         final dx =
             (data.frames[after][player * 2] - data.frames[before][player * 2]) /
@@ -1163,7 +1328,9 @@ class RealMatchReplayMotionModel {
             heading = _shortestAngle(heading + delta);
           }
         }
-        if (frame > 0 && speed > .18) {
+        if (frame > 0 &&
+            data.isVisibleAtFrame(frame - 1, player) &&
+            speed > .18) {
           final stepX = (data.frames[frame][player * 2] -
                   data.frames[frame - 1][player * 2]) /
               100;
@@ -1188,6 +1355,10 @@ class RealMatchReplayMotionModel {
       throw RangeError.index(playerIndex, data.players, 'playerIndex');
     }
     final sample = data.renderSample(time);
+    final position = sample.players[playerIndex];
+    if (position == null) {
+      throw StateError('Motion is unavailable for a hidden replay player.');
+    }
     final frame = sample.sourceFrame;
     final lower = frame.floor();
     final upper = (lower + 1).clamp(0, data.frames.length - 1);
@@ -1198,7 +1369,7 @@ class RealMatchReplayMotionModel {
           _shortestAngle(_headings[playerIndex][upper] - aHeading) * fraction,
     );
     return RealMatchReplayMotionState(
-      position: sample.players[playerIndex],
+      position: position,
       speed: _lerp(
           _speeds[playerIndex][lower], _speeds[playerIndex][upper], fraction),
       heading: heading,
@@ -1389,6 +1560,13 @@ bool _finiteNonNegative(double value) => value.isFinite && value >= 0;
 
 bool _validColor(String value) =>
     RegExp(r'^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$').hasMatch(value);
+
+bool _validWebUrl(String value) {
+  final uri = Uri.tryParse(value);
+  return uri != null &&
+      (uri.scheme == 'https' || uri.scheme == 'http') &&
+      uri.host.isNotEmpty;
+}
 
 List<dynamic> _list(Map<String, dynamic> json, String key) =>
     _asList(json[key], key);
