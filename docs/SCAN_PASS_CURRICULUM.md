@@ -15,6 +15,21 @@ scrubber, speed choice, chapter row, manual camera control, compulsory choice,
 quiz, rating, score, countdown, synthetic defender AI, player control, or video
 link in this release.
 
+At a supported receive, pass, or carry action, the in-pitch badge offers
+an optional action close-up. It opens a dismissible sheet and replays only the
+bounded source interval at 0.65x with one local play/pause/replay action. The
+main replay pauses at the exact source instant used to open the sheet and stays
+there after close. Receive and pass views normally begin 0.5 seconds before the
+step and end no later than 1.2 seconds after it or the next authored action.
+Carry views run toward the recorded end/next action with a 3.5-second total cap.
+An observed-actor gap trims the interval; a window too short to show continuous
+observed movement is not offered.
+
+The badge follows the source action during playback too, so a short carry after
+receiving can be inspected even when both actions share one teaching stop.
+Orange marks the recorded ball path and the dashed player trace marks observed
+movement; the small legend identifies them inside the close-up.
+
 The original A-League source is SkillCorner Open Data at pinned revision
 `4340d274572876239c154c90bc507a9b3250a656`: Brisbane Roar v Perth Glory on
 2024-12-21, match 1925299, and Sydney FC v Adelaide United on 2025-02-01,
@@ -57,18 +72,26 @@ The source sheet discloses that distinction and the lack of measured pose. Each
 new scene stops at the selected recorded interval end instead of asserting an
 unseen completion, shot or goal.
 
-The public camera remains on one stable overview for the entire clip, covering
+The main public camera remains on one stable overview for the entire clip, covering
 the full pitch, all displayed player trajectories, the recorded ball and safe
-body/caption margins. The source-only automatic close camera remains a domain
-API with regression coverage. Body safety is reserved in screen pixels, so the
-pitch can fill the available space without wasting large world-space margins.
-Wide layouts use the available width; portrait layouts
-rotate the normalized attack upward, and both attack directions preserve equal
-world scale. The pitch contains one short cue and relevant trail or arrow, with
-layout avoidance for the ball and important bodies. There is no permanent
-mini-map, pose card, result panel, or fullscreen mode. Scene selection and
-source disclosure live in the single overflow menu, and scene changes start
-paused.
+body/caption margins. An optional detail sheet uses one fixed, substantially
+tighter camera calculated only from the selected actor's continuous observed
+points and recorded ball XYZ/XY. Body safety is still reserved in screen pixels,
+so enlarged players do not force a large empty world margin. The close-up shows
+the recorded actor and ball paths with one phase cue; it does not infer a contact
+frame, foot, touch count, feint, pass target, turn meaning, or ideal technique.
+Where source poses exist, those same samples are enlarged. Otherwise the sheet
+states that the path is enlarged and the pose is simplified. Wide layouts use
+the available width; portrait layouts rotate the normalized attack upward, and
+both attack directions preserve equal world scale.
+
+The detail sheet reserves a separate synchronized whole-pitch region for all 22
+displayed players, the selected player, and the fixed close-up rectangle.
+Historical reconstructed display positions retain the hollow marker there and
+never enter detail eligibility, interval, camera, trail, or caption evidence.
+There is no permanent mini-map, pose card, result panel, or fullscreen mode in
+the main viewer. Scene selection and source disclosure live in the single
+overflow menu, and scene changes start paused.
 
 Short landscape screens place the title, overflow and the same single playback
 action beside the pitch, preserving its full height instead of shrinking all
@@ -273,7 +296,8 @@ trajectories.
 
 ## UX and localization
 
-All 25 scene titles, spatial coaching cues, default replay controls, and
+All 25 scene titles, spatial coaching cues, default replay controls, optional
+action-detail titles/cues/disclosures/controls, and
 retained lesson text are localized in
 `lib/l10n/app_en.arb`, `app_ko.arb`, and
 `app_ja.arb` and accessed through generated localization classes. Generic role
@@ -284,11 +308,11 @@ their focal player, while match teams, date/clock and source revision remain
 discoverable in the header, library and overflow details. Names and colors do
 not imply licensed badges or a photographic match reconstruction.
 
-The default viewer is covered at 320/360 px portrait widths and 844x390 short
-landscape at 1.4 text scale in English, Korean, and Japanese, including light
-and dark themes. The title, pitch, cue, one bounded playback action, back
-navigation, and overflow remain available without a player-covering permanent
-panel.
+The default viewer and action detail are covered at 320/360 px portrait widths
+and 667x320/844x390 short landscape at 1.4 text scale in English, Korean, and
+Japanese, including close/back navigation. The title, close-up, cue, one local
+bounded playback action, dedicated 22-player overview, main back navigation,
+and overflow remain available without covering the focal actor or ball.
 
 ## Automated evidence and remaining limits
 
@@ -307,6 +331,12 @@ Focused tests cover:
 - one-control stop timing through the true duration, manual and lifecycle
   pause/resume, replay, scene selection behind overflow, paused scene changes,
   stale async load rejection, and retry;
+- action-detail source windows for receive/pass/carry, visibility-gap trimming,
+  endpoint clipping, pass routes without observed recipients, deterministic
+  0.65x end/replay behavior, main-time preservation, and safe disposal;
+- fixed source-only detail cameras, enlarged pose/trajectory rendering,
+  recorded-pose versus simplified-pose disclosure, XY-only height disclosure,
+  and synchronized 22-player context maps across EN/KO/JA compact layouts;
 - automatic context/close camera continuity and ball/relevant-actor visibility
   across all scenes, both attack directions, portrait normalization, and
   constrained light/dark layouts;

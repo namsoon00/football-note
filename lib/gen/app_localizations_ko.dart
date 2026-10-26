@@ -22494,6 +22494,88 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get realMatchReplayActionDetailAffordance => '동작 확대';
+
+  @override
+  String realMatchReplayOpenActionDetailLabel(Object action) {
+    return '$action 동작 확대 열기';
+  }
+
+  @override
+  String get realMatchReplayActionDetailClose => '동작 확대 닫기';
+
+  @override
+  String get realMatchReplayActionDetailPlay => '재생';
+
+  @override
+  String get realMatchReplayActionDetailSlowRate => '기록 장면 · 0.65배 느린 재생';
+
+  @override
+  String get realMatchReplayActionDetailReceiveTitle => '받은 뒤 공의 이동';
+
+  @override
+  String get realMatchReplayActionDetailPassTitle => '패스 방향';
+
+  @override
+  String get realMatchReplayActionDetailCarryTitle => '드리블 경로';
+
+  @override
+  String get realMatchReplayActionDetailReceiveBefore => '받기 전 접근 경로';
+
+  @override
+  String get realMatchReplayActionDetailReceiveAfter => '받은 뒤 이동 경로';
+
+  @override
+  String get realMatchReplayActionDetailPassBefore => '패스 전 이동';
+
+  @override
+  String get realMatchReplayActionDetailPassAfter => '기록된 공의 경로';
+
+  @override
+  String get realMatchReplayActionDetailCarryBefore => '드리블 전 움직임';
+
+  @override
+  String get realMatchReplayActionDetailCarryAfter => '기록된 드리블 경로';
+
+  @override
+  String get realMatchReplayActionDetailRecordedPose => '기록된 몸동작';
+
+  @override
+  String get realMatchReplayActionDetailSimplifiedPose => '간략화한 몸동작';
+
+  @override
+  String get realMatchReplayActionDetailHeightXyz => '공 높이 표시';
+
+  @override
+  String get realMatchReplayActionDetailHeightXy => '높이 기록 없음';
+
+  @override
+  String get realMatchReplayActionDetailOverviewTitle => '전체 팀 상황';
+
+  @override
+  String get realMatchReplayActionDetailOverviewReconstructed => '빈 원은 보완한 위치';
+
+  @override
+  String get realMatchReplayActionDetailOverviewSemantics =>
+      '표시된 22명 전체와 선택 선수, 확대 영역, 속이 빈 보완 위치 표시를 함께 보여주는 동기화된 전체 경기장 상황입니다.';
+
+  @override
+  String realMatchReplayActionDetailSemanticsRecorded(Object cue) {
+    return '선택 선수의 기록 자세 샘플과 기록된 공 경로를 보여주는 소스 기반 동작 확대: $cue.';
+  }
+
+  @override
+  String realMatchReplayActionDetailSemanticsSimplified(Object cue) {
+    return '간략한 몸동작과 기록된 공 경로를 보여주는 소스 기반 경로 확대: $cue.';
+  }
+
+  @override
+  String get realMatchReplayActionDetailBallPath => '공 경로';
+
+  @override
+  String get realMatchReplayActionDetailPlayerPath => '선수 이동';
+
+  @override
   String get realMatchReplaySceneInfo => '장면 정보';
 
   @override

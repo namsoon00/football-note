@@ -135,13 +135,48 @@ without changing their frame endpoints. The recorded ball path stays linearly
 sampled and is never snapped to a player's foot or an estimated player. Source
 timing is preserved. The public viewer uses one stable overview camera per clip
 that includes all display trajectories, the ball, the full pitch and body/header
-margins. The recorded-evidence automatic close camera remains a domain API for
-regression and coaching calculations but is not the shipped default.
+margins.
 
-The public viewer remains the simple one-action experience: picture, compact
+Supported receive, pass and carry badges can open an optional source-faithful
+detail sheet. Its interval and one fixed close camera are calculated from the
+focal actor's continuous recorded visibility plus recorded ball positions only;
+`displayFrames`, reconstructed players and procedural joints cannot establish
+eligibility, bounds, camera evidence, contact, technique, target, turn, or
+caption. Receive/pass windows aim for 0.5 seconds before and 1.2 seconds after,
+stop at the next authored action boundary, and trim at any actor visibility gap.
+Carry windows aim from 0.5 seconds before toward the recorded end/next action
+and are capped at 3.5 seconds. Too-short continuous intervals are declined.
+Ball lift affects camera safety only when complete recorded Z exists.
+
+Detail playback begins automatically at a fixed 0.65x, stops at its exact
+window end, and has one play/pause/replay control. Opening first pauses the main
+viewer at its exact source time; dismissing or navigating back neither advances
+nor resumes it. Backgrounding pauses detail playback. The in-picture phase cue
+comes from the selected detail action and window, never from a stale main cue or
+later action.
+
+The badge follows the current source action even between teaching stops. Detail
+geometry honors the fixed 12 m by 9 m minimum crop, and the map uses the stable
+all-player overview bounds so out-of-pitch tracked positions remain visible.
+The in-picture path key distinguishes recorded ball and observed actor traces.
+
+Only `transition-wing` can enlarge the existing source pose samples. Every
+other scene visibly says its path is enlarged while its pose remains simplified;
+no procedural foot swing is represented as the named player's actual movement.
+The close-up never claims a first-contact foot, foot surface, kick, feint, touch
+count or optimal technique. XY-only scenes explicitly state that height is
+unavailable and never render invented lift.
+
+A separate synchronized context region in the detail sheet uses the display
+layer to keep all 22 players visible, marks the selected actor and fixed camera
+rectangle, and retains hollow reconstructed-position markers. That map supplies
+team context only; it does not change source-only detail evidence.
+
+The main viewer remains the simple one-action experience: picture, compact
 title, one relevant cue and one play/pause/continue action. The catalog and
 source disclosure remain in the overflow menu; there is no scrubber, speed
-selector, chapter strip, manual camera, mini-map or expanded mode.
+selector, chapter strip, manual camera, permanent mini-map or mode switch. The
+context map and slow control exist only inside the optional action-detail sheet.
 
 This is an observational reconstruction, not a validated best-play model or
 evidence of improved football judgement.

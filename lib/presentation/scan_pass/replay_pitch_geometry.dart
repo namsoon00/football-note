@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import '../../domain/scan_pass/real_match_replay.dart';
 
-enum ReplayPitchView { context, close, full, coaching }
+enum ReplayPitchView { context, close, full, coaching, actionDetail }
 
 class ReplayPitchGeometry {
   // Compatibility defaults for callers that do not yet provide scene data.
@@ -51,6 +51,9 @@ class ReplayPitchGeometry {
     double? headerInset,
     double bottomInset = 34,
     bool fitPlayerBodies = false,
+    double bodyScaleMinimum = 15,
+    double bodyScaleMaximum = 32,
+    double bodyScaleFactor = 1.45,
     bool? rotatePitch,
   }) {
     if (attackDirection.abs() != 1) {
@@ -102,6 +105,13 @@ class ReplayPitchGeometry {
           pitchLength: pitchLength,
           pitchWidth: pitchWidth,
         ),
+      ReplayPitchView.actionDetail => _expandedCamera(
+          camera,
+          minimumWidth: 12,
+          minimumHeight: 9,
+          pitchLength: pitchLength,
+          pitchWidth: pitchWidth,
+        ),
     };
     final normalizedMinX = math.min(
       selected.minX * attackDirection,
@@ -121,7 +131,10 @@ class ReplayPitchGeometry {
       // fitting can only reduce the final scale.
       final unpaddedScale =
           math.min(area.width / worldWidth, area.height / worldHeight);
-      final bodyScale = math.max(15.0, math.min(32.0, unpaddedScale * 1.45));
+      final bodyScale = math.max(
+        bodyScaleMinimum,
+        math.min(bodyScaleMaximum, unpaddedScale * bodyScaleFactor),
+      );
       final headroom = bodyScale * 1.75;
       area = Rect.fromLTWH(
         area.left + 16,

@@ -39329,6 +39329,156 @@ abstract class AppLocalizations {
   String realMatchReplayActionCount(
       Object current, Object total, Object action);
 
+  /// No description provided for @realMatchReplayActionDetailAffordance.
+  ///
+  /// In en, this message translates to:
+  /// **'Action close-up'**
+  String get realMatchReplayActionDetailAffordance;
+
+  /// No description provided for @realMatchReplayOpenActionDetailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {action} close-up'**
+  String realMatchReplayOpenActionDetailLabel(Object action);
+
+  /// No description provided for @realMatchReplayActionDetailClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close action close-up'**
+  String get realMatchReplayActionDetailClose;
+
+  /// No description provided for @realMatchReplayActionDetailPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get realMatchReplayActionDetailPlay;
+
+  /// No description provided for @realMatchReplayActionDetailSlowRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded sequence · slow replay 0.65×'**
+  String get realMatchReplayActionDetailSlowRate;
+
+  /// No description provided for @realMatchReplayActionDetailReceiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball movement after receiving'**
+  String get realMatchReplayActionDetailReceiveTitle;
+
+  /// No description provided for @realMatchReplayActionDetailPassTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass direction'**
+  String get realMatchReplayActionDetailPassTitle;
+
+  /// No description provided for @realMatchReplayActionDetailCarryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dribble path'**
+  String get realMatchReplayActionDetailCarryTitle;
+
+  /// No description provided for @realMatchReplayActionDetailReceiveBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Approach before receiving'**
+  String get realMatchReplayActionDetailReceiveBefore;
+
+  /// No description provided for @realMatchReplayActionDetailReceiveAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement after receiving'**
+  String get realMatchReplayActionDetailReceiveAfter;
+
+  /// No description provided for @realMatchReplayActionDetailPassBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement before the pass'**
+  String get realMatchReplayActionDetailPassBefore;
+
+  /// No description provided for @realMatchReplayActionDetailPassAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded ball route'**
+  String get realMatchReplayActionDetailPassAfter;
+
+  /// No description provided for @realMatchReplayActionDetailCarryBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Approach before the carry'**
+  String get realMatchReplayActionDetailCarryBefore;
+
+  /// No description provided for @realMatchReplayActionDetailCarryAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded carry route'**
+  String get realMatchReplayActionDetailCarryAfter;
+
+  /// No description provided for @realMatchReplayActionDetailRecordedPose.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded body motion'**
+  String get realMatchReplayActionDetailRecordedPose;
+
+  /// No description provided for @realMatchReplayActionDetailSimplifiedPose.
+  ///
+  /// In en, this message translates to:
+  /// **'Simplified body motion'**
+  String get realMatchReplayActionDetailSimplifiedPose;
+
+  /// No description provided for @realMatchReplayActionDetailHeightXyz.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball height shown'**
+  String get realMatchReplayActionDetailHeightXyz;
+
+  /// No description provided for @realMatchReplayActionDetailHeightXy.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball height not recorded'**
+  String get realMatchReplayActionDetailHeightXy;
+
+  /// No description provided for @realMatchReplayActionDetailOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole-team context'**
+  String get realMatchReplayActionDetailOverviewTitle;
+
+  /// No description provided for @realMatchReplayActionDetailOverviewReconstructed.
+  ///
+  /// In en, this message translates to:
+  /// **'Hollow = estimated'**
+  String get realMatchReplayActionDetailOverviewReconstructed;
+
+  /// No description provided for @realMatchReplayActionDetailOverviewSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronized whole-pitch context with all 22 displayed players, the selected player, close-up region, and hollow reconstructed markers.'**
+  String get realMatchReplayActionDetailOverviewSemantics;
+
+  /// No description provided for @realMatchReplayActionDetailSemanticsRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Source-faithful action close-up with the focal player\'s recorded pose samples and recorded ball path: {cue}.'**
+  String realMatchReplayActionDetailSemanticsRecorded(Object cue);
+
+  /// No description provided for @realMatchReplayActionDetailSemanticsSimplified.
+  ///
+  /// In en, this message translates to:
+  /// **'Source-faithful trajectory close-up with simplified body motion and the recorded ball path: {cue}.'**
+  String realMatchReplayActionDetailSemanticsSimplified(Object cue);
+
+  /// No description provided for @realMatchReplayActionDetailBallPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball path'**
+  String get realMatchReplayActionDetailBallPath;
+
+  /// No description provided for @realMatchReplayActionDetailPlayerPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Player movement'**
+  String get realMatchReplayActionDetailPlayerPath;
+
   /// No description provided for @realMatchReplaySceneInfo.
   ///
   /// In en, this message translates to:
