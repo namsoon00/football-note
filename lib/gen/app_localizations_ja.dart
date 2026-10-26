@@ -22372,6 +22372,109 @@ class AppLocalizationsJa extends AppLocalizations {
   String get realMatchReplayAttackDirectionUp => '攻撃 ↑';
 
   @override
+  String get realMatchReplayNextAction => '次の動作';
+
+  @override
+  String get realMatchReplayPauseAction => '一時停止';
+
+  @override
+  String get realMatchReplayReplayAction => 'もう一度見る';
+
+  @override
+  String realMatchReplayActionCount(
+      Object current, Object total, Object action) {
+    return '$current/$total · $action';
+  }
+
+  @override
+  String get realMatchReplaySceneInfo => 'シーン情報';
+
+  @override
+  String realMatchReplaySourceCommit(Object commit) {
+    return 'ソースコミット · $commit';
+  }
+
+  @override
+  String realMatchReplayCueObserve(Object actor, Object target) {
+    return '$actor番→$target番の連係を見る';
+  }
+
+  @override
+  String realMatchReplayCueObserveSpace(Object number) {
+    return '$number番の周りのスペース';
+  }
+
+  @override
+  String realMatchReplayCueCarry(Object number) {
+    return '$number番のドリブル経路';
+  }
+
+  @override
+  String realMatchReplayCueCarryTurn(Object number) {
+    return '$number番の進行方向の変化';
+  }
+
+  @override
+  String realMatchReplayCuePassSpace(Object number) {
+    return '$number番のスペースへのパス';
+  }
+
+  @override
+  String realMatchReplayCuePass(Object actor, Object target) {
+    return '$actor番から$target番へつなぐ';
+  }
+
+  @override
+  String realMatchReplayCuePassIntoRun(Object actor, Object target) {
+    return '$actor番→動く$target番';
+  }
+
+  @override
+  String realMatchReplayCueReceive(Object number) {
+    return '$number番がボールを受ける位置';
+  }
+
+  @override
+  String realMatchReplayCueRun(Object number) {
+    return '$number番のサポートの動き';
+  }
+
+  @override
+  String realMatchReplayCueRunBehind(Object number) {
+    return '$number番がライン背後へ走る';
+  }
+
+  @override
+  String realMatchReplayCueOverlap(Object number) {
+    return '$number番が外側をオーバーラップ';
+  }
+
+  @override
+  String realMatchReplayCueUnderlap(Object number) {
+    return '$number番が内側のチャネルへ走る';
+  }
+
+  @override
+  String realMatchReplayCueCrossArrival(Object number) {
+    return '$number番がクロスに合わせて到達';
+  }
+
+  @override
+  String realMatchReplayCuePressure(Object defender, Object carrier) {
+    return '$defender番が$carrier番に近づく';
+  }
+
+  @override
+  String realMatchReplayCuePressureAround(Object number) {
+    return '$number番の周りへプレッシャー';
+  }
+
+  @override
+  String realMatchReplayCueOutcome(Object outcome) {
+    return '攻撃の結果：$outcome';
+  }
+
+  @override
   String get replayCategoryTransition => 'トランジション';
 
   @override

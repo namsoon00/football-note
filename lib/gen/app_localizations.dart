@@ -39267,6 +39267,139 @@ abstract class AppLocalizations {
   /// **'Attack ↑'**
   String get realMatchReplayAttackDirectionUp;
 
+  /// No description provided for @realMatchReplayNextAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Next action'**
+  String get realMatchReplayNextAction;
+
+  /// No description provided for @realMatchReplayPauseAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get realMatchReplayPauseAction;
+
+  /// No description provided for @realMatchReplayReplayAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get realMatchReplayReplayAction;
+
+  /// No description provided for @realMatchReplayActionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total} · {action}'**
+  String realMatchReplayActionCount(
+      Object current, Object total, Object action);
+
+  /// No description provided for @realMatchReplaySceneInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Scene information'**
+  String get realMatchReplaySceneInfo;
+
+  /// No description provided for @realMatchReplaySourceCommit.
+  ///
+  /// In en, this message translates to:
+  /// **'Source commit · {commit}'**
+  String realMatchReplaySourceCommit(Object commit);
+
+  /// No description provided for @realMatchReplayCueObserve.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch #{actor} → #{target} connect'**
+  String realMatchReplayCueObserve(Object actor, Object target);
+
+  /// No description provided for @realMatchReplayCueObserveSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'See the space around #{number}'**
+  String realMatchReplayCueObserveSpace(Object number);
+
+  /// No description provided for @realMatchReplayCueCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow #{number}\'s dribble'**
+  String realMatchReplayCueCarry(Object number);
+
+  /// No description provided for @realMatchReplayCueCarryTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Track #{number}\'s change of travel direction'**
+  String realMatchReplayCueCarryTurn(Object number);
+
+  /// No description provided for @realMatchReplayCuePassSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow #{number}\'s pass into space'**
+  String realMatchReplayCuePassSpace(Object number);
+
+  /// No description provided for @realMatchReplayCuePass.
+  ///
+  /// In en, this message translates to:
+  /// **'#{actor} connects with #{target}'**
+  String realMatchReplayCuePass(Object actor, Object target);
+
+  /// No description provided for @realMatchReplayCuePassIntoRun.
+  ///
+  /// In en, this message translates to:
+  /// **'#{actor} → moving #{target}'**
+  String realMatchReplayCuePassIntoRun(Object actor, Object target);
+
+  /// No description provided for @realMatchReplayCueReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Where #{number} receives'**
+  String realMatchReplayCueReceive(Object number);
+
+  /// No description provided for @realMatchReplayCueRun.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} moves to support'**
+  String realMatchReplayCueRun(Object number);
+
+  /// No description provided for @realMatchReplayCueRunBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} runs behind the line'**
+  String realMatchReplayCueRunBehind(Object number);
+
+  /// No description provided for @realMatchReplayCueOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} overlaps outside'**
+  String realMatchReplayCueOverlap(Object number);
+
+  /// No description provided for @realMatchReplayCueUnderlap.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} runs into the inside channel'**
+  String realMatchReplayCueUnderlap(Object number);
+
+  /// No description provided for @realMatchReplayCueCrossArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} arrives for the cross'**
+  String realMatchReplayCueCrossArrival(Object number);
+
+  /// No description provided for @realMatchReplayCuePressure.
+  ///
+  /// In en, this message translates to:
+  /// **'#{defender} closes on #{carrier}'**
+  String realMatchReplayCuePressure(Object defender, Object carrier);
+
+  /// No description provided for @realMatchReplayCuePressureAround.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure closes around #{number}'**
+  String realMatchReplayCuePressureAround(Object number);
+
+  /// No description provided for @realMatchReplayCueOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Attack outcome: {outcome}'**
+  String realMatchReplayCueOutcome(Object outcome);
+
   /// No description provided for @replayCategoryTransition.
   ///
   /// In en, this message translates to:

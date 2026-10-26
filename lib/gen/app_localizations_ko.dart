@@ -22452,6 +22452,109 @@ class AppLocalizationsKo extends AppLocalizations {
   String get realMatchReplayAttackDirectionUp => '공격 ↑';
 
   @override
+  String get realMatchReplayNextAction => '다음 동작';
+
+  @override
+  String get realMatchReplayPauseAction => '멈추기';
+
+  @override
+  String get realMatchReplayReplayAction => '다시 보기';
+
+  @override
+  String realMatchReplayActionCount(
+      Object current, Object total, Object action) {
+    return '$current/$total · $action';
+  }
+
+  @override
+  String get realMatchReplaySceneInfo => '장면 정보';
+
+  @override
+  String realMatchReplaySourceCommit(Object commit) {
+    return '소스 커밋 · $commit';
+  }
+
+  @override
+  String realMatchReplayCueObserve(Object actor, Object target) {
+    return '$actor번 → $target번 연결 보기';
+  }
+
+  @override
+  String realMatchReplayCueObserveSpace(Object number) {
+    return '$number번 주변 공간';
+  }
+
+  @override
+  String realMatchReplayCueCarry(Object number) {
+    return '$number번의 드리블 경로';
+  }
+
+  @override
+  String realMatchReplayCueCarryTurn(Object number) {
+    return '$number번의 진행 방향 변화';
+  }
+
+  @override
+  String realMatchReplayCuePassSpace(Object number) {
+    return '$number번의 공간 패스';
+  }
+
+  @override
+  String realMatchReplayCuePass(Object actor, Object target) {
+    return '$actor번이 $target번에게 연결';
+  }
+
+  @override
+  String realMatchReplayCuePassIntoRun(Object actor, Object target) {
+    return '$actor번 → 움직이는 $target번';
+  }
+
+  @override
+  String realMatchReplayCueReceive(Object number) {
+    return '$number번이 공을 받는 위치';
+  }
+
+  @override
+  String realMatchReplayCueRun(Object number) {
+    return '$number번의 지원 움직임';
+  }
+
+  @override
+  String realMatchReplayCueRunBehind(Object number) {
+    return '$number번이 수비 뒤 공간으로 질주';
+  }
+
+  @override
+  String realMatchReplayCueOverlap(Object number) {
+    return '$number번이 바깥으로 오버래핑';
+  }
+
+  @override
+  String realMatchReplayCueUnderlap(Object number) {
+    return '$number번이 안쪽 채널로 질주';
+  }
+
+  @override
+  String realMatchReplayCueCrossArrival(Object number) {
+    return '$number번이 크로스 공간에 도착';
+  }
+
+  @override
+  String realMatchReplayCuePressure(Object defender, Object carrier) {
+    return '$defender번이 $carrier번에게 접근';
+  }
+
+  @override
+  String realMatchReplayCuePressureAround(Object number) {
+    return '$number번 주변으로 압박 접근';
+  }
+
+  @override
+  String realMatchReplayCueOutcome(Object outcome) {
+    return '전개 결과: $outcome';
+  }
+
+  @override
   String get replayCategoryTransition => '전환';
 
   @override
