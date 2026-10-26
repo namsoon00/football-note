@@ -39126,6 +39126,536 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recorded as number 13 possession'**
   String get realMatchReplayAnnotationKeeperPossession;
+
+  /// No description provided for @realMatchReplayChooseScene.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose scene'**
+  String get realMatchReplayChooseScene;
+
+  /// No description provided for @realMatchReplayPreviousScene.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous scene'**
+  String get realMatchReplayPreviousScene;
+
+  /// No description provided for @realMatchReplayNextScene.
+  ///
+  /// In en, this message translates to:
+  /// **'Next scene'**
+  String get realMatchReplayNextScene;
+
+  /// No description provided for @realMatchReplaySceneCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {total}'**
+  String realMatchReplaySceneCount(Object current, Object total);
+
+  /// No description provided for @realMatchReplaySceneLibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual-match scenes'**
+  String get realMatchReplaySceneLibraryTitle;
+
+  /// No description provided for @realMatchReplaySceneLibrarySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tracked situations'**
+  String realMatchReplaySceneLibrarySubtitle(Object count);
+
+  /// No description provided for @realMatchReplayAllCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get realMatchReplayAllCategories;
+
+  /// No description provided for @realMatchReplaySceneRowMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'{match} · {clock} · {duration}s'**
+  String realMatchReplaySceneRowMeta(
+      Object match, Object clock, Object duration);
+
+  /// No description provided for @realMatchReplayViewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pitch view'**
+  String get realMatchReplayViewLabel;
+
+  /// No description provided for @realMatchReplayViewContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Context'**
+  String get realMatchReplayViewContext;
+
+  /// No description provided for @realMatchReplayViewClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get realMatchReplayViewClose;
+
+  /// No description provided for @realMatchReplayViewFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full pitch'**
+  String get realMatchReplayViewFull;
+
+  /// No description provided for @realMatchReplayTrackingOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking only'**
+  String get realMatchReplayTrackingOnly;
+
+  /// No description provided for @realMatchReplayTrackingDisclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'SkillCorner · tracked positions · procedural body motion · simplified kits'**
+  String get realMatchReplayTrackingDisclosure;
+
+  /// No description provided for @realMatchReplayPoseAction.
+  ///
+  /// In en, this message translates to:
+  /// **'No. {number} pose'**
+  String realMatchReplayPoseAction(Object number);
+
+  /// No description provided for @realMatchReplayPoseTitlePlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · No. {number} · recorded pose'**
+  String realMatchReplayPoseTitlePlayer(Object name, Object number);
+
+  /// No description provided for @realMatchReplayPitchSemanticsGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'A 2D replay of actual tracked positions for {home} against {away}: {scene}.'**
+  String realMatchReplayPitchSemanticsGeneric(
+      Object home, Object away, Object scene);
+
+  /// No description provided for @realMatchReplayStageWithPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'{stage} · No. {number}'**
+  String realMatchReplayStageWithPlayer(Object stage, Object number);
+
+  /// No description provided for @realMatchReplayCalloutPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'No. {number} · {stage}'**
+  String realMatchReplayCalloutPlayer(Object number, Object stage);
+
+  /// No description provided for @realMatchReplayCalloutTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'No. {number} tracked here'**
+  String realMatchReplayCalloutTarget(Object number);
+
+  /// No description provided for @realMatchReplayOutcomeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded outcome · {outcome}'**
+  String realMatchReplayOutcomeLabel(Object outcome);
+
+  /// No description provided for @realMatchReplayAttackDirectionRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Attack →'**
+  String get realMatchReplayAttackDirectionRight;
+
+  /// No description provided for @realMatchReplayAttackDirectionUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Attack ↑'**
+  String get realMatchReplayAttackDirectionUp;
+
+  /// No description provided for @replayCategoryTransition.
+  ///
+  /// In en, this message translates to:
+  /// **'Transition'**
+  String get replayCategoryTransition;
+
+  /// No description provided for @replayCategoryBuildUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Build-up'**
+  String get replayCategoryBuildUp;
+
+  /// No description provided for @replayCategoryPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Under pressure'**
+  String get replayCategoryPressure;
+
+  /// No description provided for @replayCategorySwitchPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch play'**
+  String get replayCategorySwitchPlay;
+
+  /// No description provided for @replayCategoryPenetration.
+  ///
+  /// In en, this message translates to:
+  /// **'Penetration'**
+  String get replayCategoryPenetration;
+
+  /// No description provided for @replayCategoryCombination.
+  ///
+  /// In en, this message translates to:
+  /// **'Combination'**
+  String get replayCategoryCombination;
+
+  /// No description provided for @replayCategoryWideAttack.
+  ///
+  /// In en, this message translates to:
+  /// **'Wide attack'**
+  String get replayCategoryWideAttack;
+
+  /// No description provided for @replayCategoryTurnover.
+  ///
+  /// In en, this message translates to:
+  /// **'Turnover'**
+  String get replayCategoryTurnover;
+
+  /// No description provided for @replayStepObserve.
+  ///
+  /// In en, this message translates to:
+  /// **'Observe'**
+  String get replayStepObserve;
+
+  /// No description provided for @replayStepCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry'**
+  String get replayStepCarry;
+
+  /// No description provided for @replayStepPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass'**
+  String get replayStepPass;
+
+  /// No description provided for @replayStepReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive'**
+  String get replayStepReceive;
+
+  /// No description provided for @replayStepRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Run'**
+  String get replayStepRun;
+
+  /// No description provided for @replayStepRunBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'Run behind'**
+  String get replayStepRunBehind;
+
+  /// No description provided for @replayStepRunOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlap run'**
+  String get replayStepRunOverlap;
+
+  /// No description provided for @replayStepRunUnderlap.
+  ///
+  /// In en, this message translates to:
+  /// **'Underlap run'**
+  String get replayStepRunUnderlap;
+
+  /// No description provided for @replayStepRunCrossReceiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrive for the cross'**
+  String get replayStepRunCrossReceiver;
+
+  /// No description provided for @replayStepPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure'**
+  String get replayStepPressure;
+
+  /// No description provided for @replayStepOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Outcome'**
+  String get replayStepOutcome;
+
+  /// No description provided for @replayOutcomeShot.
+  ///
+  /// In en, this message translates to:
+  /// **'shot'**
+  String get replayOutcomeShot;
+
+  /// No description provided for @replayOutcomeKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass connected'**
+  String get replayOutcomeKept;
+
+  /// No description provided for @replayOutcomeLost.
+  ///
+  /// In en, this message translates to:
+  /// **'possession lost'**
+  String get replayOutcomeLost;
+
+  /// No description provided for @replayOutcomeEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'sequence ended'**
+  String get replayOutcomeEnd;
+
+  /// No description provided for @replaySceneTransitionWing.
+  ///
+  /// In en, this message translates to:
+  /// **'Into wide space on transition'**
+  String get replaySceneTransitionWing;
+
+  /// No description provided for @replayFocusTransitionWing.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch No. 18\'s movement before the pass together with the defensive recovery.'**
+  String get replayFocusTransitionWing;
+
+  /// No description provided for @replaySceneKeeperBuild.
+  ///
+  /// In en, this message translates to:
+  /// **'From goalkeeper into the centre'**
+  String get replaySceneKeeperBuild;
+
+  /// No description provided for @replayFocusKeeperBuild.
+  ///
+  /// In en, this message translates to:
+  /// **'While the goalkeeper has the ball, watch where the central teammate receives it.'**
+  String get replayFocusKeeperBuild;
+
+  /// No description provided for @replaySceneCentralBuild.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance from the back into midfield'**
+  String get replaySceneCentralBuild;
+
+  /// No description provided for @replayFocusCentralBuild.
+  ///
+  /// In en, this message translates to:
+  /// **'As the pass arrives in midfield, watch the space around the receiver.'**
+  String get replayFocusCentralBuild;
+
+  /// No description provided for @replayScenePressureSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect across pressure'**
+  String get replayScenePressureSwitch;
+
+  /// No description provided for @replayFocusPressureSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'As opponents approach the ball, also watch the position of the teammate on the far side.'**
+  String get replayFocusPressureSwitch;
+
+  /// No description provided for @replayScenePressureSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a nearby teammate under pressure'**
+  String get replayScenePressureSupport;
+
+  /// No description provided for @replayFocusPressureSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the angle between the receiver and the nearby supporting teammate.'**
+  String get replayFocusPressureSupport;
+
+  /// No description provided for @replaySceneBacklineSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch across the back line'**
+  String get replaySceneBacklineSwitch;
+
+  /// No description provided for @replayFocusBacklineSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch how the defensive block and the next passing direction change as the ball moves across.'**
+  String get replayFocusBacklineSwitch;
+
+  /// No description provided for @replaySceneWideSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Stretch wide and switch'**
+  String get replaySceneWideSwitch;
+
+  /// No description provided for @replayFocusWideSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Before the long lateral pass arrives, watch the far-side teammate\'s position and pressure distance.'**
+  String get replayFocusWideSwitch;
+
+  /// No description provided for @replaySceneLoftedBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'Lofted pass into space behind'**
+  String get replaySceneLoftedBehind;
+
+  /// No description provided for @replayFocusLoftedBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the ball height together with when the runner starts moving.'**
+  String get replayFocusLoftedBehind;
+
+  /// No description provided for @replaySceneThroughChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Long through pass behind the line'**
+  String get replaySceneThroughChannel;
+
+  /// No description provided for @replayFocusThroughChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'At release, watch the gap between the defensive line and the receiving player.'**
+  String get replayFocusThroughChannel;
+
+  /// No description provided for @replaySceneThroughMiddle.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward pass through the middle'**
+  String get replaySceneThroughMiddle;
+
+  /// No description provided for @replayFocusThroughMiddle.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the route between defenders and the space left for the receiver.'**
+  String get replayFocusThroughMiddle;
+
+  /// No description provided for @replaySceneOneTouchLink.
+  ///
+  /// In en, this message translates to:
+  /// **'One-touch connection'**
+  String get replaySceneOneTouchLink;
+
+  /// No description provided for @replayFocusOneTouchLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Before the ball arrives, watch where the next pass recipient is positioned.'**
+  String get replayFocusOneTouchLink;
+
+  /// No description provided for @replayScenePassAndMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move again after the pass'**
+  String get replayScenePassAndMove;
+
+  /// No description provided for @replayFocusPassAndMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the passer\'s next position alongside what happens around the new ball carrier.'**
+  String get replayFocusPassAndMove;
+
+  /// No description provided for @replaySceneCarrySupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry forward, then connect nearby'**
+  String get replaySceneCarrySupport;
+
+  /// No description provided for @replayFocusCarrySupport.
+  ///
+  /// In en, this message translates to:
+  /// **'During the carry, watch the distances to the supporting teammate and defenders.'**
+  String get replayFocusCarrySupport;
+
+  /// No description provided for @replaySceneCarryShot.
+  ///
+  /// In en, this message translates to:
+  /// **'From forward carry to shot'**
+  String get replaySceneCarryShot;
+
+  /// No description provided for @replayFocusCarryShot.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch where defenders gather during the carry and the sequence through the pass and shot.'**
+  String get replayFocusCarryShot;
+
+  /// No description provided for @replaySceneOverlapWing.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlapping run outside'**
+  String get replaySceneOverlapWing;
+
+  /// No description provided for @replayFocusOverlapWing.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch when the teammate running outside the ball carrier receives the pass.'**
+  String get replayFocusOverlapWing;
+
+  /// No description provided for @replaySceneOverlapCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside support beside the carry'**
+  String get replaySceneOverlapCarry;
+
+  /// No description provided for @replayFocusOverlapCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'During the carry, watch the wide teammate\'s movement and the defensive response.'**
+  String get replayFocusOverlapCarry;
+
+  /// No description provided for @replaySceneUnderlapChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Run into the inside channel'**
+  String get replaySceneUnderlapChannel;
+
+  /// No description provided for @replayFocusUnderlapChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the teammate moving inside from wide and where the ball arrives.'**
+  String get replayFocusUnderlapChannel;
+
+  /// No description provided for @replaySceneCrossArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Cross and arrival in the box'**
+  String get replaySceneCrossArrival;
+
+  /// No description provided for @replayFocusCrossArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'As the ball leaves the flank, watch the positions and arrival times inside the box.'**
+  String get replayFocusCrossArrival;
+
+  /// No description provided for @replayScenePressureTurnover.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure closes and possession changes'**
+  String get replayScenePressureTurnover;
+
+  /// No description provided for @replayFocusPressureTurnover.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the space around the carrier narrow and how play continues after possession changes.'**
+  String get replayFocusPressureTurnover;
+
+  /// No description provided for @replaySceneCarryTurnover.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure and regain during a carry'**
+  String get replaySceneCarryTurnover;
+
+  /// No description provided for @replayFocusCarryTurnover.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the carry direction and approaching defender together, then follow what happens next.'**
+  String get replayFocusCarryTurnover;
+
+  /// No description provided for @realMatchReplayExpandPitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand pitch'**
+  String get realMatchReplayExpandPitch;
+
+  /// No description provided for @realMatchReplayCollapsePitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to standard view'**
+  String get realMatchReplayCollapsePitch;
 }
 
 class _AppLocalizationsDelegate

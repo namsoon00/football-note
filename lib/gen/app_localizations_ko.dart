@@ -22358,4 +22358,296 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get realMatchReplayAnnotationKeeperPossession => '13번 소유로 기록';
+
+  @override
+  String get realMatchReplayChooseScene => '장면 선택';
+
+  @override
+  String get realMatchReplayPreviousScene => '이전 장면';
+
+  @override
+  String get realMatchReplayNextScene => '다음 장면';
+
+  @override
+  String realMatchReplaySceneCount(Object current, Object total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get realMatchReplaySceneLibraryTitle => '실제 경기 장면';
+
+  @override
+  String realMatchReplaySceneLibrarySubtitle(Object count) {
+    return '추적된 상황 $count개';
+  }
+
+  @override
+  String get realMatchReplayAllCategories => '전체';
+
+  @override
+  String realMatchReplaySceneRowMeta(
+      Object match, Object clock, Object duration) {
+    return '$match · $clock · $duration초';
+  }
+
+  @override
+  String get realMatchReplayViewLabel => '경기장 보기';
+
+  @override
+  String get realMatchReplayViewContext => '상황';
+
+  @override
+  String get realMatchReplayViewClose => '가까이';
+
+  @override
+  String get realMatchReplayViewFull => '전체 경기장';
+
+  @override
+  String get realMatchReplayTrackingOnly => '위치 추적만 제공';
+
+  @override
+  String get realMatchReplayTrackingDisclosure =>
+      'SkillCorner · 추적 위치 · 절차형 몸동작 · 유니폼 간략화';
+
+  @override
+  String realMatchReplayPoseAction(Object number) {
+    return '$number번 자세';
+  }
+
+  @override
+  String realMatchReplayPoseTitlePlayer(Object name, Object number) {
+    return '$name · $number번 · 기록 자세';
+  }
+
+  @override
+  String realMatchReplayPitchSemanticsGeneric(
+      Object home, Object away, Object scene) {
+    return '$home 대 $away 실제 추적 위치의 2D 리플레이: $scene.';
+  }
+
+  @override
+  String realMatchReplayStageWithPlayer(Object stage, Object number) {
+    return '$stage · $number번';
+  }
+
+  @override
+  String realMatchReplayCalloutPlayer(Object number, Object stage) {
+    return '$number번 · $stage';
+  }
+
+  @override
+  String realMatchReplayCalloutTarget(Object number) {
+    return '$number번의 기록 위치';
+  }
+
+  @override
+  String realMatchReplayOutcomeLabel(Object outcome) {
+    return '기록된 결과 · $outcome';
+  }
+
+  @override
+  String get realMatchReplayAttackDirectionRight => '공격 →';
+
+  @override
+  String get realMatchReplayAttackDirectionUp => '공격 ↑';
+
+  @override
+  String get replayCategoryTransition => '전환';
+
+  @override
+  String get replayCategoryBuildUp => '빌드업';
+
+  @override
+  String get replayCategoryPressure => '압박 상황';
+
+  @override
+  String get replayCategorySwitchPlay => '좌우 전환';
+
+  @override
+  String get replayCategoryPenetration => '침투';
+
+  @override
+  String get replayCategoryCombination => '연계';
+
+  @override
+  String get replayCategoryWideAttack => '측면 공격';
+
+  @override
+  String get replayCategoryTurnover => '소유권 전환';
+
+  @override
+  String get replayStepObserve => '상황 관찰';
+
+  @override
+  String get replayStepCarry => '공 운반';
+
+  @override
+  String get replayStepPass => '패스';
+
+  @override
+  String get replayStepReceive => '공 받기';
+
+  @override
+  String get replayStepRun => '움직임';
+
+  @override
+  String get replayStepRunBehind => '뒷공간 움직임';
+
+  @override
+  String get replayStepRunOverlap => '오버래핑 움직임';
+
+  @override
+  String get replayStepRunUnderlap => '언더래핑 움직임';
+
+  @override
+  String get replayStepRunCrossReceiver => '크로스 위치로 이동';
+
+  @override
+  String get replayStepPressure => '압박';
+
+  @override
+  String get replayStepOutcome => '결과';
+
+  @override
+  String get replayOutcomeShot => '슈팅';
+
+  @override
+  String get replayOutcomeKept => '패스 연결';
+
+  @override
+  String get replayOutcomeLost => '소유권 상실';
+
+  @override
+  String get replayOutcomeEnd => '장면 종료';
+
+  @override
+  String get replaySceneTransitionWing => '역습에서 측면 공간으로';
+
+  @override
+  String get replayFocusTransitionWing => '패스가 출발하기 전 18번의 움직임과 수비 복귀를 함께 보세요.';
+
+  @override
+  String get replaySceneKeeperBuild => '골키퍼에서 중앙으로 연결';
+
+  @override
+  String get replayFocusKeeperBuild => '골키퍼가 공을 가진 동안 중앙의 동료가 어느 위치에서 받는지 보세요.';
+
+  @override
+  String get replaySceneCentralBuild => '후방에서 중원으로 전진';
+
+  @override
+  String get replayFocusCentralBuild => '후방 패스가 중원에 도착할 때 받는 선수 주변의 공간을 보세요.';
+
+  @override
+  String get replayScenePressureSwitch => '압박 속에서 반대편 연결';
+
+  @override
+  String get replayFocusPressureSwitch => '공 주변에 상대가 접근할 때 반대편 동료의 위치를 함께 보세요.';
+
+  @override
+  String get replayScenePressureSupport => '압박을 받으며 가까운 동료에게';
+
+  @override
+  String get replayFocusPressureSupport => '공을 받는 선수와 가까이 지원하는 동료 사이의 각도를 보세요.';
+
+  @override
+  String get replaySceneBacklineSwitch => '후방에서 좌우 전환';
+
+  @override
+  String get replayFocusBacklineSwitch =>
+      '좌우로 공을 옮길 때 수비 블록과 다음 패스 방향이 어떻게 변하는지 보세요.';
+
+  @override
+  String get replaySceneWideSwitch => '넓게 벌려 반대쪽으로';
+
+  @override
+  String get replayFocusWideSwitch => '긴 횡패스가 도착하기 전 먼 쪽 동료의 위치와 압박 거리를 보세요.';
+
+  @override
+  String get replaySceneLoftedBehind => '떠서 넘어가는 뒷공간 패스';
+
+  @override
+  String get replayFocusLoftedBehind => '공의 높이와 침투하는 선수의 출발 시점을 함께 보세요.';
+
+  @override
+  String get replaySceneThroughChannel => '수비 뒤 긴 스루 패스';
+
+  @override
+  String get replayFocusThroughChannel => '패스가 출발하는 순간 수비 라인과 받는 선수의 간격을 보세요.';
+
+  @override
+  String get replaySceneThroughMiddle => '중앙을 통과하는 전진 패스';
+
+  @override
+  String get replayFocusThroughMiddle => '공이 수비 사이를 지나는 길과 받는 선수에게 남은 공간을 보세요.';
+
+  @override
+  String get replaySceneOneTouchLink => '원터치로 연결하기';
+
+  @override
+  String get replayFocusOneTouchLink => '공이 오기 전 다음 패스 대상이 어디에 있는지 보세요.';
+
+  @override
+  String get replayScenePassAndMove => '패스한 뒤 다시 움직이기';
+
+  @override
+  String get replayFocusPassAndMove =>
+      '패스를 한 선수의 이후 위치와 새로 공을 받은 선수의 선택을 함께 보세요.';
+
+  @override
+  String get replaySceneCarrySupport => '운반한 뒤 가까이 연결';
+
+  @override
+  String get replayFocusCarrySupport => '공을 몰고 전진할 때 지원하는 동료와 수비의 거리를 보세요.';
+
+  @override
+  String get replaySceneCarryShot => '전진 드리블에서 슈팅까지';
+
+  @override
+  String get replayFocusCarryShot => '드리블 중 수비가 모이는 위치와 패스 후 슈팅까지의 흐름을 보세요.';
+
+  @override
+  String get replaySceneOverlapWing => '바깥쪽으로 겹쳐 뛰기';
+
+  @override
+  String get replayFocusOverlapWing => '공을 가진 선수의 바깥으로 뛰는 동료가 언제 패스를 받는지 보세요.';
+
+  @override
+  String get replaySceneOverlapCarry => '드리블 옆 바깥쪽 지원';
+
+  @override
+  String get replayFocusOverlapCarry => '공을 운반하는 동안 측면 동료의 움직임과 수비의 대응을 보세요.';
+
+  @override
+  String get replaySceneUnderlapChannel => '안쪽 공간으로 파고들기';
+
+  @override
+  String get replayFocusUnderlapChannel => '측면에서 안쪽으로 뛰어드는 동료와 공의 도착 위치를 보세요.';
+
+  @override
+  String get replaySceneCrossArrival => '크로스와 박스 안 도착';
+
+  @override
+  String get replayFocusCrossArrival =>
+      '측면에서 공이 출발할 때 박스 안 선수의 위치와 도착 시점을 보세요.';
+
+  @override
+  String get replayScenePressureTurnover => '압박이 좁혀지며 소유권 전환';
+
+  @override
+  String get replayFocusPressureTurnover =>
+      '공을 가진 선수 주변의 공간이 줄어드는 과정과 빼앗긴 뒤 흐름을 보세요.';
+
+  @override
+  String get replaySceneCarryTurnover => '운반 중 압박과 공 탈취';
+
+  @override
+  String get replayFocusCarryTurnover =>
+      '드리블의 진행 방향과 접근하는 수비를 함께 보고 이후 전개까지 보세요.';
+
+  @override
+  String get realMatchReplayExpandPitch => '경기장 크게 보기';
+
+  @override
+  String get realMatchReplayCollapsePitch => '기본 화면으로';
 }

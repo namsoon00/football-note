@@ -22278,4 +22278,292 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get realMatchReplayAnnotationKeeperPossession => '13番の保持として記録';
+
+  @override
+  String get realMatchReplayChooseScene => 'シーンを選ぶ';
+
+  @override
+  String get realMatchReplayPreviousScene => '前のシーン';
+
+  @override
+  String get realMatchReplayNextScene => '次のシーン';
+
+  @override
+  String realMatchReplaySceneCount(Object current, Object total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get realMatchReplaySceneLibraryTitle => '実試合シーン';
+
+  @override
+  String realMatchReplaySceneLibrarySubtitle(Object count) {
+    return '追跡された状況 $count件';
+  }
+
+  @override
+  String get realMatchReplayAllCategories => 'すべて';
+
+  @override
+  String realMatchReplaySceneRowMeta(
+      Object match, Object clock, Object duration) {
+    return '$match · $clock · $duration秒';
+  }
+
+  @override
+  String get realMatchReplayViewLabel => 'ピッチ表示';
+
+  @override
+  String get realMatchReplayViewContext => '状況';
+
+  @override
+  String get realMatchReplayViewClose => '近く';
+
+  @override
+  String get realMatchReplayViewFull => 'ピッチ全体';
+
+  @override
+  String get realMatchReplayTrackingOnly => '位置追跡のみ';
+
+  @override
+  String get realMatchReplayTrackingDisclosure =>
+      'SkillCorner · 追跡位置 · 手続き型の身体動作 · 簡略化したユニフォーム';
+
+  @override
+  String realMatchReplayPoseAction(Object number) {
+    return '$number番のポーズ';
+  }
+
+  @override
+  String realMatchReplayPoseTitlePlayer(Object name, Object number) {
+    return '$name · $number番 · 記録ポーズ';
+  }
+
+  @override
+  String realMatchReplayPitchSemanticsGeneric(
+      Object home, Object away, Object scene) {
+    return '$home対$awayの実際の追跡位置による2Dリプレイ：$scene。';
+  }
+
+  @override
+  String realMatchReplayStageWithPlayer(Object stage, Object number) {
+    return '$stage · $number番';
+  }
+
+  @override
+  String realMatchReplayCalloutPlayer(Object number, Object stage) {
+    return '$number番 · $stage';
+  }
+
+  @override
+  String realMatchReplayCalloutTarget(Object number) {
+    return '$number番の記録位置';
+  }
+
+  @override
+  String realMatchReplayOutcomeLabel(Object outcome) {
+    return '記録結果 · $outcome';
+  }
+
+  @override
+  String get realMatchReplayAttackDirectionRight => '攻撃 →';
+
+  @override
+  String get realMatchReplayAttackDirectionUp => '攻撃 ↑';
+
+  @override
+  String get replayCategoryTransition => 'トランジション';
+
+  @override
+  String get replayCategoryBuildUp => 'ビルドアップ';
+
+  @override
+  String get replayCategoryPressure => 'プレッシャー';
+
+  @override
+  String get replayCategorySwitchPlay => 'サイドチェンジ';
+
+  @override
+  String get replayCategoryPenetration => '前進・侵入';
+
+  @override
+  String get replayCategoryCombination => '連係';
+
+  @override
+  String get replayCategoryWideAttack => 'サイド攻撃';
+
+  @override
+  String get replayCategoryTurnover => '保持の切り替わり';
+
+  @override
+  String get replayStepObserve => '状況観察';
+
+  @override
+  String get replayStepCarry => '運ぶ';
+
+  @override
+  String get replayStepPass => 'パス';
+
+  @override
+  String get replayStepReceive => '受ける';
+
+  @override
+  String get replayStepRun => 'ラン';
+
+  @override
+  String get replayStepRunBehind => '背後へのラン';
+
+  @override
+  String get replayStepRunOverlap => 'オーバーラップ';
+
+  @override
+  String get replayStepRunUnderlap => 'インナーラップ';
+
+  @override
+  String get replayStepRunCrossReceiver => 'クロスに合わせる動き';
+
+  @override
+  String get replayStepPressure => 'プレッシャー';
+
+  @override
+  String get replayStepOutcome => '結果';
+
+  @override
+  String get replayOutcomeShot => 'シュート';
+
+  @override
+  String get replayOutcomeKept => 'パスがつながる';
+
+  @override
+  String get replayOutcomeLost => '保持を失う';
+
+  @override
+  String get replayOutcomeEnd => 'シーン終了';
+
+  @override
+  String get replaySceneTransitionWing => 'トランジションからサイドのスペースへ';
+
+  @override
+  String get replayFocusTransitionWing => 'パスが出る前の18番の動きと守備の戻りを一緒に見ましょう。';
+
+  @override
+  String get replaySceneKeeperBuild => 'GKから中央へつなぐ';
+
+  @override
+  String get replayFocusKeeperBuild => 'GKがボールを持つ間、中央の味方がどこで受けるかを見ましょう。';
+
+  @override
+  String get replaySceneCentralBuild => '後方から中盤へ前進';
+
+  @override
+  String get replayFocusCentralBuild => '後方からのパスが中盤に届くとき、受け手の周囲のスペースを見ましょう。';
+
+  @override
+  String get replayScenePressureSwitch => 'プレッシャーの中で逆サイドへ';
+
+  @override
+  String get replayFocusPressureSwitch => '相手がボールへ近づくとき、逆サイドの味方の位置も見ましょう。';
+
+  @override
+  String get replayScenePressureSupport => 'プレッシャー下で近くの味方へ';
+
+  @override
+  String get replayFocusPressureSupport => '受け手と近くで支える味方との角度を見ましょう。';
+
+  @override
+  String get replaySceneBacklineSwitch => '後方で左右に展開';
+
+  @override
+  String get replayFocusBacklineSwitch => 'ボールが左右へ動くとき、守備ブロックと次のパス方向の変化を見ましょう。';
+
+  @override
+  String get replaySceneWideSwitch => '幅を取り逆サイドへ展開';
+
+  @override
+  String get replayFocusWideSwitch => '長い横パスが届く前に、遠い側の味方の位置とプレッシャーまでの距離を見ましょう。';
+
+  @override
+  String get replaySceneLoftedBehind => '浮き球で背後のスペースへ';
+
+  @override
+  String get replayFocusLoftedBehind => 'ボールの高さと走り出すタイミングを一緒に見ましょう。';
+
+  @override
+  String get replaySceneThroughChannel => '守備ライン背後への長いスルーパス';
+
+  @override
+  String get replayFocusThroughChannel => 'パスが出る瞬間、守備ラインと受け手の間隔を見ましょう。';
+
+  @override
+  String get replaySceneThroughMiddle => '中央を通る前進パス';
+
+  @override
+  String get replayFocusThroughMiddle => '守備の間を通るボールの経路と受け手に残るスペースを見ましょう。';
+
+  @override
+  String get replaySceneOneTouchLink => 'ワンタッチでつなぐ';
+
+  @override
+  String get replayFocusOneTouchLink => 'ボールが来る前に、次のパス相手がどこにいるかを見ましょう。';
+
+  @override
+  String get replayScenePassAndMove => 'パス後にもう一度動く';
+
+  @override
+  String get replayFocusPassAndMove => 'パスした選手の次の位置と、新しくボールを持つ選手の周囲を一緒に見ましょう。';
+
+  @override
+  String get replaySceneCarrySupport => '運んで近くへつなぐ';
+
+  @override
+  String get replayFocusCarrySupport => 'ボールを運ぶ間、支える味方と守備との距離を見ましょう。';
+
+  @override
+  String get replaySceneCarryShot => '前進するドリブルからシュートへ';
+
+  @override
+  String get replayFocusCarryShot => '運ぶ間に守備が集まる位置と、パスからシュートまでの流れを見ましょう。';
+
+  @override
+  String get replaySceneOverlapWing => '外側を追い越すラン';
+
+  @override
+  String get replayFocusOverlapWing => 'ボール保持者の外側を走る味方がいつパスを受けるかを見ましょう。';
+
+  @override
+  String get replaySceneOverlapCarry => '運ぶ選手の外側を支える';
+
+  @override
+  String get replayFocusOverlapCarry => 'ボールを運ぶ間、サイドの味方の動きと守備の対応を見ましょう。';
+
+  @override
+  String get replaySceneUnderlapChannel => '内側のチャンネルへ走る';
+
+  @override
+  String get replayFocusUnderlapChannel => 'サイドから内側へ走る味方とボールの到達位置を見ましょう。';
+
+  @override
+  String get replaySceneCrossArrival => 'クロスとボックス内への到達';
+
+  @override
+  String get replayFocusCrossArrival => 'サイドからボールが出るとき、ボックス内の位置と到達タイミングを見ましょう。';
+
+  @override
+  String get replayScenePressureTurnover => 'プレッシャーが狭まり保持が変わる';
+
+  @override
+  String get replayFocusPressureTurnover =>
+      'ボール保持者の周囲が狭まる過程と、保持が変わった後の流れを見ましょう。';
+
+  @override
+  String get replaySceneCarryTurnover => '運ぶ途中のプレッシャーと奪取';
+
+  @override
+  String get replayFocusCarryTurnover => 'ドリブルの方向と近づく守備を一緒に見て、その後の展開まで追いましょう。';
+
+  @override
+  String get realMatchReplayExpandPitch => 'ピッチを大きく表示';
+
+  @override
+  String get realMatchReplayCollapsePitch => '標準表示に戻る';
 }

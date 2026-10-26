@@ -1,7 +1,12 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
+import '../../domain/scan_pass/real_match_replay.dart';
+
+enum ReplayPitchView { context, close, full }
+
 class ReplayPitchGeometry {
+  // Compatibility defaults for callers that do not yet provide scene data.
   static const double cameraMinX = -5;
   static const double cameraMaxX = 56;
   static const double cameraMinY = -5;
@@ -11,30 +16,104 @@ class ReplayPitchGeometry {
   final bool rotated;
   final double scale;
   final Offset origin;
+  final RealMatchReplayCamera camera;
+  final int attackDirection;
+  final double worldWidth;
+  final double worldHeight;
+  final double topInset;
+  final double bottomInset;
 
   const ReplayPitchGeometry._({
     required this.size,
     required this.rotated,
     required this.scale,
     required this.origin,
+    required this.camera,
+    required this.attackDirection,
+    required this.worldWidth,
+    required this.worldHeight,
+    required this.topInset,
+    required this.bottomInset,
   });
 
-  factory ReplayPitchGeometry.forSize(Size size) {
-    final rotated = size.width < 490;
-    final headerInset = rotated && size.height >= 520 ? 100.0 : 72.0;
+  factory ReplayPitchGeometry.forSize(
+    Size size, {
+    RealMatchReplayCamera camera = const RealMatchReplayCamera(
+      minX: cameraMinX,
+      maxX: cameraMaxX,
+      minY: cameraMinY,
+      maxY: cameraMaxY,
+    ),
+    int attackDirection = 1,
+    ReplayPitchView view = ReplayPitchView.context,
+    double pitchLength = 105,
+    double pitchWidth = 68,
+    double? headerInset,
+    double bottomInset = 34,
+  }) {
+    if (attackDirection.abs() != 1) {
+      throw ArgumentError.value(
+        attackDirection,
+        'attackDirection',
+        'must be -1 or 1',
+      );
+    }
+    final rotated = size.width < 540;
+    final topInset =
+        headerInset ?? (rotated && size.height >= 520 ? 92.0 : 68.0);
     final area = Rect.fromLTWH(
-      18,
-      headerInset,
-      math.max(1, size.width - 36),
-      math.max(1, size.height - headerInset - 40),
+      rotated ? 10 : 16,
+      topInset,
+      math.max(1, size.width - (rotated ? 20 : 32)),
+      math.max(1, size.height - topInset - bottomInset),
     );
-    final worldWidth = rotated ? 40.0 : 61.0;
-    final worldHeight = rotated ? 61.0 : 40.0;
+    final selected = switch (view) {
+      ReplayPitchView.full => RealMatchReplayCamera(
+          minX: -pitchLength / 2 - 3,
+          maxX: pitchLength / 2 + 3,
+          minY: -pitchWidth / 2 - 2,
+          maxY: pitchWidth / 2 + 2,
+        ),
+      ReplayPitchView.context => _expandedCamera(
+          camera,
+          minimumWidth: math.min(65, pitchLength + 6),
+          minimumHeight: math.min(48, pitchWidth + 4),
+          pitchLength: pitchLength,
+          pitchWidth: pitchWidth,
+        ),
+      ReplayPitchView.close => _expandedCamera(
+          camera,
+          minimumWidth: math.min(44, pitchLength + 6),
+          minimumHeight: math.min(34, pitchWidth + 4),
+          maximumWidth: 52,
+          maximumHeight: 40,
+          pitchLength: pitchLength,
+          pitchWidth: pitchWidth,
+        ),
+    };
+    final normalizedMinX = math.min(
+      selected.minX * attackDirection,
+      selected.maxX * attackDirection,
+    );
+    final normalizedMaxX = math.max(
+      selected.minX * attackDirection,
+      selected.maxX * attackDirection,
+    );
+    final attackSpan = normalizedMaxX - normalizedMinX;
+    final lateralSpan = selected.height;
+    final worldWidth = rotated ? lateralSpan : attackSpan;
+    final worldHeight = rotated ? attackSpan : lateralSpan;
     final scale = math.min(area.width / worldWidth, area.height / worldHeight);
     return ReplayPitchGeometry._(
       size: size,
       rotated: rotated,
       scale: scale,
+      camera: selected,
+      attackDirection: attackDirection,
+      worldWidth: worldWidth,
+      worldHeight: worldHeight,
+      topInset: topInset,
+      bottomInset: bottomInset,
       origin: Offset(
         area.left + (area.width - worldWidth * scale) / 2,
         area.top + (area.height - worldHeight * scale) / 2,
@@ -42,15 +121,63 @@ class ReplayPitchGeometry {
     );
   }
 
-  Offset project(double x, double y, [double z = 0]) => rotated
-      ? Offset(
-          origin.dx + (y - cameraMinY) * scale,
-          origin.dy + (cameraMaxX - x) * scale - z * scale * .85,
-        )
-      : Offset(
-          origin.dx + (x - cameraMinX) * scale,
-          origin.dy + (cameraMaxY - y) * scale - z * scale * .85,
-        );
+  Offset project(double x, double y, [double z = 0]) {
+    final attackX = x * attackDirection;
+    final minAttackX = math.min(
+      camera.minX * attackDirection,
+      camera.maxX * attackDirection,
+    );
+    final maxAttackX = math.max(
+      camera.minX * attackDirection,
+      camera.maxX * attackDirection,
+    );
+    return rotated
+        ? Offset(
+            origin.dx + (y - camera.minY) * scale,
+            origin.dy + (maxAttackX - attackX) * scale - z * scale * .85,
+          )
+        : Offset(
+            origin.dx + (attackX - minAttackX) * scale,
+            origin.dy + (camera.maxY - y) * scale - z * scale * .85,
+          );
+  }
+
+  Rect get pitchArea => Rect.fromLTWH(
+        origin.dx,
+        origin.dy,
+        worldWidth * scale,
+        worldHeight * scale,
+      );
+
+  /// The canvas also shows field beyond the fitted scene in its side gutters.
+  /// Describe that actual visible area, rather than only the fitted crop.
+  RealMatchReplayCamera get visibleCamera {
+    final minAttackX = math.min(
+      camera.minX * attackDirection,
+      camera.maxX * attackDirection,
+    );
+    final maxAttackX = math.max(
+      camera.minX * attackDirection,
+      camera.maxX * attackDirection,
+    );
+    Offset world(Offset point) => rotated
+        ? Offset(
+            (maxAttackX - (point.dy - origin.dy) / scale) * attackDirection,
+            camera.minY + (point.dx - origin.dx) / scale,
+          )
+        : Offset(
+            (minAttackX + (point.dx - origin.dx) / scale) * attackDirection,
+            camera.maxY - (point.dy - origin.dy) / scale,
+          );
+    final a = world(Offset(0, topInset));
+    final b = world(Offset(size.width, size.height - bottomInset));
+    return RealMatchReplayCamera(
+      minX: math.min(a.dx, b.dx),
+      maxX: math.max(a.dx, b.dx),
+      minY: math.min(a.dy, b.dy),
+      maxY: math.max(a.dy, b.dy),
+    );
+  }
 
   Rect zoomRect({required bool visible, required bool finalPhase}) {
     if (!visible) return Rect.zero;
@@ -59,6 +186,45 @@ class ReplayPitchGeometry {
     final left = rotated ? 9.0 : 12.0;
     final top = rotated && finalPhase ? size.height - height - 62 : 88.0;
     return Rect.fromLTWH(left, top, width, height);
+  }
+
+  static RealMatchReplayCamera _expandedCamera(
+    RealMatchReplayCamera source, {
+    required double minimumWidth,
+    required double minimumHeight,
+    required double pitchLength,
+    required double pitchWidth,
+    double? maximumWidth,
+    double? maximumHeight,
+  }) {
+    final width = math.max(
+        minimumWidth,
+        maximumWidth == null
+            ? source.width
+            : math.min(source.width, maximumWidth));
+    final height = math.max(
+        minimumHeight,
+        maximumHeight == null
+            ? source.height
+            : math.min(source.height, maximumHeight));
+    final halfWidth = width / 2;
+    final halfHeight = height / 2;
+    // A recorded sequence may finish out of play. Respect its source camera
+    // extent so the final ball path stays visible beyond a touch/goal line.
+    final worldMinX = math.min(-pitchLength / 2 - 3, source.minX);
+    final worldMaxX = math.max(pitchLength / 2 + 3, source.maxX);
+    final worldMinY = math.min(-pitchWidth / 2 - 2, source.minY);
+    final worldMaxY = math.max(pitchWidth / 2 + 2, source.maxY);
+    final centerX = ((source.minX + source.maxX) / 2)
+        .clamp(worldMinX + halfWidth, worldMaxX - halfWidth);
+    final centerY = ((source.minY + source.maxY) / 2)
+        .clamp(worldMinY + halfHeight, worldMaxY - halfHeight);
+    return RealMatchReplayCamera(
+      minX: centerX - halfWidth,
+      maxX: centerX + halfWidth,
+      minY: centerY - halfHeight,
+      maxY: centerY + halfHeight,
+    );
   }
 }
 
@@ -73,6 +239,7 @@ class ReplayLabelLayout {
     required List<Rect> obstacles,
     List<Rect> protectedObstacles = const <Rect>[],
     double topInset = 76,
+    double bottomInset = bottomControlsInset,
   }) {
     if (labelSizes.length != anchors.length) {
       throw ArgumentError('Each replay label needs one anchor.');
@@ -81,6 +248,11 @@ class ReplayLabelLayout {
     final blocked = <Rect>[...obstacles];
     for (var index = 0; index < labelSizes.length; index++) {
       final size = labelSizes[index];
+      if (size.width + 16 > stageSize.width ||
+          topInset + size.height + bottomInset > stageSize.height) {
+        placed.add(Rect.zero);
+        continue;
+      }
       final anchor = anchors[index];
       final candidates = <Offset>[
         Offset(anchor.dx + 17, anchor.dy - size.height - 16),
@@ -88,7 +260,7 @@ class ReplayLabelLayout {
         Offset(anchor.dx - size.width / 2, anchor.dy + 23),
       ];
       for (var y = topInset + 6;
-          y <= stageSize.height - bottomControlsInset - size.height;
+          y <= stageSize.height - bottomInset - size.height;
           y += 18) {
         candidates.addAll(<Offset>[
           Offset(10, y),
@@ -100,7 +272,7 @@ class ReplayLabelLayout {
         final left = candidate.dx.clamp(8.0, stageSize.width - size.width - 8);
         final top = candidate.dy.clamp(
           topInset,
-          stageSize.height - size.height - bottomControlsInset,
+          stageSize.height - size.height - bottomInset,
         );
         return Rect.fromLTWH(left, top, size.width, size.height);
       }).toList(growable: false);
@@ -127,7 +299,7 @@ class ReplayLabelLayout {
         // Large text can leave a usable gap between the ball and another
         // label that the coarse grid misses. Search that gap before hiding.
         for (var y = topInset;
-            y <= stageSize.height - bottomControlsInset - size.height;
+            y <= stageSize.height - bottomInset - size.height;
             y += 4) {
           for (final x in <double>[
             8,

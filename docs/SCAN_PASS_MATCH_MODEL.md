@@ -1,6 +1,7 @@
 # Scan Pass: legacy continuous situation catalog
 
-The current public entry is an actual-match observational replay. The
+The current public entry is a 20-scene actual-match observational library with
+context, close, and full-pitch views. The
 [observation guide](SCAN_PASS_CURRICULUM.md) and
 [data provenance](SCAN_PASS_REPLAY_PROVENANCE.md) describe that experience. The
 simulation below is retained for regression coverage and is no longer the

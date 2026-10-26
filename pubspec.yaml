@@ -109,6 +109,7 @@ flutter:
     - assets/animations/
     - assets/sounds/
     - assets/scan_pass_replay/
+    - assets/scan_pass_replay/scenes/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
