@@ -22421,7 +22421,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get realMatchReplayBroadcastDisclosure =>
-      'SkillCorner 중계 영상에서 추정한 위치를 재생합니다. 화면 밖 선수는 생략하며, 패스·운반 표시는 공 소유 정보와 이동 경로를 바탕으로 정리했습니다. 선수 자세와 유니폼 디자인은 간략히 표현했습니다.';
+      'SkillCorner 중계 영상에 잡히지 않은 선수도 계속 볼 수 있도록 주변 시점의 기록을 바탕으로 위치를 보완했습니다. 속이 빈 발밑 표시는 보완한 위치로, 실제 위치와 다를 수 있습니다. 해설은 기록된 움직임을 바탕으로 하며, 몸동작과 유니폼 디자인은 간략히 표현했습니다.';
+
+  @override
+  String get realMatchReplayReconstructedLegend => '보완 위치';
 
   @override
   String get realMatchReplayBallHeightUnavailable =>
@@ -22441,6 +22444,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String realMatchReplayPitchSemanticsGeneric(
       Object home, Object away, Object scene) {
     return '$home 대 $away 실제 추적 위치의 2D 리플레이: $scene.';
+  }
+
+  @override
+  String realMatchReplayPitchSemanticsReconstructed(
+      Object home, Object away, Object scene) {
+    return '$home 대 $away 기록 위치와 명확히 표시된 화면용 보완 위치의 2D 리플레이: $scene.';
   }
 
   @override

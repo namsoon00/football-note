@@ -16,12 +16,13 @@
       "ballXYObservations": 87,
       "ballZObservations": 87,
       "ballHeightAvailable": true,
-      "identifiedPlayers": 20,
+      "identifiedPlayers": 22,
       "anonymousPlayers": 0,
       "minimumIdentifiedPlayersVisible": 7,
       "maximumAnonymousPlayersVisible": 0,
       "anonymousObservationsWithin15mOfBall": 0,
       "maxPlayerSpeedMetersPerSecond": 8.873,
+      "maxDisplaySpeedMetersPerSecond": 8.873,
       "maxBallSpeedMetersPerSecond": 24.99,
       "maxPositionQuantizationErrorMeters": 0.00498984,
       "attackDirection": 1,
@@ -34,8 +35,544 @@
         "homeAttackDirection": 1
       },
       "trackContinuity": {
-        "resolvedTrackIds": [],
+        "resolvedTrackIds": [
+          {
+            "trackId": 501,
+            "trackableObject": 11672
+          },
+          {
+            "trackId": 613,
+            "trackableObject": 9449
+          },
+          {
+            "trackId": 946,
+            "trackableObject": 1152
+          },
+          {
+            "trackId": 1260,
+            "trackableObject": 24015
+          },
+          {
+            "trackId": 1637,
+            "trackableObject": 4460
+          },
+          {
+            "trackId": 1786,
+            "trackableObject": 11847
+          },
+          {
+            "trackId": 1800,
+            "trackableObject": 4460
+          },
+          {
+            "trackId": 1928,
+            "trackableObject": 11537
+          },
+          {
+            "trackId": 2442,
+            "trackableObject": 1302
+          },
+          {
+            "trackId": 2460,
+            "trackableObject": 1302
+          },
+          {
+            "trackId": 2521,
+            "trackableObject": 11537
+          },
+          {
+            "trackId": 2533,
+            "trackableObject": 7745
+          },
+          {
+            "trackId": 2539,
+            "trackableObject": 3267
+          },
+          {
+            "trackId": 2660,
+            "trackableObject": 6037
+          },
+          {
+            "trackId": 2672,
+            "trackableObject": 11672
+          },
+          {
+            "trackId": 2694,
+            "trackableObject": 4460
+          },
+          {
+            "trackId": 2705,
+            "trackableObject": 851
+          },
+          {
+            "trackId": 2720,
+            "trackableObject": 11672
+          },
+          {
+            "trackId": 2778,
+            "trackableObject": 3267
+          },
+          {
+            "trackId": 3035,
+            "trackableObject": 9449
+          },
+          {
+            "trackId": 3038,
+            "trackableObject": 9202
+          },
+          {
+            "trackId": 3040,
+            "trackableObject": 10748
+          },
+          {
+            "trackId": 3581,
+            "trackableObject": 9202
+          },
+          {
+            "trackId": 3643,
+            "trackableObject": 1302
+          },
+          {
+            "trackId": 3692,
+            "trackableObject": 1302
+          },
+          {
+            "trackId": 3721,
+            "trackableObject": 11672
+          },
+          {
+            "trackId": 3753,
+            "trackableObject": 6037
+          },
+          {
+            "trackId": 4061,
+            "trackableObject": 11672
+          },
+          {
+            "trackId": 4235,
+            "trackableObject": 5821
+          },
+          {
+            "trackId": 4413,
+            "trackableObject": 3267
+          },
+          {
+            "trackId": 4427,
+            "trackableObject": 11566
+          },
+          {
+            "trackId": 4647,
+            "trackableObject": 5318
+          }
+        ],
         "unresolvedTracks": []
+      },
+      "displayReconstruction": {
+        "method": "observed XY copied exactly; internal linear bridges; nearby same-period anchors; velocity-capped decaying continuation; nearest same-period anchor hold, then role grid only as last resort",
+        "provenance": {
+          "observed": 0,
+          "reconstructed": 1
+        },
+        "contextRadiusFrames": 600,
+        "continuationDecaySeconds": 1.2,
+        "maximumContinuationSpeedMetersPerSecond": 7.0,
+        "players": [
+          {
+            "trackableObject": 6037,
+            "observedFrames": 7,
+            "inferredFrames": 80,
+            "inferredCoverage": 0.91954,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3835,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3710,
+                  3836
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 8856,
+            "observedFrames": 56,
+            "inferredFrames": 31,
+            "inferredCoverage": 0.356322,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3786,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3656,
+                  3787
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 4460,
+            "observedFrames": 61,
+            "inferredFrames": 26,
+            "inferredCoverage": 0.298851,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3817,
+                "endFrame": 3842,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3816,
+                  3850
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 11566,
+            "observedFrames": 47,
+            "inferredFrames": 40,
+            "inferredCoverage": 0.45977,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3795,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3667,
+                  3796
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 1152,
+            "observedFrames": 42,
+            "inferredFrames": 45,
+            "inferredCoverage": 0.517241,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3798,
+                "endFrame": 3842,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3797,
+                  3911
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 9202,
+            "observedFrames": 64,
+            "inferredFrames": 23,
+            "inferredCoverage": 0.264368,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3820,
+                "endFrame": 3842,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3819,
+                  3854
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 5821,
+            "observedFrames": 75,
+            "inferredFrames": 12,
+            "inferredCoverage": 0.137931,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3767,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3668,
+                  3768
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 1302,
+            "observedFrames": 84,
+            "inferredFrames": 3,
+            "inferredCoverage": 0.034483,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3758,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3679,
+                  3759
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 2934,
+            "observedFrames": 0,
+            "inferredFrames": 87,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3842,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3750,
+                  3938
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 11672,
+            "observedFrames": 52,
+            "inferredFrames": 35,
+            "inferredCoverage": 0.402299,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3790,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3671,
+                  3791
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 24015,
+            "observedFrames": 28,
+            "inferredFrames": 59,
+            "inferredCoverage": 0.678161,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3784,
+                "endFrame": 3842,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3783,
+                  3917
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 11565,
+            "observedFrames": 0,
+            "inferredFrames": 87,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3842,
+                "method": "nearest-period-anchor-hold",
+                "anchorFrames": [
+                  2967
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 3267,
+            "observedFrames": 86,
+            "inferredFrames": 1,
+            "inferredCoverage": 0.011494,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3756,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3666,
+                  3757
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 10748,
+            "observedFrames": 52,
+            "inferredFrames": 35,
+            "inferredCoverage": 0.402299,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3790,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3658,
+                  3791
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 3847,
+            "observedFrames": 77,
+            "inferredFrames": 10,
+            "inferredCoverage": 0.114943,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3765,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3670,
+                  3766
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 9143,
+            "observedFrames": 60,
+            "inferredFrames": 27,
+            "inferredCoverage": 0.310345,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3816,
+                "endFrame": 3842,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3815,
+                  3859
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 9449,
+            "observedFrames": 65,
+            "inferredFrames": 22,
+            "inferredCoverage": 0.252874,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3817,
+                "endFrame": 3838,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  3816,
+                  3839
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 7745,
+            "observedFrames": 69,
+            "inferredFrames": 18,
+            "inferredCoverage": 0.206897,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3825,
+                "endFrame": 3842,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3824,
+                  3889
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 11537,
+            "observedFrames": 53,
+            "inferredFrames": 34,
+            "inferredCoverage": 0.390805,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3789,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3653,
+                  3790
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 5318,
+            "observedFrames": 86,
+            "inferredFrames": 1,
+            "inferredCoverage": 0.011494,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3756,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3668,
+                  3757
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 851,
+            "observedFrames": 47,
+            "inferredFrames": 40,
+            "inferredCoverage": 0.45977,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3795,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3645,
+                  3796
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 11847,
+            "observedFrames": 59,
+            "inferredFrames": 28,
+            "inferredCoverage": 0.321839,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 3756,
+                "endFrame": 3783,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  3662,
+                  3784
+                ]
+              }
+            ]
+          }
+        ]
       },
       "rosterMapping": [
         {
@@ -111,6 +648,15 @@
           "team": "home"
         },
         {
+          "entityId": 2934,
+          "metadataPlayerId": 2924,
+          "trackableObject": 2934,
+          "trackId": null,
+          "number": 31,
+          "name": "Ederson",
+          "team": "home"
+        },
+        {
           "entityId": 11672,
           "metadataPlayerId": 11591,
           "trackableObject": 11672,
@@ -127,6 +673,15 @@
           "number": 50,
           "name": "Eric Garcia",
           "team": "home"
+        },
+        {
+          "entityId": 11565,
+          "metadataPlayerId": 11499,
+          "trackableObject": 11565,
+          "trackId": null,
+          "number": 1,
+          "name": "Alisson Ramses Becker",
+          "team": "away"
         },
         {
           "entityId": 3267,
@@ -275,7 +830,7 @@
       ],
       "coverageDecision": "All87 ballXYZ observations continuous; De Bruyne becomes observed before reception. Laporte→De Bruyne→Mendy shows a confirmed linked same-team sequence. No completion beyond the final recorded frame is asserted.",
       "asset": "assets/scan_pass_replay/scenes/de-bruyne-pressure-receive.json",
-      "sha256": "a3149763412eb0138dad6abaf5ff11045f267cde100ffaf635b31188b73c232c"
+      "sha256": "eae8c116b985703e014b66c4533cc612a8a184a54cdd632323077d6199b843e3"
     },
     {
       "id": "salah-right-recycle",
@@ -292,12 +847,13 @@
       "ballXYObservations": 103,
       "ballZObservations": 99,
       "ballHeightAvailable": false,
-      "identifiedPlayers": 21,
+      "identifiedPlayers": 22,
       "anonymousPlayers": 0,
       "minimumIdentifiedPlayersVisible": 14,
       "maximumAnonymousPlayersVisible": 0,
       "anonymousObservationsWithin15mOfBall": 0,
       "maxPlayerSpeedMetersPerSecond": 8.1271,
+      "maxDisplaySpeedMetersPerSecond": 8.1271,
       "maxBallSpeedMetersPerSecond": 22.0495,
       "maxPositionQuantizationErrorMeters": 0.00499895,
       "attackDirection": -1,
@@ -310,8 +866,483 @@
         "homeAttackDirection": 1
       },
       "trackContinuity": {
-        "resolvedTrackIds": [],
+        "resolvedTrackIds": [
+          {
+            "trackId": 501,
+            "trackableObject": 11672
+          },
+          {
+            "trackId": 613,
+            "trackableObject": 9449
+          },
+          {
+            "trackId": 946,
+            "trackableObject": 1152
+          },
+          {
+            "trackId": 1260,
+            "trackableObject": 24015
+          },
+          {
+            "trackId": 1637,
+            "trackableObject": 4460
+          },
+          {
+            "trackId": 1786,
+            "trackableObject": 11847
+          },
+          {
+            "trackId": 1800,
+            "trackableObject": 4460
+          },
+          {
+            "trackId": 1928,
+            "trackableObject": 11537
+          },
+          {
+            "trackId": 2442,
+            "trackableObject": 1302
+          },
+          {
+            "trackId": 2460,
+            "trackableObject": 1302
+          },
+          {
+            "trackId": 2521,
+            "trackableObject": 11537
+          },
+          {
+            "trackId": 2533,
+            "trackableObject": 7745
+          },
+          {
+            "trackId": 2539,
+            "trackableObject": 3267
+          },
+          {
+            "trackId": 2660,
+            "trackableObject": 6037
+          },
+          {
+            "trackId": 2672,
+            "trackableObject": 11672
+          },
+          {
+            "trackId": 2694,
+            "trackableObject": 4460
+          },
+          {
+            "trackId": 2705,
+            "trackableObject": 851
+          },
+          {
+            "trackId": 2720,
+            "trackableObject": 11672
+          },
+          {
+            "trackId": 2778,
+            "trackableObject": 3267
+          },
+          {
+            "trackId": 3035,
+            "trackableObject": 9449
+          },
+          {
+            "trackId": 3038,
+            "trackableObject": 9202
+          },
+          {
+            "trackId": 3040,
+            "trackableObject": 10748
+          },
+          {
+            "trackId": 3581,
+            "trackableObject": 9202
+          },
+          {
+            "trackId": 3643,
+            "trackableObject": 1302
+          },
+          {
+            "trackId": 3692,
+            "trackableObject": 1302
+          },
+          {
+            "trackId": 3721,
+            "trackableObject": 11672
+          },
+          {
+            "trackId": 3753,
+            "trackableObject": 6037
+          },
+          {
+            "trackId": 4061,
+            "trackableObject": 11672
+          },
+          {
+            "trackId": 4235,
+            "trackableObject": 5821
+          },
+          {
+            "trackId": 4413,
+            "trackableObject": 3267
+          },
+          {
+            "trackId": 4427,
+            "trackableObject": 11566
+          },
+          {
+            "trackId": 4647,
+            "trackableObject": 5318
+          }
+        ],
         "unresolvedTracks": []
+      },
+      "displayReconstruction": {
+        "method": "observed XY copied exactly; internal linear bridges; nearby same-period anchors; velocity-capped decaying continuation; nearest same-period anchor hold, then role grid only as last resort",
+        "provenance": {
+          "observed": 0,
+          "reconstructed": 1
+        },
+        "contextRadiusFrames": 600,
+        "continuationDecaySeconds": 1.2,
+        "maximumContinuationSpeedMetersPerSecond": 7.0,
+        "players": [
+          {
+            "trackableObject": 6037,
+            "observedFrames": 56,
+            "inferredFrames": 47,
+            "inferredCoverage": 0.456311,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 18963,
+                "endFrame": 19009,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  18962,
+                  19010
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 8856,
+            "observedFrames": 93,
+            "inferredFrames": 10,
+            "inferredCoverage": 0.097087,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 19023,
+                "endFrame": 19032,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  19022,
+                  19269
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 4460,
+            "observedFrames": 103,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 11566,
+            "observedFrames": 103,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 1152,
+            "observedFrames": 103,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 9202,
+            "observedFrames": 103,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 5821,
+            "observedFrames": 78,
+            "inferredFrames": 25,
+            "inferredCoverage": 0.242718,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 18969,
+                "endFrame": 18993,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  18968,
+                  18994
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 1302,
+            "observedFrames": 103,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 2934,
+            "observedFrames": 22,
+            "inferredFrames": 81,
+            "inferredCoverage": 0.786408,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 18939,
+                "endFrame": 19019,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  18938,
+                  19020
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 11672,
+            "observedFrames": 91,
+            "inferredFrames": 12,
+            "inferredCoverage": 0.116505,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 19021,
+                "endFrame": 19032,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  19020,
+                  19151
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 24015,
+            "observedFrames": 75,
+            "inferredFrames": 28,
+            "inferredCoverage": 0.271845,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 18970,
+                "endFrame": 18997,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  18969,
+                  18998
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 11565,
+            "observedFrames": 0,
+            "inferredFrames": 103,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 18930,
+                "endFrame": 19032,
+                "method": "bounded-forward-continuation",
+                "anchorFrames": [
+                  18381
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 3267,
+            "observedFrames": 95,
+            "inferredFrames": 8,
+            "inferredCoverage": 0.07767,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 19025,
+                "endFrame": 19032,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  19024,
+                  19156
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 10748,
+            "observedFrames": 58,
+            "inferredFrames": 45,
+            "inferredCoverage": 0.436893,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 18960,
+                "endFrame": 19004,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  18959,
+                  19005
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 3847,
+            "observedFrames": 103,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 9143,
+            "observedFrames": 103,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 9449,
+            "observedFrames": 52,
+            "inferredFrames": 51,
+            "inferredCoverage": 0.495146,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 18961,
+                "endFrame": 19011,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  18960,
+                  19012
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 7745,
+            "observedFrames": 94,
+            "inferredFrames": 9,
+            "inferredCoverage": 0.087379,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 19024,
+                "endFrame": 19032,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  19023,
+                  19131
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 11537,
+            "observedFrames": 45,
+            "inferredFrames": 58,
+            "inferredCoverage": 0.563107,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 18930,
+                "endFrame": 18968,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  18605,
+                  18969
+                ]
+              },
+              {
+                "startFrame": 19014,
+                "endFrame": 19032,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  19013,
+                  19273
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 5318,
+            "observedFrames": 96,
+            "inferredFrames": 7,
+            "inferredCoverage": 0.067961,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 19026,
+                "endFrame": 19032,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  19025,
+                  19262
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 851,
+            "observedFrames": 53,
+            "inferredFrames": 50,
+            "inferredCoverage": 0.485437,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 18974,
+                "endFrame": 19023,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  18973,
+                  19024
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 11847,
+            "observedFrames": 87,
+            "inferredFrames": 16,
+            "inferredCoverage": 0.15534,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 19017,
+                "endFrame": 19032,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  19016,
+                  19268
+                ]
+              }
+            ]
+          }
+        ]
       },
       "rosterMapping": [
         {
@@ -412,6 +1443,15 @@
           "number": 50,
           "name": "Eric Garcia",
           "team": "home"
+        },
+        {
+          "entityId": 11565,
+          "metadataPlayerId": 11499,
+          "trackableObject": 11565,
+          "trackId": null,
+          "number": 1,
+          "name": "Alisson Ramses Becker",
+          "team": "away"
         },
         {
           "entityId": 3267,
@@ -560,7 +1600,7 @@
       ],
       "coverageDecision": "Parent-audited 10.2 s interval: continuous ball XY, 99 of 103 source ball samples include Z, no anonymous players, sane 8.1 m/s maximum player speed, and the focal player is observed for 94 frames.",
       "asset": "assets/scan_pass_replay/scenes/salah-right-recycle.json",
-      "sha256": "815fb79b4890b4b3ffbdb122dfb4db84c0caa7ac45ed192d49e4cb606386601e"
+      "sha256": "31b74f988fb7b6ea66cb9c9034cfe65a183f0da7c6967284662923e0e1a6de17"
     },
     {
       "id": "messi-right-connection",
@@ -577,12 +1617,13 @@
       "ballXYObservations": 111,
       "ballZObservations": 32,
       "ballHeightAvailable": false,
-      "identifiedPlayers": 18,
+      "identifiedPlayers": 22,
       "anonymousPlayers": 0,
       "minimumIdentifiedPlayersVisible": 16,
       "maximumAnonymousPlayersVisible": 0,
       "anonymousObservationsWithin15mOfBall": 0,
       "maxPlayerSpeedMetersPerSecond": 9.9368,
+      "maxDisplaySpeedMetersPerSecond": 9.9368,
       "maxBallSpeedMetersPerSecond": 12.2348,
       "maxPositionQuantizationErrorMeters": 0.00499718,
       "attackDirection": -1,
@@ -597,11 +1638,595 @@
       "trackContinuity": {
         "resolvedTrackIds": [
           {
+            "trackId": 203,
+            "trackableObject": 9759
+          },
+          {
+            "trackId": 205,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 228,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 279,
+            "trackableObject": 12397
+          },
+          {
+            "trackId": 310,
+            "trackableObject": 2199
+          },
+          {
+            "trackId": 392,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 400,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 405,
+            "trackableObject": 8886
+          },
+          {
+            "trackId": 409,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 420,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 421,
+            "trackableObject": 9775
+          },
+          {
+            "trackId": 427,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 473,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 501,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 520,
+            "trackableObject": 12395
+          },
+          {
+            "trackId": 559,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 622,
+            "trackableObject": 8886
+          },
+          {
+            "trackId": 649,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 774,
+            "trackableObject": 9775
+          },
+          {
+            "trackId": 871,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 929,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 968,
+            "trackableObject": 1684
+          },
+          {
+            "trackId": 1137,
+            "trackableObject": 4497
+          },
+          {
+            "trackId": 1243,
+            "trackableObject": 4497
+          },
+          {
+            "trackId": 1367,
+            "trackableObject": 12395
+          },
+          {
+            "trackId": 1625,
+            "trackableObject": 9759
+          },
+          {
+            "trackId": 1771,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 1840,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 1971,
+            "trackableObject": 1101
+          },
+          {
+            "trackId": 2160,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 2453,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 2473,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 2495,
+            "trackableObject": 9775
+          },
+          {
+            "trackId": 2500,
+            "trackableObject": 1684
+          },
+          {
+            "trackId": 2501,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 2509,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 2670,
+            "trackableObject": 12395
+          },
+          {
+            "trackId": 2724,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 2771,
+            "trackableObject": 4497
+          },
+          {
+            "trackId": 2842,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 2925,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 3096,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 3142,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 3160,
+            "trackableObject": 3862
+          },
+          {
+            "trackId": 3173,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 3274,
+            "trackableObject": 2199
+          },
+          {
+            "trackId": 3403,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 3569,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 3602,
+            "trackableObject": 3862
+          },
+          {
+            "trackId": 3676,
+            "trackableObject": 8886
+          },
+          {
+            "trackId": 3712,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 3756,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 4074,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 4076,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 4082,
+            "trackableObject": 9759
+          },
+          {
+            "trackId": 4085,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 4111,
+            "trackableObject": 12802
+          },
+          {
+            "trackId": 4218,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 4297,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 4323,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 4374,
+            "trackableObject": 2199
+          },
+          {
+            "trackId": 4380,
+            "trackableObject": 1101
+          },
+          {
+            "trackId": 4394,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 4515,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 4573,
+            "trackableObject": 2199
+          },
+          {
+            "trackId": 4643,
+            "trackableObject": 12395
+          },
+          {
+            "trackId": 4644,
+            "trackableObject": 3862
+          },
+          {
+            "trackId": 4723,
+            "trackableObject": 9775
+          },
+          {
             "trackId": 4839,
             "trackableObject": 956
+          },
+          {
+            "trackId": 4933,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 4996,
+            "trackableObject": 1684
+          },
+          {
+            "trackId": 5070,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 5128,
+            "trackableObject": 9775
+          },
+          {
+            "trackId": 5174,
+            "trackableObject": 9775
+          },
+          {
+            "trackId": 5228,
+            "trackableObject": 1101
+          },
+          {
+            "trackId": 5242,
+            "trackableObject": 1101
+          },
+          {
+            "trackId": 5253,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 5283,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 5300,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 5301,
+            "trackableObject": 12397
+          },
+          {
+            "trackId": 5307,
+            "trackableObject": 12802
+          },
+          {
+            "trackId": 5311,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 5314,
+            "trackableObject": 4497
           }
         ],
         "unresolvedTracks": []
+      },
+      "displayReconstruction": {
+        "method": "observed XY copied exactly; internal linear bridges; nearby same-period anchors; velocity-capped decaying continuation; nearest same-period anchor hold, then role grid only as last resort",
+        "provenance": {
+          "observed": 0,
+          "reconstructed": 1
+        },
+        "contextRadiusFrames": 600,
+        "continuationDecaySeconds": 1.2,
+        "maximumContinuationSpeedMetersPerSecond": 7.0,
+        "players": [
+          {
+            "trackableObject": 2199,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 9775,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 8886,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 10530,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 5720,
+            "observedFrames": 13,
+            "inferredFrames": 98,
+            "inferredCoverage": 0.882883,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 25268,
+                "endFrame": 25365,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  25014,
+                  25366
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 6733,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 10271,
+            "observedFrames": 0,
+            "inferredFrames": 111,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 25268,
+                "endFrame": 25378,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  24817,
+                  25443
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 1684,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 12395,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 4497,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 12397,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 6689,
+            "observedFrames": 0,
+            "inferredFrames": 111,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 25268,
+                "endFrame": 25378,
+                "method": "bounded-forward-continuation",
+                "anchorFrames": [
+                  25015
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 11514,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 3862,
+            "observedFrames": 0,
+            "inferredFrames": 111,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 25268,
+                "endFrame": 25378,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  25263,
+                  25553
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 9759,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 12802,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 6260,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 956,
+            "observedFrames": 92,
+            "inferredFrames": 19,
+            "inferredCoverage": 0.171171,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 25275,
+                "endFrame": 25286,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  25274,
+                  25287
+                ]
+              },
+              {
+                "startFrame": 25372,
+                "endFrame": 25378,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  25371,
+                  25436
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 5336,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 12524,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 1101,
+            "observedFrames": 111,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 9533,
+            "observedFrames": 0,
+            "inferredFrames": 111,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 25268,
+                "endFrame": 25378,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  25052,
+                  25556
+                ]
+              }
+            ]
+          }
+        ]
       },
       "rosterMapping": [
         {
@@ -659,6 +2284,15 @@
           "team": "home"
         },
         {
+          "entityId": 10271,
+          "metadataPlayerId": 10261,
+          "trackableObject": 10271,
+          "trackId": null,
+          "number": 13,
+          "name": "Thibaut Courtois",
+          "team": "home"
+        },
+        {
           "entityId": 1684,
           "metadataPlayerId": 1674,
           "trackableObject": 1684,
@@ -695,12 +2329,30 @@
           "team": "home"
         },
         {
+          "entityId": 6689,
+          "metadataPlayerId": 6679,
+          "trackableObject": 6689,
+          "trackId": null,
+          "number": 1,
+          "name": "Marc-Andre ter Stegen",
+          "team": "away"
+        },
+        {
           "entityId": 11514,
           "metadataPlayerId": 11454,
           "trackableObject": 11514,
           "trackId": null,
           "number": 2,
           "name": "Nelson Semedo",
+          "team": "away"
+        },
+        {
+          "entityId": 3862,
+          "metadataPlayerId": 3852,
+          "trackableObject": 3862,
+          "trackId": null,
+          "number": 3,
+          "name": "Gerard Pique",
           "team": "away"
         },
         {
@@ -765,6 +2417,15 @@
           "number": 22,
           "name": "Arturo Vidal",
           "team": "away"
+        },
+        {
+          "entityId": 9533,
+          "metadataPlayerId": 9523,
+          "trackableObject": 9533,
+          "trackId": null,
+          "number": 23,
+          "name": "Samuel Umtiti",
+          "team": "away"
         }
       ],
       "possessionEvidence": [
@@ -818,7 +2479,7 @@
       ],
       "coverageDecision": "Parent-audited 11.0 s interval: continuous ball XY, focal player visible in every frame, at least 16 identified players visible per frame, no anonymous player within 15 m of the ball, and sane source speeds.",
       "asset": "assets/scan_pass_replay/scenes/messi-right-connection.json",
-      "sha256": "b67138630444d9a3c8f57c5ba0ae7e01d5c296ebdf2047f115bf7494fae8941e"
+      "sha256": "c3f62d845320412b9cb1569f18b3fb3fe2f60b5b599ce57a49d92fed01d66f05"
     },
     {
       "id": "kroos-central-recycle",
@@ -835,12 +2496,13 @@
       "ballXYObservations": 108,
       "ballZObservations": 25,
       "ballHeightAvailable": false,
-      "identifiedPlayers": 19,
+      "identifiedPlayers": 22,
       "anonymousPlayers": 0,
       "minimumIdentifiedPlayersVisible": 14,
       "maximumAnonymousPlayersVisible": 0,
       "anonymousObservationsWithin15mOfBall": 0,
       "maxPlayerSpeedMetersPerSecond": 8.9627,
+      "maxDisplaySpeedMetersPerSecond": 8.9627,
       "maxBallSpeedMetersPerSecond": 17.7589,
       "maxPositionQuantizationErrorMeters": 0.00499766,
       "attackDirection": 1,
@@ -855,11 +2517,625 @@
       "trackContinuity": {
         "resolvedTrackIds": [
           {
+            "trackId": 203,
+            "trackableObject": 9759
+          },
+          {
+            "trackId": 205,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 228,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 279,
+            "trackableObject": 12397
+          },
+          {
+            "trackId": 310,
+            "trackableObject": 2199
+          },
+          {
+            "trackId": 392,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 400,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 405,
+            "trackableObject": 8886
+          },
+          {
+            "trackId": 409,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 420,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 421,
+            "trackableObject": 9775
+          },
+          {
+            "trackId": 427,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 473,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 501,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 520,
+            "trackableObject": 12395
+          },
+          {
+            "trackId": 559,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 622,
+            "trackableObject": 8886
+          },
+          {
+            "trackId": 649,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 774,
+            "trackableObject": 9775
+          },
+          {
+            "trackId": 871,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 929,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 968,
+            "trackableObject": 1684
+          },
+          {
+            "trackId": 1137,
+            "trackableObject": 4497
+          },
+          {
+            "trackId": 1243,
+            "trackableObject": 4497
+          },
+          {
+            "trackId": 1367,
+            "trackableObject": 12395
+          },
+          {
+            "trackId": 1625,
+            "trackableObject": 9759
+          },
+          {
+            "trackId": 1771,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 1840,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 1971,
+            "trackableObject": 1101
+          },
+          {
+            "trackId": 2160,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 2453,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 2473,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 2495,
+            "trackableObject": 9775
+          },
+          {
+            "trackId": 2500,
+            "trackableObject": 1684
+          },
+          {
+            "trackId": 2501,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 2509,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 2670,
+            "trackableObject": 12395
+          },
+          {
+            "trackId": 2724,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 2771,
+            "trackableObject": 4497
+          },
+          {
+            "trackId": 2842,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 2925,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 3096,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 3142,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 3160,
+            "trackableObject": 3862
+          },
+          {
+            "trackId": 3173,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 3274,
+            "trackableObject": 2199
+          },
+          {
+            "trackId": 3403,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 3569,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 3602,
+            "trackableObject": 3862
+          },
+          {
+            "trackId": 3676,
+            "trackableObject": 8886
+          },
+          {
+            "trackId": 3712,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 3756,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 4074,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 4076,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 4082,
+            "trackableObject": 9759
+          },
+          {
+            "trackId": 4085,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 4111,
+            "trackableObject": 12802
+          },
+          {
+            "trackId": 4218,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 4297,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 4323,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 4374,
+            "trackableObject": 2199
+          },
+          {
+            "trackId": 4380,
+            "trackableObject": 1101
+          },
+          {
+            "trackId": 4394,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 4515,
+            "trackableObject": 6260
+          },
+          {
             "trackId": 4573,
             "trackableObject": 2199
+          },
+          {
+            "trackId": 4643,
+            "trackableObject": 12395
+          },
+          {
+            "trackId": 4644,
+            "trackableObject": 3862
+          },
+          {
+            "trackId": 4723,
+            "trackableObject": 9775
+          },
+          {
+            "trackId": 4839,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 4933,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 4996,
+            "trackableObject": 1684
+          },
+          {
+            "trackId": 5070,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 5128,
+            "trackableObject": 9775
+          },
+          {
+            "trackId": 5174,
+            "trackableObject": 9775
+          },
+          {
+            "trackId": 5228,
+            "trackableObject": 1101
+          },
+          {
+            "trackId": 5242,
+            "trackableObject": 1101
+          },
+          {
+            "trackId": 5253,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 5283,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 5300,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 5301,
+            "trackableObject": 12397
+          },
+          {
+            "trackId": 5307,
+            "trackableObject": 12802
+          },
+          {
+            "trackId": 5311,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 5314,
+            "trackableObject": 4497
           }
         ],
         "unresolvedTracks": []
+      },
+      "displayReconstruction": {
+        "method": "observed XY copied exactly; internal linear bridges; nearby same-period anchors; velocity-capped decaying continuation; nearest same-period anchor hold, then role grid only as last resort",
+        "provenance": {
+          "observed": 0,
+          "reconstructed": 1
+        },
+        "contextRadiusFrames": 600,
+        "continuationDecaySeconds": 1.2,
+        "maximumContinuationSpeedMetersPerSecond": 7.0,
+        "players": [
+          {
+            "trackableObject": 2199,
+            "observedFrames": 15,
+            "inferredFrames": 93,
+            "inferredCoverage": 0.861111,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 23897,
+                "endFrame": 23989,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  23835,
+                  23990
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 9775,
+            "observedFrames": 30,
+            "inferredFrames": 78,
+            "inferredCoverage": 0.722222,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 23897,
+                "endFrame": 23974,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  23819,
+                  23975
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 8886,
+            "observedFrames": 25,
+            "inferredFrames": 83,
+            "inferredCoverage": 0.768519,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 23897,
+                "endFrame": 23979,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  23774,
+                  23980
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 10530,
+            "observedFrames": 108,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 5720,
+            "observedFrames": 108,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 6733,
+            "observedFrames": 108,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 10271,
+            "observedFrames": 0,
+            "inferredFrames": 108,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 23897,
+                "endFrame": 24004,
+                "method": "bounded-forward-continuation",
+                "anchorFrames": [
+                  23723
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 1684,
+            "observedFrames": 108,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 12395,
+            "observedFrames": 106,
+            "inferredFrames": 2,
+            "inferredCoverage": 0.018519,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 23944,
+                "endFrame": 23945,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  23943,
+                  23946
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 4497,
+            "observedFrames": 108,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 12397,
+            "observedFrames": 108,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 6689,
+            "observedFrames": 0,
+            "inferredFrames": 108,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 23897,
+                "endFrame": 24004,
+                "method": "bounded-backward-continuation",
+                "anchorFrames": [
+                  24080
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 11514,
+            "observedFrames": 108,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 3862,
+            "observedFrames": 108,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 9759,
+            "observedFrames": 108,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 12802,
+            "observedFrames": 102,
+            "inferredFrames": 6,
+            "inferredCoverage": 0.055556,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 23916,
+                "endFrame": 23921,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  23915,
+                  23922
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 6260,
+            "observedFrames": 27,
+            "inferredFrames": 81,
+            "inferredCoverage": 0.75,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 23897,
+                "endFrame": 23977,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  23760,
+                  23978
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 956,
+            "observedFrames": 108,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 5336,
+            "observedFrames": 0,
+            "inferredFrames": 108,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 23897,
+                "endFrame": 24004,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  23863,
+                  24006
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 12524,
+            "observedFrames": 108,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 1101,
+            "observedFrames": 108,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 9533,
+            "observedFrames": 93,
+            "inferredFrames": 15,
+            "inferredCoverage": 0.138889,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 23990,
+                "endFrame": 24004,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  23989,
+                  24005
+                ]
+              }
+            ]
+          }
+        ]
       },
       "rosterMapping": [
         {
@@ -917,6 +3193,15 @@
           "team": "home"
         },
         {
+          "entityId": 10271,
+          "metadataPlayerId": 10261,
+          "trackableObject": 10271,
+          "trackId": null,
+          "number": 13,
+          "name": "Thibaut Courtois",
+          "team": "home"
+        },
+        {
           "entityId": 1684,
           "metadataPlayerId": 1674,
           "trackableObject": 1684,
@@ -951,6 +3236,15 @@
           "number": 25,
           "name": "Junior Vinicius",
           "team": "home"
+        },
+        {
+          "entityId": 6689,
+          "metadataPlayerId": 6679,
+          "trackableObject": 6689,
+          "trackId": null,
+          "number": 1,
+          "name": "Marc-Andre ter Stegen",
+          "team": "away"
         },
         {
           "entityId": 11514,
@@ -1004,6 +3298,15 @@
           "trackId": null,
           "number": 17,
           "name": "Antoine Griezmann",
+          "team": "away"
+        },
+        {
+          "entityId": 5336,
+          "metadataPlayerId": 5326,
+          "trackableObject": 5336,
+          "trackId": null,
+          "number": 18,
+          "name": "Jordi Alba",
           "team": "away"
         },
         {
@@ -1095,7 +3398,7 @@
       ],
       "coverageDecision": "Parent-audited 10.7 s interval: continuous ball XY, Kroos visible in every frame, at least 14 identified players visible per frame, no anonymous player within 15 m of the ball, and sane source speeds.",
       "asset": "assets/scan_pass_replay/scenes/kroos-central-recycle.json",
-      "sha256": "894f5313ac9592cd9207e5f948c8bf435f104980c406b992f4ca8ffeab71c84d"
+      "sha256": "87e4936f945672f7c184876307ed5b89eae615744f93af6cbf80ac71a2fb247d"
     },
     {
       "id": "vinicius-carry-inside",
@@ -1112,12 +3415,13 @@
       "ballXYObservations": 121,
       "ballZObservations": 42,
       "ballHeightAvailable": false,
-      "identifiedPlayers": 15,
+      "identifiedPlayers": 22,
       "anonymousPlayers": 0,
       "minimumIdentifiedPlayersVisible": 6,
       "maximumAnonymousPlayersVisible": 0,
       "anonymousObservationsWithin15mOfBall": 0,
       "maxPlayerSpeedMetersPerSecond": 9.3509,
+      "maxDisplaySpeedMetersPerSecond": 9.3509,
       "maxBallSpeedMetersPerSecond": 22.8668,
       "maxPositionQuantizationErrorMeters": 0.00499743,
       "attackDirection": -1,
@@ -1130,10 +3434,742 @@
         "homeAttackDirection": -1
       },
       "trackContinuity": {
-        "resolvedTrackIds": [],
+        "resolvedTrackIds": [
+          {
+            "trackId": 5402,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 5413,
+            "trackableObject": 4497
+          },
+          {
+            "trackId": 5496,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 5512,
+            "trackableObject": 1101
+          },
+          {
+            "trackId": 5555,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 5635,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 5636,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 5644,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 5645,
+            "trackableObject": 9775
+          },
+          {
+            "trackId": 5662,
+            "trackableObject": 3862
+          },
+          {
+            "trackId": 5669,
+            "trackableObject": 3862
+          },
+          {
+            "trackId": 5701,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 5779,
+            "trackableObject": 1684
+          },
+          {
+            "trackId": 5784,
+            "trackableObject": 1684
+          },
+          {
+            "trackId": 5871,
+            "trackableObject": 8886
+          },
+          {
+            "trackId": 6024,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 6431,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 6552,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 6558,
+            "trackableObject": 12524
+          },
+          {
+            "trackId": 6559,
+            "trackableObject": 3862
+          },
+          {
+            "trackId": 6560,
+            "trackableObject": 9759
+          },
+          {
+            "trackId": 6628,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 6632,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 6643,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 6654,
+            "trackableObject": 3862
+          },
+          {
+            "trackId": 6704,
+            "trackableObject": 12524
+          },
+          {
+            "trackId": 6709,
+            "trackableObject": 12397
+          },
+          {
+            "trackId": 6710,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 6721,
+            "trackableObject": 9533
+          },
+          {
+            "trackId": 6738,
+            "trackableObject": 9533
+          },
+          {
+            "trackId": 6741,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 7101,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 7103,
+            "trackableObject": 9775
+          },
+          {
+            "trackId": 7190,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 7222,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 7227,
+            "trackableObject": 3862
+          },
+          {
+            "trackId": 7235,
+            "trackableObject": 3862
+          },
+          {
+            "trackId": 7335,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 7346,
+            "trackableObject": 9759
+          },
+          {
+            "trackId": 7354,
+            "trackableObject": 9759
+          },
+          {
+            "trackId": 7502,
+            "trackableObject": 12397
+          },
+          {
+            "trackId": 7503,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 7506,
+            "trackableObject": 12395
+          },
+          {
+            "trackId": 7639,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 7681,
+            "trackableObject": 8886
+          },
+          {
+            "trackId": 7861,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 7862,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 8009,
+            "trackableObject": 1101
+          },
+          {
+            "trackId": 8023,
+            "trackableObject": 4497
+          },
+          {
+            "trackId": 8026,
+            "trackableObject": 4497
+          },
+          {
+            "trackId": 8210,
+            "trackableObject": 5336
+          },
+          {
+            "trackId": 8320,
+            "trackableObject": 9759
+          },
+          {
+            "trackId": 8358,
+            "trackableObject": 12802
+          },
+          {
+            "trackId": 8414,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 8480,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 8495,
+            "trackableObject": 12397
+          },
+          {
+            "trackId": 8499,
+            "trackableObject": 12397
+          },
+          {
+            "trackId": 8546,
+            "trackableObject": 12397
+          },
+          {
+            "trackId": 8708,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 8710,
+            "trackableObject": 956
+          },
+          {
+            "trackId": 8716,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 8780,
+            "trackableObject": 2199
+          },
+          {
+            "trackId": 8854,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 9133,
+            "trackableObject": 8886
+          },
+          {
+            "trackId": 9364,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 9423,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 9463,
+            "trackableObject": 12395
+          },
+          {
+            "trackId": 9468,
+            "trackableObject": 2199
+          },
+          {
+            "trackId": 9533,
+            "trackableObject": 8886
+          },
+          {
+            "trackId": 9689,
+            "trackableObject": 11514
+          },
+          {
+            "trackId": 9859,
+            "trackableObject": 1684
+          },
+          {
+            "trackId": 9899,
+            "trackableObject": 5720
+          },
+          {
+            "trackId": 9901,
+            "trackableObject": 6733
+          },
+          {
+            "trackId": 9908,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 9939,
+            "trackableObject": 8886
+          },
+          {
+            "trackId": 9943,
+            "trackableObject": 2199
+          },
+          {
+            "trackId": 9946,
+            "trackableObject": 1684
+          },
+          {
+            "trackId": 10023,
+            "trackableObject": 6383
+          },
+          {
+            "trackId": 10033,
+            "trackableObject": 9533
+          },
+          {
+            "trackId": 10108,
+            "trackableObject": 12524
+          },
+          {
+            "trackId": 10195,
+            "trackableObject": 1684
+          },
+          {
+            "trackId": 10235,
+            "trackableObject": 3862
+          },
+          {
+            "trackId": 10260,
+            "trackableObject": 6383
+          },
+          {
+            "trackId": 10320,
+            "trackableObject": 10530
+          },
+          {
+            "trackId": 10332,
+            "trackableObject": 7044
+          },
+          {
+            "trackId": 10415,
+            "trackableObject": 8886
+          },
+          {
+            "trackId": 10467,
+            "trackableObject": 6260
+          },
+          {
+            "trackId": 10526,
+            "trackableObject": 11251
+          },
+          {
+            "trackId": 10575,
+            "trackableObject": 3862
+          }
+        ],
         "unresolvedTracks": []
       },
+      "displayReconstruction": {
+        "method": "observed XY copied exactly; internal linear bridges; nearby same-period anchors; velocity-capped decaying continuation; nearest same-period anchor hold, then role grid only as last resort",
+        "provenance": {
+          "observed": 0,
+          "reconstructed": 1
+        },
+        "contextRadiusFrames": 600,
+        "continuationDecaySeconds": 1.2,
+        "maximumContinuationSpeedMetersPerSecond": 7.0,
+        "players": [
+          {
+            "trackableObject": 2199,
+            "observedFrames": 0,
+            "inferredFrames": 121,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55945,
+                "endFrame": 56065,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  55937,
+                  56449
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 9775,
+            "observedFrames": 0,
+            "inferredFrames": 121,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55945,
+                "endFrame": 56065,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  55925,
+                  56404
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 8886,
+            "observedFrames": 121,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 10530,
+            "observedFrames": 66,
+            "inferredFrames": 55,
+            "inferredCoverage": 0.454545,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55945,
+                "endFrame": 55999,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  55944,
+                  56000
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 5720,
+            "observedFrames": 98,
+            "inferredFrames": 23,
+            "inferredCoverage": 0.190083,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55976,
+                "endFrame": 55998,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  55975,
+                  55999
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 6733,
+            "observedFrames": 0,
+            "inferredFrames": 121,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55945,
+                "endFrame": 56065,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  55672,
+                  56519
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 10271,
+            "observedFrames": 0,
+            "inferredFrames": 121,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55945,
+                "endFrame": 56065,
+                "method": "bounded-forward-continuation",
+                "anchorFrames": [
+                  55672
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 1684,
+            "observedFrames": 72,
+            "inferredFrames": 49,
+            "inferredCoverage": 0.404959,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55961,
+                "endFrame": 56009,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  55960,
+                  56010
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 12395,
+            "observedFrames": 0,
+            "inferredFrames": 121,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55945,
+                "endFrame": 56065,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  55943,
+                  56433
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 4497,
+            "observedFrames": 42,
+            "inferredFrames": 79,
+            "inferredCoverage": 0.652893,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55945,
+                "endFrame": 56023,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  55944,
+                  56024
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 12397,
+            "observedFrames": 121,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 6689,
+            "observedFrames": 98,
+            "inferredFrames": 23,
+            "inferredCoverage": 0.190083,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55945,
+                "endFrame": 55967,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  55519,
+                  55968
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 11514,
+            "observedFrames": 121,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 3862,
+            "observedFrames": 121,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 9759,
+            "observedFrames": 78,
+            "inferredFrames": 43,
+            "inferredCoverage": 0.355372,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55960,
+                "endFrame": 56002,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  55959,
+                  56003
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 12802,
+            "observedFrames": 121,
+            "inferredFrames": 0,
+            "inferredCoverage": 0.0,
+            "contextRadiusFrames": 600,
+            "spans": []
+          },
+          {
+            "trackableObject": 6260,
+            "observedFrames": 0,
+            "inferredFrames": 121,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55945,
+                "endFrame": 56065,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  55938,
+                  56512
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 956,
+            "observedFrames": 0,
+            "inferredFrames": 121,
+            "inferredCoverage": 1.0,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55945,
+                "endFrame": 56065,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  55936,
+                  56404
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 5336,
+            "observedFrames": 96,
+            "inferredFrames": 25,
+            "inferredCoverage": 0.206612,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55967,
+                "endFrame": 55991,
+                "method": "internal-linear-bridge",
+                "anchorFrames": [
+                  55966,
+                  55992
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 7044,
+            "observedFrames": 34,
+            "inferredFrames": 87,
+            "inferredCoverage": 0.719008,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55945,
+                "endFrame": 56031,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  55916,
+                  56032
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 12524,
+            "observedFrames": 42,
+            "inferredFrames": 79,
+            "inferredCoverage": 0.652893,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55945,
+                "endFrame": 56023,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  55942,
+                  56024
+                ]
+              }
+            ]
+          },
+          {
+            "trackableObject": 9533,
+            "observedFrames": 8,
+            "inferredFrames": 113,
+            "inferredCoverage": 0.933884,
+            "contextRadiusFrames": 600,
+            "spans": [
+              {
+                "startFrame": 55945,
+                "endFrame": 56057,
+                "method": "context-anchor-interpolation",
+                "anchorFrames": [
+                  55828,
+                  56058
+                ]
+              }
+            ]
+          }
+        ]
+      },
       "rosterMapping": [
+        {
+          "entityId": 2199,
+          "metadataPlayerId": 2189,
+          "trackableObject": 2199,
+          "trackId": null,
+          "number": 2,
+          "name": "Daniel Carvajal",
+          "team": "home"
+        },
+        {
+          "entityId": 9775,
+          "metadataPlayerId": 9765,
+          "trackableObject": 9775,
+          "trackId": null,
+          "number": 4,
+          "name": "Sergio Ramos",
+          "team": "home"
+        },
         {
           "entityId": 8886,
           "metadataPlayerId": 8876,
@@ -1162,12 +4198,39 @@
           "team": "home"
         },
         {
+          "entityId": 6733,
+          "metadataPlayerId": 6723,
+          "trackableObject": 6733,
+          "trackId": null,
+          "number": 12,
+          "name": "Marcelo",
+          "team": "home"
+        },
+        {
+          "entityId": 10271,
+          "metadataPlayerId": 10261,
+          "trackableObject": 10271,
+          "trackId": null,
+          "number": 13,
+          "name": "Thibaut Courtois",
+          "team": "home"
+        },
+        {
           "entityId": 1684,
           "metadataPlayerId": 1674,
           "trackableObject": 1684,
           "trackId": null,
           "number": 14,
           "name": "Casemiro",
+          "team": "home"
+        },
+        {
+          "entityId": 12395,
+          "metadataPlayerId": 12251,
+          "trackableObject": 12395,
+          "trackId": null,
+          "number": 15,
+          "name": "Federico Valverde",
           "team": "home"
         },
         {
@@ -1231,6 +4294,24 @@
           "trackId": null,
           "number": 8,
           "name": "Arthur",
+          "team": "away"
+        },
+        {
+          "entityId": 6260,
+          "metadataPlayerId": 6250,
+          "trackableObject": 6260,
+          "trackId": null,
+          "number": 10,
+          "name": "Lionel Messi",
+          "team": "away"
+        },
+        {
+          "entityId": 956,
+          "metadataPlayerId": 946,
+          "trackableObject": 956,
+          "trackId": null,
+          "number": 17,
+          "name": "Antoine Griezmann",
           "team": "away"
         },
         {
@@ -1346,7 +4427,7 @@
       ],
       "coverageDecision": "Parent-audited 12.0 s interval: continuous ball XY, Vinícius visible in every frame, no anonymous players, sane 9.3 m/s maximum player speed, and a linked same-team sequence through Kroos toward Benzema.",
       "asset": "assets/scan_pass_replay/scenes/vinicius-carry-inside.json",
-      "sha256": "77d7b4eb18d9d95607088796b7efd342c56bdf452f9f242772b7bcf884019839"
+      "sha256": "898730d738f1f85a02bddee8a68b0a662e52840f148155854477ef4052bf6cd1"
     }
   ]
 }

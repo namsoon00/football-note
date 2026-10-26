@@ -205,6 +205,77 @@ void main() {
     }
   });
 
+  test(
+      'stable public overview keeps every scene body and ball in the safe viewport',
+      () {
+    const textScale = 1.4;
+    const headerInset = 28 * textScale + 22;
+    const bottomInset = 14 * textScale + 31;
+    for (final entry in catalog.scenes) {
+      final data = scenes[entry.id]!;
+      for (final size in const <Size>[
+        Size(320, 600),
+        Size(360, 600),
+        Size(844, 230),
+        Size(470, 359),
+        Size(1400, 700),
+      ]) {
+        final geometry = ReplayPitchGeometry.forSize(
+          size,
+          camera: data.displayOverviewCamera,
+          fitPlayerBodies: true,
+          rotatePitch: size.width < size.height,
+          attackDirection: data.scene.attackDirection,
+          view: ReplayPitchView.coaching,
+          pitchLength: data.pitchLength,
+          pitchWidth: data.pitchWidth,
+          headerInset: headerInset,
+          bottomInset: bottomInset,
+        );
+        final safe = Rect.fromLTRB(
+          0,
+          headerInset,
+          size.width,
+          size.height - bottomInset,
+        );
+        for (var frame = 0; frame < data.frames.length; frame++) {
+          for (final offset in <double>[
+            0,
+            if (frame + 1 < data.frames.length) .5
+          ]) {
+            final time = (frame + offset) / data.fps;
+            final sample = data.displaySample(time);
+            final bodyScale =
+                math.max(15.0, math.min(32.0, geometry.scale * 1.45));
+            for (var player = 0; player < sample.players.length; player++) {
+              final point = sample.players[player]!;
+              final ground = geometry.project(point.x, point.y);
+              final body = Rect.fromLTRB(
+                ground.dx - 16,
+                ground.dy - bodyScale * 1.75,
+                ground.dx + 16,
+                ground.dy + 8,
+              );
+              expect(safe.inflate(.5).contains(body.topLeft), isTrue,
+                  reason:
+                      '${entry.id} $size player=$player time=$time top=${body.topLeft}');
+              expect(safe.inflate(.5).contains(body.bottomRight), isTrue,
+                  reason:
+                      '${entry.id} $size player=$player time=$time bottom=${body.bottomRight}');
+            }
+            final ball = geometry.project(
+              sample.ball.x,
+              sample.ball.y,
+              sample.ball.z,
+            );
+            expect(safe.inflate(.5).contains(ball), isTrue,
+                reason: '${entry.id} $size ball time=$time $ball');
+          }
+        }
+      }
+    }
+  });
+
   test('single cue layout avoids the ball and relevant bodies at 320px', () {
     const stage = Size(320, 500);
     const ball = Rect.fromLTWH(148, 220, 20, 20);

@@ -50,6 +50,8 @@ class ReplayPitchGeometry {
     double pitchWidth = 68,
     double? headerInset,
     double bottomInset = 34,
+    bool fitPlayerBodies = false,
+    bool? rotatePitch,
   }) {
     if (attackDirection.abs() != 1) {
       throw ArgumentError.value(
@@ -58,10 +60,10 @@ class ReplayPitchGeometry {
         'must be -1 or 1',
       );
     }
-    final rotated = size.width < 540;
+    final rotated = rotatePitch ?? size.width < 540;
     final topInset =
         headerInset ?? (rotated && size.height >= 520 ? 92.0 : 68.0);
-    final area = Rect.fromLTWH(
+    var area = Rect.fromLTWH(
       rotated ? 10 : 16,
       topInset,
       math.max(1, size.width - (rotated ? 20 : 32)),
@@ -113,6 +115,21 @@ class ReplayPitchGeometry {
     final lateralSpan = selected.height;
     final worldWidth = rotated ? lateralSpan : attackSpan;
     final worldHeight = rotated ? attackSpan : lateralSpan;
+    if (fitPlayerBodies) {
+      // Reserve the rendered body's screen footprint, rather than metres of
+      // empty pitch. The unpadded scale gives a conservative body size because
+      // fitting can only reduce the final scale.
+      final unpaddedScale =
+          math.min(area.width / worldWidth, area.height / worldHeight);
+      final bodyScale = math.max(15.0, math.min(32.0, unpaddedScale * 1.45));
+      final headroom = bodyScale * 1.75;
+      area = Rect.fromLTWH(
+        area.left + 16,
+        area.top + headroom,
+        math.max(1, area.width - 32),
+        math.max(1, area.height - headroom - 8),
+      );
+    }
     final scale = math.min(area.width / worldWidth, area.height / worldHeight);
     return ReplayPitchGeometry._(
       size: size,

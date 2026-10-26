@@ -153,7 +153,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('automatic camera visibly closes and returns without controls',
+  testWidgets('public camera stays on the stable overview without controls',
       (tester) async {
     await tester.pumpWidget(_app());
     await _pumpLoaded(tester);
@@ -163,6 +163,11 @@ void main() {
       (moment) => moment.view == RealMatchReplayCoachingView.close,
     );
     expect(closeIndex, greaterThan(0));
+    expect(
+      plan.cameraAt(_testReplay, plan.moments[closeIndex].time).width,
+      lessThan(_testReplay.scene.camera.width),
+      reason: 'The recorded-evidence automatic camera remains a domain API.',
+    );
 
     for (var index = 1; index <= closeIndex; index++) {
       final delta = plan.moments[index].time - plan.moments[index - 1].time;
@@ -172,7 +177,7 @@ void main() {
       );
     }
     final closeWidth = _camera(tester).width as double;
-    expect(closeWidth, lessThan(contextWidth * .8));
+    expect(closeWidth, closeTo(contextWidth, 1e-9));
 
     final nextContextIndex = plan.moments.indexWhere(
       (moment) => moment.view == RealMatchReplayCoachingView.context,
@@ -296,6 +301,17 @@ void main() {
     ));
     await _pumpLoaded(tester);
     final l10n = _l10n(tester);
+    expect(
+      find.byKey(const ValueKey<String>('replay-reconstructed-legend')),
+      findsOneWidget,
+    );
+    expect(find.text(l10n.realMatchReplayReconstructedLegend), findsOneWidget);
+    expect(
+      tester
+          .getSemantics(find.byKey(const ValueKey<String>('replay-pitch')))
+          .label,
+      contains('clearly marked reconstructed display positions'),
+    );
 
     await _openMenu(tester);
     await tester.tap(find.byKey(const ValueKey<String>('replay-scene-info')));
@@ -488,6 +504,10 @@ void main() {
         await _pumpLoaded(tester);
         final pitch = find.byKey(const ValueKey<String>('replay-pitch'));
         final control = find.byKey(const ValueKey<String>('replay-play'));
+        expect(
+          find.text(_l10n(tester).realMatchReplayReconstructedLegend),
+          findsOneWidget,
+        );
         expect(tester.getSize(pitch).height, greaterThan(520));
         expect(control.hitTestable(), findsOneWidget);
         expect(tester.getRect(control).bottom, lessThanOrEqualTo(760));
@@ -511,7 +531,10 @@ void main() {
     await _pumpLoaded(tester);
 
     final pitch = find.byKey(const ValueKey<String>('replay-pitch'));
-    expect(tester.getSize(pitch).height, greaterThan(220));
+    expect(tester.getSize(pitch).height, greaterThan(350));
+    final control = find.byKey(const ValueKey<String>('replay-play'));
+    expect(
+        tester.getRect(control).left, greaterThan(tester.getRect(pitch).right));
     expect(find.byType(SingleChildScrollView), findsNothing);
     expect(find.byKey(const ValueKey<String>('replay-play')).hitTestable(),
         findsOneWidget);
