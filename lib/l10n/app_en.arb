@@ -12695,5 +12695,81 @@
   "replaySceneViniciusCarryInside": "Vinícius carries inside, then links with Kroos",
   "replayFocusViniciusCarryInside": "Follow Vinícius carrying, laying the ball back to Kroos, and the connection toward Benzema.",
   "realMatchReplayExpandPitch": "Expand pitch",
-  "realMatchReplayCollapsePitch": "Return to standard view"
+  "realMatchReplayCollapsePitch": "Return to standard view",
+  "authoredTouchMenuEntry": "Directly authored sample",
+  "authoredTouchAppBarTitle": "First-touch learning sample",
+  "authoredTouchDisclosure": "DIRECTLY AUTHORED SAMPLE",
+  "authoredTouchSituationTitle": "First touch away from pressure",
+  "authoredTouchSituationSummary": "See how the first-touch direction changes the next pass. Watch the feet, body and ball together.",
+  "authoredTouchManualNote": "A directly authored educational scene.",
+  "authoredTouchOpenSide": "Open-side touch",
+  "authoredTouchPressureSide": "Pressure-side touch",
+  "authoredTouchComparePressure": "Compare pressure-side touch",
+  "authoredTouchCompareOpen": "Compare open-side touch",
+  "authoredTouchPlay": "Play full sequence",
+  "authoredTouchPause": "Pause",
+  "authoredTouchReplay": "Replay full sequence",
+  "authoredTouchClose": "Close sample",
+  "authoredTouchContextTitle": "Whole situation",
+  "authoredTouchDetailTitle": "Feet and body movement",
+  "authoredTouchContextSemantics": "Whole situation diagram. {continuation}. {phase}. Five players and the ball are synchronized at {time} seconds.",
+  "@authoredTouchContextSemantics": {
+    "placeholders": {
+      "continuation": {},
+      "phase": {},
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "authoredTouchDetailSemantics": "Action close-up. {continuation}. {phase}. Feet, body orientation, pressure and ball contact are synchronized at {time} seconds.",
+  "@authoredTouchDetailSemantics": {
+    "placeholders": {
+      "continuation": {},
+      "phase": {},
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "authoredTouchCurrentStateSemantics": "Current continuation: {continuation}. Current phase: {phase}.",
+  "@authoredTouchCurrentStateSemantics": {
+    "placeholders": {
+      "continuation": {},
+      "phase": {}
+    }
+  },
+  "authoredTouchPhasePrepare": "Read the approaching defender and open space",
+  "authoredTouchPhaseIncomingPass": "Incoming pass: receiver opens the body",
+  "authoredTouchPhaseFirstTouch": "Left-foot contact: first-touch direction changes",
+  "authoredTouchPhaseTurnCarry": "Controlled carry: body turns into the open lane",
+  "authoredTouchPhaseForwardPass": "Right foot strikes while the left foot stays planted",
+  "authoredTouchPhaseForwardReceive": "Forward teammate moves and receives",
+  "authoredTouchPhasePressureSteal": "Defender reaches the pressure-side touch first",
+  "authoredTouchPhaseDefenderCarry": "Possession changes and the defender carries away",
+  "authoredTouchPhaseComplete": "Sequence complete",
+  "authoredTouchOpenFeedback": "The first touch opened the forward passing lane.",
+  "authoredTouchPressureFeedback": "The ball went toward pressure, so the defender reached it first.",
+  "authoredTouchCuePressure": "Approaching defender",
+  "authoredTouchCueOpenSpace": "OPEN SIDE",
+  "authoredTouchCueIncomingPass": "PASS IN",
+  "authoredTouchCueForwardLink": "FORWARD",
+  "authoredTouchCueFollowThrough": "Body movement after the pass",
+  "authoredTouchCueSupportFoot": "PLANTED SUPPORT FOOT",
+  "authoredTouchLeftShoe": "L",
+  "authoredTouchRightShoe": "R",
+  "authoredTouchProgressSemantics": "Playback {time} of {duration} seconds, {percent} percent",
+  "@authoredTouchProgressSemantics": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  }
 }

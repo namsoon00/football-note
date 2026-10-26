@@ -35,6 +35,21 @@ The eight catalog categories are editorial observation themes, not
 certifications that a player chose an optimal action. The viewer contains no
 linked or embedded match video in this release.
 
+## Separately authored learning sample
+
+The overflow menu can open one fictional **Directly authored sample**, stored
+under `assets/scan_pass_authored/`. It is not a 26th replay scene, is never
+parsed as `RealMatchReplayData`, has no source match/commit/provider ID, and is
+absent from both replay catalogs and manifests. Its JSON explicitly declares
+manual authorship and that it is neither captured tracking, AI measurement nor
+coach-certified footage. The sample's root, feet, ball, plant windows and
+contact events are metric teaching keyframes; deterministic interpolation and
+derived torso/limb drawing are presentation logic rather than evidence.
+
+See [`SCAN_PASS_AUTHORED_SAMPLE.md`](SCAN_PASS_AUTHORED_SAMPLE.md) for the schema,
+8.2-second contact timeline, two illustrative continuations and limitations.
+The 25 actual-match assets and the provenance rules below are unchanged.
+
 ## Historical selection and annotation
 
 `tool/scan_pass_replay/historical_scenes.json` is the explicit curation file.

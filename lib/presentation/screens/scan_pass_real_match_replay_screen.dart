@@ -11,6 +11,7 @@ class ScanPassRealMatchReplayScreen extends StatefulWidget {
   final ScanPassReplayDataLoader? dataLoader;
   final ScanPassReplayCatalogLoader? catalogLoader;
   final ScanPassReplaySceneLoader? sceneLoader;
+  final AuthoredTouchSampleLoader? authoredSampleLoader;
 
   const ScanPassRealMatchReplayScreen({
     super.key,
@@ -18,6 +19,7 @@ class ScanPassRealMatchReplayScreen extends StatefulWidget {
     this.dataLoader,
     this.catalogLoader,
     this.sceneLoader,
+    this.authoredSampleLoader,
   });
 
   @override
@@ -322,6 +324,11 @@ class _ScanPassRealMatchReplayScreenState
         onOpened: _pausePlayback,
         onSelected: (action) => action(),
         itemBuilder: (context) => <PopupMenuEntry<VoidCallback>>[
+          PopupMenuItem<VoidCallback>(
+            key: const ValueKey<String>('replay-authored-touch-sample'),
+            value: () => unawaited(_openAuthoredTouchSample()),
+            child: Text(_l10n.authoredTouchMenuEntry),
+          ),
           if (catalog.scenes.length > 1)
             PopupMenuItem<VoidCallback>(
               key: const ValueKey<String>('replay-choose-scene'),
@@ -337,6 +344,17 @@ class _ScanPassRealMatchReplayScreenState
         ],
       ),
     ];
+  }
+
+  Future<void> _openAuthoredTouchSample() async {
+    _pausePlayback();
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (context) => ScanPassAuthoredTouchSampleScreen(
+          dataLoader: widget.authoredSampleLoader,
+        ),
+      ),
+    );
   }
 
   Widget _buildBody(_ScanPassColors colors, {required bool useSideControls}) {

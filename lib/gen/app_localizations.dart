@@ -40036,6 +40036,243 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Return to standard view'**
   String get realMatchReplayCollapsePitch;
+
+  /// No description provided for @authoredTouchMenuEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Directly authored sample'**
+  String get authoredTouchMenuEntry;
+
+  /// No description provided for @authoredTouchAppBarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First-touch learning sample'**
+  String get authoredTouchAppBarTitle;
+
+  /// No description provided for @authoredTouchDisclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'DIRECTLY AUTHORED SAMPLE'**
+  String get authoredTouchDisclosure;
+
+  /// No description provided for @authoredTouchSituationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch away from pressure'**
+  String get authoredTouchSituationTitle;
+
+  /// No description provided for @authoredTouchSituationSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'See how the first-touch direction changes the next pass. Watch the feet, body and ball together.'**
+  String get authoredTouchSituationSummary;
+
+  /// No description provided for @authoredTouchManualNote.
+  ///
+  /// In en, this message translates to:
+  /// **'A directly authored educational scene.'**
+  String get authoredTouchManualNote;
+
+  /// No description provided for @authoredTouchOpenSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-side touch'**
+  String get authoredTouchOpenSide;
+
+  /// No description provided for @authoredTouchPressureSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure-side touch'**
+  String get authoredTouchPressureSide;
+
+  /// No description provided for @authoredTouchComparePressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare pressure-side touch'**
+  String get authoredTouchComparePressure;
+
+  /// No description provided for @authoredTouchCompareOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare open-side touch'**
+  String get authoredTouchCompareOpen;
+
+  /// No description provided for @authoredTouchPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play full sequence'**
+  String get authoredTouchPlay;
+
+  /// No description provided for @authoredTouchPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get authoredTouchPause;
+
+  /// No description provided for @authoredTouchReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay full sequence'**
+  String get authoredTouchReplay;
+
+  /// No description provided for @authoredTouchClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close sample'**
+  String get authoredTouchClose;
+
+  /// No description provided for @authoredTouchContextTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole situation'**
+  String get authoredTouchContextTitle;
+
+  /// No description provided for @authoredTouchDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Feet and body movement'**
+  String get authoredTouchDetailTitle;
+
+  /// No description provided for @authoredTouchContextSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole situation diagram. {continuation}. {phase}. Five players and the ball are synchronized at {time} seconds.'**
+  String authoredTouchContextSemantics(
+      Object continuation, Object phase, String time);
+
+  /// No description provided for @authoredTouchDetailSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Action close-up. {continuation}. {phase}. Feet, body orientation, pressure and ball contact are synchronized at {time} seconds.'**
+  String authoredTouchDetailSemantics(
+      Object continuation, Object phase, String time);
+
+  /// No description provided for @authoredTouchCurrentStateSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Current continuation: {continuation}. Current phase: {phase}.'**
+  String authoredTouchCurrentStateSemantics(Object continuation, Object phase);
+
+  /// No description provided for @authoredTouchPhasePrepare.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the approaching defender and open space'**
+  String get authoredTouchPhasePrepare;
+
+  /// No description provided for @authoredTouchPhaseIncomingPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming pass: receiver opens the body'**
+  String get authoredTouchPhaseIncomingPass;
+
+  /// No description provided for @authoredTouchPhaseFirstTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Left-foot contact: first-touch direction changes'**
+  String get authoredTouchPhaseFirstTouch;
+
+  /// No description provided for @authoredTouchPhaseTurnCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Controlled carry: body turns into the open lane'**
+  String get authoredTouchPhaseTurnCarry;
+
+  /// No description provided for @authoredTouchPhaseForwardPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Right foot strikes while the left foot stays planted'**
+  String get authoredTouchPhaseForwardPass;
+
+  /// No description provided for @authoredTouchPhaseForwardReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward teammate moves and receives'**
+  String get authoredTouchPhaseForwardReceive;
+
+  /// No description provided for @authoredTouchPhasePressureSteal.
+  ///
+  /// In en, this message translates to:
+  /// **'Defender reaches the pressure-side touch first'**
+  String get authoredTouchPhasePressureSteal;
+
+  /// No description provided for @authoredTouchPhaseDefenderCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Possession changes and the defender carries away'**
+  String get authoredTouchPhaseDefenderCarry;
+
+  /// No description provided for @authoredTouchPhaseComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Sequence complete'**
+  String get authoredTouchPhaseComplete;
+
+  /// No description provided for @authoredTouchOpenFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'The first touch opened the forward passing lane.'**
+  String get authoredTouchOpenFeedback;
+
+  /// No description provided for @authoredTouchPressureFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'The ball went toward pressure, so the defender reached it first.'**
+  String get authoredTouchPressureFeedback;
+
+  /// No description provided for @authoredTouchCuePressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Approaching defender'**
+  String get authoredTouchCuePressure;
+
+  /// No description provided for @authoredTouchCueOpenSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN SIDE'**
+  String get authoredTouchCueOpenSpace;
+
+  /// No description provided for @authoredTouchCueIncomingPass.
+  ///
+  /// In en, this message translates to:
+  /// **'PASS IN'**
+  String get authoredTouchCueIncomingPass;
+
+  /// No description provided for @authoredTouchCueForwardLink.
+  ///
+  /// In en, this message translates to:
+  /// **'FORWARD'**
+  String get authoredTouchCueForwardLink;
+
+  /// No description provided for @authoredTouchCueFollowThrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Body movement after the pass'**
+  String get authoredTouchCueFollowThrough;
+
+  /// No description provided for @authoredTouchCueSupportFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'PLANTED SUPPORT FOOT'**
+  String get authoredTouchCueSupportFoot;
+
+  /// No description provided for @authoredTouchLeftShoe.
+  ///
+  /// In en, this message translates to:
+  /// **'L'**
+  String get authoredTouchLeftShoe;
+
+  /// No description provided for @authoredTouchRightShoe.
+  ///
+  /// In en, this message translates to:
+  /// **'R'**
+  String get authoredTouchRightShoe;
+
+  /// No description provided for @authoredTouchProgressSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback {time} of {duration} seconds, {percent} percent'**
+  String authoredTouchProgressSemantics(
+      String time, String duration, int percent);
 }
 
 class _AppLocalizationsDelegate

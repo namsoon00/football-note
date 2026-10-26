@@ -22897,4 +22897,133 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get realMatchReplayCollapsePitch => '기본 화면으로';
+
+  @override
+  String get authoredTouchMenuEntry => '직접 제작 샘플';
+
+  @override
+  String get authoredTouchAppBarTitle => '첫터치 학습 샘플';
+
+  @override
+  String get authoredTouchDisclosure => '직접 제작 샘플';
+
+  @override
+  String get authoredTouchSituationTitle => '압박 반대편으로 첫터치하기';
+
+  @override
+  String get authoredTouchSituationSummary =>
+      '첫터치 방향을 바꾸면 다음 패스는 어떻게 달라질까요? 발·몸·공을 함께 보세요.';
+
+  @override
+  String get authoredTouchManualNote => '교육용으로 직접 만든 장면입니다.';
+
+  @override
+  String get authoredTouchOpenSide => '열린 쪽 첫터치';
+
+  @override
+  String get authoredTouchPressureSide => '압박 쪽 첫터치';
+
+  @override
+  String get authoredTouchComparePressure => '압박 쪽 첫터치 비교';
+
+  @override
+  String get authoredTouchCompareOpen => '열린 쪽 첫터치 비교';
+
+  @override
+  String get authoredTouchPlay => '전체 장면 재생';
+
+  @override
+  String get authoredTouchPause => '일시정지';
+
+  @override
+  String get authoredTouchReplay => '전체 장면 다시 보기';
+
+  @override
+  String get authoredTouchClose => '샘플 닫기';
+
+  @override
+  String get authoredTouchContextTitle => '전체 상황';
+
+  @override
+  String get authoredTouchDetailTitle => '발과 몸의 움직임';
+
+  @override
+  String authoredTouchContextSemantics(
+      Object continuation, Object phase, String time) {
+    return '전체 상황 그림. $continuation. $phase. 선수 5명과 공이 $time초 시점에 동기화되어 있습니다.';
+  }
+
+  @override
+  String authoredTouchDetailSemantics(
+      Object continuation, Object phase, String time) {
+    return '발과 몸의 확대 그림. $continuation. $phase. 양발, 몸 방향, 압박과 공 접촉이 $time초 시점에 동기화되어 있습니다.';
+  }
+
+  @override
+  String authoredTouchCurrentStateSemantics(Object continuation, Object phase) {
+    return '현재 흐름: $continuation. 현재 단계: $phase.';
+  }
+
+  @override
+  String get authoredTouchPhasePrepare => '다가오는 수비와 열린 공간을 확인해요';
+
+  @override
+  String get authoredTouchPhaseIncomingPass => '들어오는 패스: 받는 선수가 몸을 열어요';
+
+  @override
+  String get authoredTouchPhaseFirstTouch => '왼발 접촉: 첫터치 방향이 달라져요';
+
+  @override
+  String get authoredTouchPhaseTurnCarry => '짧은 운반: 열린 패스 길로 몸을 돌려요';
+
+  @override
+  String get authoredTouchPhaseForwardPass => '왼발을 딛고 오른발로 패스해요';
+
+  @override
+  String get authoredTouchPhaseForwardReceive => '전방 동료가 움직여 받아요';
+
+  @override
+  String get authoredTouchPhasePressureSteal => '압박 쪽 첫터치에 수비가 먼저 닿아요';
+
+  @override
+  String get authoredTouchPhaseDefenderCarry => '소유권이 바뀌고 수비가 공을 운반해요';
+
+  @override
+  String get authoredTouchPhaseComplete => '장면이 끝났어요';
+
+  @override
+  String get authoredTouchOpenFeedback => '첫터치로 전방 패스 길이 열렸어요.';
+
+  @override
+  String get authoredTouchPressureFeedback => '압박 쪽으로 공이 가서 수비가 먼저 닿았어요.';
+
+  @override
+  String get authoredTouchCuePressure => '다가오는 수비';
+
+  @override
+  String get authoredTouchCueOpenSpace => '열린 공간';
+
+  @override
+  String get authoredTouchCueIncomingPass => '들어오는 패스';
+
+  @override
+  String get authoredTouchCueForwardLink => '전방 연결';
+
+  @override
+  String get authoredTouchCueFollowThrough => '패스 후 몸의 움직임';
+
+  @override
+  String get authoredTouchCueSupportFoot => '딛는 발 고정';
+
+  @override
+  String get authoredTouchLeftShoe => '왼';
+
+  @override
+  String get authoredTouchRightShoe => '오';
+
+  @override
+  String authoredTouchProgressSemantics(
+      String time, String duration, int percent) {
+    return '$duration초 중 $time초 재생, $percent퍼센트';
+  }
 }
