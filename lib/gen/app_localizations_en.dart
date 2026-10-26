@@ -23348,6 +23348,96 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get realMatchReplayActionDetailAffordance => 'Action close-up';
+
+  @override
+  String realMatchReplayOpenActionDetailLabel(Object action) {
+    return 'Open $action close-up';
+  }
+
+  @override
+  String get realMatchReplayActionDetailClose => 'Close action close-up';
+
+  @override
+  String get realMatchReplayActionDetailPlay => 'Play';
+
+  @override
+  String get realMatchReplayActionDetailSlowRate =>
+      'Recorded sequence · slow replay 0.65×';
+
+  @override
+  String get realMatchReplayActionDetailReceiveTitle =>
+      'Ball movement after receiving';
+
+  @override
+  String get realMatchReplayActionDetailPassTitle => 'Pass direction';
+
+  @override
+  String get realMatchReplayActionDetailCarryTitle => 'Dribble path';
+
+  @override
+  String get realMatchReplayActionDetailReceiveBefore =>
+      'Approach before receiving';
+
+  @override
+  String get realMatchReplayActionDetailReceiveAfter =>
+      'Movement after receiving';
+
+  @override
+  String get realMatchReplayActionDetailPassBefore =>
+      'Movement before the pass';
+
+  @override
+  String get realMatchReplayActionDetailPassAfter => 'Recorded ball route';
+
+  @override
+  String get realMatchReplayActionDetailCarryBefore =>
+      'Approach before the carry';
+
+  @override
+  String get realMatchReplayActionDetailCarryAfter => 'Recorded carry route';
+
+  @override
+  String get realMatchReplayActionDetailRecordedPose => 'Recorded body motion';
+
+  @override
+  String get realMatchReplayActionDetailSimplifiedPose =>
+      'Simplified body motion';
+
+  @override
+  String get realMatchReplayActionDetailHeightXyz => 'Ball height shown';
+
+  @override
+  String get realMatchReplayActionDetailHeightXy => 'Ball height not recorded';
+
+  @override
+  String get realMatchReplayActionDetailOverviewTitle => 'Whole-team context';
+
+  @override
+  String get realMatchReplayActionDetailOverviewReconstructed =>
+      'Hollow = estimated';
+
+  @override
+  String get realMatchReplayActionDetailOverviewSemantics =>
+      'Synchronized whole-pitch context with all 22 displayed players, the selected player, close-up region, and hollow reconstructed markers.';
+
+  @override
+  String realMatchReplayActionDetailSemanticsRecorded(Object cue) {
+    return 'Source-faithful action close-up with the focal player\'s recorded pose samples and recorded ball path: $cue.';
+  }
+
+  @override
+  String realMatchReplayActionDetailSemanticsSimplified(Object cue) {
+    return 'Source-faithful trajectory close-up with simplified body motion and the recorded ball path: $cue.';
+  }
+
+  @override
+  String get realMatchReplayActionDetailBallPath => 'Ball path';
+
+  @override
+  String get realMatchReplayActionDetailPlayerPath => 'Player movement';
+
+  @override
   String get realMatchReplaySceneInfo => 'Scene information';
 
   @override

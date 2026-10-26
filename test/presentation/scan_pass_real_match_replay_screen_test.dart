@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/scan_pass/real_match_replay.dart';
+import 'package:football_note/domain/scan_pass/real_match_replay_detail.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 import 'package:football_note/presentation/theme/app_theme.dart';
@@ -196,6 +197,246 @@ void main() {
         find.byKey(const ValueKey<String>('replay-view-close')), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('only supported action badges open the localized close-up',
+      (tester) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(_app(locale: const Locale('ko')));
+    await _pumpLoaded(tester);
+
+    expect(find.text('동작 확대'), findsNothing);
+    expect(find.byKey(const ValueKey<String>('replay-action-detail-open')),
+        findsNothing);
+    await _advanceToAction(tester, _testReplay, RealMatchReplayStepKind.pass);
+    final open = find.byKey(
+      const ValueKey<String>('replay-action-detail-open'),
+    );
+    expect(open, findsOneWidget);
+    expect(find.text('동작 확대'), findsOneWidget);
+    expect(tester.getSemantics(open).label, contains('패스'));
+
+    await tester.tap(open);
+    await tester.pump();
+    expect(find.text('패스 방향'), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('replay-detail-pitch')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('replay-detail-overview')),
+        findsOneWidget);
+    semantics.dispose();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'detail replays slowly, pauses, reaches exact end, and leaves main time unchanged',
+      (tester) async {
+    final data = _testScenes['transition-wing']!;
+    await tester.pumpWidget(_app(
+      home: ScanPassRealMatchReplayScreen(dataLoader: () async => data),
+    ));
+    await _pumpLoaded(tester);
+    await _advanceToAction(tester, data, RealMatchReplayStepKind.receive);
+    final openedAt = _sourceTime(tester);
+    await _tap(tester, 'replay-action-detail-open');
+    final detail = _detailModel(tester);
+    final initial = _detailTime(tester);
+    expect(initial, closeTo(detail.start, .001));
+
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(
+      _detailTime(tester) - initial,
+      closeTo(.4 * RealMatchReplayActionDetail.playbackRate, .025),
+    );
+    await _tap(tester, 'replay-detail-play');
+    final pausedAt = _detailTime(tester);
+    await tester.pump(const Duration(seconds: 1));
+    expect(_detailTime(tester), closeTo(pausedAt, .001));
+    await _tap(tester, 'replay-detail-play');
+    await tester.pump(Duration(
+      milliseconds:
+          (detail.duration / RealMatchReplayActionDetail.playbackRate * 1000)
+                  .ceil() +
+              80,
+    ));
+    expect(_detailTime(tester), closeTo(detail.end, .001));
+    expect(
+        find.text(_l10n(tester).realMatchReplayReplayAction), findsOneWidget);
+
+    await _tap(tester, 'replay-detail-play');
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(
+        _detailTime(tester),
+        closeTo(
+          detail.start + .1 * RealMatchReplayActionDetail.playbackRate,
+          .02,
+        ));
+    await _tap(tester, 'replay-detail-close');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey<String>('replay-detail-pitch')),
+        findsNothing);
+    expect(_sourceTime(tester), closeTo(openedAt, .001));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a carry between teaching stops can be inspected while playing',
+      (tester) async {
+    final data = _testScenes['vinicius-carry-inside']!;
+    await tester.pumpWidget(_app(
+      home: ScanPassRealMatchReplayScreen(dataLoader: () async => data),
+    ));
+    await _pumpLoaded(tester);
+    await _advanceToAction(tester, data, RealMatchReplayStepKind.receive);
+    await _tap(tester, 'replay-play');
+    await tester.pump(const Duration(milliseconds: 800));
+    final openedAt = _sourceTime(tester);
+    expect(data.stepAt(openedAt).kind, RealMatchReplayStepKind.carry);
+    final open =
+        find.byKey(const ValueKey<String>('replay-action-detail-open'));
+    expect(tester.getSize(open).height, greaterThanOrEqualTo(44));
+    await _tap(tester, 'replay-action-detail-open');
+    expect(_detailModel(tester).step.kind, RealMatchReplayStepKind.carry);
+    expect(find.text(_l10n(tester).realMatchReplayActionDetailCarryTitle),
+        findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 350));
+    await _tap(tester, 'replay-detail-close');
+    await tester.pumpAndSettle();
+    expect(_sourceTime(tester), closeTo(openedAt, .001));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('detail lifecycle pause and route disposal are safe',
+      (tester) async {
+    await tester.pumpWidget(_app());
+    await _pumpLoaded(tester);
+    await _advanceToAction(tester, _testReplay, RealMatchReplayStepKind.pass);
+    final openedAt = _sourceTime(tester);
+    await _tap(tester, 'replay-action-detail-open');
+    await tester.pump(const Duration(milliseconds: 180));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    final pausedAt = _detailTime(tester);
+    await tester.pump(const Duration(seconds: 1));
+    expect(_detailTime(tester), closeTo(pausedAt, .001));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey<String>('replay-detail-pitch')),
+        findsNothing);
+    expect(_sourceTime(tester), closeTo(openedAt, .001));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('historical detail states simplified pose and XY-only evidence',
+      (tester) async {
+    final messi = _testScenes['messi-right-connection']!;
+    await tester.pumpWidget(_app(
+      home: ScanPassRealMatchReplayScreen(dataLoader: () async => messi),
+    ));
+    await _pumpLoaded(tester);
+    await _advanceToAction(tester, messi, RealMatchReplayStepKind.receive);
+    await _tap(tester, 'replay-action-detail-open');
+    final l10n = _l10n(tester);
+
+    expect(find.text(l10n.realMatchReplayActionDetailSimplifiedPose),
+        findsOneWidget);
+    expect(find.text(l10n.realMatchReplayActionDetailHeightXy), findsOneWidget);
+    expect(
+      find.text(l10n.realMatchReplayActionDetailOverviewReconstructed),
+      findsOneWidget,
+    );
+    final dynamic overviewPainter = tester
+        .widget<CustomPaint>(
+          find.byKey(const ValueKey<String>('replay-detail-overview')),
+        )
+        .painter;
+    expect(overviewPainter.visiblePlayerCount as int, 22);
+    expect(
+      tester
+          .getSemantics(
+            find.byKey(const ValueKey<String>('replay-detail-pitch')),
+          )
+          .label,
+      contains('simplified body motion'),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final locale in const <Locale>[
+    Locale('en'),
+    Locale('ko'),
+    Locale('ja'),
+  ]) {
+    for (final viewport in const <Size>[
+      Size(320, 760),
+      Size(360, 760),
+      Size(667, 320),
+      Size(844, 390),
+    ]) {
+      testWidgets(
+          '${locale.languageCode} detail protects close-up and 22-player map at ${viewport.width}x${viewport.height}',
+          (tester) async {
+        tester.view.physicalSize = viewport;
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(_app(
+          locale: locale,
+          appTheme: true,
+          textScale: 1.4,
+          home: ScanPassRealMatchReplayScreen(
+            dataLoader: () async => _testScenes['transition-wing']!,
+          ),
+        ));
+        await _pumpLoaded(tester);
+        await _advanceToAction(
+          tester,
+          _testScenes['transition-wing']!,
+          RealMatchReplayStepKind.receive,
+        );
+        await _tap(tester, 'replay-action-detail-open');
+        await tester.pump(const Duration(milliseconds: 350));
+
+        final closeUp = find.byKey(
+          const ValueKey<String>('replay-detail-pitch'),
+        );
+        final overview = find.byKey(
+          const ValueKey<String>('replay-detail-overview'),
+        );
+        final control = find.byKey(
+          const ValueKey<String>('replay-detail-play'),
+        );
+        final dynamic detailPainter =
+            tester.widget<CustomPaint>(closeUp).painter;
+        final dynamic overviewPainter =
+            tester.widget<CustomPaint>(overview).painter;
+        final mainCamera = _camera(tester);
+        expect(detailPainter.isActionDetail as bool, isTrue);
+        expect(
+            detailPainter.bodyScaleMinimum as double, greaterThanOrEqualTo(38));
+        expect((detailPainter.camera as RealMatchReplayCamera).width,
+            lessThan(mainCamera.width as double));
+        expect(overviewPainter.visiblePlayerCount as int, 22);
+        expect(tester.getSize(closeUp).width, greaterThan(180));
+        expect(tester.getSize(closeUp).height, greaterThan(120));
+        expect(tester.getSize(overview).height, greaterThan(45));
+        expect(tester.getRect(closeUp).overlaps(tester.getRect(overview)),
+            isFalse);
+        expect(
+            tester.getRect(closeUp).overlaps(tester.getRect(control)), isFalse);
+        expect(find.byKey(const ValueKey<String>('replay-detail-phase-cue')),
+            findsOneWidget);
+        expect(control.hitTestable(), findsOneWidget);
+        expect(find.byKey(const ValueKey<String>('replay-detail-close')),
+            findsOneWidget);
+        expect(tester.takeException(), isNull);
+
+        await _tap(tester, 'replay-detail-close');
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey<String>('replay-detail-pitch')),
+            findsNothing);
+      });
+    }
+  }
 
   testWidgets('scene library stays behind overflow and reaches all categories',
       (tester) async {
@@ -583,6 +824,41 @@ dynamic _camera(WidgetTester tester) {
   );
   final dynamic painter = customPaint.painter;
   return painter.camera;
+}
+
+double _detailTime(WidgetTester tester) {
+  final customPaint = tester.widget<CustomPaint>(
+    find.byKey(const ValueKey<String>('replay-detail-pitch')),
+  );
+  final dynamic painter = customPaint.painter;
+  return painter.time as double;
+}
+
+RealMatchReplayActionDetail _detailModel(WidgetTester tester) {
+  final customPaint = tester.widget<CustomPaint>(
+    find.byKey(const ValueKey<String>('replay-detail-pitch')),
+  );
+  final dynamic painter = customPaint.painter;
+  return painter.actionDetail as RealMatchReplayActionDetail;
+}
+
+Future<void> _advanceToAction(
+  WidgetTester tester,
+  RealMatchReplayData data,
+  RealMatchReplayStepKind kind,
+) async {
+  final plan = RealMatchReplayCoachingPlan.forData(data);
+  final target = plan.moments.indexWhere((moment) => moment.step.kind == kind);
+  expect(target, greaterThanOrEqualTo(0), reason: '$kind is not in the plan');
+  var current = plan.momentIndexAt(_sourceTime(tester));
+  while (current < target) {
+    final delta = plan.moments[current + 1].time - _sourceTime(tester);
+    await _tap(tester, 'replay-play');
+    await tester.pump(
+      Duration(milliseconds: (delta * 1000).round() + 80),
+    );
+    current++;
+  }
 }
 
 Future<void> _tap(WidgetTester tester, String key) async {

@@ -42,6 +42,8 @@ class _ScanPassRealMatchReplayScreenState
   int _playGeneration = 0;
   int? _targetMomentIndex;
   bool _playing = false;
+  final Map<RealMatchReplayStep, RealMatchReplayActionDetail?> _actionDetails =
+      Map<RealMatchReplayStep, RealMatchReplayActionDetail?>.identity();
 
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
   double get _time => (_data?.duration ?? 0) * _controller.value;
@@ -164,6 +166,7 @@ class _ScanPassRealMatchReplayScreenState
       ..duration = _playbackDuration(data.duration)
       ..value = 0;
     setState(() {
+      _actionDetails.clear();
       _catalog = catalog;
       _data = data;
       _plan = RealMatchReplayCoachingPlan.forData(data);
@@ -487,6 +490,15 @@ class _ScanPassRealMatchReplayScreenState
     final step = moment.step;
     final stepLabel = _stepLabel(_l10n, step.kind, step.runType);
     final cue = _coachingCue(_l10n, data, moment);
+    // Short source actions can share a teaching stop. Inspect the action
+    // actually playing, including a carry shortly after a reception.
+    final detailStep = data.stepAt(_time);
+    final detailStepLabel =
+        _stepLabel(_l10n, detailStep.kind, detailStep.runType);
+    final detail = _actionDetails.putIfAbsent(
+      detailStep,
+      () => RealMatchReplayActionDetail.forStep(data, detailStep),
+    );
     final camera = data.displayOverviewCamera;
     final showsReconstructedPositions =
         data.displaySample(_time).hasReconstructedPositions;
@@ -531,33 +543,14 @@ class _ScanPassRealMatchReplayScreenState
           left: 10,
           right: 10,
           top: 9,
-          child: IgnorePointer(
-            child: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF183B2E).withValues(alpha: .94),
-                  borderRadius: BorderRadius.circular(7),
-                ),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                  child: Text(
-                    _l10n.realMatchReplayActionCount(
-                      momentIndex + 1,
-                      plan.moments.length,
-                      stepLabel,
-                    ),
-                    key: ValueKey<String>('replay-moment-$momentIndex'),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelSmall
-                        ?.copyWith(color: const Color(0xFFF4F8ED)),
-                  ),
-                ),
-              ),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: _buildActionBadge(
+              data: data,
+              detail: detail,
+              momentIndex: momentIndex,
+              momentCount: plan.moments.length,
+              stepLabel: detail == null ? stepLabel : detailStepLabel,
             ),
           ),
         ),
@@ -600,6 +593,114 @@ class _ScanPassRealMatchReplayScreenState
             ),
           ),
       ]),
+    );
+  }
+
+  Widget _buildActionBadge({
+    required RealMatchReplayData data,
+    required RealMatchReplayActionDetail? detail,
+    required int momentIndex,
+    required int momentCount,
+    required String stepLabel,
+  }) {
+    final count = _l10n.realMatchReplayActionCount(
+      momentIndex + 1,
+      momentCount,
+      stepLabel,
+    );
+    final style = Theme.of(context)
+        .textTheme
+        .labelSmall
+        ?.copyWith(color: const Color(0xFFF4F8ED));
+    final decoration = BoxDecoration(
+      color: const Color(0xFF183B2E).withValues(alpha: .94),
+      borderRadius: BorderRadius.circular(7),
+    );
+    if (detail == null) {
+      return IgnorePointer(
+        child: DecoratedBox(
+          decoration: decoration,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+            child: Text(
+              count,
+              key: ValueKey<String>('replay-moment-$momentIndex'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: style,
+            ),
+          ),
+        ),
+      );
+    }
+    final openLabel = _l10n.realMatchReplayOpenActionDetailLabel(stepLabel);
+    return Tooltip(
+      message: openLabel,
+      child: Semantics(
+        button: true,
+        label: openLabel,
+        child: Material(
+          key: ValueKey<String>('replay-moment-$momentIndex'),
+          color: Colors.transparent,
+          child: Ink(
+            decoration: decoration,
+            child: InkWell(
+              key: const ValueKey<String>('replay-action-detail-open'),
+              borderRadius: BorderRadius.circular(7),
+              onTap: () => unawaited(_openActionDetail(data, detail)),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 44),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Flexible(
+                      child: Text(
+                        count,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: style,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.zoom_in,
+                      size: 16,
+                      color: Color(0xFFF4F8ED),
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      _l10n.realMatchReplayActionDetailAffordance,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: style?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openActionDetail(
+    RealMatchReplayData data,
+    RealMatchReplayActionDetail detail,
+  ) async {
+    _pausePlayback();
+    final sourceTime = _time;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => _ReplayActionDetailSheet(
+        data: data,
+        detail: detail,
+        openedAtSourceTime: sourceTime,
+      ),
+      constraints: const BoxConstraints(maxWidth: 1100),
     );
   }
 
@@ -982,6 +1083,7 @@ class _RealMatchReplayPainter extends CustomPainter {
   final Brightness brightness;
   final TextDirection textDirection;
   final TextScaler textScaler;
+  final RealMatchReplayActionDetail? actionDetail;
 
   const _RealMatchReplayPainter({
     required this.data,
@@ -993,7 +1095,13 @@ class _RealMatchReplayPainter extends CustomPainter {
     required this.brightness,
     required this.textDirection,
     required this.textScaler,
+    this.actionDetail,
   });
+
+  bool get isActionDetail => actionDetail != null;
+  double get bodyScaleMinimum => isActionDetail ? 38 : 15;
+  double get bodyScaleMaximum => isActionDetail ? 54 : 32;
+  double get bodyScaleFactor => isActionDetail ? 1.9 : 1.45;
 
   bool get _dark => brightness == Brightness.dark;
   Color get _pitch => _dark ? const Color(0xFF183D2B) : const Color(0xFF214936);
@@ -1010,26 +1118,129 @@ class _RealMatchReplayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final sourceSample = data.renderSample(time);
-    final displaySample = data.displaySample(time);
+    final displaySample = isActionDetail
+        ? RealMatchReplayDisplaySample(
+            time: sourceSample.time,
+            sourceFrame: sourceSample.sourceFrame,
+            players: sourceSample.players,
+            reconstructed: List<bool>.filled(data.players.length, false),
+            ball: sourceSample.ball,
+          )
+        : data.displaySample(time);
     final geometry = ReplayPitchGeometry.forSize(
       size,
       camera: camera,
       attackDirection: data.scene.attackDirection,
-      view: ReplayPitchView.coaching,
+      view: isActionDetail
+          ? ReplayPitchView.actionDetail
+          : ReplayPitchView.coaching,
       pitchLength: data.pitchLength,
       pitchWidth: data.pitchWidth,
       fitPlayerBodies: true,
+      bodyScaleMinimum: bodyScaleMinimum,
+      bodyScaleMaximum: bodyScaleMaximum,
+      bodyScaleFactor: bodyScaleFactor,
       rotatePitch: size.width < size.height,
-      headerInset: textScaler.scale(size.width > size.height ? 16 : 28) + 22,
-      bottomInset: displaySample.hasReconstructedPositions
+      headerInset: isActionDetail
+          ? textScaler.scale(14) + 28
+          : math.max(
+              56, textScaler.scale(size.width > size.height ? 16 : 28) + 22),
+      bottomInset: !isActionDetail && displaySample.hasReconstructedPositions
           ? textScaler.scale(14) + (size.width > size.height ? 22 : 31)
-          : 18,
+          : isActionDetail
+              ? textScaler.scale(12) + 28
+              : 18,
     );
     _drawPitch(canvas, size, geometry);
-    final mark = _drawCoachingCue(canvas, geometry, sourceSample);
+    if (isActionDetail) {
+      _drawActionDetailTrails(canvas, geometry);
+    }
+    final mark = isActionDetail
+        ? null
+        : _drawCoachingCue(canvas, geometry, sourceSample);
     final occupied = _drawPeople(canvas, geometry, displaySample);
     _drawBall(canvas, geometry, sourceSample.ball);
-    _drawLabel(canvas, size, geometry, sourceSample, mark, occupied);
+    if (mark != null) {
+      _drawLabel(canvas, size, geometry, sourceSample, mark, occupied);
+    }
+  }
+
+  void _drawActionDetailTrails(
+    Canvas canvas,
+    ReplayPitchGeometry geometry,
+  ) {
+    final detail = actionDetail!;
+    final actionTime = detail.step.time.clamp(detail.start, detail.end);
+    switch (detail.step.kind) {
+      case RealMatchReplayStepKind.receive:
+        _drawPlayerTrail(
+          canvas,
+          geometry,
+          detail.actorIndex,
+          detail.start,
+          actionTime,
+          _text.withValues(alpha: .74),
+          sourceOnly: true,
+        );
+        _drawPlayerTrail(
+          canvas,
+          geometry,
+          detail.actorIndex,
+          actionTime,
+          detail.end,
+          _good,
+          sourceOnly: true,
+        );
+        _drawBallTrail(
+          canvas,
+          geometry,
+          detail.start,
+          detail.end,
+          _pressure,
+        );
+        break;
+      case RealMatchReplayStepKind.pass:
+        _drawPlayerTrail(
+          canvas,
+          geometry,
+          detail.actorIndex,
+          detail.start,
+          actionTime,
+          _good,
+          sourceOnly: true,
+        );
+        _drawBallTrail(
+          canvas,
+          geometry,
+          actionTime,
+          detail.end,
+          _pressure,
+        );
+        break;
+      case RealMatchReplayStepKind.carry:
+        _drawPlayerTrail(
+          canvas,
+          geometry,
+          detail.actorIndex,
+          actionTime,
+          detail.end,
+          _good,
+          sourceOnly: true,
+        );
+        _drawBallTrail(
+          canvas,
+          geometry,
+          actionTime,
+          detail.end,
+          _pressure,
+        );
+        break;
+      case RealMatchReplayStepKind.observe:
+      case RealMatchReplayStepKind.run:
+      case RealMatchReplayStepKind.pressure:
+      case RealMatchReplayStepKind.outcome:
+        break;
+    }
   }
 
   void _drawPitch(Canvas canvas, Size size, ReplayPitchGeometry geometry) {
@@ -1199,14 +1410,9 @@ class _RealMatchReplayPainter extends CustomPainter {
     return _ReplayMark(cue, anchor, tone);
   }
 
-  void _drawPlayerTrail(
-    Canvas canvas,
-    ReplayPitchGeometry geometry,
-    int playerIndex,
-    double from,
-    double to,
-    Color color,
-  ) {
+  void _drawPlayerTrail(Canvas canvas, ReplayPitchGeometry geometry,
+      int playerIndex, double from, double to, Color color,
+      {bool sourceOnly = false}) {
     if (to <= from) return;
     final segments = <List<RealMatchReplayPoint>>[];
     var points = <RealMatchReplayPoint>[];
@@ -1220,9 +1426,11 @@ class _RealMatchReplayPainter extends CustomPainter {
     }
 
     for (var cursor = from; cursor < to; cursor += .12) {
-      add(data.renderSample(cursor).players[playerIndex]);
+      add((sourceOnly ? data.sample(cursor) : data.renderSample(cursor))
+          .players[playerIndex]);
     }
-    add(data.renderSample(to).players[playerIndex]);
+    add((sourceOnly ? data.sample(to) : data.renderSample(to))
+        .players[playerIndex]);
     if (points.length >= 2) segments.add(points);
     for (var index = 0; index < segments.length; index++) {
       _drawWorldPath(
@@ -1330,14 +1538,19 @@ class _RealMatchReplayPainter extends CustomPainter {
   ) {
     final entries = <int>[
       for (var index = 0; index < data.players.length; index++)
-        if (sample.players[index] != null) index,
+        if (sample.players[index] != null &&
+            (!isActionDetail || index == actionDetail!.actorIndex))
+          index,
     ]..sort((a, b) => geometry
         .project(sample.players[a]!.x, sample.players[a]!.y)
         .dy
         .compareTo(
             geometry.project(sample.players[b]!.x, sample.players[b]!.y).dy));
     final occupied = <Rect>[];
-    final bodyScale = math.max(15.0, math.min(32.0, geometry.scale * 1.45));
+    final bodyScale = math.max(
+      bodyScaleMinimum,
+      math.min(bodyScaleMaximum, geometry.scale * bodyScaleFactor),
+    );
     final step = moment.step;
     for (final index in entries) {
       final base = sample.players[index]!;
@@ -1355,7 +1568,9 @@ class _RealMatchReplayPainter extends CustomPainter {
             ..strokeWidth = 1.1,
         );
       }
-      final measured = data.poseAt(time, index);
+      final measured = isActionDetail && !actionDetail!.hasRecordedPose
+          ? null
+          : data.poseAt(time, index);
       final pose = measured ?? data.motion.simplifiedPoseAt(time, index);
       final joints = <String, RealMatchReplayPoint>{
         for (var joint = 0; joint < data.joints.length; joint++)
@@ -1643,7 +1858,8 @@ class _RealMatchReplayPainter extends CustomPainter {
       cue != oldDelegate.cue ||
       brightness != oldDelegate.brightness ||
       textDirection != oldDelegate.textDirection ||
-      textScaler != oldDelegate.textScaler;
+      textScaler != oldDelegate.textScaler ||
+      actionDetail != oldDelegate.actionDetail;
 }
 
 class _ReplayMark {

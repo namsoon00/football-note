@@ -22414,6 +22414,88 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get realMatchReplayActionDetailAffordance => '動作を拡大';
+
+  @override
+  String realMatchReplayOpenActionDetailLabel(Object action) {
+    return '$actionの動作拡大を開く';
+  }
+
+  @override
+  String get realMatchReplayActionDetailClose => '動作拡大を閉じる';
+
+  @override
+  String get realMatchReplayActionDetailPlay => '再生';
+
+  @override
+  String get realMatchReplayActionDetailSlowRate => '記録シーケンス · 0.65倍スロー再生';
+
+  @override
+  String get realMatchReplayActionDetailReceiveTitle => '受けた後のボールの動き';
+
+  @override
+  String get realMatchReplayActionDetailPassTitle => 'パスの方向';
+
+  @override
+  String get realMatchReplayActionDetailCarryTitle => 'ドリブル経路';
+
+  @override
+  String get realMatchReplayActionDetailReceiveBefore => '受ける前の進入経路';
+
+  @override
+  String get realMatchReplayActionDetailReceiveAfter => '受けた後の移動経路';
+
+  @override
+  String get realMatchReplayActionDetailPassBefore => 'パス前の移動';
+
+  @override
+  String get realMatchReplayActionDetailPassAfter => '記録されたボール経路';
+
+  @override
+  String get realMatchReplayActionDetailCarryBefore => '運ぶ前の進入経路';
+
+  @override
+  String get realMatchReplayActionDetailCarryAfter => '記録されたドリブル経路';
+
+  @override
+  String get realMatchReplayActionDetailRecordedPose => '記録された体の動き';
+
+  @override
+  String get realMatchReplayActionDetailSimplifiedPose => '簡略化した体の動き';
+
+  @override
+  String get realMatchReplayActionDetailHeightXyz => 'ボールの高さを表示';
+
+  @override
+  String get realMatchReplayActionDetailHeightXy => '高さの記録なし';
+
+  @override
+  String get realMatchReplayActionDetailOverviewTitle => 'チーム全体の状況';
+
+  @override
+  String get realMatchReplayActionDetailOverviewReconstructed => '中抜きは補完位置';
+
+  @override
+  String get realMatchReplayActionDetailOverviewSemantics =>
+      '表示中の22人全員、選択選手、拡大領域、中抜きの補完位置マーカーを示す同期したピッチ全体の状況です。';
+
+  @override
+  String realMatchReplayActionDetailSemanticsRecorded(Object cue) {
+    return '選択選手の記録ポーズサンプルと記録されたボール経路を示すソース準拠の動作拡大：$cue。';
+  }
+
+  @override
+  String realMatchReplayActionDetailSemanticsSimplified(Object cue) {
+    return '簡略化した身体動作と記録されたボール経路を示すソース準拠の経路拡大：$cue。';
+  }
+
+  @override
+  String get realMatchReplayActionDetailBallPath => 'ボールの経路';
+
+  @override
+  String get realMatchReplayActionDetailPlayerPath => '選手の移動';
+
+  @override
   String get realMatchReplaySceneInfo => 'シーン情報';
 
   @override
