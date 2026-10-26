@@ -18,6 +18,112 @@ void main() {
     expect(mobile.project(0, 35).dx, greaterThan(mobile.project(0, -5).dx));
   });
 
+  test('both attack directions normalize forward play right or up', () {
+    const camera = RealMatchReplayCamera(
+      minX: -40,
+      maxX: 40,
+      minY: -25,
+      maxY: 25,
+    );
+    final right = ReplayPitchGeometry.forSize(
+      const Size(1000, 620),
+      camera: camera,
+      attackDirection: 1,
+    );
+    final reversed = ReplayPitchGeometry.forSize(
+      const Size(1000, 620),
+      camera: camera,
+      attackDirection: -1,
+    );
+    final portrait = ReplayPitchGeometry.forSize(
+      const Size(380, 640),
+      camera: camera,
+      attackDirection: -1,
+    );
+
+    expect(right.project(20, 0).dx, greaterThan(right.project(-20, 0).dx));
+    expect(
+      reversed.project(-20, 0).dx,
+      greaterThan(reversed.project(20, 0).dx),
+    );
+    expect(
+      portrait.project(-20, 0).dy,
+      lessThan(portrait.project(20, 0).dy),
+    );
+  });
+
+  test('context is broad, close is stable, and full view includes both goals',
+      () {
+    const camera = RealMatchReplayCamera(
+      minX: 5,
+      maxX: 35,
+      minY: -12,
+      maxY: 14,
+    );
+    final context = ReplayPitchGeometry.forSize(
+      const Size(1200, 700),
+      camera: camera,
+    );
+    final close = ReplayPitchGeometry.forSize(
+      const Size(1200, 700),
+      camera: camera,
+      view: ReplayPitchView.close,
+    );
+    final full = ReplayPitchGeometry.forSize(
+      const Size(1200, 700),
+      camera: camera,
+      view: ReplayPitchView.full,
+    );
+
+    expect(context.camera.width, greaterThanOrEqualTo(65));
+    expect(context.camera.height, greaterThanOrEqualTo(48));
+    expect(close.camera.width, 44);
+    expect(close.camera.height, 34);
+    expect(full.camera.minX, lessThan(-52.5));
+    expect(full.camera.maxX, greaterThan(52.5));
+  });
+
+  test('scene context keeps the ball and focal player on screen', () {
+    final catalog = RealMatchReplayCatalog.fromJsonString(
+      File('assets/scan_pass_replay/catalog.json').readAsStringSync(),
+    );
+    for (final entry in catalog.scenes) {
+      final data = RealMatchReplayData.fromJsonString(
+        File(entry.asset).readAsStringSync(),
+      );
+      for (final size in const <Size>[Size(360, 520), Size(1400, 760)]) {
+        final geometry = ReplayPitchGeometry.forSize(
+          size,
+          camera: data.scene.camera,
+          attackDirection: data.scene.attackDirection,
+          pitchLength: data.pitchLength,
+          pitchWidth: data.pitchWidth,
+        );
+        for (final time in <double>[
+          0,
+          ...data.scene.steps.map((step) => step.time),
+          data.duration,
+        ]) {
+          final sample = data.renderSample(time);
+          final ball = geometry.project(
+            sample.ball.x,
+            sample.ball.y,
+            sample.ball.z,
+          );
+          final focus = geometry.project(
+            sample.players[data.playerIndex(data.scene.focusPlayerId)].x,
+            sample.players[data.playerIndex(data.scene.focusPlayerId)].y,
+          );
+          final canvas = Offset.zero & size;
+          expect(canvas.inflate(2).contains(ball), isTrue,
+              reason: '${entry.id} $size ball t=$time $ball');
+          expect(canvas.inflate(2).contains(focus), isTrue,
+              reason: '${entry.id} $size focus t=$time $focus');
+        }
+      }
+    }
+  });
+
   test('annotation layout avoids ball, body, zoom and other labels', () {
     const zoom = Rect.fromLTWH(9, 88, 132, 190);
     const ball = Rect.fromLTWH(170, 210, 20, 20);

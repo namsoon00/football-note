@@ -23212,4 +23212,313 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get realMatchReplayAnnotationKeeperPossession =>
       'Recorded as number 13 possession';
+
+  @override
+  String get realMatchReplayChooseScene => 'Choose scene';
+
+  @override
+  String get realMatchReplayPreviousScene => 'Previous scene';
+
+  @override
+  String get realMatchReplayNextScene => 'Next scene';
+
+  @override
+  String realMatchReplaySceneCount(Object current, Object total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get realMatchReplaySceneLibraryTitle => 'Actual-match scenes';
+
+  @override
+  String realMatchReplaySceneLibrarySubtitle(Object count) {
+    return '$count tracked situations';
+  }
+
+  @override
+  String get realMatchReplayAllCategories => 'All';
+
+  @override
+  String realMatchReplaySceneRowMeta(
+      Object match, Object clock, Object duration) {
+    return '$match · $clock · ${duration}s';
+  }
+
+  @override
+  String get realMatchReplayViewLabel => 'Pitch view';
+
+  @override
+  String get realMatchReplayViewContext => 'Context';
+
+  @override
+  String get realMatchReplayViewClose => 'Close';
+
+  @override
+  String get realMatchReplayViewFull => 'Full pitch';
+
+  @override
+  String get realMatchReplayTrackingOnly => 'Tracking only';
+
+  @override
+  String get realMatchReplayTrackingDisclosure =>
+      'SkillCorner · tracked positions · procedural body motion · simplified kits';
+
+  @override
+  String realMatchReplayPoseAction(Object number) {
+    return 'No. $number pose';
+  }
+
+  @override
+  String realMatchReplayPoseTitlePlayer(Object name, Object number) {
+    return '$name · No. $number · recorded pose';
+  }
+
+  @override
+  String realMatchReplayPitchSemanticsGeneric(
+      Object home, Object away, Object scene) {
+    return 'A 2D replay of actual tracked positions for $home against $away: $scene.';
+  }
+
+  @override
+  String realMatchReplayStageWithPlayer(Object stage, Object number) {
+    return '$stage · No. $number';
+  }
+
+  @override
+  String realMatchReplayCalloutPlayer(Object number, Object stage) {
+    return 'No. $number · $stage';
+  }
+
+  @override
+  String realMatchReplayCalloutTarget(Object number) {
+    return 'No. $number tracked here';
+  }
+
+  @override
+  String realMatchReplayOutcomeLabel(Object outcome) {
+    return 'Recorded outcome · $outcome';
+  }
+
+  @override
+  String get realMatchReplayAttackDirectionRight => 'Attack →';
+
+  @override
+  String get realMatchReplayAttackDirectionUp => 'Attack ↑';
+
+  @override
+  String get replayCategoryTransition => 'Transition';
+
+  @override
+  String get replayCategoryBuildUp => 'Build-up';
+
+  @override
+  String get replayCategoryPressure => 'Under pressure';
+
+  @override
+  String get replayCategorySwitchPlay => 'Switch play';
+
+  @override
+  String get replayCategoryPenetration => 'Penetration';
+
+  @override
+  String get replayCategoryCombination => 'Combination';
+
+  @override
+  String get replayCategoryWideAttack => 'Wide attack';
+
+  @override
+  String get replayCategoryTurnover => 'Turnover';
+
+  @override
+  String get replayStepObserve => 'Observe';
+
+  @override
+  String get replayStepCarry => 'Carry';
+
+  @override
+  String get replayStepPass => 'Pass';
+
+  @override
+  String get replayStepReceive => 'Receive';
+
+  @override
+  String get replayStepRun => 'Run';
+
+  @override
+  String get replayStepRunBehind => 'Run behind';
+
+  @override
+  String get replayStepRunOverlap => 'Overlap run';
+
+  @override
+  String get replayStepRunUnderlap => 'Underlap run';
+
+  @override
+  String get replayStepRunCrossReceiver => 'Arrive for the cross';
+
+  @override
+  String get replayStepPressure => 'Pressure';
+
+  @override
+  String get replayStepOutcome => 'Outcome';
+
+  @override
+  String get replayOutcomeShot => 'shot';
+
+  @override
+  String get replayOutcomeKept => 'Pass connected';
+
+  @override
+  String get replayOutcomeLost => 'possession lost';
+
+  @override
+  String get replayOutcomeEnd => 'sequence ended';
+
+  @override
+  String get replaySceneTransitionWing => 'Into wide space on transition';
+
+  @override
+  String get replayFocusTransitionWing =>
+      'Watch No. 18\'s movement before the pass together with the defensive recovery.';
+
+  @override
+  String get replaySceneKeeperBuild => 'From goalkeeper into the centre';
+
+  @override
+  String get replayFocusKeeperBuild =>
+      'While the goalkeeper has the ball, watch where the central teammate receives it.';
+
+  @override
+  String get replaySceneCentralBuild => 'Advance from the back into midfield';
+
+  @override
+  String get replayFocusCentralBuild =>
+      'As the pass arrives in midfield, watch the space around the receiver.';
+
+  @override
+  String get replayScenePressureSwitch => 'Connect across pressure';
+
+  @override
+  String get replayFocusPressureSwitch =>
+      'As opponents approach the ball, also watch the position of the teammate on the far side.';
+
+  @override
+  String get replayScenePressureSupport =>
+      'Find a nearby teammate under pressure';
+
+  @override
+  String get replayFocusPressureSupport =>
+      'Watch the angle between the receiver and the nearby supporting teammate.';
+
+  @override
+  String get replaySceneBacklineSwitch => 'Switch across the back line';
+
+  @override
+  String get replayFocusBacklineSwitch =>
+      'Watch how the defensive block and the next passing direction change as the ball moves across.';
+
+  @override
+  String get replaySceneWideSwitch => 'Stretch wide and switch';
+
+  @override
+  String get replayFocusWideSwitch =>
+      'Before the long lateral pass arrives, watch the far-side teammate\'s position and pressure distance.';
+
+  @override
+  String get replaySceneLoftedBehind => 'Lofted pass into space behind';
+
+  @override
+  String get replayFocusLoftedBehind =>
+      'Watch the ball height together with when the runner starts moving.';
+
+  @override
+  String get replaySceneThroughChannel => 'Long through pass behind the line';
+
+  @override
+  String get replayFocusThroughChannel =>
+      'At release, watch the gap between the defensive line and the receiving player.';
+
+  @override
+  String get replaySceneThroughMiddle => 'Forward pass through the middle';
+
+  @override
+  String get replayFocusThroughMiddle =>
+      'Watch the route between defenders and the space left for the receiver.';
+
+  @override
+  String get replaySceneOneTouchLink => 'One-touch connection';
+
+  @override
+  String get replayFocusOneTouchLink =>
+      'Before the ball arrives, watch where the next pass recipient is positioned.';
+
+  @override
+  String get replayScenePassAndMove => 'Move again after the pass';
+
+  @override
+  String get replayFocusPassAndMove =>
+      'Watch the passer\'s next position alongside what happens around the new ball carrier.';
+
+  @override
+  String get replaySceneCarrySupport => 'Carry forward, then connect nearby';
+
+  @override
+  String get replayFocusCarrySupport =>
+      'During the carry, watch the distances to the supporting teammate and defenders.';
+
+  @override
+  String get replaySceneCarryShot => 'From forward carry to shot';
+
+  @override
+  String get replayFocusCarryShot =>
+      'Watch where defenders gather during the carry and the sequence through the pass and shot.';
+
+  @override
+  String get replaySceneOverlapWing => 'Overlapping run outside';
+
+  @override
+  String get replayFocusOverlapWing =>
+      'Watch when the teammate running outside the ball carrier receives the pass.';
+
+  @override
+  String get replaySceneOverlapCarry => 'Outside support beside the carry';
+
+  @override
+  String get replayFocusOverlapCarry =>
+      'During the carry, watch the wide teammate\'s movement and the defensive response.';
+
+  @override
+  String get replaySceneUnderlapChannel => 'Run into the inside channel';
+
+  @override
+  String get replayFocusUnderlapChannel =>
+      'Watch the teammate moving inside from wide and where the ball arrives.';
+
+  @override
+  String get replaySceneCrossArrival => 'Cross and arrival in the box';
+
+  @override
+  String get replayFocusCrossArrival =>
+      'As the ball leaves the flank, watch the positions and arrival times inside the box.';
+
+  @override
+  String get replayScenePressureTurnover =>
+      'Pressure closes and possession changes';
+
+  @override
+  String get replayFocusPressureTurnover =>
+      'Watch the space around the carrier narrow and how play continues after possession changes.';
+
+  @override
+  String get replaySceneCarryTurnover => 'Pressure and regain during a carry';
+
+  @override
+  String get replayFocusCarryTurnover =>
+      'Watch the carry direction and approaching defender together, then follow what happens next.';
+
+  @override
+  String get realMatchReplayExpandPitch => 'Expand pitch';
+
+  @override
+  String get realMatchReplayCollapsePitch => 'Return to standard view';
 }

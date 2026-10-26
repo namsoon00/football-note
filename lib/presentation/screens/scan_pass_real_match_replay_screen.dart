@@ -1,15 +1,23 @@
 part of 'scan_pass_game_screen.dart';
 
 typedef ScanPassReplayDataLoader = Future<RealMatchReplayData> Function();
+typedef ScanPassReplayCatalogLoader = Future<RealMatchReplayCatalog> Function();
+typedef ScanPassReplaySceneLoader = Future<RealMatchReplayData> Function(
+  RealMatchReplayCatalogScene scene,
+);
 
 class ScanPassRealMatchReplayScreen extends StatefulWidget {
   final MatchMomentSourceLauncher? sourceLauncher;
   final ScanPassReplayDataLoader? dataLoader;
+  final ScanPassReplayCatalogLoader? catalogLoader;
+  final ScanPassReplaySceneLoader? sceneLoader;
 
   const ScanPassRealMatchReplayScreen({
     super.key,
     this.sourceLauncher,
     this.dataLoader,
+    this.catalogLoader,
+    this.sceneLoader,
   });
 
   @override
@@ -20,22 +28,34 @@ class ScanPassRealMatchReplayScreen extends StatefulWidget {
 class _ScanPassRealMatchReplayScreenState
     extends State<ScanPassRealMatchReplayScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  static const String _dataAsset = 'assets/scan_pass_replay/replay-data.json';
+  static const String _catalogAsset = 'assets/scan_pass_replay/catalog.json';
   static const String _licenseAsset = 'assets/scan_pass_replay/LICENSE';
   static const String _sourceUrl =
       'https://github.com/SkillCorner/opendata/tree/4340d274572876239c154c90bc507a9b3250a656';
   static bool _licenseRegistered = false;
 
   late final AnimationController _controller;
+  RealMatchReplayCatalog? _catalog;
   RealMatchReplayData? _data;
   Object? _loadError;
+  int _sceneIndex = 0;
+  int _loadGeneration = 0;
   bool _playing = false;
   bool _explanation = false;
   bool _zoom = false;
+  bool _expanded = false;
   double _speed = 1;
+  ReplayPitchView _view = ReplayPitchView.context;
 
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
   double get _time => (_data?.duration ?? 0) * _controller.value;
+  bool get _compactExpanded {
+    final size = MediaQuery.sizeOf(context);
+    return _expanded &&
+        _data != null &&
+        size.width > size.height &&
+        size.height < 520;
+  }
 
   @override
   void initState() {
@@ -43,14 +63,12 @@ class _ScanPassRealMatchReplayScreenState
     WidgetsBinding.instance.addObserver(this);
     _controller = AnimationController(
       vsync: this,
-      // User-initiated match playback must keep the source timing, including
-      // when accessibility settings shorten decorative UI animations.
       animationBehavior: AnimationBehavior.preserve,
     )
       ..addListener(_handleTick)
       ..addStatusListener(_handleStatus);
     _registerLicense();
-    _load();
+    _loadInitial();
   }
 
   static void _registerLicense() {
@@ -65,23 +83,102 @@ class _ScanPassRealMatchReplayScreenState
     });
   }
 
-  Future<void> _load() async {
+  Future<void> _loadInitial() async {
+    final generation = ++_loadGeneration;
     try {
-      final loader = widget.dataLoader ??
-          () async => RealMatchReplayData.fromJsonString(
-                await rootBundle.loadString(_dataAsset),
+      if (widget.dataLoader != null &&
+          widget.catalogLoader == null &&
+          widget.sceneLoader == null) {
+        final data = await widget.dataLoader!();
+        if (!mounted || generation != _loadGeneration) return;
+        _applyLoaded(
+          RealMatchReplayCatalog.single(data),
+          data,
+          sceneIndex: 0,
+        );
+        return;
+      }
+      final catalogLoader = widget.catalogLoader ??
+          () async => RealMatchReplayCatalog.fromJsonString(
+                await rootBundle.loadString(_catalogAsset),
               );
-      final data = await loader();
-      if (!mounted) return;
-      _controller.duration = _playbackDuration(data.duration, _speed);
-      setState(() {
-        _data = data;
-        _loadError = null;
-      });
+      final catalog = await catalogLoader();
+      if (!mounted || generation != _loadGeneration) return;
+      final data = await _loadSceneData(catalog.scenes.first);
+      if (!mounted || generation != _loadGeneration) return;
+      _validateLoadedScene(catalog, catalog.scenes.first, data);
+      _applyLoaded(catalog, data, sceneIndex: 0);
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() => _loadError = error);
     }
+  }
+
+  Future<RealMatchReplayData> _loadSceneData(
+    RealMatchReplayCatalogScene scene,
+  ) {
+    final loader = widget.sceneLoader;
+    if (loader != null) return loader(scene);
+    return rootBundle
+        .loadString(scene.asset)
+        .then(RealMatchReplayData.fromJsonString);
+  }
+
+  Future<void> _selectScene(int index) async {
+    final catalog = _catalog;
+    if (catalog == null || index < 0 || index >= catalog.scenes.length) return;
+    final generation = ++_loadGeneration;
+    _controller
+      ..stop()
+      ..value = 0;
+    setState(() {
+      _playing = false;
+      _zoom = false;
+      _sceneIndex = index;
+      _data = null;
+      _loadError = null;
+    });
+    try {
+      final entry = catalog.scenes[index];
+      final data = await _loadSceneData(entry);
+      if (!mounted || generation != _loadGeneration) return;
+      _validateLoadedScene(catalog, entry, data);
+      _applyLoaded(catalog, data, sceneIndex: index);
+    } catch (error) {
+      if (!mounted || generation != _loadGeneration) return;
+      setState(() => _loadError = error);
+    }
+  }
+
+  void _validateLoadedScene(
+    RealMatchReplayCatalog catalog,
+    RealMatchReplayCatalogScene entry,
+    RealMatchReplayData data,
+  ) {
+    if (data.scene.id != entry.id ||
+        data.match.id != entry.matchId ||
+        data.sourceCommit != catalog.sourceCommit ||
+        (data.duration - entry.duration).abs() > 1 / data.fps) {
+      throw const FormatException('Replay scene does not match its catalog.');
+    }
+  }
+
+  void _applyLoaded(
+    RealMatchReplayCatalog catalog,
+    RealMatchReplayData data, {
+    required int sceneIndex,
+  }) {
+    _controller
+      ..duration = _playbackDuration(data.duration, _speed)
+      ..value = 0;
+    setState(() {
+      _catalog = catalog;
+      _data = data;
+      _sceneIndex = sceneIndex;
+      _loadError = null;
+      _playing = false;
+      _zoom = false;
+    });
   }
 
   Duration _playbackDuration(double seconds, double speed) =>
@@ -111,6 +208,7 @@ class _ScanPassRealMatchReplayScreenState
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _loadGeneration++;
     _controller
       ..removeListener(_handleTick)
       ..removeStatusListener(_handleStatus)
@@ -182,10 +280,49 @@ class _ScanPassRealMatchReplayScreenState
     final colors = _ScanPassColors.of(context);
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(title: Text(_l10n.realMatchReplayAppBarTitle)),
+      appBar: _compactExpanded
+          ? null
+          : AppBar(
+              title: Text(
+                _expanded && _data != null
+                    ? _sceneTitle(_l10n, _data!.scene.titleKey)
+                    : _l10n.realMatchReplayAppBarTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              actions: _viewerActions(),
+            ),
       body: SafeArea(child: _buildBody(colors)),
     );
   }
+
+  List<Widget> _viewerActions() => [
+        if (_expanded && (_catalog?.scenes.length ?? 0) > 1)
+          AppBarActionButton(
+            compact: true,
+            margin: EdgeInsets.zero,
+            key: const ValueKey<String>('replay-choose-scene'),
+            tooltip: _l10n.realMatchReplayChooseScene,
+            onPressed: _openSceneLibrary,
+            icon: const Icon(Icons.video_library_outlined),
+          ),
+        if (_data != null || _expanded)
+          AppBarActionButton(
+            compact: true,
+            margin: EdgeInsets.zero,
+            key: const ValueKey<String>('replay-expand'),
+            tooltip: _expanded
+                ? _l10n.realMatchReplayCollapsePitch
+                : _l10n.realMatchReplayExpandPitch,
+            onPressed: () => setState(() {
+              _expanded = !_expanded;
+              if (_expanded) _zoom = false;
+            }),
+            icon: Icon(
+              _expanded ? Icons.fullscreen_exit : Icons.fullscreen,
+            ),
+          ),
+      ];
 
   Widget _buildBody(_ScanPassColors colors) {
     final error = _loadError;
@@ -202,10 +339,9 @@ class _ScanPassRealMatchReplayScreenState
             ),
             const SizedBox(height: 12),
             OutlinedButton(
-              onPressed: () {
-                setState(() => _loadError = null);
-                _load();
-              },
+              onPressed: _catalog == null
+                  ? _loadInitial
+                  : () => _selectScene(_sceneIndex),
               child: Text(_l10n.realMatchReplayRetry),
             ),
           ]),
@@ -213,7 +349,8 @@ class _ScanPassRealMatchReplayScreenState
       );
     }
     final data = _data;
-    if (data == null) {
+    final catalog = _catalog;
+    if (data == null || catalog == null) {
       return Center(
         child: Semantics(
           label: _l10n.realMatchReplayLoading,
@@ -222,14 +359,74 @@ class _ScanPassRealMatchReplayScreenState
       );
     }
     return LayoutBuilder(builder: (context, constraints) {
+      if (_compactExpanded) {
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: _buildField(
+                data,
+                colors,
+                constraints.maxHeight,
+                compact: true,
+              ),
+            ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Material(
+                color: colors.surface.withValues(alpha: .94),
+                borderRadius: BorderRadius.circular(8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: _viewerActions(),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: ColoredBox(
+                color: colors.surface.withValues(alpha: .96),
+                child: Row(
+                  children: [
+                    Expanded(child: _buildControls(data, colors)),
+                    Expanded(child: _buildProgress(data, colors)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+      if (_expanded) {
+        return Column(
+          children: [
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, fieldConstraints) => _buildField(
+                  data,
+                  colors,
+                  fieldConstraints.maxHeight,
+                ),
+              ),
+            ),
+            _buildProgress(data, colors),
+            _buildControls(data, colors),
+          ],
+        );
+      }
       final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
-      final stageHeight = (constraints.maxHeight - 340 - (textScale - 1) * 140)
-          .clamp(textScale > 1.2 ? 520.0 : 380.0, 620.0);
+      final expanded = _view == ReplayPitchView.full;
+      final stageHeight = expanded
+          ? (constraints.maxHeight - 130).clamp(520.0, 900.0)
+          : (constraints.maxWidth * .52 + (textScale - 1) * 80)
+              .clamp(textScale > 1.2 ? 500.0 : 400.0, 720.0);
       return SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 980),
+            constraints: const BoxConstraints(maxWidth: 1600),
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: colors.surface,
@@ -241,12 +438,13 @@ class _ScanPassRealMatchReplayScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildHeader(data, colors),
-                    _buildStage(data, colors, stageHeight),
+                    _buildHeader(data, catalog, colors),
                     _buildProgress(data, colors),
                     _buildControls(data, colors),
-                    _buildChapters(data, colors),
-                    _buildCredit(colors),
+                    _buildViewControls(data, colors),
+                    _buildStage(data, colors, stageHeight),
+                    _buildSteps(data, colors),
+                    _buildCredit(data, colors),
                   ],
                 ),
               ),
@@ -257,38 +455,180 @@ class _ScanPassRealMatchReplayScreenState
     });
   }
 
-  Widget _buildHeader(RealMatchReplayData data, _ScanPassColors colors) {
+  Widget _buildHeader(
+    RealMatchReplayData data,
+    RealMatchReplayCatalog catalog,
+    _ScanPassColors colors,
+  ) {
+    final entry = catalog.scenes[_sceneIndex];
+    final title = _sceneTitle(_l10n, data.scene.titleKey);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-          _l10n.realMatchReplayHeaderMeta(data.match.date),
-          style: Theme.of(context)
-              .textTheme
-              .labelMedium
-              ?.copyWith(color: colors.muted),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          _l10n.realMatchReplayTitle,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: colors.text,
-                fontWeight: FontWeight.w600,
-              ),
-        ),
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _l10n.realMatchReplayHeaderMeta(data.match.date),
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(color: colors.muted),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  title,
+                  key: const ValueKey<String>('replay-scene-title'),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: colors.text,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          OutlinedButton.icon(
+            key: const ValueKey<String>('replay-choose-scene'),
+            onPressed: catalog.scenes.length > 1 ? _openSceneLibrary : null,
+            icon: const Icon(Icons.video_library_outlined, size: 18),
+            label: Text(_l10n.realMatchReplayChooseScene),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, 40),
+              maximumSize: const Size(240, 52),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
+          ),
+        ]),
         const SizedBox(height: 7),
         Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 7,
-            children: [
-              Text(data.match.home, style: TextStyle(color: colors.text)),
-              const _ReplayTeamDot(color: Color(0xFFFF8000)),
-              Text(_l10n.realMatchReplayVersus,
-                  style: TextStyle(color: colors.muted)),
-              const _ReplayTeamDot(color: Colors.white, outlined: true),
-              Text(data.match.away, style: TextStyle(color: colors.text)),
-            ]),
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 7,
+          runSpacing: 5,
+          children: [
+            Text(data.match.home, style: TextStyle(color: colors.text)),
+            _ReplayTeamDot(color: _replayColor(data.scene.homeColor)),
+            Text(_l10n.realMatchReplayVersus,
+                style: TextStyle(color: colors.muted)),
+            _ReplayTeamDot(
+              color: _replayColor(data.scene.awayColor),
+              outlined: true,
+            ),
+            Text(data.match.away, style: TextStyle(color: colors.text)),
+            Text('·', style: TextStyle(color: colors.muted)),
+            Text(
+              _categoryLabel(_l10n, data.scene.category),
+              style: TextStyle(color: colors.muted),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(children: [
+          AppBarActionButton(
+            compact: true,
+            margin: EdgeInsets.zero,
+            key: const ValueKey<String>('replay-previous-scene'),
+            tooltip: _l10n.realMatchReplayPreviousScene,
+            onPressed:
+                _sceneIndex > 0 ? () => _selectScene(_sceneIndex - 1) : null,
+            icon: const Icon(Icons.chevron_left),
+          ),
+          Text(
+            _l10n.realMatchReplaySceneCount(
+              _sceneIndex + 1,
+              catalog.scenes.length,
+            ),
+            key: const ValueKey<String>('replay-scene-count'),
+            style: Theme.of(context)
+                .textTheme
+                .labelMedium
+                ?.copyWith(color: colors.muted),
+          ),
+          AppBarActionButton(
+            compact: true,
+            margin: EdgeInsets.zero,
+            key: const ValueKey<String>('replay-next-scene'),
+            tooltip: _l10n.realMatchReplayNextScene,
+            onPressed: _sceneIndex + 1 < catalog.scenes.length
+                ? () => _selectScene(_sceneIndex + 1)
+                : null,
+            icon: const Icon(Icons.chevron_right),
+          ),
+          const Spacer(),
+          Flexible(
+            child: Text(
+              _l10n.realMatchReplayMatchClock(
+                _matchClock(entry.startClock),
+                _matchClock(entry.startClock + entry.duration),
+              ),
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context)
+                  .textTheme
+                  .labelSmall
+                  ?.copyWith(color: colors.muted),
+            ),
+          ),
+        ]),
       ]),
+    );
+  }
+
+  Widget _buildViewControls(
+    RealMatchReplayData data,
+    _ScanPassColors colors,
+  ) {
+    final hasFocusPose = data.hasRecordedPoseFor(data.scene.focusPlayerId);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 6,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(
+            _l10n.realMatchReplayViewLabel,
+            style: Theme.of(context)
+                .textTheme
+                .labelSmall
+                ?.copyWith(color: colors.muted),
+          ),
+          for (final view in ReplayPitchView.values)
+            ChoiceChip(
+              key: ValueKey<String>('replay-view-${view.name}'),
+              selected: _view == view,
+              onSelected: (_) => setState(() => _view = view),
+              label: Text(_viewLabel(_l10n, view)),
+              visualDensity: VisualDensity.compact,
+            ),
+          if (hasFocusPose)
+            OutlinedButton.icon(
+              key: const ValueKey<String>('replay-zoom'),
+              onPressed: () => setState(() => _zoom = !_zoom),
+              icon: Icon(
+                  _zoom ? Icons.close_fullscreen : Icons.accessibility_new,
+                  size: 17),
+              label: Text(
+                _l10n.realMatchReplayPoseAction(
+                  data.player(data.scene.focusPlayerId).number,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(0, 38),
+                maximumSize: const Size(240, 48),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+              ),
+            )
+          else
+            Chip(
+              key: const ValueKey<String>('replay-tracking-only'),
+              avatar: const Icon(Icons.route_outlined, size: 16),
+              label: Text(_l10n.realMatchReplayTrackingOnly),
+              visualDensity: VisualDensity.compact,
+            ),
+        ],
+      ),
     );
   }
 
@@ -297,12 +637,45 @@ class _ScanPassRealMatchReplayScreenState
     _ScanPassColors colors,
     double height,
   ) {
-    final l10n = _l10n;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildField(data, colors, height),
+        if (_zoom)
+          Padding(
+            key: const ValueKey<String>('replay-pose-detail'),
+            padding: const EdgeInsets.all(12),
+            child: SizedBox(
+              width: 180,
+              height: 214,
+              child: _ReplayPoseCard(data: data, time: _time, colors: colors),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildField(
+    RealMatchReplayData data,
+    _ScanPassColors colors,
+    double height, {
+    bool compact = false,
+  }) {
+    final step = data.stepAt(_time);
+    final stepLabel = _stepLabel(_l10n, step.kind, step.runType);
+    final actor = data.player(step.actorId);
+    final focus = _sceneFocus(_l10n, data.scene.focusKey);
+    final copy = _ReplayPitchCopy(
+      annotations: <String>[
+        _l10n.realMatchReplayCalloutPlayer(actor.number, stepLabel),
+        if (step.targetId != null)
+          _l10n.realMatchReplayCalloutTarget(
+            data.player(step.targetId!).number,
+          ),
+      ],
+    );
     return LayoutBuilder(builder: (context, constraints) {
-      final narrow = constraints.maxWidth < 490;
-      final phase = data.phaseAt(_time);
-      final copy = _copyFor(l10n, phase);
-      final finalPhase = phase == RealMatchReplayPhase.outcome;
+      final narrow = constraints.maxWidth < 540;
       return SizedBox(
         height: height,
         child: ClipRRect(
@@ -311,7 +684,11 @@ class _ScanPassRealMatchReplayScreenState
             Positioned.fill(
               child: Semantics(
                 image: true,
-                label: l10n.realMatchReplayPitchSemantics,
+                label: _l10n.realMatchReplayPitchSemanticsGeneric(
+                  data.match.home,
+                  data.match.away,
+                  _sceneTitle(_l10n, data.scene.titleKey),
+                ),
                 child: ExcludeSemantics(
                   child: CustomPaint(
                     key: const ValueKey<String>('replay-pitch'),
@@ -319,11 +696,13 @@ class _ScanPassRealMatchReplayScreenState
                       data: data,
                       time: _time,
                       explanation: _explanation,
-                      showZoom: _zoom,
+                      showZoom: false,
+                      view: _view,
                       copy: copy,
                       brightness: Theme.of(context).brightness,
                       textDirection: Directionality.of(context),
                       textScaler: MediaQuery.textScalerOf(context),
+                      compact: compact,
                     ),
                     size: Size.infinite,
                   ),
@@ -331,103 +710,116 @@ class _ScanPassRealMatchReplayScreenState
               ),
             ),
             Positioned(
-              left: narrow ? 10 : 14,
-              right: narrow ? 10 : 150,
+              left: 12,
+              right: compact ? 116 : 12,
               top: 10,
               child: IgnorePointer(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: colors.surface.withValues(alpha: .9),
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 6,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (!compact)
+                          Text(
+                            _explanation
+                                ? _l10n
+                                    .realMatchReplayExplanationKicker(stepLabel)
+                                : _l10n.realMatchReplayObservationKicker(
+                                    stepLabel),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(color: colors.muted),
+                          ),
+                        if (compact)
+                          Text(
+                            _sceneTitle(_l10n, data.scene.titleKey),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.labelSmall,
+                          ),
+                        Text(
+                          _l10n.realMatchReplayStageWithPlayer(
+                            stepLabel,
+                            actor.number,
+                          ),
+                          maxLines: compact ? 1 : 2,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: colors.text,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                        if (!compact)
+                          Text(
+                            focus,
+                            maxLines: narrow ? 2 : 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(color: colors.muted),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (!compact)
+              Positioned(
+                left: 12,
+                right: 12,
+                bottom: 8,
+                child: IgnorePointer(
+                  child: Row(children: [
+                    Flexible(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: colors.surface.withValues(alpha: .9),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          child: Text(
+                            _l10n.realMatchReplayOutcomeLabel(
+                              _replayOutcomeLabel(_l10n, data.scene.outcome),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(color: colors.muted),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
                     Text(
-                      _explanation
-                          ? l10n.realMatchReplayExplanationKicker(copy.phase)
-                          : l10n.realMatchReplayObservationKicker(copy.phase),
+                      narrow
+                          ? _l10n.realMatchReplayAttackDirectionUp
+                          : _l10n.realMatchReplayAttackDirectionRight,
                       style: Theme.of(context)
                           .textTheme
                           .labelSmall
                           ?.copyWith(color: colors.muted),
                     ),
-                    Text(
-                      copy.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colors.text,
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                  ],
+                  ]),
                 ),
               ),
-            ),
-            Positioned(
-              top: narrow ? null : 22,
-              right: narrow ? 9 : 12,
-              bottom: narrow ? 32 : null,
-              child: OutlinedButton.icon(
-                key: const ValueKey<String>('replay-zoom'),
-                onPressed: () => setState(() => _zoom = !_zoom),
-                icon: Icon(_zoom ? Icons.close_fullscreen : Icons.zoom_in,
-                    size: 16),
-                label: Text(l10n.realMatchReplayZoomAction),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(44, 38),
-                  foregroundColor: colors.text,
-                  backgroundColor: _zoom ? colors.active : colors.surface,
-                  side: BorderSide(color: colors.line),
-                  padding: const EdgeInsets.symmetric(horizontal: 9),
-                  textStyle: Theme.of(context).textTheme.labelSmall,
-                ),
-              ),
-            ),
-            if (_zoom)
-              Positioned(
-                left: narrow ? 9 : 12,
-                top: narrow && finalPhase ? null : 88,
-                bottom: narrow && finalPhase ? 62 : null,
-                width: 132,
-                height: 190,
-                child: _ReplayPoseCard(
-                  data: data,
-                  time: _time,
-                  colors: colors,
-                ),
-              ),
-            Positioned(
-              left: 12,
-              right: 12,
-              bottom: 8,
-              child: IgnorePointer(
-                child: Row(children: [
-                  Expanded(
-                    child: Row(children: [
-                      Flexible(
-                        child: Text(
-                          l10n.realMatchReplayPitchFocus,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelSmall
-                              ?.copyWith(color: colors.muted),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(narrow ? '↑' : '→',
-                          style: TextStyle(color: colors.muted)),
-                    ]),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    l10n.realMatchReplayMatchClock('77:34.48', '77:46.80'),
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelSmall
-                        ?.copyWith(color: colors.muted),
-                  ),
-                ]),
-              ),
-            ),
           ]),
         ),
       );
@@ -444,7 +836,7 @@ class _ScanPassRealMatchReplayScreenState
             key: const ValueKey<String>('replay-scrub'),
             min: 0,
             max: data.duration,
-            divisions: data.frames.length - 1,
+            divisions: math.max(1, data.frames.length - 1),
             value: current,
             semanticFormatterCallback: (value) =>
                 _l10n.realMatchReplaySeconds(value.toStringAsFixed(1)),
@@ -459,8 +851,8 @@ class _ScanPassRealMatchReplayScreenState
         ExcludeSemantics(
           child: Text(
             _l10n.realMatchReplayTime(
-              _clock(current),
-              _clock(data.duration),
+              _durationClock(current),
+              _durationClock(data.duration),
             ),
             key: const ValueKey<String>('replay-time'),
             style: Theme.of(context)
@@ -476,16 +868,15 @@ class _ScanPassRealMatchReplayScreenState
   }
 
   Widget _buildControls(RealMatchReplayData data, _ScanPassColors colors) {
-    final l10n = _l10n;
     final playLabel = _playing
-        ? l10n.realMatchReplayPause
+        ? _l10n.realMatchReplayPause
         : _controller.isCompleted
             ? (_explanation
-                ? l10n.realMatchReplayRestart
-                : l10n.realMatchReplayGuidedReplay)
+                ? _l10n.realMatchReplayRestart
+                : _l10n.realMatchReplayGuidedReplay)
             : _time > .02
-                ? l10n.realMatchReplayContinue
-                : l10n.realMatchReplayPlay;
+                ? _l10n.realMatchReplayContinue
+                : _l10n.realMatchReplayPlay;
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 4, 14, 10),
       child: Wrap(
@@ -500,6 +891,7 @@ class _ScanPassRealMatchReplayScreenState
             label: Text(playLabel),
             style: FilledButton.styleFrom(
               minimumSize: const Size(0, 44),
+              maximumSize: const Size(240, 52),
               padding: const EdgeInsets.symmetric(horizontal: 14),
             ),
           ),
@@ -508,10 +900,10 @@ class _ScanPassRealMatchReplayScreenState
             selected: _explanation,
             onSelected: (selected) => setState(() => _explanation = selected),
             avatar: const Icon(Icons.subtitles_outlined, size: 17),
-            label: Text(l10n.realMatchReplayExplanationToggle),
+            label: Text(_l10n.realMatchReplayExplanationToggle),
           ),
           Semantics(
-            label: l10n.realMatchReplaySpeedLabel,
+            label: _l10n.realMatchReplaySpeedLabel,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 border: Border.all(color: colors.line),
@@ -528,11 +920,11 @@ class _ScanPassRealMatchReplayScreenState
                     items: <DropdownMenuItem<double>>[
                       DropdownMenuItem(
                         value: 1,
-                        child: Text(l10n.realMatchReplaySpeedNormal),
+                        child: Text(_l10n.realMatchReplaySpeedNormal),
                       ),
                       DropdownMenuItem(
                         value: .5,
-                        child: Text(l10n.realMatchReplaySpeedHalf),
+                        child: Text(_l10n.realMatchReplaySpeedHalf),
                       ),
                     ],
                   ),
@@ -545,51 +937,37 @@ class _ScanPassRealMatchReplayScreenState
     );
   }
 
-  Widget _buildChapters(RealMatchReplayData data, _ScanPassColors colors) {
-    const times = <double>[0, 2.44, 4.8, 9.4];
-    final labels = <String>[
-      _l10n.realMatchReplayChapterPrepare,
-      _l10n.realMatchReplayChapterPass,
-      _l10n.realMatchReplayChapterAdvance,
-      _l10n.realMatchReplayChapterRecovery,
-    ];
-    final active = _time < times[1]
-        ? 0
-        : _time < times[2]
-            ? 1
-            : _time < times[3]
-                ? 2
-                : 3;
+  Widget _buildSteps(RealMatchReplayData data, _ScanPassColors colors) {
+    final active = data.scene.steps.indexOf(data.stepAt(_time));
     return Semantics(
       container: true,
       label: _l10n.realMatchReplayChaptersSemantics,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10, 0, 10, 9),
-        child: Row(
+        child: Wrap(
           key: const ValueKey<String>('replay-chapters'),
-          children: List<Widget>.generate(labels.length, (index) {
-            return Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: OutlinedButton(
-                  key: ValueKey<String>('replay-chapter-$index'),
-                  onPressed: () => _pauseAt(times[index], explain: true),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor:
-                        active == index ? colors.text : colors.muted,
-                    backgroundColor:
-                        active == index ? colors.active : Colors.transparent,
-                    minimumSize: const Size(42, 38),
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    side: BorderSide(
-                      color: active == index ? colors.accent : colors.line,
-                    ),
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(labels[index], maxLines: 1),
-                  ),
+          spacing: 5,
+          runSpacing: 5,
+          children: List<Widget>.generate(data.scene.steps.length, (index) {
+            final step = data.scene.steps[index];
+            return OutlinedButton(
+              key: ValueKey<String>('replay-chapter-$index'),
+              onPressed: () => _pauseAt(step.time, explain: true),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: active == index ? colors.text : colors.muted,
+                backgroundColor:
+                    active == index ? colors.active : Colors.transparent,
+                minimumSize: const Size(0, 38),
+                maximumSize: const Size(220, 48),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                side: BorderSide(
+                  color: active == index ? colors.accent : colors.line,
                 ),
+              ),
+              child: Text(
+                _stepLabel(_l10n, step.kind, step.runType),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             );
           }),
@@ -598,13 +976,19 @@ class _ScanPassRealMatchReplayScreenState
     );
   }
 
-  Widget _buildCredit(_ScanPassColors colors) {
+  Widget _buildCredit(
+    RealMatchReplayData data,
+    _ScanPassColors colors,
+  ) {
+    final disclosure = data.hasRecordedPose
+        ? _l10n.realMatchReplayDisclosure
+        : _l10n.realMatchReplayTrackingDisclosure;
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 0, 10, 13),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Expanded(
           child: Text(
-            _l10n.realMatchReplayDisclosure,
+            disclosure,
             style: Theme.of(context)
                 .textTheme
                 .labelSmall
@@ -619,6 +1003,7 @@ class _ScanPassRealMatchReplayScreenState
             foregroundColor: colors.text,
             padding: const EdgeInsets.symmetric(horizontal: 7),
             minimumSize: const Size(44, 36),
+            maximumSize: const Size(180, 48),
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.open_in_new, size: 15),
@@ -630,59 +1015,173 @@ class _ScanPassRealMatchReplayScreenState
     );
   }
 
-  _ReplayPitchCopy _copyFor(
-    AppLocalizations l10n,
-    RealMatchReplayPhase phase,
-  ) {
-    return switch (phase) {
-      RealMatchReplayPhase.prepare => _ReplayPitchCopy(
-          phase: l10n.realMatchReplayPhasePrepare,
-          title: l10n.realMatchReplayPhasePrepareTitle,
-          annotations: <String>[
-            l10n.realMatchReplayAnnotationCarry8,
-            l10n.realMatchReplayAnnotationMove18,
-          ],
-        ),
-      RealMatchReplayPhase.spacePass => _ReplayPitchCopy(
-          phase: l10n.realMatchReplayPhasePass,
-          title: l10n.realMatchReplayPhasePassTitle,
-          annotations: <String>[
-            l10n.realMatchReplayAnnotationReceivingSpace,
-            l10n.realMatchReplayAnnotationConnect18,
-          ],
-        ),
-      RealMatchReplayPhase.advance => _ReplayPitchCopy(
-          phase: l10n.realMatchReplayPhaseAdvance,
-          title: l10n.realMatchReplayPhaseAdvanceTitle,
-          annotations: <String>[
-            l10n.realMatchReplayAnnotationAdvance18,
-            l10n.realMatchReplayAnnotationRecover19,
-          ],
-        ),
-      RealMatchReplayPhase.recovery => _ReplayPitchCopy(
-          phase: l10n.realMatchReplayPhaseRecovery,
-          title: l10n.realMatchReplayPhaseRecoveryTitle,
-          annotations: <String>[
-            l10n.realMatchReplayAnnotationTurn18,
-            l10n.realMatchReplayAnnotationClose1917,
-          ],
-        ),
-      RealMatchReplayPhase.outcome => _ReplayPitchCopy(
-          phase: l10n.realMatchReplayPhaseOutcome,
-          title: l10n.realMatchReplayPhaseOutcomeTitle,
-          annotations: <String>[
-            l10n.realMatchReplayAnnotationShotPath,
-            _time >= 12.28
-                ? l10n.realMatchReplayAnnotationKeeperPossession
-                : l10n.realMatchReplayAnnotationKeeper13,
-          ],
-        ),
-    };
+  Future<void> _openSceneLibrary() async {
+    final catalog = _catalog;
+    if (catalog == null) return;
+    _controller.stop();
+    setState(() => _playing = false);
+    final selected = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => _ReplaySceneLibrarySheet(
+        catalog: catalog,
+        selectedIndex: _sceneIndex,
+      ),
+    );
+    if (!mounted || selected == null || selected == _sceneIndex) return;
+    await _selectScene(selected);
   }
 
-  String _clock(double seconds) {
+  String _durationClock(double seconds) {
     final whole = seconds.floor();
     return '${whole ~/ 60}:${(whole % 60).toString().padLeft(2, '0')}';
+  }
+
+  String _matchClock(double seconds) {
+    final minutes = seconds ~/ 60;
+    final remainder = seconds - minutes * 60;
+    return '$minutes:${remainder.toStringAsFixed(2).padLeft(5, '0')}';
+  }
+}
+
+class _ReplaySceneLibrarySheet extends StatefulWidget {
+  final RealMatchReplayCatalog catalog;
+  final int selectedIndex;
+
+  const _ReplaySceneLibrarySheet({
+    required this.catalog,
+    required this.selectedIndex,
+  });
+
+  @override
+  State<_ReplaySceneLibrarySheet> createState() =>
+      _ReplaySceneLibrarySheetState();
+}
+
+class _ReplaySceneLibrarySheetState extends State<_ReplaySceneLibrarySheet> {
+  RealMatchReplayCategory? _category;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = _ScanPassColors.of(context);
+    final entries = <({int index, RealMatchReplayCatalogScene scene})>[
+      for (var index = 0; index < widget.catalog.scenes.length; index++)
+        if (_category == null ||
+            widget.catalog.scenes[index].category == _category)
+          (index: index, scene: widget.catalog.scenes[index]),
+    ];
+    return FractionallySizedBox(
+      heightFactor: .9,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 12, 8),
+          child: Row(children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.realMatchReplaySceneLibraryTitle,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  Text(
+                    l10n.realMatchReplaySceneLibrarySubtitle(
+                      widget.catalog.scenes.length,
+                    ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: colors.muted),
+                  ),
+                ],
+              ),
+            ),
+            AppBarActionButton(
+              compact: true,
+              margin: EdgeInsets.zero,
+              tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.close),
+            ),
+          ]),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(children: [
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ChoiceChip(
+                key: const ValueKey<String>('replay-category-all'),
+                selected: _category == null,
+                onSelected: (_) => setState(() => _category = null),
+                label: Text(l10n.realMatchReplayAllCategories),
+              ),
+            ),
+            for (final category in RealMatchReplayCategory.values)
+              Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: ChoiceChip(
+                  key: ValueKey<String>('replay-category-${category.name}'),
+                  selected: _category == category,
+                  onSelected: (_) => setState(() => _category = category),
+                  label: Text(_categoryLabel(l10n, category)),
+                ),
+              ),
+          ]),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+            itemCount: entries.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 6),
+            itemBuilder: (context, row) {
+              final item = entries[row];
+              final scene = item.scene;
+              return Card(
+                child: ListTile(
+                  key: ValueKey<String>('replay-scene-${scene.id}'),
+                  selected: item.index == widget.selectedIndex,
+                  onTap: () => Navigator.pop(context, item.index),
+                  leading: CircleAvatar(
+                    child: Text('${item.index + 1}'),
+                  ),
+                  title: Text(_sceneTitle(l10n, scene.titleKey)),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.realMatchReplaySceneRowMeta(
+                          '${scene.home} · ${scene.away}',
+                          _formatCatalogClock(scene.startClock),
+                          scene.duration.toStringAsFixed(1),
+                        ),
+                      ),
+                      Text(
+                        _sceneFocus(l10n, scene.focusKey),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                  trailing: Text(_categoryLabel(l10n, scene.category)),
+                  isThreeLine: true,
+                ),
+              );
+            },
+          ),
+        ),
+      ]),
+    );
+  }
+
+  String _formatCatalogClock(double seconds) {
+    final minutes = seconds ~/ 60;
+    final remainder = seconds - minutes * 60;
+    return '$minutes:${remainder.toStringAsFixed(1).padLeft(4, '0')}';
   }
 }
 
@@ -707,8 +1206,6 @@ class _ReplayTeamDot extends StatelessWidget {
 }
 
 class _ReplayPoseCard extends StatelessWidget {
-  static const int _player18 = 965698;
-
   final RealMatchReplayData data;
   final double time;
   final _ScanPassColors colors;
@@ -722,10 +1219,11 @@ class _ReplayPoseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final pose = data.poseAt(time, data.playerIndex(_player18));
+    final player = data.player(data.scene.focusPlayerId);
+    final pose = data.poseAt(time, data.playerIndex(player.id));
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: colors.surface.withValues(alpha: .96),
+        color: colors.surface.withValues(alpha: .97),
         border: Border.all(color: colors.line),
         borderRadius: BorderRadius.circular(7),
       ),
@@ -733,8 +1231,9 @@ class _ReplayPoseCard extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(5, 6, 5, 5),
         child: Column(children: [
           Text(
-            l10n.realMatchReplayPoseTitle,
-            maxLines: 1,
+            l10n.realMatchReplayPoseTitlePlayer(player.name, player.number),
+            maxLines: 2,
+            textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context)
                 .textTheme
@@ -751,6 +1250,7 @@ class _ReplayPoseCard extends StatelessWidget {
                     painter: _ReplayPosePainter(
                       data: data,
                       pose: pose,
+                      player: player,
                       brightness: Theme.of(context).brightness,
                     ),
                     size: Size.infinite,
@@ -775,49 +1275,41 @@ class _ReplayPoseCard extends StatelessWidget {
 }
 
 class _ReplayPitchCopy {
-  final String phase;
-  final String title;
   final List<String> annotations;
 
-  const _ReplayPitchCopy({
-    required this.phase,
-    required this.title,
-    required this.annotations,
-  });
+  const _ReplayPitchCopy({required this.annotations});
 }
 
 class _RealMatchReplayPainter extends CustomPainter {
-  static const int _home8 = 287934;
-  static const int _home18 = 965698;
-  static const int _away19 = 11897;
-  static const int _away17 = 795533;
-  static const int _keeper13 = 560985;
-
   final RealMatchReplayData data;
   final double time;
   final bool explanation;
   final bool showZoom;
+  final ReplayPitchView view;
   final _ReplayPitchCopy copy;
   final Brightness brightness;
   final TextDirection textDirection;
   final TextScaler textScaler;
+  final bool compact;
 
   const _RealMatchReplayPainter({
     required this.data,
     required this.time,
     required this.explanation,
     required this.showZoom,
+    required this.view,
     required this.copy,
     required this.brightness,
     required this.textDirection,
     required this.textScaler,
+    this.compact = false,
   });
 
   bool get _dark => brightness == Brightness.dark;
   Color get _pitch => _dark ? const Color(0xFF183D2B) : const Color(0xFFD7E5D9);
   Color get _stripe =>
       _dark ? const Color(0xFF235034) : const Color(0xFFB9CDBD);
-  Color get _line => _dark ? const Color(0xFF628A70) : const Color(0xFF789985);
+  Color get _line => _dark ? const Color(0xFF6B9878) : const Color(0xFF668A75);
   Color get _surface =>
       _dark ? const Color(0xFF11211D) : const Color(0xFFFBFCFC);
   Color get _text => _dark ? const Color(0xFFE6F2EB) : const Color(0xFF172E29);
@@ -829,8 +1321,17 @@ class _RealMatchReplayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final geometry = ReplayPitchGeometry.forSize(size);
-    final sample = data.sample(time);
+    final geometry = ReplayPitchGeometry.forSize(
+      size,
+      camera: data.scene.camera,
+      attackDirection: data.scene.attackDirection,
+      view: view,
+      pitchLength: data.pitchLength,
+      pitchWidth: data.pitchWidth,
+      headerInset: compact ? textScaler.scale(42) + 20 : null,
+      bottomInset: compact ? (textScaler.scale(14) > 16.8 ? 110 : 76) : 34,
+    );
+    final sample = data.renderSample(time);
     _drawPitch(canvas, size, geometry);
     final marks = explanation
         ? _drawExplanation(canvas, geometry, sample)
@@ -846,15 +1347,20 @@ class _RealMatchReplayPainter extends CustomPainter {
 
   void _drawPitch(Canvas canvas, Size size, ReplayPitchGeometry geometry) {
     canvas.drawRect(Offset.zero & size, Paint()..color = _pitch);
-    for (var x = -52.5; x < 52.5; x += 10) {
-      if (((x + 52.5) / 10).round().isOdd) continue;
+    final halfLength = data.pitchLength / 2;
+    final halfWidth = data.pitchWidth / 2;
+    for (var x = -halfLength; x < halfLength; x += 10) {
+      if (((x + halfLength) / 10).round().isOdd) continue;
+      final x2 = math.min(x + 10, halfLength);
       final path = Path()
-        ..moveTo(geometry.project(x, -34).dx, geometry.project(x, -34).dy)
-        ..lineTo(geometry.project(math.min(x + 10, 52.5), -34).dx,
-            geometry.project(math.min(x + 10, 52.5), -34).dy)
-        ..lineTo(geometry.project(math.min(x + 10, 52.5), 34).dx,
-            geometry.project(math.min(x + 10, 52.5), 34).dy)
-        ..lineTo(geometry.project(x, 34).dx, geometry.project(x, 34).dy)
+        ..moveTo(geometry.project(x, -halfWidth).dx,
+            geometry.project(x, -halfWidth).dy)
+        ..lineTo(geometry.project(x2, -halfWidth).dx,
+            geometry.project(x2, -halfWidth).dy)
+        ..lineTo(geometry.project(x2, halfWidth).dx,
+            geometry.project(x2, halfWidth).dy)
+        ..lineTo(geometry.project(x, halfWidth).dx,
+            geometry.project(x, halfWidth).dy)
         ..close();
       canvas.drawPath(path, Paint()..color = _stripe.withValues(alpha: .22));
     }
@@ -866,44 +1372,52 @@ class _RealMatchReplayPainter extends CustomPainter {
       final path = Path();
       for (var index = 0; index < points.length; index++) {
         final point = geometry.project(points[index].x, points[index].y);
-        if (index == 0) {
-          path.moveTo(point.dx, point.dy);
-        } else {
-          path.lineTo(point.dx, point.dy);
-        }
+        index == 0
+            ? path.moveTo(point.dx, point.dy)
+            : path.lineTo(point.dx, point.dy);
       }
       canvas.drawPath(path, paint);
     }
 
-    worldLine(const <RealMatchReplayPoint>[
-      RealMatchReplayPoint(-52.5, -34),
-      RealMatchReplayPoint(52.5, -34),
-      RealMatchReplayPoint(52.5, 34),
-      RealMatchReplayPoint(-52.5, 34),
-      RealMatchReplayPoint(-52.5, -34),
+    worldLine(<RealMatchReplayPoint>[
+      RealMatchReplayPoint(-halfLength, -halfWidth),
+      RealMatchReplayPoint(halfLength, -halfWidth),
+      RealMatchReplayPoint(halfLength, halfWidth),
+      RealMatchReplayPoint(-halfLength, halfWidth),
+      RealMatchReplayPoint(-halfLength, -halfWidth),
     ]);
-    worldLine(const <RealMatchReplayPoint>[
-      RealMatchReplayPoint(0, -34),
-      RealMatchReplayPoint(0, 34),
+    worldLine(<RealMatchReplayPoint>[
+      RealMatchReplayPoint(0, -halfWidth),
+      RealMatchReplayPoint(0, halfWidth),
     ]);
-    worldLine(const <RealMatchReplayPoint>[
-      RealMatchReplayPoint(52.5, -20.16),
-      RealMatchReplayPoint(36, -20.16),
-      RealMatchReplayPoint(36, 20.16),
-      RealMatchReplayPoint(52.5, 20.16),
-    ]);
-    worldLine(const <RealMatchReplayPoint>[
-      RealMatchReplayPoint(52.5, -9.16),
-      RealMatchReplayPoint(47, -9.16),
-      RealMatchReplayPoint(47, 9.16),
-      RealMatchReplayPoint(52.5, 9.16),
-    ]);
-    worldLine(const <RealMatchReplayPoint>[
-      RealMatchReplayPoint(52.5, -3.66),
-      RealMatchReplayPoint(54.5, -3.66),
-      RealMatchReplayPoint(54.5, 3.66),
-      RealMatchReplayPoint(52.5, 3.66),
-    ]);
+    for (final side in <double>[-1, 1]) {
+      final goalLine = side * halfLength;
+      final penaltyX = side * (halfLength - 16.5);
+      final goalAreaX = side * (halfLength - 5.5);
+      worldLine(<RealMatchReplayPoint>[
+        RealMatchReplayPoint(goalLine, -20.16),
+        RealMatchReplayPoint(penaltyX, -20.16),
+        RealMatchReplayPoint(penaltyX, 20.16),
+        RealMatchReplayPoint(goalLine, 20.16),
+      ]);
+      worldLine(<RealMatchReplayPoint>[
+        RealMatchReplayPoint(goalLine, -9.16),
+        RealMatchReplayPoint(goalAreaX, -9.16),
+        RealMatchReplayPoint(goalAreaX, 9.16),
+        RealMatchReplayPoint(goalLine, 9.16),
+      ]);
+      worldLine(<RealMatchReplayPoint>[
+        RealMatchReplayPoint(goalLine, -3.66),
+        RealMatchReplayPoint(goalLine + side * 2, -3.66),
+        RealMatchReplayPoint(goalLine + side * 2, 3.66),
+        RealMatchReplayPoint(goalLine, 3.66),
+      ]);
+      canvas.drawCircle(
+        geometry.project(side * (halfLength - 11), 0),
+        1.8,
+        Paint()..color = _line,
+      );
+    }
     final circle = List<RealMatchReplayPoint>.generate(65, (index) {
       final angle = index / 64 * math.pi * 2;
       return RealMatchReplayPoint(
@@ -912,7 +1426,7 @@ class _RealMatchReplayPainter extends CustomPainter {
       );
     });
     worldLine(circle);
-    canvas.drawCircle(geometry.project(41.5, 0), 2, Paint()..color = _line);
+    canvas.drawCircle(geometry.project(0, 0), 1.8, Paint()..color = _line);
   }
 
   List<_ReplayMark> _drawExplanation(
@@ -920,100 +1434,42 @@ class _RealMatchReplayPainter extends CustomPainter {
     ReplayPitchGeometry geometry,
     RealMatchReplaySample sample,
   ) {
-    final phase = data.phaseAt(time);
-    final index8 = data.playerIndex(_home8);
-    final index18 = data.playerIndex(_home18);
-    final index19 = data.playerIndex(_away19);
-    final index17 = data.playerIndex(_away17);
-    final index13 = data.playerIndex(_keeper13);
-    switch (phase) {
-      case RealMatchReplayPhase.prepare:
-        if (time > .04) {
-          _drawPlayerTrail(canvas, geometry, index18, 0, time, _good,
-              dashed: true);
-        }
-        return <_ReplayMark>[
-          _ReplayMark(copy.annotations[0], sample.players[index8], _good),
-          _ReplayMark(copy.annotations[1], sample.players[index18], _good),
-        ];
-      case RealMatchReplayPhase.spacePass:
-        final start = data.sample(2.42);
-        final reception = data.sample(4.22);
-        _drawWorldPath(
-          canvas,
-          geometry,
-          <RealMatchReplayPoint>[start.ball, reception.ball],
-          _good.withValues(alpha: .4),
-          1.2,
-        );
-        _drawBallTrail(canvas, geometry, 2.42, math.min(4.22, time), _good);
-        _drawPlayerTrail(
-          canvas,
-          geometry,
-          index18,
-          2.42,
-          math.min(4.22, time),
-          _good,
-          dashed: true,
-        );
-        final receptionPoint =
-            geometry.project(reception.ball.x, reception.ball.y);
-        canvas.drawCircle(
-          receptionPoint,
-          geometry.scale * 1.5,
-          Paint()
-            ..color = _good.withValues(alpha: .65)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.2,
-        );
-        return <_ReplayMark>[
-          _ReplayMark(copy.annotations[0], reception.ball, _good),
-          _ReplayMark(copy.annotations[1], sample.players[index18], _good),
-        ];
-      case RealMatchReplayPhase.advance:
-        _drawBallTrail(
-          canvas,
-          geometry,
-          math.max(4.22, time - 1.5),
-          time,
-          _good,
-        );
-        _drawPlayerTrail(
-          canvas,
-          geometry,
-          index19,
-          math.max(4.22, time - 1.5),
-          time,
-          _pressure,
-          dashed: true,
-        );
-        return <_ReplayMark>[
-          _ReplayMark(copy.annotations[0], sample.players[index18], _good),
-          _ReplayMark(copy.annotations[1], sample.players[index19], _pressure),
-        ];
-      case RealMatchReplayPhase.recovery:
-        for (final index in <int>[index18, index19, index17]) {
-          _drawPlayerTrail(
-            canvas,
-            geometry,
-            index,
-            math.max(8, time - 1.5),
-            time,
-            index == index18 ? _good : _pressure,
-            dashed: true,
-          );
-        }
-        return <_ReplayMark>[
-          _ReplayMark(copy.annotations[0], sample.players[index18], _good),
-          _ReplayMark(copy.annotations[1], sample.players[index17], _pressure),
-        ];
-      case RealMatchReplayPhase.outcome:
-        _drawBallTrail(canvas, geometry, 11.22, time, _good);
-        return <_ReplayMark>[
-          _ReplayMark(copy.annotations[0], sample.ball, _good),
-          _ReplayMark(copy.annotations[1], sample.players[index13], _pressure),
-        ];
+    final step = data.stepAt(time);
+    final actorIndex = data.playerIndex(step.actorId);
+    final nextIndex = data.scene.steps.indexOf(step) + 1;
+    final segmentEnd = nextIndex < data.scene.steps.length
+        ? data.scene.steps[nextIndex].time
+        : data.duration;
+    final trailEnd = math.min(time, segmentEnd);
+    _drawPlayerTrail(
+      canvas,
+      geometry,
+      actorIndex,
+      step.time,
+      trailEnd,
+      step.kind == RealMatchReplayStepKind.pressure ? _pressure : _good,
+    );
+    if (step.kind == RealMatchReplayStepKind.pass ||
+        step.kind == RealMatchReplayStepKind.carry ||
+        step.kind == RealMatchReplayStepKind.receive ||
+        step.kind == RealMatchReplayStepKind.outcome) {
+      _drawBallTrail(canvas, geometry, step.time, trailEnd, _good);
     }
+    final marks = <_ReplayMark>[
+      _ReplayMark(
+        copy.annotations.first,
+        sample.players[actorIndex],
+        step.kind == RealMatchReplayStepKind.pressure ? _pressure : _good,
+      ),
+    ];
+    if (step.targetId != null && copy.annotations.length > 1) {
+      marks.add(_ReplayMark(
+        copy.annotations[1],
+        sample.players[data.playerIndex(step.targetId!)],
+        _good,
+      ));
+    }
+    return marks.take(2).toList(growable: false);
   }
 
   void _drawPlayerTrail(
@@ -1022,17 +1478,23 @@ class _RealMatchReplayPainter extends CustomPainter {
     int playerIndex,
     double from,
     double to,
-    Color color, {
-    bool dashed = false,
-  }) {
+    Color color,
+  ) {
     if (to <= from) return;
     final points = <RealMatchReplayPoint>[];
     for (var cursor = from; cursor < to; cursor += .12) {
-      points.add(data.sample(cursor).players[playerIndex]);
+      points.add(data.renderSample(cursor).players[playerIndex]);
     }
-    points.add(data.sample(to).players[playerIndex]);
-    _drawWorldPath(canvas, geometry, points, color.withValues(alpha: .82), 2,
-        dashed: dashed, arrow: true);
+    points.add(data.renderSample(to).players[playerIndex]);
+    _drawWorldPath(
+      canvas,
+      geometry,
+      points,
+      color.withValues(alpha: .82),
+      2,
+      dashed: true,
+      arrow: true,
+    );
   }
 
   void _drawBallTrail(
@@ -1048,8 +1510,14 @@ class _RealMatchReplayPainter extends CustomPainter {
       points.add(data.sample(cursor).ball);
     }
     points.add(data.sample(to).ball);
-    _drawWorldPath(canvas, geometry, points, color.withValues(alpha: .9), 2.4,
-        arrow: true);
+    _drawWorldPath(
+      canvas,
+      geometry,
+      points,
+      color.withValues(alpha: .9),
+      2.4,
+      arrow: true,
+    );
   }
 
   void _drawWorldPath(
@@ -1086,18 +1554,21 @@ class _RealMatchReplayPainter extends CustomPainter {
     if (!arrow) return;
     final a = screen[screen.length - 2];
     final b = screen.last;
+    if ((b - a).distance < 1) return;
     final angle = math.atan2(b.dy - a.dy, b.dx - a.dx);
-    final arrowPath = Path()
-      ..moveTo(
-        b.dx - 7 * math.cos(angle - .45),
-        b.dy - 7 * math.sin(angle - .45),
-      )
-      ..lineTo(b.dx, b.dy)
-      ..lineTo(
-        b.dx - 7 * math.cos(angle + .45),
-        b.dy - 7 * math.sin(angle + .45),
-      );
-    canvas.drawPath(arrowPath, paint);
+    canvas.drawPath(
+      Path()
+        ..moveTo(
+          b.dx - 7 * math.cos(angle - .45),
+          b.dy - 7 * math.sin(angle - .45),
+        )
+        ..lineTo(b.dx, b.dy)
+        ..lineTo(
+          b.dx - 7 * math.cos(angle + .45),
+          b.dy - 7 * math.sin(angle + .45),
+        ),
+      paint,
+    );
   }
 
   List<Rect> _drawPeople(
@@ -1112,14 +1583,16 @@ class _RealMatchReplayPainter extends CustomPainter {
           .compareTo(
               geometry.project(sample.players[b].x, sample.players[b].y).dy));
     final occupied = <Rect>[];
-    final bodyScale = math.max(20.0, geometry.scale * 1.5);
+    final bodyScale =
+        math.max(compact ? 14.0 : 17.0, math.min(32.0, geometry.scale * 1.45));
+    final step = data.stepAt(time);
     for (final index in entries) {
       final base = sample.players[index];
       final ground = geometry.project(base.x, base.y);
-      if (ground.dx < -25 ||
-          ground.dx > geometry.size.width + 25 ||
-          ground.dy < 68 ||
-          ground.dy > geometry.size.height - 22) {
+      if (ground.dx < -30 ||
+          ground.dx > geometry.size.width + 30 ||
+          ground.dy < 54 ||
+          ground.dy > geometry.size.height - 16) {
         continue;
       }
       canvas.drawOval(
@@ -1127,11 +1600,12 @@ class _RealMatchReplayPainter extends CustomPainter {
         Paint()..color = _shadow.withValues(alpha: .2),
       );
       final measured = data.poseAt(time, index);
-      final pose = measured ?? _fallbackPose(index);
+      final pose = measured ?? data.motion.simplifiedPoseAt(time, index);
       final joints = <String, RealMatchReplayPoint>{
         for (var joint = 0; joint < data.joints.length; joint++)
           data.joints[joint]: pose.joints[joint],
       };
+      if (!_hasRenderableJoints(joints)) continue;
       final baseZ = math.max(
         -.05,
         math.min(joints['lHeel']!.z, joints['rHeel']!.z),
@@ -1146,75 +1620,54 @@ class _RealMatchReplayPainter extends CustomPainter {
         return point.translate(0, -(joint.z - baseZ) * bodyScale * .85);
       }
 
-      if (explanation &&
-          (data.players[index].id == _home8 ||
-              data.players[index].id == _home18)) {
+      final player = data.players[index];
+      if (player.id == data.scene.focusPlayerId ||
+          (explanation && player.id == step.actorId)) {
         canvas.drawOval(
-          Rect.fromCenter(center: ground, width: 24, height: 10),
+          Rect.fromCenter(center: ground, width: 25, height: 10),
           Paint()
-            ..color = _good.withValues(alpha: .52)
+            ..color = _good.withValues(alpha: .58)
             ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.3,
+            ..strokeWidth = 1.4,
         );
       }
       final head = _drawPlayerBody(
         canvas,
         projectJoint,
         bodyScale,
-        data.players[index],
+        player,
       );
       occupied.add(Rect.fromLTRB(
-        ground.dx - 15,
+        ground.dx - 16,
         math.min(head.dy, ground.dy) - 8,
-        ground.dx + 15,
+        ground.dx + 16,
         ground.dy + 8,
       ));
     }
     return occupied;
   }
 
-  RealMatchReplayPose _fallbackPose(int playerIndex) {
-    final before = data.sample(math.max(0, time - .08)).players[playerIndex];
-    final after =
-        data.sample(math.min(data.duration, time + .08)).players[playerIndex];
-    final dx = after.x - before.x;
-    final dy = after.y - before.y;
-    final speed = math.sqrt(dx * dx + dy * dy) / .16;
-    final theta = math.sqrt(dx * dx + dy * dy) > .05 ? math.atan2(dy, dx) : 0.0;
-    final forward = RealMatchReplayPoint(math.cos(theta), math.sin(theta));
-    final side = RealMatchReplayPoint(-forward.y, forward.x);
-    final stride = math.sin(time * (6 + math.min(speed, 7)) + playerIndex) *
-        math.min(.35, speed * .06);
-    RealMatchReplayPoint make(double lateral, double along, double z) =>
-        RealMatchReplayPoint(
-          side.x * lateral + forward.x * along,
-          side.y * lateral + forward.y * along,
-          z,
-        );
-    final fallback = <String, RealMatchReplayPoint>{
-      'nose': make(0, .1, 1.65),
-      'neck': make(0, 0, 1.43),
-      'lShoulder': make(.21, 0, 1.42),
-      'rShoulder': make(-.21, 0, 1.42),
-      'lElbow': make(.28, stride, 1.15),
-      'rElbow': make(-.28, -stride, 1.15),
-      'lWrist': make(.26, stride * 1.4, .9),
-      'rWrist': make(-.26, -stride * 1.4, .9),
-      'lHip': make(.13, 0, .86),
-      'rHip': make(-.13, 0, .86),
-      'lKnee': make(.14, -stride, .45),
-      'rKnee': make(-.14, stride, .45),
-      'lAnkle': make(.15, -stride * 1.6, .07),
-      'rAnkle': make(-.15, stride * 1.6, .07),
-      'lHeel': make(.15, -stride * 1.6 - .1, .03),
-      'rHeel': make(-.15, stride * 1.6 - .1, .03),
-      'lBigToe': make(.15, -stride * 1.6 + .15, .03),
-      'rBigToe': make(-.15, stride * 1.6 + .15, .03),
-    };
-    return RealMatchReplayPose(
-      data.joints.map((joint) => fallback[joint]!).toList(growable: false),
-    );
-  }
+  bool _hasRenderableJoints(Map<String, RealMatchReplayPoint> joints) =>
+      const <String>{
+        'nose',
+        'neck',
+        'lShoulder',
+        'rShoulder',
+        'lElbow',
+        'rElbow',
+        'lWrist',
+        'rWrist',
+        'lHip',
+        'rHip',
+        'lKnee',
+        'rKnee',
+        'lAnkle',
+        'rAnkle',
+        'lHeel',
+        'rHeel',
+        'lBigToe',
+        'rBigToe',
+      }.every(joints.containsKey);
 
   Offset _drawPlayerBody(
     Canvas canvas,
@@ -1222,11 +1675,15 @@ class _RealMatchReplayPainter extends CustomPainter {
     double scale,
     RealMatchReplayPlayer player,
   ) {
-    final kit = player.home ? const Color(0xFFFF8000) : Colors.white;
-    const shorts = Color(0xFF183345);
+    final kit = _replayColor(
+      player.home ? data.scene.homeColor : data.scene.awayColor,
+    );
+    final number = _replayColor(
+      player.home ? data.scene.homeNumberColor : data.scene.awayNumberColor,
+    );
+    final shorts = Color.lerp(kit, const Color(0xFF142F38), .62)!;
     const skin = Color(0xFFC99B78);
     const boots = Color(0xFF192625);
-    final number = player.home ? Colors.white : const Color(0xFF17202D);
     void line(String a, String b, Color color, double width) {
       canvas.drawLine(
         joint(a),
@@ -1240,10 +1697,8 @@ class _RealMatchReplayPainter extends CustomPainter {
 
     for (final side in <String>['l', 'r']) {
       line('${side}Hip', '${side}Knee', shorts, scale * .15);
-      line('${side}Knee', '${side}Ankle', Colors.white, scale * .10);
+      line('${side}Knee', '${side}Ankle', kit, scale * .10);
       line('${side}Heel', '${side}BigToe', boots, scale * .12);
-    }
-    for (final side in <String>['l', 'r']) {
       line('${side}Shoulder', '${side}Elbow', kit, scale * .13);
       line('${side}Elbow', '${side}Wrist', skin, scale * .10);
     }
@@ -1261,7 +1716,7 @@ class _RealMatchReplayPainter extends CustomPainter {
     canvas.drawPath(
       torso,
       Paint()
-        ..color = player.home ? shorts : const Color(0xFF53695F)
+        ..color = shorts
         ..style = PaintingStyle.stroke
         ..strokeWidth = .7,
     );
@@ -1281,7 +1736,7 @@ class _RealMatchReplayPainter extends CustomPainter {
         text: '${player.number}',
         style: TextStyle(
           color: number,
-          fontSize: math.max(10, math.min(16, scale * .52)),
+          fontSize: math.max(9, math.min(16, scale * .5)),
           fontWeight: FontWeight.w700,
           shadows: <Shadow>[
             Shadow(color: kit, blurRadius: 2),
@@ -1294,6 +1749,7 @@ class _RealMatchReplayPainter extends CustomPainter {
     )..layout();
     numberPainter.paint(
         canvas, center - numberPainter.size.center(Offset.zero));
+    numberPainter.dispose();
     return head;
   }
 
@@ -1324,11 +1780,9 @@ class _RealMatchReplayPainter extends CustomPainter {
         1.8 * math.cos(angle),
         1.8 * math.sin(angle),
       );
-      if (index == 0) {
-        patch.moveTo(point.dx, point.dy);
-      } else {
-        patch.lineTo(point.dx, point.dy);
-      }
+      index == 0
+          ? patch.moveTo(point.dx, point.dy)
+          : patch.lineTo(point.dx, point.dy);
     }
     patch.close();
     canvas.drawPath(patch, Paint()..color = const Color(0xFF192625));
@@ -1341,30 +1795,31 @@ class _RealMatchReplayPainter extends CustomPainter {
     RealMatchReplaySample sample,
     List<Rect> occupied,
   ) {
-    if (size.width < 620) return Rect.zero;
-    const width = 104.0;
-    const height = width * 68 / 105;
+    if (compact) return Rect.zero;
+    final width = size.width < 540 ? 86.0 : 116.0;
+    final height = width * data.pitchWidth / data.pitchLength;
     final candidates = <Rect>[
       Rect.fromLTWH(
-          size.width - width - 18, size.height - height - 47, width, height),
-      const Rect.fromLTWH(16, 88, width, height),
-      Rect.fromLTWH(size.width - width - 18, 88, width, height),
+        size.width - width - 14,
+        size.height - height - 43,
+        width,
+        height,
+      ),
+      Rect.fromLTWH(size.width - width - 14, 92, width, height),
+      Rect.fromLTWH(14, size.height - height - 43, width, height),
     ];
     final ball = geometry.project(sample.ball.x, sample.ball.y);
     final blocked = <Rect>[
       ...occupied,
-      Rect.fromCircle(center: ball, radius: 12),
-      geometry.zoomRect(
-        visible: showZoom,
-        finalPhase: data.phaseAt(time) == RealMatchReplayPhase.outcome,
-      ),
+      Rect.fromCircle(center: ball, radius: 10),
+      if (showZoom) _poseCardRect(size),
     ];
     final rect = candidates.cast<Rect?>().firstWhere(
-          (candidate) =>
-              blocked.every((other) => !candidate!.inflate(5).overlaps(other)),
-          orElse: () => null,
-        );
-    if (rect == null) return Rect.zero;
+          (candidate) => blocked.every(
+            (other) => !candidate!.inflate(4).overlaps(other),
+          ),
+          orElse: () => candidates.first,
+        )!;
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect.inflate(5), const Radius.circular(4)),
       Paint()..color = _surface.withValues(alpha: .94),
@@ -1376,22 +1831,46 @@ class _RealMatchReplayPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = .8,
     );
+    double x(double world) =>
+        rect.left +
+        (world * data.scene.attackDirection + data.pitchLength / 2) /
+            data.pitchLength *
+            rect.width;
+    double y(double world) =>
+        rect.top +
+        (data.pitchWidth / 2 - world) / data.pitchWidth * rect.height;
     canvas.drawLine(
-      Offset(rect.center.dx, rect.top),
-      Offset(rect.center.dx, rect.bottom),
+      Offset(x(0), rect.top),
+      Offset(x(0), rect.bottom),
       Paint()..color = _line,
     );
-    double x(double world) => rect.left + (world + 52.5) / 105 * rect.width;
-    double y(double world) => rect.top + (34 - world) / 68 * rect.height;
+    final visible = geometry.visibleCamera;
+    final viewport = Rect.fromPoints(
+      Offset(
+        x(visible.minX.clamp(-data.pitchLength / 2, data.pitchLength / 2)),
+        y(visible.maxY.clamp(-data.pitchWidth / 2, data.pitchWidth / 2)),
+      ),
+      Offset(
+        x(visible.maxX.clamp(-data.pitchLength / 2, data.pitchLength / 2)),
+        y(visible.minY.clamp(-data.pitchWidth / 2, data.pitchWidth / 2)),
+      ),
+    );
+    canvas.drawRect(
+      viewport,
+      Paint()
+        ..color = _good.withValues(alpha: .8)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2,
+    );
     for (var index = 0; index < sample.players.length; index++) {
       final point = sample.players[index];
       canvas.drawCircle(
         Offset(x(point.x), y(point.y)),
         1.6,
         Paint()
-          ..color = data.players[index].home
-              ? const Color(0xFFFF8000)
-              : const Color(0xFF17202D),
+          ..color = _replayColor(data.players[index].home
+              ? data.scene.homeColor
+              : data.scene.awayColor),
       );
     }
     canvas.drawCircle(
@@ -1424,33 +1903,48 @@ class _RealMatchReplayPainter extends CustomPainter {
         textDirection: textDirection,
         textScaler: textScaler,
         maxLines: 3,
-      )..layout(maxWidth: 128);
+      )..layout(maxWidth: 138);
     }).toList(growable: false);
     final anchors = marks
         .map((mark) => geometry.project(mark.at.x, mark.at.y, mark.at.z))
         .toList(growable: false);
     final ball = geometry.project(sample.ball.x, sample.ball.y, sample.ball.z);
-    final obstacles = <Rect>[
-      ...occupied,
+    final step = data.stepAt(time);
+    final protected = <Rect>[
       Rect.fromCircle(center: ball, radius: 10),
+      for (final id in <int>{
+        data.scene.focusPlayerId,
+        step.actorId,
+        if (step.targetId != null) step.targetId!,
+        if (step.secondaryId != null) step.secondaryId!,
+      })
+        Rect.fromCenter(
+          center: geometry
+              .project(
+                sample.players[data.playerIndex(id)].x,
+                sample.players[data.playerIndex(id)].y,
+              )
+              .translate(0, -16),
+          width: 38,
+          height: 56,
+        ),
+      if (showZoom) _poseCardRect(size),
     ];
-    final zoom = geometry.zoomRect(
-      visible: showZoom,
-      finalPhase: data.phaseAt(time) == RealMatchReplayPhase.outcome,
-    );
-    if (!zoom.isEmpty) obstacles.add(zoom);
     final rects = ReplayLabelLayout.place(
       stageSize: size,
       topInset: geometry.origin.dy + 4,
+      bottomInset: compact
+          ? geometry.bottomInset
+          : ReplayLabelLayout.bottomControlsInset,
       labelSizes: painters
           .map((painter) => Size(painter.width + 16, painter.height + 12))
           .toList(growable: false),
       anchors: anchors,
-      obstacles: obstacles,
-      protectedObstacles: <Rect>[
-        Rect.fromCircle(center: ball, radius: 10),
-        if (!zoom.isEmpty) zoom,
+      obstacles: <Rect>[
+        ...occupied,
+        ...protected,
       ],
+      protectedObstacles: protected,
     );
     for (var index = 0; index < rects.length; index++) {
       final rect = rects[index];
@@ -1483,12 +1977,25 @@ class _RealMatchReplayPainter extends CustomPainter {
     }
   }
 
+  Rect _poseCardRect(Size size) {
+    final narrow = size.width < 540;
+    final width = narrow ? 122.0 : 148.0;
+    final height = narrow ? 174.0 : 214.0;
+    return Rect.fromLTWH(
+      size.width - width - 12,
+      narrow ? 108 : 10,
+      width,
+      height,
+    );
+  }
+
   @override
   bool shouldRepaint(covariant _RealMatchReplayPainter oldDelegate) =>
       data != oldDelegate.data ||
       time != oldDelegate.time ||
       explanation != oldDelegate.explanation ||
       showZoom != oldDelegate.showZoom ||
+      view != oldDelegate.view ||
       copy != oldDelegate.copy ||
       brightness != oldDelegate.brightness ||
       textDirection != oldDelegate.textDirection ||
@@ -1506,11 +2013,13 @@ class _ReplayMark {
 class _ReplayPosePainter extends CustomPainter {
   final RealMatchReplayData data;
   final RealMatchReplayPose pose;
+  final RealMatchReplayPlayer player;
   final Brightness brightness;
 
   const _ReplayPosePainter({
     required this.data,
     required this.pose,
+    required this.player,
     required this.brightness,
   });
 
@@ -1520,6 +2029,7 @@ class _ReplayPosePainter extends CustomPainter {
       for (var index = 0; index < data.joints.length; index++)
         data.joints[index]: pose.joints[index],
     };
+    if (!joints.containsKey('lHeel') || !joints.containsKey('rHeel')) return;
     final baseZ = math.min(joints['lHeel']!.z, joints['rHeel']!.z);
     Offset project(String name) {
       final point = joints[name]!;
@@ -1543,11 +2053,17 @@ class _ReplayPosePainter extends CustomPainter {
       ),
       Paint()..color = shadow.withValues(alpha: .18),
     );
-    const kit = Color(0xFFFF8000);
-    const shorts = Color(0xFF183345);
+    final kit = _replayColor(
+      player.home ? data.scene.homeColor : data.scene.awayColor,
+    );
+    final numberColor = _replayColor(
+      player.home ? data.scene.homeNumberColor : data.scene.awayNumberColor,
+    );
+    final shorts = Color.lerp(kit, const Color(0xFF142F38), .62)!;
     const skin = Color(0xFFC99B78);
     const boots = Color(0xFF192625);
     void line(String a, String b, Color color, double width) {
+      if (!joints.containsKey(a) || !joints.containsKey(b)) return;
       canvas.drawLine(
         project(a),
         project(b),
@@ -1560,10 +2076,20 @@ class _ReplayPosePainter extends CustomPainter {
 
     for (final side in <String>['l', 'r']) {
       line('${side}Hip', '${side}Knee', shorts, 9.2);
-      line('${side}Knee', '${side}Ankle', Colors.white, 6.2);
+      line('${side}Knee', '${side}Ankle', kit, 6.2);
       line('${side}Heel', '${side}BigToe', boots, 7.4);
       line('${side}Shoulder', '${side}Elbow', kit, 8.2);
       line('${side}Elbow', '${side}Wrist', skin, 6.2);
+    }
+    if (!const <String>{
+      'lShoulder',
+      'rShoulder',
+      'lHip',
+      'rHip',
+      'neck',
+      'nose'
+    }.every(joints.containsKey)) {
+      return;
     }
     final leftShoulder = project('lShoulder');
     final rightShoulder = project('rShoulder');
@@ -1584,10 +2110,10 @@ class _ReplayPosePainter extends CustomPainter {
       (leftShoulder.dy + rightShoulder.dy + leftHip.dy + rightHip.dy) / 4,
     );
     final number = TextPainter(
-      text: const TextSpan(
-        text: '18',
+      text: TextSpan(
+        text: '${player.number}',
         style: TextStyle(
-          color: Colors.white,
+          color: numberColor,
           fontSize: 14,
           fontWeight: FontWeight.w700,
         ),
@@ -1595,9 +2121,120 @@ class _ReplayPosePainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     )..layout();
     number.paint(canvas, center - number.size.center(Offset.zero));
+    number.dispose();
   }
 
   @override
   bool shouldRepaint(covariant _ReplayPosePainter oldDelegate) =>
-      pose != oldDelegate.pose || brightness != oldDelegate.brightness;
+      pose != oldDelegate.pose ||
+      player != oldDelegate.player ||
+      brightness != oldDelegate.brightness;
 }
+
+Color _replayColor(String value) {
+  final hex = value.substring(1);
+  final parsed = int.parse(hex, radix: 16);
+  return Color(hex.length == 6 ? 0xFF000000 | parsed : parsed);
+}
+
+String _viewLabel(AppLocalizations l10n, ReplayPitchView view) =>
+    switch (view) {
+      ReplayPitchView.context => l10n.realMatchReplayViewContext,
+      ReplayPitchView.close => l10n.realMatchReplayViewClose,
+      ReplayPitchView.full => l10n.realMatchReplayViewFull,
+    };
+
+String _categoryLabel(
+  AppLocalizations l10n,
+  RealMatchReplayCategory category,
+) =>
+    switch (category) {
+      RealMatchReplayCategory.transition => l10n.replayCategoryTransition,
+      RealMatchReplayCategory.buildUp => l10n.replayCategoryBuildUp,
+      RealMatchReplayCategory.pressure => l10n.replayCategoryPressure,
+      RealMatchReplayCategory.switchPlay => l10n.replayCategorySwitchPlay,
+      RealMatchReplayCategory.penetration => l10n.replayCategoryPenetration,
+      RealMatchReplayCategory.combination => l10n.replayCategoryCombination,
+      RealMatchReplayCategory.wideAttack => l10n.replayCategoryWideAttack,
+      RealMatchReplayCategory.turnover => l10n.replayCategoryTurnover,
+    };
+
+String _stepLabel(
+  AppLocalizations l10n,
+  RealMatchReplayStepKind kind,
+  String? runType,
+) =>
+    switch (kind) {
+      RealMatchReplayStepKind.observe => l10n.replayStepObserve,
+      RealMatchReplayStepKind.carry => l10n.replayStepCarry,
+      RealMatchReplayStepKind.pass => l10n.replayStepPass,
+      RealMatchReplayStepKind.receive => l10n.replayStepReceive,
+      RealMatchReplayStepKind.run => switch (runType) {
+          'behind' => l10n.replayStepRunBehind,
+          'overlap' => l10n.replayStepRunOverlap,
+          'underlap' => l10n.replayStepRunUnderlap,
+          'cross_receiver' => l10n.replayStepRunCrossReceiver,
+          _ => l10n.replayStepRun,
+        },
+      RealMatchReplayStepKind.pressure => l10n.replayStepPressure,
+      RealMatchReplayStepKind.outcome => l10n.replayStepOutcome,
+    };
+
+String _replayOutcomeLabel(
+  AppLocalizations l10n,
+  RealMatchReplayOutcome outcome,
+) =>
+    switch (outcome) {
+      RealMatchReplayOutcome.shot => l10n.replayOutcomeShot,
+      RealMatchReplayOutcome.kept => l10n.replayOutcomeKept,
+      RealMatchReplayOutcome.lost => l10n.replayOutcomeLost,
+      RealMatchReplayOutcome.end => l10n.replayOutcomeEnd,
+    };
+
+String _sceneTitle(AppLocalizations l10n, String key) => switch (key) {
+      'replaySceneTransitionWing' => l10n.replaySceneTransitionWing,
+      'replaySceneKeeperBuild' => l10n.replaySceneKeeperBuild,
+      'replaySceneCentralBuild' => l10n.replaySceneCentralBuild,
+      'replayScenePressureSwitch' => l10n.replayScenePressureSwitch,
+      'replayScenePressureSupport' => l10n.replayScenePressureSupport,
+      'replaySceneBacklineSwitch' => l10n.replaySceneBacklineSwitch,
+      'replaySceneWideSwitch' => l10n.replaySceneWideSwitch,
+      'replaySceneLoftedBehind' => l10n.replaySceneLoftedBehind,
+      'replaySceneThroughChannel' => l10n.replaySceneThroughChannel,
+      'replaySceneThroughMiddle' => l10n.replaySceneThroughMiddle,
+      'replaySceneOneTouchLink' => l10n.replaySceneOneTouchLink,
+      'replayScenePassAndMove' => l10n.replayScenePassAndMove,
+      'replaySceneCarrySupport' => l10n.replaySceneCarrySupport,
+      'replaySceneCarryShot' => l10n.replaySceneCarryShot,
+      'replaySceneOverlapWing' => l10n.replaySceneOverlapWing,
+      'replaySceneOverlapCarry' => l10n.replaySceneOverlapCarry,
+      'replaySceneUnderlapChannel' => l10n.replaySceneUnderlapChannel,
+      'replaySceneCrossArrival' => l10n.replaySceneCrossArrival,
+      'replayScenePressureTurnover' => l10n.replayScenePressureTurnover,
+      'replaySceneCarryTurnover' => l10n.replaySceneCarryTurnover,
+      _ => key,
+    };
+
+String _sceneFocus(AppLocalizations l10n, String key) => switch (key) {
+      'replayFocusTransitionWing' => l10n.replayFocusTransitionWing,
+      'replayFocusKeeperBuild' => l10n.replayFocusKeeperBuild,
+      'replayFocusCentralBuild' => l10n.replayFocusCentralBuild,
+      'replayFocusPressureSwitch' => l10n.replayFocusPressureSwitch,
+      'replayFocusPressureSupport' => l10n.replayFocusPressureSupport,
+      'replayFocusBacklineSwitch' => l10n.replayFocusBacklineSwitch,
+      'replayFocusWideSwitch' => l10n.replayFocusWideSwitch,
+      'replayFocusLoftedBehind' => l10n.replayFocusLoftedBehind,
+      'replayFocusThroughChannel' => l10n.replayFocusThroughChannel,
+      'replayFocusThroughMiddle' => l10n.replayFocusThroughMiddle,
+      'replayFocusOneTouchLink' => l10n.replayFocusOneTouchLink,
+      'replayFocusPassAndMove' => l10n.replayFocusPassAndMove,
+      'replayFocusCarrySupport' => l10n.replayFocusCarrySupport,
+      'replayFocusCarryShot' => l10n.replayFocusCarryShot,
+      'replayFocusOverlapWing' => l10n.replayFocusOverlapWing,
+      'replayFocusOverlapCarry' => l10n.replayFocusOverlapCarry,
+      'replayFocusUnderlapChannel' => l10n.replayFocusUnderlapChannel,
+      'replayFocusCrossArrival' => l10n.replayFocusCrossArrival,
+      'replayFocusPressureTurnover' => l10n.replayFocusPressureTurnover,
+      'replayFocusCarryTurnover' => l10n.replayFocusCarryTurnover,
+      _ => key,
+    };
