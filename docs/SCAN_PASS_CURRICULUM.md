@@ -48,6 +48,15 @@ navigation and context,
 not claims about intent, an exact foot, an optimal choice, an automatic return,
 or coach approval.
 
+The same overflow menu also offers one separately labelled **Directly authored
+sample**. It is a fictional 8.2-second first-touch reconstruction with three
+attackers, two defenders, explicit left/right-foot contacts and two continuations
+from an identical incoming pass. Its whole-situation and action-close-up views
+share one clock. It is intentionally outside the 25-scene real-match catalog and
+does not borrow player identities or measured-source metadata. The editable
+schema, contact timeline and limitations are documented in
+[`SCAN_PASS_AUTHORED_SAMPLE.md`](SCAN_PASS_AUTHORED_SAMPLE.md).
+
 Some source positions and the available displayed body poses are estimates.
 The overflow disclosure identifies tracking-only and broadcast-visible scenes,
 whose main-pitch body motion is procedural rather than measured pose. Its gait

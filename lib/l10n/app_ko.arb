@@ -12695,5 +12695,81 @@
   "replaySceneViniciusCarryInside": "비니시우스, 안쪽 운반 후 크로스 연결",
   "replayFocusViniciusCarryInside": "비니시우스가 공을 운반한 뒤 크로스에게 내주고, 벤제마 쪽으로 연결되는 흐름을 보세요.",
   "realMatchReplayExpandPitch": "경기장 크게 보기",
-  "realMatchReplayCollapsePitch": "기본 화면으로"
+  "realMatchReplayCollapsePitch": "기본 화면으로",
+  "authoredTouchMenuEntry": "직접 제작 샘플",
+  "authoredTouchAppBarTitle": "첫터치 학습 샘플",
+  "authoredTouchDisclosure": "직접 제작 샘플",
+  "authoredTouchSituationTitle": "압박 반대편으로 첫터치하기",
+  "authoredTouchSituationSummary": "첫터치 방향을 바꾸면 다음 패스는 어떻게 달라질까요? 발·몸·공을 함께 보세요.",
+  "authoredTouchManualNote": "교육용으로 직접 만든 장면입니다.",
+  "authoredTouchOpenSide": "열린 쪽 첫터치",
+  "authoredTouchPressureSide": "압박 쪽 첫터치",
+  "authoredTouchComparePressure": "압박 쪽 첫터치 비교",
+  "authoredTouchCompareOpen": "열린 쪽 첫터치 비교",
+  "authoredTouchPlay": "전체 장면 재생",
+  "authoredTouchPause": "일시정지",
+  "authoredTouchReplay": "전체 장면 다시 보기",
+  "authoredTouchClose": "샘플 닫기",
+  "authoredTouchContextTitle": "전체 상황",
+  "authoredTouchDetailTitle": "발과 몸의 움직임",
+  "authoredTouchContextSemantics": "전체 상황 그림. {continuation}. {phase}. 선수 5명과 공이 {time}초 시점에 동기화되어 있습니다.",
+  "@authoredTouchContextSemantics": {
+    "placeholders": {
+      "continuation": {},
+      "phase": {},
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "authoredTouchDetailSemantics": "발과 몸의 확대 그림. {continuation}. {phase}. 양발, 몸 방향, 압박과 공 접촉이 {time}초 시점에 동기화되어 있습니다.",
+  "@authoredTouchDetailSemantics": {
+    "placeholders": {
+      "continuation": {},
+      "phase": {},
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "authoredTouchCurrentStateSemantics": "현재 흐름: {continuation}. 현재 단계: {phase}.",
+  "@authoredTouchCurrentStateSemantics": {
+    "placeholders": {
+      "continuation": {},
+      "phase": {}
+    }
+  },
+  "authoredTouchPhasePrepare": "다가오는 수비와 열린 공간을 확인해요",
+  "authoredTouchPhaseIncomingPass": "들어오는 패스: 받는 선수가 몸을 열어요",
+  "authoredTouchPhaseFirstTouch": "왼발 접촉: 첫터치 방향이 달라져요",
+  "authoredTouchPhaseTurnCarry": "짧은 운반: 열린 패스 길로 몸을 돌려요",
+  "authoredTouchPhaseForwardPass": "왼발을 딛고 오른발로 패스해요",
+  "authoredTouchPhaseForwardReceive": "전방 동료가 움직여 받아요",
+  "authoredTouchPhasePressureSteal": "압박 쪽 첫터치에 수비가 먼저 닿아요",
+  "authoredTouchPhaseDefenderCarry": "소유권이 바뀌고 수비가 공을 운반해요",
+  "authoredTouchPhaseComplete": "장면이 끝났어요",
+  "authoredTouchOpenFeedback": "첫터치로 전방 패스 길이 열렸어요.",
+  "authoredTouchPressureFeedback": "압박 쪽으로 공이 가서 수비가 먼저 닿았어요.",
+  "authoredTouchCuePressure": "다가오는 수비",
+  "authoredTouchCueOpenSpace": "열린 공간",
+  "authoredTouchCueIncomingPass": "들어오는 패스",
+  "authoredTouchCueForwardLink": "전방 연결",
+  "authoredTouchCueFollowThrough": "패스 후 몸의 움직임",
+  "authoredTouchCueSupportFoot": "딛는 발 고정",
+  "authoredTouchLeftShoe": "왼",
+  "authoredTouchRightShoe": "오",
+  "authoredTouchProgressSemantics": "{duration}초 중 {time}초 재생, {percent}퍼센트",
+  "@authoredTouchProgressSemantics": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -12695,5 +12695,81 @@
   "replaySceneViniciusCarryInside": "ヴィニシウスが内側へ運び、クロースへつなぐ",
   "replayFocusViniciusCarryInside": "ヴィニシウスが運んでクロースへ戻し、ベンゼマへつながる流れを追いましょう。",
   "realMatchReplayExpandPitch": "ピッチを大きく表示",
-  "realMatchReplayCollapsePitch": "標準表示に戻る"
+  "realMatchReplayCollapsePitch": "標準表示に戻る",
+  "authoredTouchMenuEntry": "直接作成サンプル",
+  "authoredTouchAppBarTitle": "ファーストタッチ学習サンプル",
+  "authoredTouchDisclosure": "直接作成サンプル",
+  "authoredTouchSituationTitle": "プレッシャーの反対側へファーストタッチ",
+  "authoredTouchSituationSummary": "最初のタッチで次のパスがどう変わるか、足・体・ボールを一緒に見てみましょう。",
+  "authoredTouchManualNote": "教育用に直接作成したシーンです。",
+  "authoredTouchOpenSide": "空いた側へのタッチ",
+  "authoredTouchPressureSide": "プレッシャー側へのタッチ",
+  "authoredTouchComparePressure": "プレッシャー側と比較",
+  "authoredTouchCompareOpen": "空いた側と比較",
+  "authoredTouchPlay": "全シーンを再生",
+  "authoredTouchPause": "一時停止",
+  "authoredTouchReplay": "全シーンをもう一度見る",
+  "authoredTouchClose": "サンプルを閉じる",
+  "authoredTouchContextTitle": "全体状況",
+  "authoredTouchDetailTitle": "足と体の動き",
+  "authoredTouchContextSemantics": "全体状況の図。{continuation}。{phase}。5人の選手とボールが{time}秒時点で同期しています。",
+  "@authoredTouchContextSemantics": {
+    "placeholders": {
+      "continuation": {},
+      "phase": {},
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "authoredTouchDetailSemantics": "動作の拡大図。{continuation}。{phase}。両足、体の向き、プレッシャーとボールの接触を{time}秒時点で表示しています。",
+  "@authoredTouchDetailSemantics": {
+    "placeholders": {
+      "continuation": {},
+      "phase": {},
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "authoredTouchCurrentStateSemantics": "現在の展開：{continuation}。現在の段階：{phase}。",
+  "@authoredTouchCurrentStateSemantics": {
+    "placeholders": {
+      "continuation": {},
+      "phase": {}
+    }
+  },
+  "authoredTouchPhasePrepare": "近づく守備と空いたスペースを確認",
+  "authoredTouchPhaseIncomingPass": "入ってくるパス：受け手が体を開く",
+  "authoredTouchPhaseFirstTouch": "左足で接触：タッチ方向が変わる",
+  "authoredTouchPhaseTurnCarry": "短い運び：空いたパスコースへ体を向ける",
+  "authoredTouchPhaseForwardPass": "左足を軸に右足でパス",
+  "authoredTouchPhaseForwardReceive": "前方の味方が動いて受ける",
+  "authoredTouchPhasePressureSteal": "プレッシャー側のタッチに守備が先に触れる",
+  "authoredTouchPhaseDefenderCarry": "保持が入れ替わり、守備が運び出す",
+  "authoredTouchPhaseComplete": "シーン終了",
+  "authoredTouchOpenFeedback": "ファーストタッチで前方のパスコースが開きました。",
+  "authoredTouchPressureFeedback": "ボールがプレッシャー側へ進み、守備が先に触れました。",
+  "authoredTouchCuePressure": "近づく守備",
+  "authoredTouchCueOpenSpace": "空いた側",
+  "authoredTouchCueIncomingPass": "入ってくるパス",
+  "authoredTouchCueForwardLink": "前方へ接続",
+  "authoredTouchCueFollowThrough": "パス後の体の動き",
+  "authoredTouchCueSupportFoot": "軸足を固定",
+  "authoredTouchLeftShoe": "左",
+  "authoredTouchRightShoe": "右",
+  "authoredTouchProgressSemantics": "{duration}秒中{time}秒を再生、{percent}パーセント",
+  "@authoredTouchProgressSemantics": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  }
 }

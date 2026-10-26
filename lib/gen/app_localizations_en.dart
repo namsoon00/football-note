@@ -23781,4 +23781,144 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get realMatchReplayCollapsePitch => 'Return to standard view';
+
+  @override
+  String get authoredTouchMenuEntry => 'Directly authored sample';
+
+  @override
+  String get authoredTouchAppBarTitle => 'First-touch learning sample';
+
+  @override
+  String get authoredTouchDisclosure => 'DIRECTLY AUTHORED SAMPLE';
+
+  @override
+  String get authoredTouchSituationTitle => 'First touch away from pressure';
+
+  @override
+  String get authoredTouchSituationSummary =>
+      'See how the first-touch direction changes the next pass. Watch the feet, body and ball together.';
+
+  @override
+  String get authoredTouchManualNote =>
+      'A directly authored educational scene.';
+
+  @override
+  String get authoredTouchOpenSide => 'Open-side touch';
+
+  @override
+  String get authoredTouchPressureSide => 'Pressure-side touch';
+
+  @override
+  String get authoredTouchComparePressure => 'Compare pressure-side touch';
+
+  @override
+  String get authoredTouchCompareOpen => 'Compare open-side touch';
+
+  @override
+  String get authoredTouchPlay => 'Play full sequence';
+
+  @override
+  String get authoredTouchPause => 'Pause';
+
+  @override
+  String get authoredTouchReplay => 'Replay full sequence';
+
+  @override
+  String get authoredTouchClose => 'Close sample';
+
+  @override
+  String get authoredTouchContextTitle => 'Whole situation';
+
+  @override
+  String get authoredTouchDetailTitle => 'Feet and body movement';
+
+  @override
+  String authoredTouchContextSemantics(
+      Object continuation, Object phase, String time) {
+    return 'Whole situation diagram. $continuation. $phase. Five players and the ball are synchronized at $time seconds.';
+  }
+
+  @override
+  String authoredTouchDetailSemantics(
+      Object continuation, Object phase, String time) {
+    return 'Action close-up. $continuation. $phase. Feet, body orientation, pressure and ball contact are synchronized at $time seconds.';
+  }
+
+  @override
+  String authoredTouchCurrentStateSemantics(Object continuation, Object phase) {
+    return 'Current continuation: $continuation. Current phase: $phase.';
+  }
+
+  @override
+  String get authoredTouchPhasePrepare =>
+      'Read the approaching defender and open space';
+
+  @override
+  String get authoredTouchPhaseIncomingPass =>
+      'Incoming pass: receiver opens the body';
+
+  @override
+  String get authoredTouchPhaseFirstTouch =>
+      'Left-foot contact: first-touch direction changes';
+
+  @override
+  String get authoredTouchPhaseTurnCarry =>
+      'Controlled carry: body turns into the open lane';
+
+  @override
+  String get authoredTouchPhaseForwardPass =>
+      'Right foot strikes while the left foot stays planted';
+
+  @override
+  String get authoredTouchPhaseForwardReceive =>
+      'Forward teammate moves and receives';
+
+  @override
+  String get authoredTouchPhasePressureSteal =>
+      'Defender reaches the pressure-side touch first';
+
+  @override
+  String get authoredTouchPhaseDefenderCarry =>
+      'Possession changes and the defender carries away';
+
+  @override
+  String get authoredTouchPhaseComplete => 'Sequence complete';
+
+  @override
+  String get authoredTouchOpenFeedback =>
+      'The first touch opened the forward passing lane.';
+
+  @override
+  String get authoredTouchPressureFeedback =>
+      'The ball went toward pressure, so the defender reached it first.';
+
+  @override
+  String get authoredTouchCuePressure => 'Approaching defender';
+
+  @override
+  String get authoredTouchCueOpenSpace => 'OPEN SIDE';
+
+  @override
+  String get authoredTouchCueIncomingPass => 'PASS IN';
+
+  @override
+  String get authoredTouchCueForwardLink => 'FORWARD';
+
+  @override
+  String get authoredTouchCueFollowThrough => 'Body movement after the pass';
+
+  @override
+  String get authoredTouchCueSupportFoot => 'PLANTED SUPPORT FOOT';
+
+  @override
+  String get authoredTouchLeftShoe => 'L';
+
+  @override
+  String get authoredTouchRightShoe => 'R';
+
+  @override
+  String authoredTouchProgressSemantics(
+      String time, String duration, int percent) {
+    return 'Playback $time of $duration seconds, $percent percent';
+  }
 }

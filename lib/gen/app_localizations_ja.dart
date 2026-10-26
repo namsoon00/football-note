@@ -22813,4 +22813,133 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get realMatchReplayCollapsePitch => '標準表示に戻る';
+
+  @override
+  String get authoredTouchMenuEntry => '直接作成サンプル';
+
+  @override
+  String get authoredTouchAppBarTitle => 'ファーストタッチ学習サンプル';
+
+  @override
+  String get authoredTouchDisclosure => '直接作成サンプル';
+
+  @override
+  String get authoredTouchSituationTitle => 'プレッシャーの反対側へファーストタッチ';
+
+  @override
+  String get authoredTouchSituationSummary =>
+      '最初のタッチで次のパスがどう変わるか、足・体・ボールを一緒に見てみましょう。';
+
+  @override
+  String get authoredTouchManualNote => '教育用に直接作成したシーンです。';
+
+  @override
+  String get authoredTouchOpenSide => '空いた側へのタッチ';
+
+  @override
+  String get authoredTouchPressureSide => 'プレッシャー側へのタッチ';
+
+  @override
+  String get authoredTouchComparePressure => 'プレッシャー側と比較';
+
+  @override
+  String get authoredTouchCompareOpen => '空いた側と比較';
+
+  @override
+  String get authoredTouchPlay => '全シーンを再生';
+
+  @override
+  String get authoredTouchPause => '一時停止';
+
+  @override
+  String get authoredTouchReplay => '全シーンをもう一度見る';
+
+  @override
+  String get authoredTouchClose => 'サンプルを閉じる';
+
+  @override
+  String get authoredTouchContextTitle => '全体状況';
+
+  @override
+  String get authoredTouchDetailTitle => '足と体の動き';
+
+  @override
+  String authoredTouchContextSemantics(
+      Object continuation, Object phase, String time) {
+    return '全体状況の図。$continuation。$phase。5人の選手とボールが$time秒時点で同期しています。';
+  }
+
+  @override
+  String authoredTouchDetailSemantics(
+      Object continuation, Object phase, String time) {
+    return '動作の拡大図。$continuation。$phase。両足、体の向き、プレッシャーとボールの接触を$time秒時点で表示しています。';
+  }
+
+  @override
+  String authoredTouchCurrentStateSemantics(Object continuation, Object phase) {
+    return '現在の展開：$continuation。現在の段階：$phase。';
+  }
+
+  @override
+  String get authoredTouchPhasePrepare => '近づく守備と空いたスペースを確認';
+
+  @override
+  String get authoredTouchPhaseIncomingPass => '入ってくるパス：受け手が体を開く';
+
+  @override
+  String get authoredTouchPhaseFirstTouch => '左足で接触：タッチ方向が変わる';
+
+  @override
+  String get authoredTouchPhaseTurnCarry => '短い運び：空いたパスコースへ体を向ける';
+
+  @override
+  String get authoredTouchPhaseForwardPass => '左足を軸に右足でパス';
+
+  @override
+  String get authoredTouchPhaseForwardReceive => '前方の味方が動いて受ける';
+
+  @override
+  String get authoredTouchPhasePressureSteal => 'プレッシャー側のタッチに守備が先に触れる';
+
+  @override
+  String get authoredTouchPhaseDefenderCarry => '保持が入れ替わり、守備が運び出す';
+
+  @override
+  String get authoredTouchPhaseComplete => 'シーン終了';
+
+  @override
+  String get authoredTouchOpenFeedback => 'ファーストタッチで前方のパスコースが開きました。';
+
+  @override
+  String get authoredTouchPressureFeedback => 'ボールがプレッシャー側へ進み、守備が先に触れました。';
+
+  @override
+  String get authoredTouchCuePressure => '近づく守備';
+
+  @override
+  String get authoredTouchCueOpenSpace => '空いた側';
+
+  @override
+  String get authoredTouchCueIncomingPass => '入ってくるパス';
+
+  @override
+  String get authoredTouchCueForwardLink => '前方へ接続';
+
+  @override
+  String get authoredTouchCueFollowThrough => 'パス後の体の動き';
+
+  @override
+  String get authoredTouchCueSupportFoot => '軸足を固定';
+
+  @override
+  String get authoredTouchLeftShoe => '左';
+
+  @override
+  String get authoredTouchRightShoe => '右';
+
+  @override
+  String authoredTouchProgressSemantics(
+      String time, String duration, int percent) {
+    return '$duration秒中$time秒を再生、$percentパーセント';
+  }
 }
