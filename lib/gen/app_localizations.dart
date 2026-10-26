@@ -39227,8 +39227,14 @@ abstract class AppLocalizations {
   /// No description provided for @realMatchReplayBroadcastDisclosure.
   ///
   /// In en, this message translates to:
-  /// **'Positions are estimated from SkillCorner broadcast tracking. Off-camera players are omitted. Pass and carry markers are derived from possession and movement. Body motion and kit designs are simplified.'**
+  /// **'Players missing from the SkillCorner broadcast, including those not seen in the clip, remain visible using nearby recorded positions. A hollow ring marks a reconstructed position; it may differ from the real position. Commentary uses recorded movement. Body motion and kit designs are simplified.'**
   String get realMatchReplayBroadcastDisclosure;
+
+  /// No description provided for @realMatchReplayReconstructedLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconstructed position'**
+  String get realMatchReplayReconstructedLegend;
 
   /// No description provided for @realMatchReplayBallHeightUnavailable.
   ///
@@ -39253,6 +39259,13 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A 2D replay of actual tracked positions for {home} against {away}: {scene}.'**
   String realMatchReplayPitchSemanticsGeneric(
+      Object home, Object away, Object scene);
+
+  /// No description provided for @realMatchReplayPitchSemanticsReconstructed.
+  ///
+  /// In en, this message translates to:
+  /// **'A 2D replay of recorded and clearly marked reconstructed display positions for {home} against {away}: {scene}.'**
+  String realMatchReplayPitchSemanticsReconstructed(
       Object home, Object away, Object scene);
 
   /// No description provided for @realMatchReplayStageWithPlayer.

@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""Build sparse broadcast-visible replay scenes from pinned historical data.
+"""Build honest source and continuous display replay layers.
 
 Historic SkillCorner tracking is a JSON array at 10 fps. It does not contain
 dynamic event annotations or extrapolated off-camera players, so this importer
-preserves missing observations explicitly and verifies every curated action
-against possession runs plus continuous ball/player tracking.
+preserves missing observations in a sparse source layer. A separate,
+provenance-marked display layer keeps the active 22 visible without promoting
+reconstructed coordinates to evidence.
 """
 
 from __future__ import annotations
 
 import argparse
+import bisect
 import hashlib
 import json
 import math
@@ -51,6 +53,10 @@ JOINTS = [
     "lBigToe",
     "rBigToe",
 ]
+CONTEXT_RADIUS_FRAMES = 600
+CONTINUATION_DECAY_SECONDS = 1.2
+MAX_CONTINUATION_SPEED = 7.0
+DISPLAY_CAMERA_MARGIN_METERS = 2.0
 
 
 def read_json(path: Path):
@@ -83,8 +89,14 @@ def number(value, label: str) -> float:
 
 
 def clock_seconds(value: str) -> float:
-    minute, second = value.split(":")
-    return round(int(minute) * 60 + float(second), 2)
+    parts = [float(part) for part in value.split(":")]
+    if len(parts) == 2:
+        minute, second = parts
+        return round(minute * 60 + second, 2)
+    if len(parts) == 3:
+        hour, minute, second = parts
+        return round(hour * 3600 + minute * 60 + second, 2)
+    raise ValueError(f"Invalid match clock: {value}")
 
 
 def verify_sources(raw_dir: Path, manifest: dict) -> None:
@@ -171,11 +183,59 @@ def goalkeeper_direction(match: dict, source_frames: list[dict], period: int) ->
     return direction, proof
 
 
-def resolve_entities(match: dict, interval: list[dict]) -> tuple[list[dict], dict[int, int], dict]:
+def active_players(match: dict, interval: list[dict]) -> list[dict]:
+    start_clock = clock_seconds(interval[0]["time"])
+    end_clock = clock_seconds(interval[-1]["time"])
+
+    def active_at(player: dict, clock: float) -> bool:
+        start = player.get("start_time")
+        end = player.get("end_time")
+        return (
+            start is not None
+            and clock_seconds(start) <= clock
+            and (end is None or clock < clock_seconds(end))
+        )
+
+    at_start = {
+        player["trackable_object"]
+        for player in match["players"]
+        if active_at(player, start_clock)
+    }
+    at_end = {
+        player["trackable_object"]
+        for player in match["players"]
+        if active_at(player, end_clock)
+    }
+    if at_start != at_end or len(at_start) != 22:
+        raise ValueError("Selected clip must retain one active 22-player roster")
+    home_id = match["home_team"]["id"]
+    active = [
+        player
+        for player in match["players"]
+        if player["trackable_object"] in at_start
+    ]
+    active.sort(
+        key=lambda player: (
+            player["team_id"] != home_id,
+            player["number"],
+            player["trackable_object"],
+        )
+    )
+    if sum(player["team_id"] == home_id for player in active) != 11:
+        raise ValueError("Active roster must contain 11 players per team")
+    return active
+
+
+def resolve_entities(
+    match: dict,
+    interval: list[dict],
+    resolution_frames: list[dict],
+    active: list[dict],
+) -> tuple[list[dict], dict[int, int], dict]:
     metadata = {player["trackable_object"]: player for player in match["players"]}
     track_mappings: dict[int, set[int]] = {}
     anonymous_groups: dict[int, set[str]] = {}
-    for frame in interval:
+    for frame in resolution_frames:
         for item in frame["data"]:
             track_id = item.get("track_id")
             trackable = item.get("trackable_object")
@@ -198,63 +258,31 @@ def resolve_entities(match: dict, interval: list[dict]) -> tuple[list[dict], dic
         if team_group(match, metadata[trackable]) == next(iter(groups)):
             resolutions[track_id] = trackable
 
-    observed: dict[int, dict] = {}
+    unresolved: dict[int, str] = {}
     for frame in interval:
         for item in frame["data"]:
-            trackable = item.get("trackable_object")
-            if trackable in metadata:
-                observed[trackable] = metadata[trackable]
-            elif trackable is None and item.get("group_name") in {
+            if item.get("trackable_object") is None and item.get("group_name") in {
                 "home team",
                 "away team",
             }:
                 track_id = item.get("track_id")
                 if not isinstance(track_id, int):
                     raise ValueError("Anonymous team observation has no integer track id")
-                resolved = resolutions.get(track_id)
-                if resolved is not None:
-                    observed[resolved] = metadata[resolved]
-                else:
-                    observed.setdefault(
-                        anonymous_id(track_id),
-                        {
-                            "track_id": track_id,
-                            "group_name": item["group_name"],
-                        },
-                    )
+                if track_id not in resolutions:
+                    unresolved[track_id] = item["group_name"]
 
     home_id = match["home_team"]["id"]
 
-    def sort_key(entry: tuple[int, dict]):
-        entity, value = entry
-        if entity > 0:
-            home = value["team_id"] == home_id
-            return (not home, 0, value["number"], entity)
-        return (value["group_name"] != "home team", 1, value["track_id"], entity)
-
-    players = []
-    for entity, value in sorted(observed.items(), key=sort_key):
-        if entity > 0:
-            players.append(
-                {
-                    "id": entity,
-                    "number": value["number"],
-                    "name": full_name(value),
-                    "home": value["team_id"] == home_id,
-                    "keeper": value["player_role"]["acronym"] == "GK",
-                }
-            )
-        else:
-            players.append(
-                {
-                    "id": entity,
-                    "number": None,
-                    "name": None,
-                    "home": value["group_name"] == "home team",
-                    "keeper": False,
-                    "trackId": value["track_id"],
-                }
-            )
+    players = [
+        {
+            "id": value["trackable_object"],
+            "number": value["number"],
+            "name": full_name(value),
+            "home": value["team_id"] == home_id,
+            "keeper": value["player_role"]["acronym"] == "GK",
+        }
+        for value in active
+    ]
     index_by_entity = {player["id"]: index for index, player in enumerate(players)}
     resolution_proof = {
         "resolvedTrackIds": [
@@ -263,12 +291,10 @@ def resolve_entities(match: dict, interval: list[dict]) -> tuple[list[dict], dic
         ],
         "unresolvedTracks": [
             {
-                "trackId": value["track_id"],
-                "entityId": entity,
-                "group": value["group_name"],
+                "trackId": track_id,
+                "group": group,
             }
-            for entity, value in sorted(observed.items())
-            if entity < 0
+            for track_id, group in sorted(unresolved.items())
         ],
     }
     return players, index_by_entity, resolution_proof
@@ -293,50 +319,302 @@ def entity_for_item(
     return resolutions.get(track_id, anonymous_id(track_id))
 
 
-def camera_bounds(
+def observations_by_entity(
+    source_frames: list[dict],
+    period: int,
+    entity_ids: set[int],
+    metadata: dict[int, dict],
+    resolutions: dict[int, int],
+) -> dict[int, dict[int, tuple[int, int]]]:
+    observations: dict[int, dict[int, tuple[int, int]]] = {
+        entity: {} for entity in entity_ids
+    }
+    for frame in source_frames:
+        if frame["period"] != period:
+            continue
+        frame_points: dict[int, tuple[tuple[int, int], bool]] = {}
+        ambiguous: set[int] = set()
+        for item in frame["data"]:
+            entity = entity_for_item(item, metadata, resolutions)
+            if entity not in observations:
+                continue
+            direct = item.get("trackable_object") == entity
+            if entity in ambiguous and not direct:
+                continue
+            point = (
+                round(number(item.get("x"), "player x") * 100),
+                round(number(item.get("y"), "player y") * 100),
+            )
+            previous = frame_points.get(entity)
+            if previous is not None and previous[0] != point:
+                if direct and not previous[1]:
+                    frame_points[entity] = (point, True)
+                    ambiguous.discard(entity)
+                    continue
+                if previous[1] and not direct:
+                    continue
+                if direct:
+                    raise ValueError(
+                        f"Conflicting direct identity at frame {frame['frame']}"
+                    )
+                frame_points.pop(entity)
+                ambiguous.add(entity)
+                continue
+            frame_points[entity] = (point, direct)
+        for entity, (point, _) in frame_points.items():
+            observations[entity][frame["frame"]] = point
+    return observations
+
+
+def _bounded_continuation(
+    observations: dict[int, tuple[int, int]],
+    frames: list[int],
+    anchor_frame: int,
+    target_frame: int,
+) -> tuple[int, int]:
+    anchor = observations[anchor_frame]
+    forward = target_frame > anchor_frame
+    index = bisect.bisect_left(frames, anchor_frame)
+    neighbour_index = index - 1 if forward else index + 1
+    if not 0 <= neighbour_index < len(frames):
+        return anchor
+    neighbour_frame = frames[neighbour_index]
+    if abs(neighbour_frame - anchor_frame) > 10:
+        return anchor
+    neighbour = observations[neighbour_frame]
+    elapsed = abs(anchor_frame - neighbour_frame) / 10
+    velocity = (
+        (anchor[0] - neighbour[0]) / 100 / elapsed,
+        (anchor[1] - neighbour[1]) / 100 / elapsed,
+    ) if forward else (
+        (neighbour[0] - anchor[0]) / 100 / elapsed,
+        (neighbour[1] - anchor[1]) / 100 / elapsed,
+    )
+    speed = math.hypot(*velocity)
+    if speed > MAX_CONTINUATION_SPEED:
+        scale = MAX_CONTINUATION_SPEED / speed
+        velocity = (velocity[0] * scale, velocity[1] * scale)
+    seconds = abs(target_frame - anchor_frame) / 10
+    effective = CONTINUATION_DECAY_SECONDS * (
+        1 - math.exp(-seconds / CONTINUATION_DECAY_SECONDS)
+    )
+    direction = 1 if forward else -1
+    return (
+        round(anchor[0] + velocity[0] * effective * direction * 100),
+        round(anchor[1] + velocity[1] * effective * direction * 100),
+    )
+
+
+def _fallback_position(player: dict, team_index: int) -> tuple[int, int]:
+    if player["keeper"]:
+        x = -49 if player["home"] else 49
+        return (x * 100, 0)
+    rank = team_index - 1
+    x_slots = (-32, -12, 10, 30)
+    y_slots = (-24, -12, 0, 12, 24)
+    x = x_slots[(rank // len(y_slots)) % len(x_slots)]
+    if not player["home"]:
+        x = -x
+    return (x * 100, y_slots[rank % len(y_slots)] * 100)
+
+
+def reconstruct_display(
+    spec: dict,
+    players: list[dict],
     frames: list[list[int]],
     visibility: list[list[int]],
+    observations: dict[int, dict[int, tuple[int, int]]],
+    pitch_length: float,
+    pitch_width: float,
+) -> tuple[list[list[int]], list[list[int]], list[dict]]:
+    start = spec["startFrame"]
+    end = spec["endFrame"]
+    count = len(frames)
+    per_player: list[list[tuple[int, int]]] = []
+    proofs: list[dict] = []
+    team_ranks = {True: 0, False: 0}
+
+    def bounded(point: tuple[int, int]) -> tuple[int, int]:
+        return (
+            max(round(-pitch_length * 50), min(round(pitch_length * 50), point[0])),
+            max(round(-pitch_width * 50), min(round(pitch_width * 50), point[1])),
+        )
+
+    for player_index, player in enumerate(players):
+        team_ranks[player["home"]] += 1
+        points: list[tuple[int, int] | None] = [
+            (frames[index][player_index * 2], frames[index][player_index * 2 + 1])
+            if visibility[index][player_index]
+            else None
+            for index in range(count)
+        ]
+        entity_observations = observations[player["id"]]
+        observation_frames = sorted(entity_observations)
+        local_frames = [
+            frame
+            for frame in observation_frames
+            if start - CONTEXT_RADIUS_FRAMES <= frame <= end + CONTEXT_RADIUS_FRAMES
+        ]
+        spans = []
+        cursor = 0
+        while cursor < count:
+            if points[cursor] is not None:
+                cursor += 1
+                continue
+            span_start = cursor
+            while cursor + 1 < count and points[cursor + 1] is None:
+                cursor += 1
+            span_end = cursor
+            global_start = start + span_start
+            global_end = start + span_end
+            insertion = bisect.bisect_left(observation_frames, global_start)
+            previous = observation_frames[insertion - 1] if insertion > 0 else None
+            next_index = bisect.bisect_right(observation_frames, global_end)
+            following = (
+                observation_frames[next_index]
+                if next_index < len(observation_frames)
+                else None
+            )
+            previous_near = (
+                previous is not None
+                and global_start - previous <= CONTEXT_RADIUS_FRAMES
+            )
+            following_near = (
+                following is not None
+                and following - global_end <= CONTEXT_RADIUS_FRAMES
+            )
+            anchors = []
+            if not local_frames:
+                if observation_frames:
+                    midpoint = (start + end) / 2
+                    nearest = min(
+                        observation_frames,
+                        key=lambda frame: (abs(frame - midpoint), frame),
+                    )
+                    point = bounded(entity_observations[nearest])
+                    method = "nearest-period-anchor-hold"
+                    anchors = [nearest]
+                else:
+                    point = _fallback_position(
+                        player,
+                        team_ranks[player["home"]],
+                    )
+                    method = "role-grid-last-resort"
+                for index in range(span_start, span_end + 1):
+                    points[index] = point
+            elif previous_near and following_near:
+                before = entity_observations[previous]
+                after = entity_observations[following]
+                span = following - previous
+                for index in range(span_start, span_end + 1):
+                    source_frame = start + index
+                    fraction = (source_frame - previous) / span
+                    points[index] = bounded(
+                        (
+                            round(before[0] + (after[0] - before[0]) * fraction),
+                            round(before[1] + (after[1] - before[1]) * fraction),
+                        )
+                    )
+                method = (
+                    "internal-linear-bridge"
+                    if start <= previous and following <= end
+                    else "context-anchor-interpolation"
+                )
+                anchors = [previous, following]
+            elif previous_near:
+                for index in range(span_start, span_end + 1):
+                    points[index] = bounded(
+                        _bounded_continuation(
+                            entity_observations,
+                            observation_frames,
+                            previous,
+                            start + index,
+                        )
+                    )
+                method = "bounded-forward-continuation"
+                anchors = [previous]
+            elif following_near:
+                for index in range(span_start, span_end + 1):
+                    points[index] = bounded(
+                        _bounded_continuation(
+                            entity_observations,
+                            observation_frames,
+                            following,
+                            start + index,
+                        )
+                    )
+                method = "bounded-backward-continuation"
+                anchors = [following]
+            else:
+                nearest = min(
+                    local_frames,
+                    key=lambda frame: (
+                        abs(frame - (global_start + global_end) / 2),
+                        frame,
+                    ),
+                )
+                point = bounded(entity_observations[nearest])
+                for index in range(span_start, span_end + 1):
+                    points[index] = point
+                method = "local-anchor-hold"
+                anchors = [nearest]
+            spans.append(
+                {
+                    "startFrame": global_start,
+                    "endFrame": global_end,
+                    "method": method,
+                    "anchorFrames": anchors,
+                }
+            )
+            cursor += 1
+        dense = [point for point in points if point is not None]
+        if len(dense) != count:
+            raise ValueError(f"Incomplete display reconstruction for {spec['id']}")
+        per_player.append(dense)
+        inferred = sum(not row[player_index] for row in visibility)
+        proofs.append(
+            {
+                "trackableObject": player["id"],
+                "observedFrames": count - inferred,
+                "inferredFrames": inferred,
+                "inferredCoverage": round(inferred / count, 6),
+                "contextRadiusFrames": CONTEXT_RADIUS_FRAMES,
+                "spans": spans,
+            }
+        )
+
+    display_frames = [
+        [coordinate for player in per_player for coordinate in player[frame_index]]
+        for frame_index in range(count)
+    ]
+    provenance = [
+        [0 if visibility[frame][player] else 1 for player in range(len(players))]
+        for frame in range(count)
+    ]
+    return display_frames, provenance, proofs
+
+
+def camera_bounds(
+    frames: list[list[int]],
+    display_frames: list[list[int]],
     players: list[dict],
-    focal_ids: set[int],
     pitch_length: float,
     pitch_width: float,
 ) -> list[float]:
-    focus_indices = [
-        index for index, player in enumerate(players) if player["id"] in focal_ids
+    xs = [-pitch_length / 2, pitch_length / 2]
+    ys = [-pitch_width / 2, pitch_width / 2]
+    for source, display in zip(frames, display_frames):
+        xs.append(source[-3] / 100)
+        ys.append(source[-2] / 100)
+        for player in range(len(players)):
+            xs.append(display[player * 2] / 100)
+            ys.append(display[player * 2 + 1] / 100)
+    return [
+        round(min(xs) - DISPLAY_CAMERA_MARGIN_METERS, 2),
+        round(max(xs) + DISPLAY_CAMERA_MARGIN_METERS, 2),
+        round(min(ys) - DISPLAY_CAMERA_MARGIN_METERS, 2),
+        round(max(ys) + DISPLAY_CAMERA_MARGIN_METERS, 2),
     ]
-    xs: list[float] = []
-    ys: list[float] = []
-    sample_indices = sorted(set(range(0, len(frames), 5)) | {len(frames) - 1})
-    for frame_index in sample_indices:
-        row = frames[frame_index]
-        visible = visibility[frame_index]
-        ball_x, ball_y = row[-3] / 100, row[-2] / 100
-        xs.append(ball_x)
-        ys.append(ball_y)
-        nearby = sorted(
-            (
-                index
-                for index, player in enumerate(players)
-                if visible[index] and not player["keeper"]
-            ),
-            key=lambda index: (row[index * 2] / 100 - ball_x) ** 2
-            + (row[index * 2 + 1] / 100 - ball_y) ** 2,
-        )[:10]
-        for index in set(nearby + focus_indices):
-            if not visible[index]:
-                continue
-            xs.append(row[index * 2] / 100)
-            ys.append(row[index * 2 + 1] / 100)
-
-    def extent(values: list[float], minimum: float, limit: float) -> list[float]:
-        low, high = min(values) - 7, max(values) + 7
-        width = min(limit * 2, max(minimum, high - low))
-        center = max(-limit + width / 2, min(limit - width / 2, (low + high) / 2))
-        return [round(center - width / 2, 2), round(center + width / 2, 2)]
-
-    x_limit = pitch_length / 2 + 4
-    y_limit = pitch_width / 2 + 3
-    return extent(xs, 68, x_limit) + extent(ys, 48, y_limit)
 
 
 def max_speed(
@@ -354,6 +632,14 @@ def max_speed(
             ) / 100
             maximum = max(maximum, math.hypot(dx, dy) * 10)
     return maximum
+
+
+def max_display_speed(frames: list[list[int]], player_count: int) -> float:
+    return max_speed(
+        frames,
+        [[1] * player_count for _ in frames],
+        player_count,
+    )
 
 
 def build_scene(
@@ -374,7 +660,16 @@ def build_scene(
             raise ValueError(f"Missing source clock for {spec['id']}")
     verify_possession_evidence(spec, source_frames)
 
-    players, index_by_entity, resolution_proof = resolve_entities(match, interval)
+    active = active_players(match, interval)
+    resolution_frames = [
+        frame for frame in source_frames if frame["period"] == spec["period"]
+    ]
+    players, index_by_entity, resolution_proof = resolve_entities(
+        match,
+        interval,
+        resolution_frames,
+        active,
+    )
     metadata = {player["trackable_object"]: player for player in match["players"]}
     resolutions = {
         row["trackId"]: row["trackableObject"]
@@ -448,6 +743,23 @@ def build_scene(
             if math.hypot(px - ball_x, py - ball_y) <= 15:
                 anonymous_near_ball += 1
 
+    source_observations = observations_by_entity(
+        source_frames,
+        spec["period"],
+        set(index_by_entity),
+        metadata,
+        resolutions,
+    )
+    display_frames, display_provenance, reconstruction_proof = reconstruct_display(
+        spec,
+        players,
+        frames,
+        visibility,
+        source_observations,
+        match["pitch_length"],
+        match["pitch_width"],
+    )
+
     roster_ids = set(index_by_entity)
     focus = spec["focusTrackableObject"]
     if focus not in roster_ids:
@@ -511,9 +823,8 @@ def build_scene(
             "focusPlayerId": focus,
             "camera": camera_bounds(
                 frames,
-                visibility,
+                display_frames,
                 players,
-                focal_ids,
                 match["pitch_length"],
                 match["pitch_width"],
             ),
@@ -537,6 +848,8 @@ def build_scene(
         "joints": JOINTS,
         "frames": frames,
         "visibility": visibility,
+        "displayFrames": display_frames,
+        "displayProvenance": display_provenance,
         "poses": [],
         "events": [],
         "sourceCommit": HISTORICAL_COMMIT,
@@ -559,6 +872,11 @@ def build_scene(
         * 10
         for index in range(1, len(frames))
     )
+    display_speed = max_display_speed(display_frames, len(players))
+    if display_speed > 15:
+        raise ValueError(
+            f"Implausible display continuity in {spec['id']}: {display_speed:.2f} m/s"
+        )
     proof = {
         "id": spec["id"],
         "matchId": match["id"],
@@ -580,11 +898,24 @@ def build_scene(
         "maximumAnonymousPlayersVisible": max(anonymous_counts),
         "anonymousObservationsWithin15mOfBall": anonymous_near_ball,
         "maxPlayerSpeedMetersPerSecond": round(player_speed, 4),
+        "maxDisplaySpeedMetersPerSecond": round(display_speed, 4),
         "maxBallSpeedMetersPerSecond": round(ball_speed, 4),
         "maxPositionQuantizationErrorMeters": round(max_error, 8),
         "attackDirection": attack_direction,
         "directionProof": direction_proof,
         "trackContinuity": resolution_proof,
+        "displayReconstruction": {
+            "method": (
+                "observed XY copied exactly; internal linear bridges; nearby "
+                "same-period anchors; velocity-capped decaying continuation; "
+                "nearest same-period anchor hold, then role grid only as last resort"
+            ),
+            "provenance": {"observed": 0, "reconstructed": 1},
+            "contextRadiusFrames": CONTEXT_RADIUS_FRAMES,
+            "continuationDecaySeconds": CONTINUATION_DECAY_SECONDS,
+            "maximumContinuationSpeedMetersPerSecond": MAX_CONTINUATION_SPEED,
+            "players": reconstruction_proof,
+        },
         "rosterMapping": [
             {
                 "entityId": player["id"],

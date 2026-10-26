@@ -23275,7 +23275,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get realMatchReplayBroadcastDisclosure =>
-      'Positions are estimated from SkillCorner broadcast tracking. Off-camera players are omitted. Pass and carry markers are derived from possession and movement. Body motion and kit designs are simplified.';
+      'Players missing from the SkillCorner broadcast, including those not seen in the clip, remain visible using nearby recorded positions. A hollow ring marks a reconstructed position; it may differ from the real position. Commentary uses recorded movement. Body motion and kit designs are simplified.';
+
+  @override
+  String get realMatchReplayReconstructedLegend => 'Reconstructed position';
 
   @override
   String get realMatchReplayBallHeightUnavailable =>
@@ -23295,6 +23298,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String realMatchReplayPitchSemanticsGeneric(
       Object home, Object away, Object scene) {
     return 'A 2D replay of actual tracked positions for $home against $away: $scene.';
+  }
+
+  @override
+  String realMatchReplayPitchSemanticsReconstructed(
+      Object home, Object away, Object scene) {
+    return 'A 2D replay of recorded and clearly marked reconstructed display positions for $home against $away: $scene.';
   }
 
   @override

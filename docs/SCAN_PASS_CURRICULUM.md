@@ -23,23 +23,30 @@ match 1996435. The original Brisbane transition retains 25 fps positions and
 without invented pose samples. The historical source is pinned separately at
 `1ed50b775f93075c2a6d00d0d795f13b7b89709e`: Manchester City v Liverpool on
 2020-07-02, match 4039, and Real Madrid v FC Barcelona on 2020-03-01, match
-3442. It is broadcast-visible tracking rather than a complete/extrapolated 22,
-so absent players remain absent and movement never interpolates across a
-visibility gap. Scene stages and outcomes are factual navigation and context,
+3442. Its recorded layer remains broadcast-visible tracking rather than
+measured full-22 tracking. A separate, explicitly marked display layer keeps
+the 22 players active at each scene's match clock continuously visible, using
+same-player interpolation and nearby same-period anchors for missing positions.
+The recorded layer retains every gap, and reconstructed positions never
+become evidence for a coaching claim. Scene stages and outcomes are factual
+navigation and context,
 not claims about intent, an exact foot, an optimal choice, an automatic return,
 or coach approval.
 
 Some source positions and the available displayed body poses are estimates.
 The overflow disclosure identifies tracking-only and broadcast-visible scenes,
 whose main-pitch body motion is procedural rather than measured pose. Its gait
-phase is integrated only across observed adjacent positions, facing changes
-gradually, and player rendering may interpolate within adjacent visible samples
-without overshoot. The ball always follows its linear recorded XY; height is
+phase is integrated across the displayed trajectory, facing changes gradually,
+and player rendering interpolates without overshoot. Historical display
+estimates keep the same opaque body and number and add a small hollow ground
+ring, explained by one short in-pitch legend. The ball always follows its linear
+recorded XY; height is
 used only when every selected source frame supplies Z. It is never snapped to
 feet and no kick or missing height is fabricated. Source team colors, player
-names, and numbers are retained where identified; unresolved team tracks can be
-shown without an invented identity or shirt number. Uniform design, skin,
-shorts, and procedural limbs are not a photographic reconstruction. This is an
+names, and numbers are retained. Historical rosters contain exactly 11 active
+identified players per side; ambiguous anonymous observations do not create
+extra players. Uniform design, skin, shorts, and procedural limbs are not a
+photographic reconstruction. This is an
 observation library, not evidence of cognitive training, coach certification,
 or learning transfer.
 
@@ -50,17 +57,22 @@ The source sheet discloses that distinction and the lack of measured pose. Each
 new scene stops at the selected recorded interval end instead of asserting an
 unseen completion, shot or goal.
 
-The camera starts from each scene's context bounds and automatically eases
-toward a tighter tracking-derived frame for receiving, carrying, and pressure.
-It returns to supporting-player and defensive-line context for passes, runs,
-and outcomes. Zoom travel is reduced when recorded moments are close, avoiding
-an abrupt camera race. Wide layouts use the available width; portrait layouts
+The public camera remains on one stable overview for the entire clip, covering
+the full pitch, all displayed player trajectories, the recorded ball and safe
+body/caption margins. The source-only automatic close camera remains a domain
+API with regression coverage. Body safety is reserved in screen pixels, so the
+pitch can fill the available space without wasting large world-space margins.
+Wide layouts use the available width; portrait layouts
 rotate the normalized attack upward, and both attack directions preserve equal
 world scale. The pitch contains one short cue and relevant trail or arrow, with
 layout avoidance for the ball and important bodies. There is no permanent
 mini-map, pose card, result panel, or fullscreen mode. Scene selection and
 source disclosure live in the single overflow menu, and scene changes start
 paused.
+
+Short landscape screens place the title, overflow and the same single playback
+action beside the pitch, preserving its full height instead of shrinking all
+22 players between a top title and bottom controls.
 
 `ScanPassPressureLessonScreen` and the authored 12-situation model remain as
 direct legacy APIs for regression coverage, but they are no longer the public
@@ -287,9 +299,9 @@ Focused tests cover:
 - deterministic historical import, raw/derived hashes, exact frame and roster
   proof, centimetre quantization, coverage decisions and preservation of the
   original 20 payloads;
-- sparse visibility, anonymous visible team tracks, missing focal/step actor
-  rejection, no interpolation or motion integration through gaps, and explicit
-  XY-only ball height behavior;
+- sparse recorded visibility, missing focal/step actor rejection, raw gaps
+  remaining absent, dense marked 22-player display trajectories with continuous
+  gait, and explicit XY-only ball height behavior;
 - recorded-pose versus tracking-only behavior, deterministic distance-phased
   gait, stationary/running behavior, bounded interpolation, and gradual turns;
 - one-control stop timing through the true duration, manual and lifecycle
@@ -298,6 +310,8 @@ Focused tests cover:
 - automatic context/close camera continuity and ball/relevant-actor visibility
   across all scenes, both attack directions, portrait normalization, and
   constrained light/dark layouts;
+- stable public overview framing with every displayed body and recorded ball
+  inside the safe viewport, including intermediate samples and large text;
 - four retained families, 12-case ordering, metadata and source mapping;
 - one-cue paired starts and held-out geometry;
 - a physically retained first-touch-to-forward-#10 chain, including actual

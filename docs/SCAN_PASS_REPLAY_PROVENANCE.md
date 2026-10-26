@@ -54,27 +54,45 @@ is never inferred.
 
 The five intervals were retained only after checking source continuity, focal
 identity, ball XY coverage, local player coverage and identity-continuity speed.
-The proof records roster mapping, starting-goalkeeper attack-direction evidence,
-possession runs, per-step rationale, visible-player counts, ball Z counts,
-maximum speeds and centimetre-quantization error. Recorded jersey and number
-colors and squad numbers are used as metadata; simplified kits are not licensed
-logos or complete historical uniform reconstructions.
+The proof records the 22-player active roster, starting-goalkeeper
+attack-direction evidence, possession runs, per-step rationale, source-visible
+counts, ball Z counts, source/display maximum speeds, centimetre-quantization
+error and every player's reconstructed spans and anchor frames. Recorded jersey
+and number colors and squad numbers are used as metadata; simplified kits are
+not licensed logos or complete historical uniform reconstructions.
 
 ## Broadcast-visible coverage and missing data
 
-Historical tracking is broadcast-visible coverage, not an extrapolated full-22
-view. Each derived frame has an explicit player visibility row. A hidden player
-has no rendered point, trail, motion state, nearest-opponent contribution or
-camera anchor. Sampling never interpolates across a missing endpoint, and gait
-integration does not bridge a tracking gap.
+Historical tracking is broadcast-visible coverage, not measured full-22
+tracking. Every payload therefore keeps two deliberately separate layers:
 
-An unlabelled home/away team observation is retained as an anonymous track when
-its `track_id` cannot be resolved safely. It has no invented name or shirt
-number. A track id is resolved to a known player only when the interval has one
-team-consistent mapping; ambiguous or conflicting identity observations are
-not guessed. The five shipped intervals happen to resolve all retained team
-tracks, but the schema and importer preserve anonymous visible opponents for
-other auditable intervals.
+- `frames` plus `visibility` are the recorded source layer. Hidden XY remains
+  zero/null, source sampling never bridges a missing endpoint, and all coaching
+  classifications, trails, nearest-defender checks and authored-step validation
+  use only this layer.
+- `displayFrames` plus `displayProvenance` are a dense display layer for the 22
+  players active at the selected match clock. Provenance `0` means the display
+  XY is byte-for-byte the centimetre-quantized observation; `1` means only the
+  displayed location was reconstructed. The renderer keeps the same opaque
+  kit, number and body, adds a small hollow ground ring, and drives gait from
+  this continuous display trajectory.
+
+Internal gaps use linear interpolation between same-player observations.
+Leading and trailing gaps use same-period observations within 600 source
+frames (60 seconds): two anchors interpolate, while one anchor uses a
+7 m/s-capped continuation whose velocity decays to a hold over 1.2 seconds. If
+a player has no observation in that contextual window, the nearest
+same-period anchor is held and recorded as `nearest-period-anchor-hold`. A
+role-grid position is the documented last resort only when the player has no
+same-period observation at all. All inferred XY is pitch-bounded. These rules
+are deterministic display reconstruction, not guessed ground truth.
+
+An unlabelled home/away observation contributes only when its `track_id` has
+one team-consistent identity mapping in the same period. Ambiguous or
+conflicting anonymous observations are ignored. They never create an invented
+player: the shipped historical roster is taken from metadata `start_time` and
+`end_time`, contains exactly 11 identified players per team, and is unchanged
+through each clip.
 
 Ball XY must be present in every selected source frame. Ball height is marked
 available only if every frame also has a finite source Z. If any Z sample is
@@ -107,15 +125,18 @@ earlier without adding a no-op click.
 ## Motion and viewer fidelity
 
 Only the original `transition-wing` clip supplies measured/estimated pose
-samples. The other 24 scenes use procedural limbs driven by observed
+samples. The other 24 scenes use procedural limbs driven by the displayed
 speed/direction and distance-integrated gait. Those limbs are not recordings of
 foot contacts, body orientation, scanning, first foot, torso motion or technique.
 
-Player rendering may use bounded smoothing only between two visible adjacent
-samples. The recorded ball path stays linearly sampled and is never snapped to
-a player's foot. Source timing is preserved. The automatic camera ignores
-missing player samples and eases between authored context and close views so a
-hidden player cannot pull the frame toward a fabricated coordinate.
+Source rendering uses bounded smoothing only between two visible adjacent
+samples. Historical display rendering smooths adjacent dense display samples
+without changing their frame endpoints. The recorded ball path stays linearly
+sampled and is never snapped to a player's foot or an estimated player. Source
+timing is preserved. The public viewer uses one stable overview camera per clip
+that includes all display trajectories, the ball, the full pitch and body/header
+margins. The recorded-evidence automatic close camera remains a domain API for
+regression and coaching calculations but is not the shipped default.
 
 The public viewer remains the simple one-action experience: picture, compact
 title, one relevant cue and one play/pause/continue action. The catalog and
@@ -166,7 +187,9 @@ python3 tool/scan_pass_replay/prepare_historical.py /path/to/historical-inputs
 
 The importer verifies every raw size/hash before parsing and reproduces the
 five payloads, historical catalog/proof, 25-entry mixed catalog and mixed proof.
-The roughly 125 MB of raw tracking stays outside committed assets.
+The proof includes reconstruction policy, contextual/period anchor frames and
+per-player inferred coverage. The roughly 125 MB of raw tracking stays outside
+committed assets.
 
 The original `replay-data.json` remains 509710 bytes with SHA-256
 `cf73a11f566d974f3dada609e0d16111e6896dc522d88c08c257eb7332efaa71`.

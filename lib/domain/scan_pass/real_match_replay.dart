@@ -363,6 +363,29 @@ class RealMatchReplaySample {
   });
 }
 
+/// A renderer-only trajectory sample.
+///
+/// [players] may contain deterministic reconstructed positions, while
+/// [reconstructed] identifies every position that is not a source
+/// observation at this instant. The recorded [ball] is never reconstructed.
+class RealMatchReplayDisplaySample {
+  final double time;
+  final double sourceFrame;
+  final List<RealMatchReplayPoint?> players;
+  final List<bool> reconstructed;
+  final RealMatchReplayPoint ball;
+
+  const RealMatchReplayDisplaySample({
+    required this.time,
+    required this.sourceFrame,
+    required this.players,
+    required this.reconstructed,
+    required this.ball,
+  });
+
+  bool get hasReconstructedPositions => reconstructed.contains(true);
+}
+
 class RealMatchReplayData {
   // Retained for compatibility with source-integrity tests for the original
   // clip. Runtime validation is deliberately generic.
@@ -381,6 +404,8 @@ class RealMatchReplayData {
   final List<String> joints;
   final List<Int32List> frames;
   final List<Uint8List> visibility;
+  final List<Int32List> displayFrames;
+  final List<Uint8List> displayProvenance;
   final List<List<Int16List?>> poses;
   final List<RealMatchReplayEvent> events;
   final String sourceCommit;
@@ -409,6 +434,8 @@ class RealMatchReplayData {
     required this.joints,
     required this.frames,
     required this.visibility,
+    required this.displayFrames,
+    required this.displayProvenance,
     required this.poses,
     required this.events,
     required this.sourceCommit,
@@ -488,6 +515,40 @@ class RealMatchReplayData {
               return flag;
             }).toList(growable: false));
           }).toList(growable: false);
+    final displayFrameValue = json['displayFrames'];
+    final displayFrames = displayFrameValue == null
+        ? const <Int32List>[]
+        : _asList(displayFrameValue, 'displayFrames').map((value) {
+            final row = _asList(value, 'display frame');
+            if (row.length != players.length * 2) {
+              throw const FormatException(
+                'Each display frame must contain one XY pair per player.',
+              );
+            }
+            return Int32List.fromList(
+              row.map((entry) => _asInteger(entry, 'display value')).toList(),
+            );
+          }).toList(growable: false);
+    final displayProvenanceValue = json['displayProvenance'];
+    final displayProvenance = displayProvenanceValue == null
+        ? const <Uint8List>[]
+        : _asList(displayProvenanceValue, 'displayProvenance').map((value) {
+            final row = _asList(value, 'display provenance frame');
+            if (row.length != players.length) {
+              throw const FormatException(
+                'Each display provenance frame must match the active roster.',
+              );
+            }
+            return Uint8List.fromList(row.map((entry) {
+              final flag = _asInteger(entry, 'display provenance value');
+              if (flag != 0 && flag != 1) {
+                throw const FormatException(
+                  'Display provenance values must be zero or one.',
+                );
+              }
+              return flag;
+            }).toList(growable: false));
+          }).toList(growable: false);
     final poseWidth = joints.length * 3;
     final poses = poseJson.map((value) {
       final row = _asList(value, 'pose frame');
@@ -553,6 +614,8 @@ class RealMatchReplayData {
       joints: joints,
       frames: frames,
       visibility: visibility,
+      displayFrames: displayFrames,
+      displayProvenance: displayProvenance,
       poses: poses,
       events: events,
       sourceCommit: _string(json, 'sourceCommit'),
@@ -600,8 +663,55 @@ class RealMatchReplayData {
   bool isVisibleAtFrame(int frameIndex, int playerIndex) =>
       visibility[frameIndex][playerIndex] == 1;
 
+  bool get hasDisplayReconstruction => displayFrames.isNotEmpty;
+
+  bool hasDisplayPositionAtFrame(int frameIndex, int playerIndex) =>
+      hasDisplayReconstruction || isVisibleAtFrame(frameIndex, playerIndex);
+
   RealMatchReplayPoint? playerPointAt(double time, int playerId) =>
       renderSample(time).players[playerIndex(playerId)];
+
+  RealMatchReplayPoint? displayPointAt(double time, int playerId) =>
+      displaySample(time).players[playerIndex(playerId)];
+
+  /// One stable public-view camera that contains the pitch, every display
+  /// trajectory and the recorded ball path. Geometry reserves body safety in
+  /// screen pixels so different viewports do not waste space on world margins.
+  late final RealMatchReplayCamera displayOverviewCamera = () {
+    // Body/header safety is reserved in screen pixels by the pitch geometry.
+    // A large world-space margin makes players unnecessarily small on desktop.
+    const bodyMargin = 2.0;
+    var minX = -pitchLength / 2;
+    var maxX = pitchLength / 2;
+    var minY = -pitchWidth / 2;
+    var maxY = pitchWidth / 2;
+    for (var frameIndex = 0; frameIndex < frames.length; frameIndex++) {
+      final source = frames[frameIndex];
+      minX = math.min(minX, source[players.length * 2] / 100);
+      maxX = math.max(maxX, source[players.length * 2] / 100);
+      minY = math.min(minY, source[players.length * 2 + 1] / 100);
+      maxY = math.max(maxY, source[players.length * 2 + 1] / 100);
+      final ballLift = source.last / 100 * .85;
+      minX = math.min(minX, source[players.length * 2] / 100 - ballLift);
+      maxX = math.max(maxX, source[players.length * 2] / 100 + ballLift);
+      maxY = math.max(maxY, source[players.length * 2 + 1] / 100 + ballLift);
+      for (var player = 0; player < players.length; player++) {
+        if (!hasDisplayPositionAtFrame(frameIndex, player)) continue;
+        final row =
+            hasDisplayReconstruction ? displayFrames[frameIndex] : source;
+        minX = math.min(minX, row[player * 2] / 100);
+        maxX = math.max(maxX, row[player * 2] / 100);
+        minY = math.min(minY, row[player * 2 + 1] / 100);
+        maxY = math.max(maxY, row[player * 2 + 1] / 100);
+      }
+    }
+    return RealMatchReplayCamera(
+      minX: minX - bodyMargin,
+      maxX: maxX + bodyMargin,
+      minY: minY - bodyMargin,
+      maxY: maxY + bodyMargin,
+    );
+  }();
 
   RealMatchReplayStep stepAt(double time) =>
       scene.stepAt(time.clamp(0, duration));
@@ -626,6 +736,61 @@ class RealMatchReplayData {
 
   RealMatchReplaySample renderSample(double time) =>
       _sample(time, smoothPlayers: true);
+
+  RealMatchReplayDisplaySample displaySample(double time) {
+    final source = renderSample(time);
+    if (!hasDisplayReconstruction) {
+      return RealMatchReplayDisplaySample(
+        time: source.time,
+        sourceFrame: source.sourceFrame,
+        players: source.players,
+        reconstructed: List<bool>.filled(players.length, false),
+        ball: source.ball,
+      );
+    }
+    final lower = source.sourceFrame.floor();
+    final upper = (lower + 1).clamp(0, displayFrames.length - 1);
+    final fraction = source.sourceFrame - lower;
+    double smooth(int coordinate) {
+      final previousFrame = math.max(0, lower - 1);
+      final nextFrame = math.min(displayFrames.length - 1, upper + 1);
+      final previous = displayFrames[previousFrame][coordinate].toDouble();
+      final a = displayFrames[lower][coordinate].toDouble();
+      final b = displayFrames[upper][coordinate].toDouble();
+      final next = displayFrames[nextFrame][coordinate].toDouble();
+      if (lower == upper || fraction == 0) return a / 100;
+      final m0 = (b - previous) / 2;
+      final m1 = (next - a) / 2;
+      final t2 = fraction * fraction;
+      final t3 = t2 * fraction;
+      final value = (2 * t3 - 3 * t2 + 1) * a +
+          (t3 - 2 * t2 + fraction) * m0 +
+          (-2 * t3 + 3 * t2) * b +
+          (t3 - t2) * m1;
+      return value.clamp(math.min(a, b), math.max(a, b)) / 100;
+    }
+
+    return RealMatchReplayDisplaySample(
+      time: source.time,
+      sourceFrame: source.sourceFrame,
+      players: List<RealMatchReplayPoint?>.generate(
+        players.length,
+        (index) => RealMatchReplayPoint(
+          smooth(index * 2),
+          smooth(index * 2 + 1),
+        ),
+        growable: false,
+      ),
+      reconstructed: List<bool>.generate(
+        players.length,
+        (index) =>
+            displayProvenance[lower][index] == 1 ||
+            (fraction > 0 && displayProvenance[upper][index] == 1),
+        growable: false,
+      ),
+      ball: source.ball,
+    );
+  }
 
   RealMatchReplaySample _sample(double time, {required bool smoothPlayers}) {
     final clamped = time.clamp(0.0, duration);
@@ -743,7 +908,11 @@ class RealMatchReplayData {
         frames.isEmpty ||
         sourceCommit.isEmpty ||
         !_validWebUrl(sourceUrl) ||
-        visibility.length != frames.length) {
+        visibility.length != frames.length ||
+        (displayFrames.isEmpty != displayProvenance.isEmpty) ||
+        (displayFrames.isNotEmpty &&
+            (displayFrames.length != frames.length ||
+                displayProvenance.length != frames.length))) {
       throw const FormatException('Invalid replay metadata.');
     }
     final lastFrameTime = (frames.length - 1) / fps;
@@ -769,6 +938,10 @@ class RealMatchReplayData {
     for (var frameIndex = 0; frameIndex < frames.length; frameIndex++) {
       final frame = frames[frameIndex];
       final visible = visibility[frameIndex];
+      final display =
+          hasDisplayReconstruction ? displayFrames[frameIndex] : null;
+      final provenance =
+          hasDisplayReconstruction ? displayProvenance[frameIndex] : null;
       if (!visible.contains(1)) {
         throw const FormatException('Replay frame has no visible players.');
       }
@@ -782,6 +955,25 @@ class RealMatchReplayData {
         if (visible[playerIndex] == 1 && frame[index].abs() > coordinateLimit) {
           throw const FormatException(
               'Replay player coordinate is out of range.');
+        }
+        if (display != null) {
+          if (display[index].abs() > coordinateLimit) {
+            throw const FormatException(
+              'Replay display coordinate is out of range.',
+            );
+          }
+          if (visible[playerIndex] == 1 &&
+              (provenance![playerIndex] != 0 ||
+                  display[index] != frame[index])) {
+            throw const FormatException(
+              'Observed display coordinates must match source evidence.',
+            );
+          }
+          if (visible[playerIndex] == 0 && provenance![playerIndex] != 1) {
+            throw const FormatException(
+              'Missing source coordinates must remain reconstructed.',
+            );
+          }
         }
       }
       final ballZ = frame.last;
@@ -1257,9 +1449,9 @@ class RealMatchReplayMotionState {
   });
 }
 
-/// Deterministic motion derived only from the recorded ground trajectory.
-/// Gait phase is integrated by travelled distance, so playback speed changes
-/// cannot reset limbs or introduce phase jumps.
+/// Deterministic motion derived from the trajectory actually being displayed.
+/// Reconstructed ground points never enter coaching evidence, but they do
+/// drive continuous gait so a displayed player does not freeze or pop.
 class RealMatchReplayMotionModel {
   final RealMatchReplayData data;
   final List<List<double>> _speeds;
@@ -1287,12 +1479,16 @@ class RealMatchReplayMotionModel {
 
   void _precompute() {
     final dt = 1 / data.fps;
+    int coordinate(int frame, int player, int axis) =>
+        (data.hasDisplayReconstruction
+            ? data.displayFrames[frame]
+            : data.frames[frame])[player * 2 + axis];
     for (var player = 0; player < data.players.length; player++) {
       var heading = 0.0;
       var hasHeading = false;
       var phase = player * .73;
       for (var frame = 0; frame < data.frames.length; frame++) {
-        if (!data.isVisibleAtFrame(frame, player)) {
+        if (!data.hasDisplayPositionAtFrame(frame, player)) {
           _speeds[player][frame] = 0;
           _headings[player][frame] = heading;
           _phases[player][frame] = phase;
@@ -1301,20 +1497,20 @@ class RealMatchReplayMotionModel {
         var before = frame;
         var after = frame;
         while (before > math.max(0, frame - 2) &&
-            data.isVisibleAtFrame(before - 1, player)) {
+            data.hasDisplayPositionAtFrame(before - 1, player)) {
           before--;
         }
         while (after < math.min(data.frames.length - 1, frame + 2) &&
-            data.isVisibleAtFrame(after + 1, player)) {
+            data.hasDisplayPositionAtFrame(after + 1, player)) {
           after++;
         }
         final elapsed = math.max(dt, (after - before) * dt);
         final dx =
-            (data.frames[after][player * 2] - data.frames[before][player * 2]) /
+            (coordinate(after, player, 0) - coordinate(before, player, 0)) /
                 100;
-        final dy = (data.frames[after][player * 2 + 1] -
-                data.frames[before][player * 2 + 1]) /
-            100;
+        final dy =
+            (coordinate(after, player, 1) - coordinate(before, player, 1)) /
+                100;
         final speed = math.sqrt(dx * dx + dy * dy) / elapsed;
         if (speed > .18) {
           final target = math.atan2(dy, dx);
@@ -1329,13 +1525,13 @@ class RealMatchReplayMotionModel {
           }
         }
         if (frame > 0 &&
-            data.isVisibleAtFrame(frame - 1, player) &&
+            data.hasDisplayPositionAtFrame(frame - 1, player) &&
             speed > .18) {
-          final stepX = (data.frames[frame][player * 2] -
-                  data.frames[frame - 1][player * 2]) /
+          final stepX = (coordinate(frame, player, 0) -
+                  coordinate(frame - 1, player, 0)) /
               100;
-          final stepY = (data.frames[frame][player * 2 + 1] -
-                  data.frames[frame - 1][player * 2 + 1]) /
+          final stepY = (coordinate(frame, player, 1) -
+                  coordinate(frame - 1, player, 1)) /
               100;
           final distance = math.sqrt(stepX * stepX + stepY * stepY);
           // A full cycle includes both footfalls. Sprinting should be roughly
@@ -1354,7 +1550,7 @@ class RealMatchReplayMotionModel {
     if (playerIndex < 0 || playerIndex >= data.players.length) {
       throw RangeError.index(playerIndex, data.players, 'playerIndex');
     }
-    final sample = data.renderSample(time);
+    final sample = data.displaySample(time);
     final position = sample.players[playerIndex];
     if (position == null) {
       throw StateError('Motion is unavailable for a hidden replay player.');

@@ -285,16 +285,26 @@ class _ScanPassRealMatchReplayScreenState
   @override
   Widget build(BuildContext context) {
     final colors = _ScanPassColors.of(context);
+    final viewport = MediaQuery.sizeOf(context);
+    final useSideControls = viewport.width > viewport.height &&
+        viewport.height < 520 &&
+        _data != null &&
+        _catalog != null &&
+        _plan != null &&
+        _loadError == null;
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        title: Text(_l10n.realMatchReplayAppBarTitle),
-        backgroundColor: colors.surface,
-        foregroundColor: colors.text,
-        surfaceTintColor: Colors.transparent,
-        actions: _viewerActions(),
-      ),
-      body: SafeArea(child: _buildBody(colors)),
+      appBar: useSideControls
+          ? null
+          : AppBar(
+              title: Text(_l10n.realMatchReplayAppBarTitle),
+              backgroundColor: colors.surface,
+              foregroundColor: colors.text,
+              surfaceTintColor: Colors.transparent,
+              actions: _viewerActions(),
+            ),
+      body:
+          SafeArea(child: _buildBody(colors, useSideControls: useSideControls)),
     );
   }
 
@@ -326,7 +336,7 @@ class _ScanPassRealMatchReplayScreenState
     ];
   }
 
-  Widget _buildBody(_ScanPassColors colors) {
+  Widget _buildBody(_ScanPassColors colors, {required bool useSideControls}) {
     final error = _loadError;
     if (error != null) {
       return Center(
@@ -362,6 +372,44 @@ class _ScanPassRealMatchReplayScreenState
       );
     }
     return LayoutBuilder(builder: (context, constraints) {
+      if (useSideControls) {
+        return Padding(
+          padding: const EdgeInsets.all(8),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Expanded(child: _buildField(data, plan)),
+            const SizedBox(width: 12),
+            SizedBox(
+              width: math.min(260, math.max(232, constraints.maxWidth * .26)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(children: [
+                    if (Navigator.of(context).canPop())
+                      BackButton(color: colors.text),
+                    Expanded(
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          _l10n.realMatchReplayAppBarTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                    ),
+                    ..._viewerActions(),
+                  ]),
+                  const SizedBox(height: 12),
+                  _buildSituationTitle(data, colors,
+                      compact: false, extended: true),
+                  const Spacer(),
+                  _buildPrimaryControl(colors, compact: true),
+                ],
+              ),
+            ),
+          ]),
+        );
+      }
       final shortLandscape = constraints.maxWidth > constraints.maxHeight &&
           constraints.maxHeight < 520;
       return Padding(
@@ -388,11 +436,16 @@ class _ScanPassRealMatchReplayScreenState
     RealMatchReplayData data,
     _ScanPassColors colors, {
     required bool compact,
+    bool extended = false,
   }) {
     final title = Text(
       _sceneTitle(_l10n, data.scene.titleKey),
       key: const ValueKey<String>('replay-scene-title'),
-      maxLines: compact ? 1 : 2,
+      maxLines: compact
+          ? 1
+          : extended
+              ? 3
+              : 2,
       overflow: TextOverflow.ellipsis,
       style: (compact
               ? Theme.of(context).textTheme.titleMedium
@@ -405,7 +458,7 @@ class _ScanPassRealMatchReplayScreenState
         data.match.away,
       ),
       key: const ValueKey<String>('replay-scene-match'),
-      maxLines: 1,
+      maxLines: extended ? 2 : 1,
       overflow: TextOverflow.ellipsis,
       style:
           Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.muted),
@@ -434,18 +487,26 @@ class _ScanPassRealMatchReplayScreenState
     final step = moment.step;
     final stepLabel = _stepLabel(_l10n, step.kind, step.runType);
     final cue = _coachingCue(_l10n, data, moment);
-    final camera = plan.cameraAt(data, _time);
+    final camera = data.displayOverviewCamera;
+    final showsReconstructedPositions =
+        data.displaySample(_time).hasReconstructedPositions;
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Stack(children: [
         Positioned.fill(
           child: Semantics(
             image: true,
-            label: _l10n.realMatchReplayPitchSemanticsGeneric(
-              data.match.home,
-              data.match.away,
-              _sceneTitle(_l10n, data.scene.titleKey),
-            ),
+            label: data.hasDisplayReconstruction
+                ? _l10n.realMatchReplayPitchSemanticsReconstructed(
+                    data.match.home,
+                    data.match.away,
+                    _sceneTitle(_l10n, data.scene.titleKey),
+                  )
+                : _l10n.realMatchReplayPitchSemanticsGeneric(
+                    data.match.home,
+                    data.match.away,
+                    _sceneTitle(_l10n, data.scene.titleKey),
+                  ),
             value: cue,
             child: ExcludeSemantics(
               child: CustomPaint(
@@ -500,6 +561,44 @@ class _ScanPassRealMatchReplayScreenState
             ),
           ),
         ),
+        if (showsReconstructedPositions)
+          PositionedDirectional(
+            key: const ValueKey<String>('replay-reconstructed-legend'),
+            end: 10,
+            bottom: 8,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF183B2E).withValues(alpha: .94),
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Container(
+                      width: 12,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: const Color(0xFFF4F8ED),
+                          width: 1.2,
+                        ),
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      _l10n.realMatchReplayReconstructedLegend,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: const Color(0xFFF4F8ED),
+                          ),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+          ),
       ]),
     );
   }
@@ -910,6 +1009,8 @@ class _RealMatchReplayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final sourceSample = data.renderSample(time);
+    final displaySample = data.displaySample(time);
     final geometry = ReplayPitchGeometry.forSize(
       size,
       camera: camera,
@@ -917,15 +1018,18 @@ class _RealMatchReplayPainter extends CustomPainter {
       view: ReplayPitchView.coaching,
       pitchLength: data.pitchLength,
       pitchWidth: data.pitchWidth,
-      headerInset: textScaler.scale(28) + 22,
-      bottomInset: 18,
+      fitPlayerBodies: true,
+      rotatePitch: size.width < size.height,
+      headerInset: textScaler.scale(size.width > size.height ? 16 : 28) + 22,
+      bottomInset: displaySample.hasReconstructedPositions
+          ? textScaler.scale(14) + (size.width > size.height ? 22 : 31)
+          : 18,
     );
-    final sample = data.renderSample(time);
     _drawPitch(canvas, size, geometry);
-    final mark = _drawCoachingCue(canvas, geometry, sample);
-    final occupied = _drawPeople(canvas, geometry, sample);
-    _drawBall(canvas, geometry, sample.ball);
-    _drawLabel(canvas, size, geometry, sample, mark, occupied);
+    final mark = _drawCoachingCue(canvas, geometry, sourceSample);
+    final occupied = _drawPeople(canvas, geometry, displaySample);
+    _drawBall(canvas, geometry, sourceSample.ball);
+    _drawLabel(canvas, size, geometry, sourceSample, mark, occupied);
   }
 
   void _drawPitch(Canvas canvas, Size size, ReplayPitchGeometry geometry) {
@@ -1222,7 +1326,7 @@ class _RealMatchReplayPainter extends CustomPainter {
   List<Rect> _drawPeople(
     Canvas canvas,
     ReplayPitchGeometry geometry,
-    RealMatchReplaySample sample,
+    RealMatchReplayDisplaySample sample,
   ) {
     final entries = <int>[
       for (var index = 0; index < data.players.length; index++)
@@ -1238,16 +1342,19 @@ class _RealMatchReplayPainter extends CustomPainter {
     for (final index in entries) {
       final base = sample.players[index]!;
       final ground = geometry.project(base.x, base.y);
-      if (ground.dx < -30 ||
-          ground.dx > geometry.size.width + 30 ||
-          ground.dy < 54 ||
-          ground.dy > geometry.size.height - 16) {
-        continue;
-      }
       canvas.drawOval(
         Rect.fromCenter(center: ground.translate(0, 1), width: 16, height: 6),
         Paint()..color = _shadow.withValues(alpha: .2),
       );
+      if (sample.reconstructed[index]) {
+        canvas.drawOval(
+          Rect.fromCenter(center: ground.translate(0, 1), width: 13, height: 6),
+          Paint()
+            ..color = _text.withValues(alpha: .86)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.1,
+        );
+      }
       final measured = data.poseAt(time, index);
       final pose = measured ?? data.motion.simplifiedPoseAt(time, index);
       final joints = <String, RealMatchReplayPoint>{

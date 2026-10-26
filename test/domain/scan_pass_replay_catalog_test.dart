@@ -110,6 +110,18 @@ void main() {
     expect(deBruyne.scene.awayColor, '#c10021');
     expect(messi.scene.homeColor, '#ffffff');
     expect(messi.scene.awayColor, '#0500cf');
+    for (final data
+        in catalog.scenes.take(5).map((entry) => scenes[entry.id]!)) {
+      expect(data.players, hasLength(22), reason: data.scene.id);
+      expect(data.players.where((player) => player.home), hasLength(11),
+          reason: data.scene.id);
+      expect(data.players.where((player) => !player.home), hasLength(11),
+          reason: data.scene.id);
+      expect(data.players.every((player) => player.identified), isTrue,
+          reason: data.scene.id);
+      expect(data.players.where((player) => player.keeper), hasLength(2),
+          reason: data.scene.id);
+    }
   });
 
   test('historical proof pins hashes, coordinates, coverage and rationale', () {
@@ -139,13 +151,44 @@ void main() {
       expect(entry['maxPositionQuantizationErrorMeters'],
           lessThanOrEqualTo(.005001));
       expect(entry['maxPlayerSpeedMetersPerSecond'], lessThan(15));
+      expect(entry['maxDisplaySpeedMetersPerSecond'], lessThan(15));
       expect(entry['annotationRationale'], isNotEmpty);
       expect(entry['rosterMapping'], isNotEmpty);
       expect(entry['coverageDecision'], isNotEmpty);
+      final reconstruction =
+          entry['displayReconstruction'] as Map<String, dynamic>;
+      expect(reconstruction['contextRadiusFrames'], 600);
+      expect(reconstruction['players'], hasLength(22));
+      expect(
+        (reconstruction['players'] as List<dynamic>).every((value) {
+          final player = value as Map<String, dynamic>;
+          return (player['observedFrames'] as int) +
+                  (player['inferredFrames'] as int) ==
+              entry['frames'];
+        }),
+        isTrue,
+      );
     }
+    final currentProof = jsonDecode(
+      File('assets/scan_pass_replay/catalog-proof.json').readAsStringSync(),
+    ) as Map<String, dynamic>;
+    for (final value in currentProof['scenes'] as List<dynamic>) {
+      final scene = value as Map<String, dynamic>;
+      final path = File(scene['asset'] as String);
+      expect(sha256.convert(path.readAsBytesSync()).toString(), scene['sha256'],
+          reason: 'Original current payload changed: ${scene['id']}');
+    }
+    expect(
+      sha256
+          .convert(File('assets/scan_pass_replay/replay-data.json')
+              .readAsBytesSync())
+          .toString(),
+      'cf73a11f566d974f3dada609e0d16111e6896dc522d88c08c257eb7332efaa71',
+    );
   });
 
-  test('sparse visibility never interpolates or integrates through a gap', () {
+  test('source gaps stay null while the marked display trajectory is dense',
+      () {
     final payload = jsonDecode(
       File('assets/scan_pass_replay/scenes/de-bruyne-pressure-receive.json')
           .readAsStringSync(),
@@ -163,6 +206,8 @@ void main() {
     (flags[54] as List<dynamic>)[playerIndex] = 0;
     (frames[54] as List<dynamic>)[playerIndex * 2] = 0;
     (frames[54] as List<dynamic>)[playerIndex * 2 + 1] = 0;
+    ((payload['displayProvenance'] as List<dynamic>)[54]
+        as List<dynamic>)[playerIndex] = 1;
     final data = RealMatchReplayData.fromJson(payload);
     final deBruyne = data.playerIndex(5821);
     expect(data.sample(5.3).players[deBruyne], isNotNull);
@@ -170,9 +215,10 @@ void main() {
     expect(data.sample(5.4).players[deBruyne], isNull);
     expect(data.sample(5.45).players[deBruyne], isNull);
     expect(data.sample(5.5).players[deBruyne], isNotNull);
-    expect(() => data.motion.stateAt(5.4, deBruyne), throwsStateError);
-    expect(data.motion.stateAt(5.5, deBruyne).gaitPhase,
-        data.motion.stateAt(5.3, deBruyne).gaitPhase);
+    expect(data.renderSample(5.4).players[deBruyne], isNull);
+    expect(data.displaySample(5.4).players[deBruyne], isNotNull);
+    expect(data.displaySample(5.4).reconstructed[deBruyne], isTrue);
+    expect(() => data.motion.stateAt(5.4, deBruyne), returnsNormally);
     final camera =
         RealMatchReplayCoachingPlan.forData(data).cameraAt(data, 5.4);
     expect(camera.width, greaterThan(0));
@@ -185,11 +231,103 @@ void main() {
     final data = scenes['de-bruyne-pressure-receive']!;
     expect(data.scene.steps.first.actorId, 1152);
     expect(data.playerPointAt(0, 5821), isNull);
+    expect(data.displayPointAt(0, 5821), isNotNull);
+    expect(data.displaySample(0).reconstructed[data.playerIndex(5821)], isTrue);
     expect(data.playerPointAt(1.2, 5821), isNotNull);
     expect(
         data.scene.steps
             .where((step) => step.kind == RealMatchReplayStepKind.pass),
         hasLength(3));
+  });
+
+  test(
+      'historical display is 22-player dense while source evidence stays exact',
+      () {
+    for (final entry in catalog.scenes.take(5)) {
+      final data = scenes[entry.id]!;
+      expect(data.hasDisplayReconstruction, isTrue, reason: entry.id);
+      for (var frame = 0; frame < data.frames.length; frame++) {
+        for (final offset in <double>[
+          0,
+          if (frame + 1 < data.frames.length) .5
+        ]) {
+          final time = (frame + offset) / data.fps;
+          final display = data.displaySample(time);
+          expect(
+              display.players.whereType<RealMatchReplayPoint>(), hasLength(22),
+              reason: '${entry.id} frame=$frame offset=$offset');
+          expect(display.ball.x, data.sample(time).ball.x,
+              reason: '${entry.id} ball x at $time');
+          expect(display.ball.y, data.sample(time).ball.y,
+              reason: '${entry.id} ball y at $time');
+          expect(display.ball.z, data.sample(time).ball.z,
+              reason: '${entry.id} ball z at $time');
+        }
+        final source = data.sample(frame / data.fps);
+        final display = data.displaySample(frame / data.fps);
+        for (var player = 0; player < data.players.length; player++) {
+          final shown = display.players[player]!;
+          expect(shown.x.isFinite && shown.y.isFinite, isTrue,
+              reason: '${entry.id} player=$player frame=$frame');
+          expect(shown.x.abs(), lessThanOrEqualTo(data.pitchLength / 2));
+          expect(shown.y.abs(), lessThanOrEqualTo(data.pitchWidth / 2));
+          if (data.visibility[frame][player] == 1) {
+            expect(source.players[player], isNotNull);
+            expect(display.reconstructed[player], isFalse);
+            expect(data.displayFrames[frame][player * 2],
+                data.frames[frame][player * 2]);
+            expect(data.displayFrames[frame][player * 2 + 1],
+                data.frames[frame][player * 2 + 1]);
+          } else {
+            expect(source.players[player], isNull);
+            expect(display.reconstructed[player], isTrue);
+          }
+        }
+      }
+      for (var frame = 1; frame < data.displayFrames.length; frame++) {
+        for (var player = 0; player < data.players.length; player++) {
+          final dx = (data.displayFrames[frame][player * 2] -
+                  data.displayFrames[frame - 1][player * 2]) /
+              100;
+          final dy = (data.displayFrames[frame][player * 2 + 1] -
+                  data.displayFrames[frame - 1][player * 2 + 1]) /
+              100;
+          expect(math.sqrt(dx * dx + dy * dy) * data.fps, lessThan(15),
+              reason: '${entry.id} player=$player frame=$frame');
+        }
+      }
+    }
+  });
+
+  test('display estimates cannot change coaching classifications or cameras',
+      () {
+    final payload = jsonDecode(
+      File('assets/scan_pass_replay/scenes/de-bruyne-pressure-receive.json')
+          .readAsStringSync(),
+    ) as Map<String, dynamic>;
+    final baseline = RealMatchReplayData.fromJson(payload);
+    final baselinePlan = RealMatchReplayCoachingPlan.forData(baseline);
+    final provenance = payload['displayProvenance'] as List<dynamic>;
+    final display = payload['displayFrames'] as List<dynamic>;
+    for (var frame = 0; frame < provenance.length; frame++) {
+      final flags = provenance[frame] as List<dynamic>;
+      final row = display[frame] as List<dynamic>;
+      for (var player = 0; player < flags.length; player++) {
+        if (flags[player] != 1) continue;
+        row[player * 2] = player.isEven ? 5200 : -5200;
+        row[player * 2 + 1] = player.isEven ? 3300 : -3300;
+      }
+    }
+    final changed = RealMatchReplayData.fromJson(payload);
+    final changedPlan = RealMatchReplayCoachingPlan.forData(changed);
+    expect(changedPlan.moments.map((moment) => moment.cue),
+        orderedEquals(baselinePlan.moments.map((moment) => moment.cue)));
+    for (var time = 0.0; time <= baseline.duration; time += .1) {
+      final a = baselinePlan.cameraAt(baseline, time);
+      final b = changedPlan.cameraAt(changed, time);
+      expect(<double>[b.minX, b.maxX, b.minY, b.maxY],
+          <double>[a.minX, a.maxX, a.minY, a.maxY]);
+    }
   });
 
   test('passes remain visible before a receiver enters broadcast coverage', () {
@@ -234,6 +372,24 @@ void main() {
     expect(hiddenPlayer, greaterThanOrEqualTo(0));
     (frames.first as List<dynamic>)[hiddenPlayer * 2] = 1;
     expect(() => RealMatchReplayData.fromJson(hiddenCoordinate),
+        throwsFormatException);
+
+    final alteredObservation = payload();
+    final firstObserved = ((alteredObservation['visibility'] as List<dynamic>)
+            .first as List<dynamic>)
+        .indexOf(1);
+    ((alteredObservation['displayFrames'] as List<dynamic>).first
+        as List<dynamic>)[firstObserved * 2] += 1;
+    expect(() => RealMatchReplayData.fromJson(alteredObservation),
+        throwsFormatException);
+
+    final falseProvenance = payload();
+    final firstMissing = ((falseProvenance['visibility'] as List<dynamic>).first
+            as List<dynamic>)
+        .indexOf(0);
+    ((falseProvenance['displayProvenance'] as List<dynamic>).first
+        as List<dynamic>)[firstMissing] = 0;
+    expect(() => RealMatchReplayData.fromJson(falseProvenance),
         throwsFormatException);
 
     final hiddenActor = payload();
