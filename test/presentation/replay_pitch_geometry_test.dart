@@ -172,6 +172,7 @@ void main() {
           };
           for (final id in relevantIds) {
             final player = sample.players[data.playerIndex(id)];
+            if (player == null) continue;
             final projected = geometry.project(player.x, player.y);
             expect(canvas.inflate(3).contains(projected), isTrue,
                 reason: '${entry.id} $size player=$id t=$time $projected');

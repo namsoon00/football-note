@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -197,7 +198,7 @@ void main() {
     await _pumpLoaded(tester);
     final l10n = _l10n(tester);
 
-    expect(find.text(l10n.realMatchReplaySceneCount(1, 20)), findsNothing);
+    expect(find.text(l10n.realMatchReplaySceneCount(1, 25)), findsNothing);
     await _openSceneLibrary(tester);
     expect(find.text(l10n.realMatchReplaySceneLibraryTitle), findsOneWidget);
     final turnover =
@@ -282,9 +283,13 @@ void main() {
 
   testWidgets('scene information discloses tracking and source provenance',
       (tester) async {
+    Uri? openedSource;
     await tester.pumpWidget(_app(
       home: ScanPassRealMatchReplayScreen(
-        sourceLauncher: (_) async => false,
+        sourceLauncher: (uri) async {
+          openedSource = uri;
+          return false;
+        },
         catalogLoader: () async => _testCatalog,
         sceneLoader: (scene) async => _testScenes[scene.id]!,
       ),
@@ -295,16 +300,18 @@ void main() {
     await _openMenu(tester);
     await tester.tap(find.byKey(const ValueKey<String>('replay-scene-info')));
     await tester.pumpAndSettle();
+    final first = _testScenes[_testCatalog.scenes.first.id]!;
     expect(find.text(l10n.realMatchReplaySceneInfo), findsOneWidget);
-    expect(find.textContaining(_testReplay.sourceCommit), findsOneWidget);
-    expect(find.text(l10n.realMatchReplayDisclosure), findsOneWidget);
+    expect(find.textContaining(first.sourceCommit), findsOneWidget);
+    expect(find.text(l10n.realMatchReplayBroadcastDisclosure), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey<String>('replay-source')));
     await tester.pumpAndSettle();
+    expect(openedSource.toString(), first.sourceUrl);
     expect(find.text(l10n.realMatchReplaySourceUnavailable), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('all twenty distinct payloads play through their true endpoint',
+  testWidgets('all 25 distinct payloads play through their true endpoint',
       (tester) async {
     for (final entry in _testCatalog.scenes) {
       final data = _testScenes[entry.id]!;
@@ -343,6 +350,75 @@ void main() {
           reason: entry.id);
       expect(tester.takeException(), isNull, reason: entry.id);
     }
+  });
+
+  testWidgets('European default and library expose player and team names',
+      (tester) async {
+    await tester.pumpWidget(_catalogApp());
+    await _pumpLoaded(tester);
+    final l10n = _l10n(tester);
+    expect(find.text(l10n.replaySceneDeBruynePressureReceive), findsOneWidget);
+    expect(
+      find.text(
+        l10n.realMatchReplaySelectedMatch('Manchester City', 'Liverpool'),
+      ),
+      findsOneWidget,
+    );
+    await _openSceneLibrary(tester);
+    expect(find.textContaining('Manchester City'), findsWidgets);
+    expect(find.textContaining('2020-07-02'), findsWidgets);
+    expect(find.text(l10n.replaySceneSalahRightRecycle), findsOneWidget);
+    await _selectOpenScene(tester, 'messi-right-connection');
+    await _pumpLoaded(tester);
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(const ValueKey<String>('replay-scene-title')),
+          )
+          .data,
+      l10n.replaySceneMessiRightConnection,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('XY-only historical source disclosure states no inferred height',
+      (tester) async {
+    await tester.pumpWidget(_catalogApp());
+    await _pumpLoaded(tester);
+    await _openSceneLibrary(tester);
+    await _selectOpenScene(tester, 'messi-right-connection');
+    await _pumpLoaded(tester);
+    await _openMenu(tester);
+    await tester.tap(find.byKey(const ValueKey<String>('replay-scene-info')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(_l10n(tester).realMatchReplayBallHeightUnavailable),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'catalog rejects a scene payload from a different source revision',
+      (tester) async {
+    final entry = _testCatalog.scenes.first;
+    final source = jsonDecode(File(entry.asset).readAsStringSync())
+        as Map<String, dynamic>;
+    source['sourceCommit'] = 'wrong-source-revision';
+    final mismatched = RealMatchReplayData.fromJson(source);
+    await tester.pumpWidget(_app(
+      home: ScanPassRealMatchReplayScreen(
+        catalogLoader: () async => _testCatalog,
+        sceneLoader: (_) async => mismatched,
+      ),
+    ));
+    await tester.pump();
+    await tester.pump();
+    expect(
+      find.text(_l10n(tester).realMatchReplayLoadFailed),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('pausing within the last source frame still offers continuation',
@@ -404,7 +480,7 @@ void main() {
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
-        await tester.pumpWidget(_app(
+        await tester.pumpWidget(_catalogAppFor(
           locale: locale,
           appTheme: true,
           textScale: 1.4,
@@ -426,7 +502,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(_app(
+    await tester.pumpWidget(_catalogAppFor(
       locale: const Locale('ja'),
       appTheme: true,
       dark: true,
@@ -509,6 +585,10 @@ Future<void> _openSceneLibrary(WidgetTester tester) async {
 
 Future<void> _selectOpenScene(WidgetTester tester, String id) async {
   final scene = find.byKey(ValueKey<String>('replay-scene-$id'));
+  for (var attempt = 0; scene.evaluate().isEmpty && attempt < 30; attempt++) {
+    await tester.drag(find.byType(ListView), const Offset(0, -240));
+    await tester.pump();
+  }
   await tester.ensureVisible(scene);
   await tester.pump();
   await tester.tap(scene);
@@ -559,6 +639,23 @@ Widget _app({
     );
 
 Widget _catalogApp() => _app(
+      home: ScanPassRealMatchReplayScreen(
+        catalogLoader: () async => _testCatalog,
+        sceneLoader: (scene) async => _testScenes[scene.id]!,
+      ),
+    );
+
+Widget _catalogAppFor({
+  required Locale locale,
+  required bool appTheme,
+  bool dark = false,
+  required double textScale,
+}) =>
+    _app(
+      locale: locale,
+      appTheme: appTheme,
+      dark: dark,
+      textScale: textScale,
       home: ScanPassRealMatchReplayScreen(
         catalogLoader: () async => _testCatalog,
         sceneLoader: (scene) async => _testScenes[scene.id]!,

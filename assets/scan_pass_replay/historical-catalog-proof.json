@@ -1,0 +1,1352 @@
+{
+  "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+  "scenes": [
+    {
+      "id": "de-bruyne-pressure-receive",
+      "matchId": 4039,
+      "competition": "Premier League",
+      "sourceStartFrame": 3756,
+      "sourceEndFrame": 3842,
+      "sourceStartTime": "5:31.40",
+      "sourceEndTime": "5:40.00",
+      "period": 1,
+      "frames": 87,
+      "fps": 10,
+      "durationSeconds": 8.6,
+      "ballXYObservations": 87,
+      "ballZObservations": 87,
+      "ballHeightAvailable": true,
+      "identifiedPlayers": 20,
+      "anonymousPlayers": 0,
+      "minimumIdentifiedPlayersVisible": 7,
+      "maximumAnonymousPlayersVisible": 0,
+      "anonymousObservationsWithin15mOfBall": 0,
+      "maxPlayerSpeedMetersPerSecond": 8.873,
+      "maxBallSpeedMetersPerSecond": 24.99,
+      "maxPositionQuantizationErrorMeters": 0.00498984,
+      "attackDirection": 1,
+      "directionProof": {
+        "method": "opposite starting-goalkeeper period medians",
+        "homeGoalkeeperTrackableObject": 2934,
+        "homeMedianX": -47.5856,
+        "awayGoalkeeperTrackableObject": 11565,
+        "awayMedianX": 48.5099,
+        "homeAttackDirection": 1
+      },
+      "trackContinuity": {
+        "resolvedTrackIds": [],
+        "unresolvedTracks": []
+      },
+      "rosterMapping": [
+        {
+          "entityId": 6037,
+          "metadataPlayerId": 6027,
+          "trackableObject": 6037,
+          "trackId": null,
+          "number": 2,
+          "name": "Kyle Walker",
+          "team": "home"
+        },
+        {
+          "entityId": 8856,
+          "metadataPlayerId": 8846,
+          "trackableObject": 8856,
+          "trackId": null,
+          "number": 7,
+          "name": "Raheem Sterling",
+          "team": "home"
+        },
+        {
+          "entityId": 4460,
+          "metadataPlayerId": 4450,
+          "trackableObject": 4460,
+          "trackId": null,
+          "number": 8,
+          "name": "Ilkay Gündogan",
+          "team": "home"
+        },
+        {
+          "entityId": 11566,
+          "metadataPlayerId": 11500,
+          "trackableObject": 11566,
+          "trackId": null,
+          "number": 9,
+          "name": "Gabriel Jesus",
+          "team": "home"
+        },
+        {
+          "entityId": 1152,
+          "metadataPlayerId": 1142,
+          "trackableObject": 1152,
+          "trackId": null,
+          "number": 14,
+          "name": "Aymeric Laporte",
+          "team": "home"
+        },
+        {
+          "entityId": 9202,
+          "metadataPlayerId": 9192,
+          "trackableObject": 9202,
+          "trackId": null,
+          "number": 16,
+          "name": "Rodrigo Hernandez",
+          "team": "home"
+        },
+        {
+          "entityId": 5821,
+          "metadataPlayerId": 5811,
+          "trackableObject": 5821,
+          "trackId": null,
+          "number": 17,
+          "name": "Kevin de Bruyne",
+          "team": "home"
+        },
+        {
+          "entityId": 1302,
+          "metadataPlayerId": 1292,
+          "trackableObject": 1302,
+          "trackId": null,
+          "number": 22,
+          "name": "Benjamin Mendy",
+          "team": "home"
+        },
+        {
+          "entityId": 11672,
+          "metadataPlayerId": 11591,
+          "trackableObject": 11672,
+          "trackId": null,
+          "number": 47,
+          "name": "Phil Foden",
+          "team": "home"
+        },
+        {
+          "entityId": 24015,
+          "metadataPlayerId": 23104,
+          "trackableObject": 24015,
+          "trackId": null,
+          "number": 50,
+          "name": "Eric Garcia",
+          "team": "home"
+        },
+        {
+          "entityId": 3267,
+          "metadataPlayerId": 3257,
+          "trackableObject": 3267,
+          "trackId": null,
+          "number": 3,
+          "name": "Fabinho",
+          "team": "away"
+        },
+        {
+          "entityId": 10748,
+          "metadataPlayerId": 10738,
+          "trackableObject": 10748,
+          "trackId": null,
+          "number": 4,
+          "name": "Virgil van Dijk",
+          "team": "away"
+        },
+        {
+          "entityId": 3847,
+          "metadataPlayerId": 3837,
+          "trackableObject": 3847,
+          "trackId": null,
+          "number": 5,
+          "name": "Georginio Wijnaldum",
+          "team": "away"
+        },
+        {
+          "entityId": 9143,
+          "metadataPlayerId": 9133,
+          "trackableObject": 9143,
+          "trackId": null,
+          "number": 9,
+          "name": "Roberto Firmino",
+          "team": "away"
+        },
+        {
+          "entityId": 9449,
+          "metadataPlayerId": 9439,
+          "trackableObject": 9449,
+          "trackId": null,
+          "number": 10,
+          "name": "Sadio Mane",
+          "team": "away"
+        },
+        {
+          "entityId": 7745,
+          "metadataPlayerId": 7735,
+          "trackableObject": 7745,
+          "trackId": null,
+          "number": 11,
+          "name": "Mohamed Salah",
+          "team": "away"
+        },
+        {
+          "entityId": 11537,
+          "metadataPlayerId": 11475,
+          "trackableObject": 11537,
+          "trackId": null,
+          "number": 12,
+          "name": "Joe Gomez",
+          "team": "away"
+        },
+        {
+          "entityId": 5318,
+          "metadataPlayerId": 5308,
+          "trackableObject": 5318,
+          "trackId": null,
+          "number": 14,
+          "name": "Jordan Henderson",
+          "team": "away"
+        },
+        {
+          "entityId": 851,
+          "metadataPlayerId": 841,
+          "trackableObject": 851,
+          "trackId": null,
+          "number": 26,
+          "name": "Andrew Robertson",
+          "team": "away"
+        },
+        {
+          "entityId": 11847,
+          "metadataPlayerId": 11746,
+          "trackableObject": 11847,
+          "trackId": null,
+          "number": 66,
+          "name": "Trent Alexander-Arnold",
+          "team": "away"
+        }
+      ],
+      "possessionEvidence": [
+        {
+          "trackableObject": 1152,
+          "startFrame": 3756,
+          "endFrame": 3768
+        },
+        {
+          "trackableObject": 5821,
+          "startFrame": 3780,
+          "endFrame": 3786
+        },
+        {
+          "trackableObject": 1302,
+          "startFrame": 3803,
+          "endFrame": 3814
+        }
+      ],
+      "annotationRationale": [
+        {
+          "sourceFrame": 3756,
+          "kind": "observe",
+          "rationale": "Laporte is observed on the ball; De Bruyne is not yet visible and is not projected."
+        },
+        {
+          "sourceFrame": 3769,
+          "kind": "pass",
+          "rationale": "Ball leaves Laporte and reaches the continuously observed De Bruyne; source possession changes from Laporte to De Bruyne."
+        },
+        {
+          "sourceFrame": 3780,
+          "kind": "receive",
+          "rationale": "De Bruyne source possession starts within1.9m of the ball while Henderson closes."
+        },
+        {
+          "sourceFrame": 3794,
+          "kind": "pass",
+          "rationale": "Ball leaves De Bruyne after its close approach and connects to Mendy source possession; no foot contact is asserted."
+        },
+        {
+          "sourceFrame": 3803,
+          "kind": "receive",
+          "rationale": "Mendy source possession begins within0.7m of the ball."
+        },
+        {
+          "sourceFrame": 3815,
+          "kind": "pass",
+          "rationale": "Mendy possession ends and recorded ball continues away. A subsequent recipient is not confirmed and is not named."
+        },
+        {
+          "sourceFrame": 3841,
+          "kind": "outcome",
+          "rationale": "End of curated observed interval; later outcome is not inferred."
+        }
+      ],
+      "coverageDecision": "All87 ballXYZ observations continuous; De Bruyne becomes observed before reception. Laporte→De Bruyne→Mendy shows a confirmed linked same-team sequence. No completion beyond the final recorded frame is asserted.",
+      "asset": "assets/scan_pass_replay/scenes/de-bruyne-pressure-receive.json",
+      "sha256": "a3149763412eb0138dad6abaf5ff11045f267cde100ffaf635b31188b73c232c"
+    },
+    {
+      "id": "salah-right-recycle",
+      "matchId": 4039,
+      "competition": "Premier League",
+      "sourceStartFrame": 18930,
+      "sourceEndFrame": 19032,
+      "sourceStartTime": "30:48.80",
+      "sourceEndTime": "30:59.00",
+      "period": 1,
+      "frames": 103,
+      "fps": 10,
+      "durationSeconds": 10.2,
+      "ballXYObservations": 103,
+      "ballZObservations": 99,
+      "ballHeightAvailable": false,
+      "identifiedPlayers": 21,
+      "anonymousPlayers": 0,
+      "minimumIdentifiedPlayersVisible": 14,
+      "maximumAnonymousPlayersVisible": 0,
+      "anonymousObservationsWithin15mOfBall": 0,
+      "maxPlayerSpeedMetersPerSecond": 8.1271,
+      "maxBallSpeedMetersPerSecond": 22.0495,
+      "maxPositionQuantizationErrorMeters": 0.00499895,
+      "attackDirection": -1,
+      "directionProof": {
+        "method": "opposite starting-goalkeeper period medians",
+        "homeGoalkeeperTrackableObject": 2934,
+        "homeMedianX": -47.5856,
+        "awayGoalkeeperTrackableObject": 11565,
+        "awayMedianX": 48.5099,
+        "homeAttackDirection": 1
+      },
+      "trackContinuity": {
+        "resolvedTrackIds": [],
+        "unresolvedTracks": []
+      },
+      "rosterMapping": [
+        {
+          "entityId": 6037,
+          "metadataPlayerId": 6027,
+          "trackableObject": 6037,
+          "trackId": null,
+          "number": 2,
+          "name": "Kyle Walker",
+          "team": "home"
+        },
+        {
+          "entityId": 8856,
+          "metadataPlayerId": 8846,
+          "trackableObject": 8856,
+          "trackId": null,
+          "number": 7,
+          "name": "Raheem Sterling",
+          "team": "home"
+        },
+        {
+          "entityId": 4460,
+          "metadataPlayerId": 4450,
+          "trackableObject": 4460,
+          "trackId": null,
+          "number": 8,
+          "name": "Ilkay Gündogan",
+          "team": "home"
+        },
+        {
+          "entityId": 11566,
+          "metadataPlayerId": 11500,
+          "trackableObject": 11566,
+          "trackId": null,
+          "number": 9,
+          "name": "Gabriel Jesus",
+          "team": "home"
+        },
+        {
+          "entityId": 1152,
+          "metadataPlayerId": 1142,
+          "trackableObject": 1152,
+          "trackId": null,
+          "number": 14,
+          "name": "Aymeric Laporte",
+          "team": "home"
+        },
+        {
+          "entityId": 9202,
+          "metadataPlayerId": 9192,
+          "trackableObject": 9202,
+          "trackId": null,
+          "number": 16,
+          "name": "Rodrigo Hernandez",
+          "team": "home"
+        },
+        {
+          "entityId": 5821,
+          "metadataPlayerId": 5811,
+          "trackableObject": 5821,
+          "trackId": null,
+          "number": 17,
+          "name": "Kevin de Bruyne",
+          "team": "home"
+        },
+        {
+          "entityId": 1302,
+          "metadataPlayerId": 1292,
+          "trackableObject": 1302,
+          "trackId": null,
+          "number": 22,
+          "name": "Benjamin Mendy",
+          "team": "home"
+        },
+        {
+          "entityId": 2934,
+          "metadataPlayerId": 2924,
+          "trackableObject": 2934,
+          "trackId": null,
+          "number": 31,
+          "name": "Ederson",
+          "team": "home"
+        },
+        {
+          "entityId": 11672,
+          "metadataPlayerId": 11591,
+          "trackableObject": 11672,
+          "trackId": null,
+          "number": 47,
+          "name": "Phil Foden",
+          "team": "home"
+        },
+        {
+          "entityId": 24015,
+          "metadataPlayerId": 23104,
+          "trackableObject": 24015,
+          "trackId": null,
+          "number": 50,
+          "name": "Eric Garcia",
+          "team": "home"
+        },
+        {
+          "entityId": 3267,
+          "metadataPlayerId": 3257,
+          "trackableObject": 3267,
+          "trackId": null,
+          "number": 3,
+          "name": "Fabinho",
+          "team": "away"
+        },
+        {
+          "entityId": 10748,
+          "metadataPlayerId": 10738,
+          "trackableObject": 10748,
+          "trackId": null,
+          "number": 4,
+          "name": "Virgil van Dijk",
+          "team": "away"
+        },
+        {
+          "entityId": 3847,
+          "metadataPlayerId": 3837,
+          "trackableObject": 3847,
+          "trackId": null,
+          "number": 5,
+          "name": "Georginio Wijnaldum",
+          "team": "away"
+        },
+        {
+          "entityId": 9143,
+          "metadataPlayerId": 9133,
+          "trackableObject": 9143,
+          "trackId": null,
+          "number": 9,
+          "name": "Roberto Firmino",
+          "team": "away"
+        },
+        {
+          "entityId": 9449,
+          "metadataPlayerId": 9439,
+          "trackableObject": 9449,
+          "trackId": null,
+          "number": 10,
+          "name": "Sadio Mane",
+          "team": "away"
+        },
+        {
+          "entityId": 7745,
+          "metadataPlayerId": 7735,
+          "trackableObject": 7745,
+          "trackId": null,
+          "number": 11,
+          "name": "Mohamed Salah",
+          "team": "away"
+        },
+        {
+          "entityId": 11537,
+          "metadataPlayerId": 11475,
+          "trackableObject": 11537,
+          "trackId": null,
+          "number": 12,
+          "name": "Joe Gomez",
+          "team": "away"
+        },
+        {
+          "entityId": 5318,
+          "metadataPlayerId": 5308,
+          "trackableObject": 5318,
+          "trackId": null,
+          "number": 14,
+          "name": "Jordan Henderson",
+          "team": "away"
+        },
+        {
+          "entityId": 851,
+          "metadataPlayerId": 841,
+          "trackableObject": 851,
+          "trackId": null,
+          "number": 26,
+          "name": "Andrew Robertson",
+          "team": "away"
+        },
+        {
+          "entityId": 11847,
+          "metadataPlayerId": 11746,
+          "trackableObject": 11847,
+          "trackId": null,
+          "number": 66,
+          "name": "Trent Alexander-Arnold",
+          "team": "away"
+        }
+      ],
+      "possessionEvidence": [
+        {
+          "trackableObject": 7745,
+          "startFrame": 18950,
+          "endFrame": 18962
+        },
+        {
+          "trackableObject": 11537,
+          "startFrame": 18974,
+          "endFrame": 18985
+        },
+        {
+          "trackableObject": 11847,
+          "startFrame": 18994,
+          "endFrame": 19009
+        }
+      ],
+      "annotationRationale": [
+        {
+          "sourceFrame": 18930,
+          "kind": "observe",
+          "rationale": "Salah is observed before his source possession run; Gomez is still outside broadcast coverage."
+        },
+        {
+          "sourceFrame": 18950,
+          "kind": "receive",
+          "rationale": "First frame of Salah's source possession run."
+        },
+        {
+          "sourceFrame": 18962,
+          "kind": "pass",
+          "rationale": "Recorded ball departs Salah. Gomez is not yet observed at departure, so his position is not invented; later source possession confirms the connection."
+        },
+        {
+          "sourceFrame": 18974,
+          "kind": "receive",
+          "rationale": "First frame of Gomez's source possession run."
+        },
+        {
+          "sourceFrame": 18986,
+          "kind": "pass",
+          "rationale": "Continuous ball tracking connects Gomez's completed run to Alexander-Arnold's subsequent same-team run."
+        },
+        {
+          "sourceFrame": 18994,
+          "kind": "receive",
+          "rationale": "First frame of Alexander-Arnold's source possession run."
+        },
+        {
+          "sourceFrame": 19015,
+          "kind": "outcome",
+          "rationale": "End of the curated recorded connection; later outcome is not fabricated."
+        }
+      ],
+      "coverageDecision": "Parent-audited 10.2 s interval: continuous ball XY, 99 of 103 source ball samples include Z, no anonymous players, sane 8.1 m/s maximum player speed, and the focal player is observed for 94 frames.",
+      "asset": "assets/scan_pass_replay/scenes/salah-right-recycle.json",
+      "sha256": "815fb79b4890b4b3ffbdb122dfb4db84c0caa7ac45ed192d49e4cb606386601e"
+    },
+    {
+      "id": "messi-right-connection",
+      "matchId": 3442,
+      "competition": "LaLiga",
+      "sourceStartFrame": 25268,
+      "sourceEndFrame": 25378,
+      "sourceStartTime": "40:35.30",
+      "sourceEndTime": "40:46.30",
+      "period": 1,
+      "frames": 111,
+      "fps": 10,
+      "durationSeconds": 11.0,
+      "ballXYObservations": 111,
+      "ballZObservations": 32,
+      "ballHeightAvailable": false,
+      "identifiedPlayers": 18,
+      "anonymousPlayers": 0,
+      "minimumIdentifiedPlayersVisible": 16,
+      "maximumAnonymousPlayersVisible": 0,
+      "anonymousObservationsWithin15mOfBall": 0,
+      "maxPlayerSpeedMetersPerSecond": 9.9368,
+      "maxBallSpeedMetersPerSecond": 12.2348,
+      "maxPositionQuantizationErrorMeters": 0.00499718,
+      "attackDirection": -1,
+      "directionProof": {
+        "method": "opposite starting-goalkeeper period medians",
+        "homeGoalkeeperTrackableObject": 10271,
+        "homeMedianX": -48.4242,
+        "awayGoalkeeperTrackableObject": 6689,
+        "awayMedianX": 50.0286,
+        "homeAttackDirection": 1
+      },
+      "trackContinuity": {
+        "resolvedTrackIds": [
+          {
+            "trackId": 4839,
+            "trackableObject": 956
+          }
+        ],
+        "unresolvedTracks": []
+      },
+      "rosterMapping": [
+        {
+          "entityId": 2199,
+          "metadataPlayerId": 2189,
+          "trackableObject": 2199,
+          "trackId": null,
+          "number": 2,
+          "name": "Daniel Carvajal",
+          "team": "home"
+        },
+        {
+          "entityId": 9775,
+          "metadataPlayerId": 9765,
+          "trackableObject": 9775,
+          "trackId": null,
+          "number": 4,
+          "name": "Sergio Ramos",
+          "team": "home"
+        },
+        {
+          "entityId": 8886,
+          "metadataPlayerId": 8876,
+          "trackableObject": 8886,
+          "trackId": null,
+          "number": 5,
+          "name": "Raphael Varane",
+          "team": "home"
+        },
+        {
+          "entityId": 10530,
+          "metadataPlayerId": 10520,
+          "trackableObject": 10530,
+          "trackId": null,
+          "number": 8,
+          "name": "Toni Kroos",
+          "team": "home"
+        },
+        {
+          "entityId": 5720,
+          "metadataPlayerId": 5710,
+          "trackableObject": 5720,
+          "trackId": null,
+          "number": 9,
+          "name": "Karim Benzema",
+          "team": "home"
+        },
+        {
+          "entityId": 6733,
+          "metadataPlayerId": 6723,
+          "trackableObject": 6733,
+          "trackId": null,
+          "number": 12,
+          "name": "Marcelo",
+          "team": "home"
+        },
+        {
+          "entityId": 1684,
+          "metadataPlayerId": 1674,
+          "trackableObject": 1684,
+          "trackId": null,
+          "number": 14,
+          "name": "Casemiro",
+          "team": "home"
+        },
+        {
+          "entityId": 12395,
+          "metadataPlayerId": 12251,
+          "trackableObject": 12395,
+          "trackId": null,
+          "number": 15,
+          "name": "Federico Valverde",
+          "team": "home"
+        },
+        {
+          "entityId": 4497,
+          "metadataPlayerId": 4487,
+          "trackableObject": 4497,
+          "trackId": null,
+          "number": 22,
+          "name": "Isco",
+          "team": "home"
+        },
+        {
+          "entityId": 12397,
+          "metadataPlayerId": 12253,
+          "trackableObject": 12397,
+          "trackId": null,
+          "number": 25,
+          "name": "Junior Vinicius",
+          "team": "home"
+        },
+        {
+          "entityId": 11514,
+          "metadataPlayerId": 11454,
+          "trackableObject": 11514,
+          "trackId": null,
+          "number": 2,
+          "name": "Nelson Semedo",
+          "team": "away"
+        },
+        {
+          "entityId": 9759,
+          "metadataPlayerId": 9749,
+          "trackableObject": 9759,
+          "trackId": null,
+          "number": 5,
+          "name": "Sergio Busquets",
+          "team": "away"
+        },
+        {
+          "entityId": 12802,
+          "metadataPlayerId": 12644,
+          "trackableObject": 12802,
+          "trackId": null,
+          "number": 8,
+          "name": "Arthur",
+          "team": "away"
+        },
+        {
+          "entityId": 6260,
+          "metadataPlayerId": 6250,
+          "trackableObject": 6260,
+          "trackId": null,
+          "number": 10,
+          "name": "Lionel Messi",
+          "team": "away"
+        },
+        {
+          "entityId": 956,
+          "metadataPlayerId": 946,
+          "trackableObject": 956,
+          "trackId": null,
+          "number": 17,
+          "name": "Antoine Griezmann",
+          "team": "away"
+        },
+        {
+          "entityId": 5336,
+          "metadataPlayerId": 5326,
+          "trackableObject": 5336,
+          "trackId": null,
+          "number": 18,
+          "name": "Jordi Alba",
+          "team": "away"
+        },
+        {
+          "entityId": 12524,
+          "metadataPlayerId": 12378,
+          "trackableObject": 12524,
+          "trackId": null,
+          "number": 21,
+          "name": "Frenkie de Jong",
+          "team": "away"
+        },
+        {
+          "entityId": 1101,
+          "metadataPlayerId": 1091,
+          "trackableObject": 1101,
+          "trackId": null,
+          "number": 22,
+          "name": "Arturo Vidal",
+          "team": "away"
+        }
+      ],
+      "possessionEvidence": [
+        {
+          "trackableObject": 6260,
+          "startFrame": 25272,
+          "endFrame": 25279
+        },
+        {
+          "trackableObject": 6260,
+          "startFrame": 25288,
+          "endFrame": 25308
+        },
+        {
+          "trackableObject": 11514,
+          "startFrame": 25346,
+          "endFrame": 25354
+        }
+      ],
+      "annotationRationale": [
+        {
+          "sourceFrame": 25268,
+          "kind": "observe",
+          "rationale": "Messi and Semedo are continuously observed before the linked source possession runs."
+        },
+        {
+          "sourceFrame": 25276,
+          "kind": "receive",
+          "rationale": "Observed frame within the initial Messi source possession run, spaced from the opening coaching stop."
+        },
+        {
+          "sourceFrame": 25288,
+          "kind": "carry",
+          "rationale": "Continuous observed Messi and ball trajectories during his longer source possession run."
+        },
+        {
+          "sourceFrame": 25309,
+          "kind": "pass",
+          "rationale": "Continuous ball XY connects Messi's completed run to Semedo's subsequent same-team run; the pass label is a conservative derived annotation."
+        },
+        {
+          "sourceFrame": 25346,
+          "kind": "receive",
+          "rationale": "First frame of Semedo's source possession run."
+        },
+        {
+          "sourceFrame": 25377,
+          "kind": "outcome",
+          "rationale": "End of the curated recorded interval; no later completion or outcome is claimed."
+        }
+      ],
+      "coverageDecision": "Parent-audited 11.0 s interval: continuous ball XY, focal player visible in every frame, at least 16 identified players visible per frame, no anonymous player within 15 m of the ball, and sane source speeds.",
+      "asset": "assets/scan_pass_replay/scenes/messi-right-connection.json",
+      "sha256": "b67138630444d9a3c8f57c5ba0ae7e01d5c296ebdf2047f115bf7494fae8941e"
+    },
+    {
+      "id": "kroos-central-recycle",
+      "matchId": 3442,
+      "competition": "LaLiga",
+      "sourceStartFrame": 23897,
+      "sourceEndFrame": 24004,
+      "sourceStartTime": "38:18.20",
+      "sourceEndTime": "38:28.90",
+      "period": 1,
+      "frames": 108,
+      "fps": 10,
+      "durationSeconds": 10.7,
+      "ballXYObservations": 108,
+      "ballZObservations": 25,
+      "ballHeightAvailable": false,
+      "identifiedPlayers": 19,
+      "anonymousPlayers": 0,
+      "minimumIdentifiedPlayersVisible": 14,
+      "maximumAnonymousPlayersVisible": 0,
+      "anonymousObservationsWithin15mOfBall": 0,
+      "maxPlayerSpeedMetersPerSecond": 8.9627,
+      "maxBallSpeedMetersPerSecond": 17.7589,
+      "maxPositionQuantizationErrorMeters": 0.00499766,
+      "attackDirection": 1,
+      "directionProof": {
+        "method": "opposite starting-goalkeeper period medians",
+        "homeGoalkeeperTrackableObject": 10271,
+        "homeMedianX": -48.4242,
+        "awayGoalkeeperTrackableObject": 6689,
+        "awayMedianX": 50.0286,
+        "homeAttackDirection": 1
+      },
+      "trackContinuity": {
+        "resolvedTrackIds": [
+          {
+            "trackId": 4573,
+            "trackableObject": 2199
+          }
+        ],
+        "unresolvedTracks": []
+      },
+      "rosterMapping": [
+        {
+          "entityId": 2199,
+          "metadataPlayerId": 2189,
+          "trackableObject": 2199,
+          "trackId": null,
+          "number": 2,
+          "name": "Daniel Carvajal",
+          "team": "home"
+        },
+        {
+          "entityId": 9775,
+          "metadataPlayerId": 9765,
+          "trackableObject": 9775,
+          "trackId": null,
+          "number": 4,
+          "name": "Sergio Ramos",
+          "team": "home"
+        },
+        {
+          "entityId": 8886,
+          "metadataPlayerId": 8876,
+          "trackableObject": 8886,
+          "trackId": null,
+          "number": 5,
+          "name": "Raphael Varane",
+          "team": "home"
+        },
+        {
+          "entityId": 10530,
+          "metadataPlayerId": 10520,
+          "trackableObject": 10530,
+          "trackId": null,
+          "number": 8,
+          "name": "Toni Kroos",
+          "team": "home"
+        },
+        {
+          "entityId": 5720,
+          "metadataPlayerId": 5710,
+          "trackableObject": 5720,
+          "trackId": null,
+          "number": 9,
+          "name": "Karim Benzema",
+          "team": "home"
+        },
+        {
+          "entityId": 6733,
+          "metadataPlayerId": 6723,
+          "trackableObject": 6733,
+          "trackId": null,
+          "number": 12,
+          "name": "Marcelo",
+          "team": "home"
+        },
+        {
+          "entityId": 1684,
+          "metadataPlayerId": 1674,
+          "trackableObject": 1684,
+          "trackId": null,
+          "number": 14,
+          "name": "Casemiro",
+          "team": "home"
+        },
+        {
+          "entityId": 12395,
+          "metadataPlayerId": 12251,
+          "trackableObject": 12395,
+          "trackId": null,
+          "number": 15,
+          "name": "Federico Valverde",
+          "team": "home"
+        },
+        {
+          "entityId": 4497,
+          "metadataPlayerId": 4487,
+          "trackableObject": 4497,
+          "trackId": null,
+          "number": 22,
+          "name": "Isco",
+          "team": "home"
+        },
+        {
+          "entityId": 12397,
+          "metadataPlayerId": 12253,
+          "trackableObject": 12397,
+          "trackId": null,
+          "number": 25,
+          "name": "Junior Vinicius",
+          "team": "home"
+        },
+        {
+          "entityId": 11514,
+          "metadataPlayerId": 11454,
+          "trackableObject": 11514,
+          "trackId": null,
+          "number": 2,
+          "name": "Nelson Semedo",
+          "team": "away"
+        },
+        {
+          "entityId": 3862,
+          "metadataPlayerId": 3852,
+          "trackableObject": 3862,
+          "trackId": null,
+          "number": 3,
+          "name": "Gerard Pique",
+          "team": "away"
+        },
+        {
+          "entityId": 9759,
+          "metadataPlayerId": 9749,
+          "trackableObject": 9759,
+          "trackId": null,
+          "number": 5,
+          "name": "Sergio Busquets",
+          "team": "away"
+        },
+        {
+          "entityId": 12802,
+          "metadataPlayerId": 12644,
+          "trackableObject": 12802,
+          "trackId": null,
+          "number": 8,
+          "name": "Arthur",
+          "team": "away"
+        },
+        {
+          "entityId": 6260,
+          "metadataPlayerId": 6250,
+          "trackableObject": 6260,
+          "trackId": null,
+          "number": 10,
+          "name": "Lionel Messi",
+          "team": "away"
+        },
+        {
+          "entityId": 956,
+          "metadataPlayerId": 946,
+          "trackableObject": 956,
+          "trackId": null,
+          "number": 17,
+          "name": "Antoine Griezmann",
+          "team": "away"
+        },
+        {
+          "entityId": 12524,
+          "metadataPlayerId": 12378,
+          "trackableObject": 12524,
+          "trackId": null,
+          "number": 21,
+          "name": "Frenkie de Jong",
+          "team": "away"
+        },
+        {
+          "entityId": 1101,
+          "metadataPlayerId": 1091,
+          "trackableObject": 1101,
+          "trackId": null,
+          "number": 22,
+          "name": "Arturo Vidal",
+          "team": "away"
+        },
+        {
+          "entityId": 9533,
+          "metadataPlayerId": 9523,
+          "trackableObject": 9533,
+          "trackId": null,
+          "number": 23,
+          "name": "Samuel Umtiti",
+          "team": "away"
+        }
+      ],
+      "possessionEvidence": [
+        {
+          "trackableObject": 10530,
+          "startFrame": 23897,
+          "endFrame": 23902
+        },
+        {
+          "trackableObject": 10530,
+          "startFrame": 23917,
+          "endFrame": 23934
+        },
+        {
+          "trackableObject": 1684,
+          "startFrame": 23947,
+          "endFrame": 23971
+        },
+        {
+          "trackableObject": 8886,
+          "startFrame": 23981,
+          "endFrame": 24004
+        }
+      ],
+      "annotationRationale": [
+        {
+          "sourceFrame": 23897,
+          "kind": "observe",
+          "rationale": "Kroos and Casemiro are continuously observed at the interval start."
+        },
+        {
+          "sourceFrame": 23917,
+          "kind": "carry",
+          "rationale": "Continuous observed Kroos and ball trajectories during the longer source possession run."
+        },
+        {
+          "sourceFrame": 23935,
+          "kind": "pass",
+          "rationale": "Continuous ball XY connects Kroos's completed run to Casemiro's subsequent same-team run."
+        },
+        {
+          "sourceFrame": 23947,
+          "kind": "receive",
+          "rationale": "First frame of Casemiro's source possession run."
+        },
+        {
+          "sourceFrame": 23972,
+          "kind": "pass",
+          "rationale": "Recorded ball departs Casemiro; Varane is not yet observed at departure, so no recipient position is invented. Later source possession confirms Varane reception."
+        },
+        {
+          "sourceFrame": 23981,
+          "kind": "receive",
+          "rationale": "First frame of Varane's source possession run."
+        },
+        {
+          "sourceFrame": 24003,
+          "kind": "outcome",
+          "rationale": "End of the curated recorded interval; no later action is invented."
+        }
+      ],
+      "coverageDecision": "Parent-audited 10.7 s interval: continuous ball XY, Kroos visible in every frame, at least 14 identified players visible per frame, no anonymous player within 15 m of the ball, and sane source speeds.",
+      "asset": "assets/scan_pass_replay/scenes/kroos-central-recycle.json",
+      "sha256": "894f5313ac9592cd9207e5f948c8bf435f104980c406b992f4ca8ffeab71c84d"
+    },
+    {
+      "id": "vinicius-carry-inside",
+      "matchId": 3442,
+      "competition": "LaLiga",
+      "sourceStartFrame": 55945,
+      "sourceEndFrame": 56065,
+      "sourceStartTime": "74:45.50",
+      "sourceEndTime": "74:57.50",
+      "period": 2,
+      "frames": 121,
+      "fps": 10,
+      "durationSeconds": 12.0,
+      "ballXYObservations": 121,
+      "ballZObservations": 42,
+      "ballHeightAvailable": false,
+      "identifiedPlayers": 15,
+      "anonymousPlayers": 0,
+      "minimumIdentifiedPlayersVisible": 6,
+      "maximumAnonymousPlayersVisible": 0,
+      "anonymousObservationsWithin15mOfBall": 0,
+      "maxPlayerSpeedMetersPerSecond": 9.3509,
+      "maxBallSpeedMetersPerSecond": 22.8668,
+      "maxPositionQuantizationErrorMeters": 0.00499743,
+      "attackDirection": -1,
+      "directionProof": {
+        "method": "opposite starting-goalkeeper period medians",
+        "homeGoalkeeperTrackableObject": 10271,
+        "homeMedianX": 48.9484,
+        "awayGoalkeeperTrackableObject": 6689,
+        "awayMedianX": -49.1372,
+        "homeAttackDirection": -1
+      },
+      "trackContinuity": {
+        "resolvedTrackIds": [],
+        "unresolvedTracks": []
+      },
+      "rosterMapping": [
+        {
+          "entityId": 8886,
+          "metadataPlayerId": 8876,
+          "trackableObject": 8886,
+          "trackId": null,
+          "number": 5,
+          "name": "Raphael Varane",
+          "team": "home"
+        },
+        {
+          "entityId": 10530,
+          "metadataPlayerId": 10520,
+          "trackableObject": 10530,
+          "trackId": null,
+          "number": 8,
+          "name": "Toni Kroos",
+          "team": "home"
+        },
+        {
+          "entityId": 5720,
+          "metadataPlayerId": 5710,
+          "trackableObject": 5720,
+          "trackId": null,
+          "number": 9,
+          "name": "Karim Benzema",
+          "team": "home"
+        },
+        {
+          "entityId": 1684,
+          "metadataPlayerId": 1674,
+          "trackableObject": 1684,
+          "trackId": null,
+          "number": 14,
+          "name": "Casemiro",
+          "team": "home"
+        },
+        {
+          "entityId": 4497,
+          "metadataPlayerId": 4487,
+          "trackableObject": 4497,
+          "trackId": null,
+          "number": 22,
+          "name": "Isco",
+          "team": "home"
+        },
+        {
+          "entityId": 12397,
+          "metadataPlayerId": 12253,
+          "trackableObject": 12397,
+          "trackId": null,
+          "number": 25,
+          "name": "Junior Vinicius",
+          "team": "home"
+        },
+        {
+          "entityId": 6689,
+          "metadataPlayerId": 6679,
+          "trackableObject": 6689,
+          "trackId": null,
+          "number": 1,
+          "name": "Marc-Andre ter Stegen",
+          "team": "away"
+        },
+        {
+          "entityId": 11514,
+          "metadataPlayerId": 11454,
+          "trackableObject": 11514,
+          "trackId": null,
+          "number": 2,
+          "name": "Nelson Semedo",
+          "team": "away"
+        },
+        {
+          "entityId": 3862,
+          "metadataPlayerId": 3852,
+          "trackableObject": 3862,
+          "trackId": null,
+          "number": 3,
+          "name": "Gerard Pique",
+          "team": "away"
+        },
+        {
+          "entityId": 9759,
+          "metadataPlayerId": 9749,
+          "trackableObject": 9759,
+          "trackId": null,
+          "number": 5,
+          "name": "Sergio Busquets",
+          "team": "away"
+        },
+        {
+          "entityId": 12802,
+          "metadataPlayerId": 12644,
+          "trackableObject": 12802,
+          "trackId": null,
+          "number": 8,
+          "name": "Arthur",
+          "team": "away"
+        },
+        {
+          "entityId": 5336,
+          "metadataPlayerId": 5326,
+          "trackableObject": 5336,
+          "trackId": null,
+          "number": 18,
+          "name": "Jordi Alba",
+          "team": "away"
+        },
+        {
+          "entityId": 7044,
+          "metadataPlayerId": 7034,
+          "trackableObject": 7044,
+          "trackId": null,
+          "number": 19,
+          "name": "Martin Braithwaite",
+          "team": "away"
+        },
+        {
+          "entityId": 12524,
+          "metadataPlayerId": 12378,
+          "trackableObject": 12524,
+          "trackId": null,
+          "number": 21,
+          "name": "Frenkie de Jong",
+          "team": "away"
+        },
+        {
+          "entityId": 9533,
+          "metadataPlayerId": 9523,
+          "trackableObject": 9533,
+          "trackId": null,
+          "number": 23,
+          "name": "Samuel Umtiti",
+          "team": "away"
+        }
+      ],
+      "possessionEvidence": [
+        {
+          "trackableObject": 8886,
+          "startFrame": 55945,
+          "endFrame": 55953
+        },
+        {
+          "trackableObject": 12397,
+          "startFrame": 55965,
+          "endFrame": 55995
+        },
+        {
+          "trackableObject": 12397,
+          "startFrame": 55998,
+          "endFrame": 56002
+        },
+        {
+          "trackableObject": 10530,
+          "startFrame": 56012,
+          "endFrame": 56030
+        },
+        {
+          "trackableObject": 5720,
+          "startFrame": 56059,
+          "endFrame": 56065
+        }
+      ],
+      "annotationRationale": [
+        {
+          "sourceFrame": 55945,
+          "kind": "observe",
+          "rationale": "Varane and Vinícius are continuously observed at the interval start."
+        },
+        {
+          "sourceFrame": 55954,
+          "kind": "pass",
+          "rationale": "Continuous ball XY connects Varane's source possession run to Vinícius's subsequent same-team run."
+        },
+        {
+          "sourceFrame": 55965,
+          "kind": "receive",
+          "rationale": "First frame of Vinícius's source possession run."
+        },
+        {
+          "sourceFrame": 55970,
+          "kind": "carry",
+          "rationale": "Continuous observed Vinícius and ball trajectories across his two nearby source possession runs."
+        },
+        {
+          "sourceFrame": 56003,
+          "kind": "pass",
+          "rationale": "Continuous ball XY connects Vinícius's completed run to Kroos's subsequent same-team run."
+        },
+        {
+          "sourceFrame": 56012,
+          "kind": "receive",
+          "rationale": "First frame of Kroos's source possession run."
+        },
+        {
+          "sourceFrame": 56031,
+          "kind": "pass",
+          "rationale": "Continuous ball XY continues toward Benzema's later same-team possession; the one-frame Isco label is not used as a coaching annotation."
+        },
+        {
+          "sourceFrame": 56059,
+          "kind": "receive",
+          "rationale": "First frame of Benzema's source possession run."
+        },
+        {
+          "sourceFrame": 56064,
+          "kind": "outcome",
+          "rationale": "End of the curated recorded interval; the connection beyond this point is not invented."
+        }
+      ],
+      "coverageDecision": "Parent-audited 12.0 s interval: continuous ball XY, Vinícius visible in every frame, no anonymous players, sane 9.3 m/s maximum player speed, and a linked same-team sequence through Kroos toward Benzema.",
+      "asset": "assets/scan_pass_replay/scenes/vinicius-carry-inside.json",
+      "sha256": "77d7b4eb18d9d95607088796b7efd342c56bdf452f9f242772b7bcf884019839"
+    }
+  ]
+}

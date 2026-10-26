@@ -3,34 +3,52 @@
 ## Scope and validation status
 
 `ScanPassGameScreen` now opens `ScanPassRealMatchReplayScreen`. The public
-experience is a library of 20 continuous observational scenes from two actual
-A-League matches. The library covers transition, build-up, pressure, switches,
-penetration, combinations, wide attacks, and turnovers. Every scene starts
-paused. One action plays continuously to the next meaningful recorded teaching
-moment and pauses there; that same action pauses or resumes mid-interval and
-becomes replay at the true clip end. There is no scrubber, speed choice, chapter
-row, manual camera control, compulsory choice, quiz, rating, score, countdown,
-synthetic defender AI, or player control.
+experience is a library of 25 continuous observational scenes: the existing 20
+A-League scenes plus five historical Premier League/LaLiga scenes. The five new
+scenes appear first and feature De Bruyne, Salah, Messi, Kroos, and Vinícius in
+source-continuous 8.6–12.0 second intervals. The library covers transition,
+build-up, pressure, switches, penetration, combinations, wide attacks, and
+turnovers. Every scene starts paused. One action plays continuously to the next
+meaningful recorded teaching moment and pauses there; that same action pauses or
+resumes mid-interval and becomes replay at the true clip end. There is no
+scrubber, speed choice, chapter row, manual camera control, compulsory choice,
+quiz, rating, score, countdown, synthetic defender AI, player control, or video
+link in this release.
 
-The source is SkillCorner Open Data at pinned revision
+The original A-League source is SkillCorner Open Data at pinned revision
 `4340d274572876239c154c90bc507a9b3250a656`: Brisbane Roar v Perth Glory on
 2024-12-21, match 1925299, and Sydney FC v Adelaide United on 2025-02-01,
 match 1996435. The original Brisbane transition retains 25 fps positions and
 12.5 fps pose snapshots. The 19 additional scenes use 10 fps tracked positions
-without invented pose samples. Scene stages and outcomes are factual navigation
-and context, not claims about intent, an exact foot, an optimal choice, an
-automatic return, or coach approval.
+without invented pose samples. The historical source is pinned separately at
+`1ed50b775f93075c2a6d00d0d795f13b7b89709e`: Manchester City v Liverpool on
+2020-07-02, match 4039, and Real Madrid v FC Barcelona on 2020-03-01, match
+3442. It is broadcast-visible tracking rather than a complete/extrapolated 22,
+so absent players remain absent and movement never interpolates across a
+visibility gap. Scene stages and outcomes are factual navigation and context,
+not claims about intent, an exact foot, an optimal choice, an automatic return,
+or coach approval.
 
 Some source positions and the available displayed body poses are estimates.
-The overflow disclosure identifies tracking-only scenes, whose main-pitch body
-motion is procedural rather than measured pose. Its gait phase is integrated
-from recorded travel distance, facing changes gradually, and player rendering
-may interpolate within adjacent recorded samples without overshoot. The ball
-always follows its linear recorded samples; it is never snapped to feet and no
-kick is fabricated. Source team colors, player names, and numbers are retained,
-while uniform design, skin, shorts, and procedural limbs are not a photographic
-reconstruction. This is an observation library, not evidence of cognitive
-training, coach certification, or learning transfer.
+The overflow disclosure identifies tracking-only and broadcast-visible scenes,
+whose main-pitch body motion is procedural rather than measured pose. Its gait
+phase is integrated only across observed adjacent positions, facing changes
+gradually, and player rendering may interpolate within adjacent visible samples
+without overshoot. The ball always follows its linear recorded XY; height is
+used only when every selected source frame supplies Z. It is never snapped to
+feet and no kick or missing height is fabricated. Source team colors, player
+names, and numbers are retained where identified; unresolved team tracks can be
+shown without an invented identity or shirt number. Uniform design, skin,
+shorts, and procedural limbs are not a photographic reconstruction. This is an
+observation library, not evidence of cognitive training, coach certification,
+or learning transfer.
+
+The historical source has no provider dynamic-event annotations. Its receive,
+carry, pass, pressure and connection labels are conservative editorial
+derivations from possession transfers, proximity and continuous trajectories.
+The source sheet discloses that distinction and the lack of measured pose. Each
+new scene stops at the selected recorded interval end instead of asserting an
+unseen completion, shot or goal.
 
 The camera starts from each scene's context bounds and automatically eases
 toward a tighter tracking-derived frame for receiving, carrying, and pressure.
@@ -243,16 +261,16 @@ trajectories.
 
 ## UX and localization
 
-All 20 scene titles, spatial coaching cues, default replay controls, and
+All 25 scene titles, spatial coaching cues, default replay controls, and
 retained lesson text are localized in
 `lib/l10n/app_en.arb`, `app_ko.arb`, and
 `app_ja.arb` and accessed through generated localization classes. Generic role
 numbers identify the authored actors. A generic live-roster adapter paints those
-actual ids and numbers in distinct attack/defence kits, while historical match
-rendering uses each scene's roster and kit colors. Case names and kits do not
-imply a famous player or a photographic match reconstruction. Source details
-remain discoverable from the replay overflow without placing a paragraph over
-the pitch.
+actual ids and numbers in distinct attack/defence kits, while actual-match
+rendering uses each scene's roster and recorded kit colors. The new titles name
+their focal player, while match teams, date/clock and source revision remain
+discoverable in the header, library and overflow details. Names and colors do
+not imply licensed badges or a photographic match reconstruction.
 
 The default viewer is covered at 320/360 px portrait widths and 844x390 short
 landscape at 1.4 text scale in English, Korean, and Japanese, including light
@@ -264,8 +282,14 @@ panel.
 
 Focused tests cover:
 
-- all 20 actual-match catalog entries, eight categories, both attacking
-  directions, different kits and variable durations;
+- all 25 actual-match catalog entries, eight categories, both source revisions,
+  both attacking directions, different kits and variable durations;
+- deterministic historical import, raw/derived hashes, exact frame and roster
+  proof, centimetre quantization, coverage decisions and preservation of the
+  original 20 payloads;
+- sparse visibility, anonymous visible team tracks, missing focal/step actor
+  rejection, no interpolation or motion integration through gaps, and explicit
+  XY-only ball height behavior;
 - recorded-pose versus tracking-only behavior, deterministic distance-phased
   gait, stationary/running behavior, bounded interpolation, and gradual turns;
 - one-control stop timing through the true duration, manual and lifecycle

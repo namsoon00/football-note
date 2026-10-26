@@ -43,9 +43,9 @@ void main() {
     final halfway = replay.sample(.02);
     final last = replay.sample(replay.duration);
 
-    expect(first.players.first.x, -33.95);
-    expect(first.players.first.y, .02);
-    expect(first.players[replay.playerIndex(287934)].x, 4.95);
+    expect(first.players.first!.x, -33.95);
+    expect(first.players.first!.y, .02);
+    expect(first.players[replay.playerIndex(287934)]!.x, 4.95);
     expect(first.ball.x, 5.36);
     expect(first.ball.y, .38);
     expect(first.ball.z, .42);
@@ -53,7 +53,7 @@ void main() {
     expect(halfway.ball.y, closeTo(.535, 1e-10));
     expect(halfway.ball.z, .43);
     expect(last.sourceFrame, 308);
-    expect(last.players.first.x, -25.30);
+    expect(last.players.first!.x, -25.30);
     expect(last.ball.x, 50.93);
     expect(last.ball.y, 6.37);
     expect(last.ball.z, .30);

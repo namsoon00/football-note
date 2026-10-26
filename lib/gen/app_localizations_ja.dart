@@ -22311,6 +22311,16 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String realMatchReplaySelectedMatch(Object home, Object away) {
+    return '$home 対 $away';
+  }
+
+  @override
+  String realMatchReplaySceneDateClock(Object date, Object clock) {
+    return '$date · $clock';
+  }
+
+  @override
   String get realMatchReplayViewLabel => 'ピッチ表示';
 
   @override
@@ -22328,6 +22338,14 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get realMatchReplayTrackingDisclosure =>
       'SkillCorner · 追跡位置 · 手続き型の身体動作 · 簡略化したユニフォーム';
+
+  @override
+  String get realMatchReplayBroadcastDisclosure =>
+      'SkillCornerの中継映像から推定した位置を再生します。画面外の選手は省略し、パス・運びの目印は保持情報と移動経路から整理しています。体の動きとユニフォームのデザインは簡略化しています。';
+
+  @override
+  String get realMatchReplayBallHeightUnavailable =>
+      '高さデータに欠けがあるため、このシーンは平面で表示します。';
 
   @override
   String realMatchReplayPoseAction(Object number) {
@@ -22541,7 +22559,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get replayOutcomeLost => '保持を失う';
 
   @override
-  String get replayOutcomeEnd => 'シーン終了';
+  String get replayOutcomeEnd => '記録区間終了・プレーは継続';
 
   @override
   String get replaySceneTransitionWing => 'トランジションからサイドのスペースへ';
@@ -22663,6 +22681,41 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get replayFocusCarryTurnover => 'ドリブルの方向と近づく守備を一緒に見て、その後の展開まで追いましょう。';
+
+  @override
+  String get replaySceneDeBruynePressureReceive => 'デ・ブライネ、圧力を受けてサイドへ';
+
+  @override
+  String get replayFocusDeBruynePressureReceive =>
+      'プレッシャーが迫るとき、デ・ブライネからメンディへつながるパスコースを見ましょう。';
+
+  @override
+  String get replaySceneSalahRightRecycle => 'サラーから始まる右サイドの再展開';
+
+  @override
+  String get replayFocusSalahRightRecycle =>
+      'サラーからゴメス、アレクサンダー＝アーノルドへつながるパスの角度を見ましょう。';
+
+  @override
+  String get replaySceneMessiRightConnection => 'メッシが右で運び、セメドへつなぐ';
+
+  @override
+  String get replayFocusMessiRightConnection =>
+      'メッシが運び、セメドへつなぐ間の守備との間隔とサイドの空間を見ましょう。';
+
+  @override
+  String get replaySceneKroosCentralRecycle => 'クロースからカゼミーロへ中央で再展開';
+
+  @override
+  String get replayFocusKroosCentralRecycle =>
+      'クロースからカゼミーロ、そしてヴァランへつながるパスの角度を見ましょう。';
+
+  @override
+  String get replaySceneViniciusCarryInside => 'ヴィニシウスが内側へ運び、クロースへつなぐ';
+
+  @override
+  String get replayFocusViniciusCarryInside =>
+      'ヴィニシウスが運んでクロースへ戻し、ベンゼマへつながる流れを追いましょう。';
 
   @override
   String get realMatchReplayExpandPitch => 'ピッチを大きく表示';
