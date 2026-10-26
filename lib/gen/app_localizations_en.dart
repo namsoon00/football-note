@@ -23306,6 +23306,109 @@ class AppLocalizationsEn extends AppLocalizations {
   String get realMatchReplayAttackDirectionUp => 'Attack ↑';
 
   @override
+  String get realMatchReplayNextAction => 'Next action';
+
+  @override
+  String get realMatchReplayPauseAction => 'Pause';
+
+  @override
+  String get realMatchReplayReplayAction => 'Replay';
+
+  @override
+  String realMatchReplayActionCount(
+      Object current, Object total, Object action) {
+    return '$current/$total · $action';
+  }
+
+  @override
+  String get realMatchReplaySceneInfo => 'Scene information';
+
+  @override
+  String realMatchReplaySourceCommit(Object commit) {
+    return 'Source commit · $commit';
+  }
+
+  @override
+  String realMatchReplayCueObserve(Object actor, Object target) {
+    return 'Watch #$actor → #$target connect';
+  }
+
+  @override
+  String realMatchReplayCueObserveSpace(Object number) {
+    return 'See the space around #$number';
+  }
+
+  @override
+  String realMatchReplayCueCarry(Object number) {
+    return 'Follow #$number\'s dribble';
+  }
+
+  @override
+  String realMatchReplayCueCarryTurn(Object number) {
+    return 'Track #$number\'s change of travel direction';
+  }
+
+  @override
+  String realMatchReplayCuePassSpace(Object number) {
+    return 'Follow #$number\'s pass into space';
+  }
+
+  @override
+  String realMatchReplayCuePass(Object actor, Object target) {
+    return '#$actor connects with #$target';
+  }
+
+  @override
+  String realMatchReplayCuePassIntoRun(Object actor, Object target) {
+    return '#$actor → moving #$target';
+  }
+
+  @override
+  String realMatchReplayCueReceive(Object number) {
+    return 'Where #$number receives';
+  }
+
+  @override
+  String realMatchReplayCueRun(Object number) {
+    return '#$number moves to support';
+  }
+
+  @override
+  String realMatchReplayCueRunBehind(Object number) {
+    return '#$number runs behind the line';
+  }
+
+  @override
+  String realMatchReplayCueOverlap(Object number) {
+    return '#$number overlaps outside';
+  }
+
+  @override
+  String realMatchReplayCueUnderlap(Object number) {
+    return '#$number runs into the inside channel';
+  }
+
+  @override
+  String realMatchReplayCueCrossArrival(Object number) {
+    return '#$number arrives for the cross';
+  }
+
+  @override
+  String realMatchReplayCuePressure(Object defender, Object carrier) {
+    return '#$defender closes on #$carrier';
+  }
+
+  @override
+  String realMatchReplayCuePressureAround(Object number) {
+    return 'Pressure closes around #$number';
+  }
+
+  @override
+  String realMatchReplayCueOutcome(Object outcome) {
+    return 'Attack outcome: $outcome';
+  }
+
+  @override
   String get replayCategoryTransition => 'Transition';
 
   @override

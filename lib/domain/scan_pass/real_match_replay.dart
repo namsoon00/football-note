@@ -137,6 +137,18 @@ class RealMatchReplayCamera {
 
   double get width => maxX - minX;
   double get height => maxY - minY;
+
+  static RealMatchReplayCamera lerp(
+    RealMatchReplayCamera a,
+    RealMatchReplayCamera b,
+    double t,
+  ) =>
+      RealMatchReplayCamera(
+        minX: a.minX + (b.minX - a.minX) * t,
+        maxX: a.maxX + (b.maxX - a.maxX) * t,
+        minY: a.minY + (b.minY - a.minY) * t,
+        maxY: a.maxY + (b.maxY - a.maxY) * t,
+      );
 }
 
 class RealMatchReplayScene {
@@ -718,6 +730,366 @@ class RealMatchReplayData {
       previous = step.time;
     }
   }
+}
+
+enum RealMatchReplayCoachingCue {
+  observeTarget,
+  observeSpace,
+  carry,
+  carryTurn,
+  pass,
+  passIntoRun,
+  receive,
+  run,
+  runBehind,
+  overlap,
+  underlap,
+  crossArrival,
+  pressure,
+  outcome,
+}
+
+enum RealMatchReplayCoachingView { context, close }
+
+class RealMatchReplayCoachingMoment {
+  final double time;
+  final RealMatchReplayStep step;
+  final RealMatchReplayCoachingCue cue;
+  final RealMatchReplayCoachingView view;
+
+  const RealMatchReplayCoachingMoment({
+    required this.time,
+    required this.step,
+    required this.cue,
+    required this.view,
+  });
+}
+
+/// A small, deterministic teaching timeline derived only from recorded steps
+/// and tracking. It owns the stops, active cue and automatic camera together so
+/// the viewer cannot describe a different moment than the one it frames.
+class RealMatchReplayCoachingPlan {
+  static const double minimumMomentGap = .55;
+
+  final List<RealMatchReplayCoachingMoment> moments;
+
+  const RealMatchReplayCoachingPlan._(this.moments);
+
+  factory RealMatchReplayCoachingPlan.forData(RealMatchReplayData data) {
+    final selected = <RealMatchReplayStep>[data.scene.steps.first];
+    for (final step in data.scene.steps.skip(1)) {
+      final previous = selected.last;
+      if (step.time - previous.time <= minimumMomentGap) {
+        if (_cuePriority(step) > _cuePriority(previous)) {
+          selected[selected.length - 1] = step;
+        }
+        continue;
+      }
+      selected.add(step);
+    }
+
+    // The clip duration, rather than the last authored step, is authoritative.
+    // Put an authored outcome only at that endpoint (and merge any other
+    // nearby final step) to avoid a no-op final click while still playing every
+    // recorded frame.
+    if (selected.last.kind == RealMatchReplayStepKind.outcome ||
+        data.duration - selected.last.time <= minimumMomentGap) {
+      selected.removeLast();
+    }
+
+    final moments = <RealMatchReplayCoachingMoment>[
+      for (final step in selected) _moment(data, step, time: step.time),
+      _moment(data, data.scene.steps.last, time: data.duration),
+    ];
+    return RealMatchReplayCoachingPlan._(
+      List<RealMatchReplayCoachingMoment>.unmodifiable(moments),
+    );
+  }
+
+  int momentIndexAt(double time) {
+    var selected = 0;
+    for (var index = 1; index < moments.length; index++) {
+      if (moments[index].time > time + 1e-6) break;
+      selected = index;
+    }
+    return selected;
+  }
+
+  int? nextMomentIndex(double time) {
+    for (var index = 1; index < moments.length; index++) {
+      if (moments[index].time > time + 1e-6) return index;
+    }
+    return null;
+  }
+
+  RealMatchReplayCoachingMoment activeMomentAt(
+    RealMatchReplayData data,
+    double time,
+  ) {
+    final moment = moments[momentIndexAt(time)];
+    final sourceStep = data.stepAt(time);
+    // An outcome does not need a second stop just before the clip ends, but
+    // its cue must still appear when that recorded event actually happens.
+    if (sourceStep.kind == RealMatchReplayStepKind.outcome) {
+      return _moment(data, sourceStep, time: sourceStep.time);
+    }
+    return moment;
+  }
+
+  RealMatchReplayCamera cameraAt(RealMatchReplayData data, double time) {
+    final clamped = time.clamp(0.0, data.duration);
+    if (clamped >= data.duration || moments.length == 1) {
+      return data.scene.camera;
+    }
+    var segment = 0;
+    while (segment + 1 < moments.length &&
+        moments[segment + 1].time < clamped - 1e-6) {
+      segment++;
+    }
+    final current = moments[segment];
+    final next = moments[math.min(segment + 1, moments.length - 1)];
+    final span = next.time - current.time;
+    final progress =
+        span <= 1e-6 ? 1.0 : ((clamped - current.time) / span).clamp(0.0, 1.0);
+    final currentClose = current.view == RealMatchReplayCoachingView.close;
+    final nextClose = next.view == RealMatchReplayCoachingView.close;
+    final cameraProgress = switch ((currentClose, nextClose)) {
+      (false, false) => 0.0,
+      (true, true) => _cameraEase(progress),
+      (false, true) => _cameraEase(progress),
+      (true, false) => _cameraEase(progress),
+    };
+    if (!currentClose && !nextClose) return data.scene.camera;
+    final currentCamera = _cameraForMoment(data, segment);
+    final nextCamera = _cameraForMoment(
+      data,
+      math.min(segment + 1, moments.length - 1),
+    );
+    return RealMatchReplayCamera.lerp(
+      currentCamera,
+      nextCamera,
+      cameraProgress,
+    );
+  }
+
+  RealMatchReplayCamera _cameraForMoment(
+    RealMatchReplayData data,
+    int index,
+  ) {
+    final moment = moments[index];
+    if (moment.view != RealMatchReplayCoachingView.close) {
+      return data.scene.camera;
+    }
+    final closeSteps = <RealMatchReplayStep>[
+      moment.step,
+      if (index > 0 &&
+          moments[index - 1].step.kind == RealMatchReplayStepKind.observe)
+        moments[index - 1].step,
+    ];
+    final desired = _closeCamera(data, moment.time, closeSteps);
+
+    // Some genuine source events are less than a second apart. Preserve those
+    // timestamps and temper the amount of zoom at that stop instead of making
+    // the camera race between context and a fully tight frame.
+    var available = double.infinity;
+    if (index > 0 &&
+        moments[index - 1].view == RealMatchReplayCoachingView.context) {
+      available = math.min(available, moment.time - moments[index - 1].time);
+    }
+    if (index + 1 < moments.length &&
+        moments[index + 1].view == RealMatchReplayCoachingView.context) {
+      available = math.min(available, moments[index + 1].time - moment.time);
+    }
+    if (!available.isFinite) return desired;
+    final context = data.scene.camera;
+    final largestEdgeTravel = <double>[
+      (desired.minX - context.minX).abs(),
+      (desired.maxX - context.maxX).abs(),
+      (desired.minY - context.minY).abs(),
+      (desired.maxY - context.maxY).abs(),
+    ].reduce(math.max);
+    if (largestEdgeTravel <= 1e-6) return desired;
+    const maximumEdgeTravelPerSecond = 30.0;
+    final zoom = (available * maximumEdgeTravelPerSecond / largestEdgeTravel)
+        .clamp(0.0, 1.0);
+    return RealMatchReplayCamera.lerp(context, desired, zoom);
+  }
+
+  static RealMatchReplayCoachingMoment _moment(
+    RealMatchReplayData data,
+    RealMatchReplayStep step, {
+    required double time,
+  }) {
+    final cue = switch (step.kind) {
+      RealMatchReplayStepKind.observe => step.targetId == null
+          ? RealMatchReplayCoachingCue.observeSpace
+          : RealMatchReplayCoachingCue.observeTarget,
+      RealMatchReplayStepKind.carry => _changesDirection(data, step)
+          ? RealMatchReplayCoachingCue.carryTurn
+          : RealMatchReplayCoachingCue.carry,
+      RealMatchReplayStepKind.pass => _targetMoves(data, step)
+          ? RealMatchReplayCoachingCue.passIntoRun
+          : RealMatchReplayCoachingCue.pass,
+      RealMatchReplayStepKind.receive => RealMatchReplayCoachingCue.receive,
+      RealMatchReplayStepKind.run => switch (step.runType) {
+          'behind' => RealMatchReplayCoachingCue.runBehind,
+          'overlap' => RealMatchReplayCoachingCue.overlap,
+          'underlap' => RealMatchReplayCoachingCue.underlap,
+          'cross_receiver' => RealMatchReplayCoachingCue.crossArrival,
+          _ => RealMatchReplayCoachingCue.run,
+        },
+      RealMatchReplayStepKind.pressure => RealMatchReplayCoachingCue.pressure,
+      RealMatchReplayStepKind.outcome => RealMatchReplayCoachingCue.outcome,
+    };
+    final view = switch (step.kind) {
+      RealMatchReplayStepKind.receive ||
+      RealMatchReplayStepKind.carry ||
+      RealMatchReplayStepKind.pressure =>
+        RealMatchReplayCoachingView.close,
+      _ => RealMatchReplayCoachingView.context,
+    };
+    return RealMatchReplayCoachingMoment(
+      time: time,
+      step: step,
+      cue: cue,
+      view: time >= data.duration ? RealMatchReplayCoachingView.context : view,
+    );
+  }
+
+  static int _cuePriority(RealMatchReplayStep step) => switch (step.kind) {
+        RealMatchReplayStepKind.run when step.runType != null => 7,
+        RealMatchReplayStepKind.receive => 6,
+        RealMatchReplayStepKind.pressure => 6,
+        RealMatchReplayStepKind.pass => 5,
+        RealMatchReplayStepKind.run => 4,
+        RealMatchReplayStepKind.outcome => 3,
+        RealMatchReplayStepKind.carry => 2,
+        RealMatchReplayStepKind.observe => 1,
+      };
+
+  static bool _targetMoves(
+    RealMatchReplayData data,
+    RealMatchReplayStep step,
+  ) {
+    final targetId = step.targetId;
+    if (targetId == null) return false;
+    final from = step.time.clamp(0.0, data.duration);
+    final to = math.min(data.duration, from + 1);
+    final a = data.renderSample(from).players[data.playerIndex(targetId)];
+    final b = data.renderSample(to).players[data.playerIndex(targetId)];
+    return _distance(a, b) >= 1.2;
+  }
+
+  static bool _changesDirection(
+    RealMatchReplayData data,
+    RealMatchReplayStep step,
+  ) {
+    final rawIndex = data.scene.steps.indexOf(step);
+    final end = step.end ??
+        (rawIndex + 1 < data.scene.steps.length
+            ? data.scene.steps[rawIndex + 1].time
+            : data.duration);
+    if (end - step.time < 1) return false;
+    final middle = (step.time + end) / 2;
+    final player = data.playerIndex(step.actorId);
+    final a = data.renderSample(step.time).players[player];
+    final b = data.renderSample(middle).players[player];
+    final c = data.renderSample(end).players[player];
+    if (_distance(a, b) < .5 || _distance(b, c) < .5) return false;
+    final first = math.atan2(b.y - a.y, b.x - a.x);
+    final second = math.atan2(c.y - b.y, c.x - b.x);
+    return _angleDelta(first, second).abs() >= .5;
+  }
+
+  static RealMatchReplayCamera _closeCamera(
+    RealMatchReplayData data,
+    double time,
+    List<RealMatchReplayStep> steps,
+  ) {
+    final sample = data.renderSample(time);
+    final ids = <int>{};
+    for (final step in steps) {
+      ids.add(step.actorId);
+      if (step.targetId != null) ids.add(step.targetId!);
+      if (step.kind == RealMatchReplayStepKind.pressure &&
+          step.secondaryId != null) {
+        ids.add(step.secondaryId!);
+      }
+    }
+    final actor = steps.first.actorId;
+    final actorPlayer = data.player(actor);
+    final actorPoint = sample.players[data.playerIndex(actor)];
+    int? nearestOpponent;
+    var nearestDistance = double.infinity;
+    for (var index = 0; index < data.players.length; index++) {
+      if (data.players[index].home == actorPlayer.home) continue;
+      final distance = _distance(actorPoint, sample.players[index]);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestOpponent = data.players[index].id;
+      }
+    }
+    if (nearestOpponent != null) ids.add(nearestOpponent);
+    final points = <RealMatchReplayPoint>[
+      sample.ball,
+      for (final id in ids) sample.players[data.playerIndex(id)],
+    ];
+    var minX = points.first.x;
+    var maxX = points.first.x;
+    var minY = points.first.y;
+    var maxY = points.first.y;
+    for (final point in points.skip(1)) {
+      minX = math.min(minX, point.x);
+      maxX = math.max(maxX, point.x);
+      minY = math.min(minY, point.y);
+      maxY = math.max(maxY, point.y);
+    }
+    final width = math.max(33.0, maxX - minX + 9);
+    final height = math.max(24.0, maxY - minY + 8);
+    final worldMinX =
+        math.min(-data.pitchLength / 2 - 3, data.scene.camera.minX);
+    final worldMaxX =
+        math.max(data.pitchLength / 2 + 3, data.scene.camera.maxX);
+    final worldMinY =
+        math.min(-data.pitchWidth / 2 - 2, data.scene.camera.minY);
+    final worldMaxY = math.max(data.pitchWidth / 2 + 2, data.scene.camera.maxY);
+    final fittedWidth = math.min(width, worldMaxX - worldMinX);
+    final fittedHeight = math.min(height, worldMaxY - worldMinY);
+    final centerX = ((minX + maxX) / 2)
+        .clamp(worldMinX + fittedWidth / 2, worldMaxX - fittedWidth / 2);
+    final centerY = ((minY + maxY) / 2)
+        .clamp(worldMinY + fittedHeight / 2, worldMaxY - fittedHeight / 2);
+    return RealMatchReplayCamera(
+      minX: centerX - fittedWidth / 2,
+      maxX: centerX + fittedWidth / 2,
+      minY: centerY - fittedHeight / 2,
+      maxY: centerY + fittedHeight / 2,
+    );
+  }
+
+  static double _distance(RealMatchReplayPoint a, RealMatchReplayPoint b) {
+    final dx = b.x - a.x;
+    final dy = b.y - a.y;
+    return math.sqrt(dx * dx + dy * dy);
+  }
+
+  static double _angleDelta(double a, double b) {
+    var value = b - a;
+    while (value > math.pi) {
+      value -= math.pi * 2;
+    }
+    while (value < -math.pi) {
+      value += math.pi * 2;
+    }
+    return value;
+  }
+
+  static double _smooth(double value) => value * value * (3 - 2 * value);
+
+  // Keep most of the source-time travel linear so short recorded intervals do
+  // not turn a useful close view into a camera snap. The small smoothstep
+  // component still softens arrival and departure at each teaching stop.
+  static double _cameraEase(double value) => (value * 9 + _smooth(value)) / 10;
 }
 
 class RealMatchReplayMotionState {

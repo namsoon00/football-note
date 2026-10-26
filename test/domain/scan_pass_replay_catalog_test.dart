@@ -98,6 +98,75 @@ void main() {
     );
   });
 
+  test('coaching plans deduplicate short steps and retain every clip endpoint',
+      () {
+    final catalogCues = <RealMatchReplayCoachingCue>{};
+    for (final entry in catalog.scenes) {
+      final data = scenes[entry.id]!;
+      final plan = RealMatchReplayCoachingPlan.forData(data);
+      catalogCues.addAll(plan.moments.map((moment) => moment.cue));
+      expect(plan.moments.first.time, 0, reason: entry.id);
+      expect(plan.moments.last.time, data.duration, reason: entry.id);
+      expect(
+        plan.moments.last.cue,
+        RealMatchReplayCoachingCue.outcome,
+        reason: entry.id,
+      );
+      for (var index = 1; index < plan.moments.length - 1; index++) {
+        expect(
+          plan.moments[index].time - plan.moments[index - 1].time,
+          greaterThan(RealMatchReplayCoachingPlan.minimumMomentGap),
+          reason: '${entry.id} moment $index',
+        );
+      }
+      expect(
+        plan.moments.length,
+        lessThanOrEqualTo(data.scene.steps.length + 1),
+        reason: entry.id,
+      );
+    }
+
+    final overlap = RealMatchReplayCoachingPlan.forData(
+      scenes['overlap-wing']!,
+    );
+    expect(
+      overlap.moments.where(
+        (moment) => moment.time >= 3.5 && moment.time <= 3.7,
+      ),
+      hasLength(1),
+    );
+    expect(
+      overlap.moments.firstWhere((moment) => moment.time >= 3.5).cue,
+      RealMatchReplayCoachingCue.overlap,
+    );
+    expect(
+      catalogCues,
+      containsAll(<RealMatchReplayCoachingCue>[
+        RealMatchReplayCoachingCue.carryTurn,
+        RealMatchReplayCoachingCue.passIntoRun,
+        RealMatchReplayCoachingCue.overlap,
+        RealMatchReplayCoachingCue.underlap,
+        RealMatchReplayCoachingCue.crossArrival,
+        RealMatchReplayCoachingCue.pressure,
+      ]),
+    );
+  });
+
+  test('outcome cue starts at its source event without an extra playback stop',
+      () {
+    for (final data in scenes.values) {
+      final plan = RealMatchReplayCoachingPlan.forData(data);
+      final outcome = data.scene.steps.last;
+      expect(outcome.kind, RealMatchReplayStepKind.outcome);
+      expect(plan.activeMomentAt(data, outcome.time).cue,
+          RealMatchReplayCoachingCue.outcome,
+          reason: data.scene.id);
+      expect(plan.activeMomentAt(data, outcome.time).time, outcome.time);
+      expect(plan.activeMomentAt(data, data.duration).time, outcome.time);
+      expect(plan.nextMomentIndex(outcome.time), plan.moments.length - 1);
+    }
+  });
+
   test('generic validation rejects duplicate ids and non-finite durations', () {
     final catalogJson = jsonDecode(
       File('assets/scan_pass_replay/catalog.json').readAsStringSync(),

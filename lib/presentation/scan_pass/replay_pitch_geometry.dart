@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import '../../domain/scan_pass/real_match_replay.dart';
 
-enum ReplayPitchView { context, close, full }
+enum ReplayPitchView { context, close, full, coaching }
 
 class ReplayPitchGeometry {
   // Compatibility defaults for callers that do not yet provide scene data.
@@ -87,6 +87,16 @@ class ReplayPitchGeometry {
           minimumHeight: math.min(34, pitchWidth + 4),
           maximumWidth: 52,
           maximumHeight: 40,
+          pitchLength: pitchLength,
+          pitchWidth: pitchWidth,
+        ),
+      // Coaching cameras are already derived from the recorded actors and
+      // ball. Preserve their deliberate tight bounds instead of applying the
+      // broad context minimums used by the old manual viewer.
+      ReplayPitchView.coaching => _expandedCamera(
+          camera,
+          minimumWidth: math.min(18, pitchLength + 6),
+          minimumHeight: math.min(14, pitchWidth + 4),
           pitchLength: pitchLength,
           pitchWidth: pitchWidth,
         ),
@@ -215,10 +225,21 @@ class ReplayPitchGeometry {
     final worldMaxX = math.max(pitchLength / 2 + 3, source.maxX);
     final worldMinY = math.min(-pitchWidth / 2 - 2, source.minY);
     final worldMaxY = math.max(pitchWidth / 2 + 2, source.maxY);
-    final centerX = ((source.minX + source.maxX) / 2)
-        .clamp(worldMinX + halfWidth, worldMaxX - halfWidth);
-    final centerY = ((source.minY + source.maxY) / 2)
-        .clamp(worldMinY + halfHeight, worldMaxY - halfHeight);
+    double centered(double preferred, double minimum, double maximum) {
+      if (minimum >= maximum) return (minimum + maximum) / 2;
+      return preferred.clamp(minimum, maximum);
+    }
+
+    final centerX = centered(
+      (source.minX + source.maxX) / 2,
+      worldMinX + halfWidth,
+      worldMaxX - halfWidth,
+    );
+    final centerY = centered(
+      (source.minY + source.maxY) / 2,
+      worldMinY + halfHeight,
+      worldMaxY - halfHeight,
+    );
     return RealMatchReplayCamera(
       minX: centerX - halfWidth,
       maxX: centerX + halfWidth,

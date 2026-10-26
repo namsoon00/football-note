@@ -6,10 +6,11 @@
 experience is a library of 20 continuous observational scenes from two actual
 A-League matches. The library covers transition, build-up, pressure, switches,
 penetration, combinations, wide attacks, and turnovers. Every scene starts
-paused and lets the learner play, pause, scrub, jump to its recorded stages,
-switch between 1x and 0.5x, and reveal at most two concise explanations. There
-is no compulsory choice, quiz, rating, score, countdown, synthetic defender AI,
-or player control.
+paused. One action plays continuously to the next meaningful recorded teaching
+moment and pauses there; that same action pauses or resumes mid-interval and
+becomes replay at the true clip end. There is no scrubber, speed choice, chapter
+row, manual camera control, compulsory choice, quiz, rating, score, countdown,
+synthetic defender AI, or player control.
 
 The source is SkillCorner Open Data at pinned revision
 `4340d274572876239c154c90bc507a9b3250a656`: Brisbane Roar v Perth Glory on
@@ -21,8 +22,8 @@ and context, not claims about intent, an exact foot, an optimal choice, an
 automatic return, or coach approval.
 
 Some source positions and the available displayed body poses are estimates.
-Tracking-only scenes use an explicitly labelled procedural body on the main
-pitch and do not offer the recorded-pose close-up. Its gait phase is integrated
+The overflow disclosure identifies tracking-only scenes, whose main-pitch body
+motion is procedural rather than measured pose. Its gait phase is integrated
 from recorded travel distance, facing changes gradually, and player rendering
 may interpolate within adjacent recorded samples without overshoot. The ball
 always follows its linear recorded samples; it is never snapped to feet and no
@@ -31,19 +32,17 @@ while uniform design, skin, shorts, and procedural limbs are not a photographic
 reconstruction. This is an observation library, not evidence of cognitive
 training, coach certification, or learning transfer.
 
-The default context camera is fixed per scene and includes the ball, focal
-player, relevant support, and defensive relationships. A closer stable crop and
-a full-pitch view are optional. Wide layouts use the available desktop width;
-portrait layouts rotate the normalized attack upward. Both attack directions
-are normalized consistently, and the full-pitch minimap always shows the
-current viewport so a crop cannot masquerade as the whole tactical picture.
-The expand button hides the surrounding metadata and chapters while retaining
-the on-pitch situation and transport controls in the available viewport. It
-preserves playback position. On short landscape screens the surrounding app
-bar is replaced with thin overlays, leaving the full screen height to the
-pitch. Pose detail is placed below the pitch, so the
-close-up cannot cover the ball, passer or receiver. An ordinary completed view
-offers an explanatory half-speed replay; scene changes still remain paused.
+The camera starts from each scene's context bounds and automatically eases
+toward a tighter tracking-derived frame for receiving, carrying, and pressure.
+It returns to supporting-player and defensive-line context for passes, runs,
+and outcomes. Zoom travel is reduced when recorded moments are close, avoiding
+an abrupt camera race. Wide layouts use the available width; portrait layouts
+rotate the normalized attack upward, and both attack directions preserve equal
+world scale. The pitch contains one short cue and relevant trail or arrow, with
+layout avoidance for the ball and important bodies. There is no permanent
+mini-map, pose card, result panel, or fullscreen mode. Scene selection and
+source disclosure live in the single overflow menu, and scene changes start
+paused.
 
 `ScanPassPressureLessonScreen` and the authored 12-situation model remain as
 direct legacy APIs for regression coverage, but they are no longer the public
@@ -244,7 +243,7 @@ trajectories.
 
 ## UX and localization
 
-All 20 scene titles and observation prompts, default replay controls, and
+All 20 scene titles, spatial coaching cues, default replay controls, and
 retained lesson text are localized in
 `lib/l10n/app_en.arb`, `app_ko.arb`, and
 `app_ja.arb` and accessed through generated localization classes. Generic role
@@ -252,12 +251,14 @@ numbers identify the authored actors. A generic live-roster adapter paints those
 actual ids and numbers in distinct attack/defence kits, while historical match
 rendering uses each scene's roster and kit colors. Case names and kits do not
 imply a famous player or a photographic match reconstruction. Source details
-remain optional from the replay footer.
+remain discoverable from the replay overflow without placing a paragraph over
+the pitch.
 
-The supported layouts are covered at 390x844 and 360x640 portrait, 844x390
-Japanese landscape, and 1280x800 English at 1.25 text scale. The deciding
-player, ball, situation/task, and structured review remain available without a
-player-covering permanent panel.
+The default viewer is covered at 320/360 px portrait widths and 844x390 short
+landscape at 1.4 text scale in English, Korean, and Japanese, including light
+and dark themes. The title, pitch, cue, one bounded playback action, back
+navigation, and overflow remain available without a player-covering permanent
+panel.
 
 ## Automated evidence and remaining limits
 
@@ -267,10 +268,12 @@ Focused tests cover:
   directions, different kits and variable durations;
 - recorded-pose versus tracking-only behavior, deterministic distance-phased
   gait, stationary/running behavior, bounded interpolation, and gradual turns;
-- scene selection, category filters, previous/next navigation, paused scene
-  changes, stale async load rejection, and lifecycle cleanup;
-- context/close/full projection, portrait normalization, full-pitch minimap,
-  and constrained real-theme layouts;
+- one-control stop timing through the true duration, manual and lifecycle
+  pause/resume, replay, scene selection behind overflow, paused scene changes,
+  stale async load rejection, and retry;
+- automatic context/close camera continuity and ball/relevant-actor visibility
+  across all scenes, both attack directions, portrait normalization, and
+  constrained light/dark layouts;
 - four retained families, 12-case ordering, metadata and source mapping;
 - one-cue paired starts and held-out geometry;
 - a physically retained first-touch-to-forward-#10 chain, including actual
@@ -286,7 +289,7 @@ Focused tests cover:
 - separate first-touch and safe-carry corridor reasoning;
 - generic-id jersey and number pixels in the actual pitch renderer;
 - state continuity, actor-aware replay, exact retry, immutable first attempts,
-  source launching, and localized pitch interaction.
+  source disclosure/launching, and localized pitch interaction.
 
 These are consistency checks for the authored model. They do not establish that
 the situations are fully representative of 11v11 football, that the conditional

@@ -37,8 +37,14 @@ Event intervals can start before or end after a clip. Their original relative
 times are retained; they are not clamped to invent release/reception moments.
 A pass is marked at its recorded possession end; reception is marked from a
 recorded receiving possession. Only events completed within the clip can
-determine the recorded outcome. A few focal moments become coaching chapters;
-continuous playback includes the surrounding actions too.
+determine the recorded outcome. Recorded steps become a small coaching
+timeline. Steps less than 0.55 seconds apart are combined by cue specificity so
+they do not produce duplicate clicks, while the last stop always uses the true
+clip duration. Playback remains continuous between stops and therefore includes
+the surrounding attack rather than jumping between poses.
+The outcome cue still starts at its actual source timestamp during that final
+interval, without adding another click, and its short recorded ball path
+remains visible at the endpoint.
 
 An overlap, underlap or run-behind label is backed by its actual dynamic-event
 subtype. We do not infer head scans, decoy intentions, the touching foot or why
@@ -50,12 +56,34 @@ decisions, and a turnover alone does not prove the choice was wrong.
 Nineteen additional clips contain no pose samples. Their limbs illustrate
 tracked speed/direction with a distance-integrated gait; they are not recordings
 of foot contacts. Kit design, shorts and skin tones remain simplified. Only the
-original clip supports the measured/estimated pose close-up.
+original clip supplies measured/estimated pose samples; the viewer does not
+invent them for the other scenes or present a separate pose card.
 
 Raw sampling interpolates source endpoints without changing them. Player
 rendering can use bounded smooth interpolation between the same samples; the
 ball remains linearly sampled from recorded XYZ. Source timing is preserved
-at normal/half speed and with reduced-motion accessibility enabled.
+at its recorded rate. One action advances to the next teaching stop, where the
+picture pauses; the same control can pause and resume within that interval.
+
+## Shipped coaching viewer
+
+The public replay opens on the picture, a compact situation title, one short
+cue attached to the recorded actor, ball, or space, and one playback action.
+There is no scrubber, speed selector, chapter strip, manual camera choice,
+mini-map, or expanded mode. The scene catalog and source disclosure remain
+available from the single overflow menu.
+
+The automatic camera uses the authored context bounds for passes, runs and
+outcomes, and interpolates toward a deliberately tighter tracking-derived frame
+for receiving, carrying, and pressure. Tight frames include the ball, focal
+actor and relevant nearby player. When source moments are close together the
+amount of zoom is reduced so the camera does not jump. Pitch orientation and
+world scale stay consistent in either attack direction.
+
+Cues are derived from recorded step kind, recorded run subtype, and tracked XY
+travel. A carrying turn means only that the travel direction changed; it does
+not claim a measured shoulder scan, body orientation, touching foot, intent, or
+optimal decision.
 
 This is an observational reconstruction, not a validated best-play model or
 evidence of measured improvements in football judgement.
