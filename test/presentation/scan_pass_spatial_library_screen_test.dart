@@ -329,6 +329,190 @@ void main() {
     });
   });
 
+  testWidgets('real mobile context wraps long match and phase cues',
+      (tester) async {
+    final pressure = fullCatalog.scenes.firstWhere(
+      (scene) => scene.id == '2417-16459-müller-pressureSupport',
+    );
+    final combination = fullCatalog.scenes.firstWhere(
+      (scene) => scene.id == '2417-13350-goretzka-combination',
+    );
+    final replays = <String, RealMatchReplayData>{
+      for (final scene in <SpatialLibraryScene>[pressure, combination])
+        scene.id: RealMatchReplayData.fromJsonString(
+          File(scene.asset).readAsStringSync(),
+        ),
+    };
+    final configurations = <({
+      Size size,
+      Locale locale,
+      SpatialLibraryScene scene,
+      double time,
+    })>[
+      (
+        size: const Size(390, 844),
+        locale: const Locale('en'),
+        scene: pressure,
+        time: pressure.evidenceStart + .1,
+      ),
+      (
+        size: const Size(412, 915),
+        locale: const Locale('ko'),
+        scene: combination,
+        time: combination.evidenceEnd + .1,
+      ),
+      (
+        size: const Size(390, 844),
+        locale: const Locale('ja'),
+        scene: combination,
+        time: combination.evidenceEnd + .1,
+      ),
+    ];
+
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    for (final configuration in configurations) {
+      tester.view.physicalSize = configuration.size;
+      await tester.pumpWidget(const SizedBox.shrink());
+      final scene = configuration.scene;
+      final replay = replays[scene.id]!;
+      final reordered = _catalogWith(fullCatalog, [
+        scene,
+        ...fullCatalog.scenes.where((candidate) => candidate.id != scene.id),
+      ]);
+      await tester.pumpWidget(_catalogApp(
+        reordered,
+        {scene.id: replay},
+        locale: configuration.locale,
+        textScale: 1.4,
+      ));
+      await _pumpLoaded(tester);
+      _seekToSceneTime(tester, scene, configuration.time);
+      await tester.pump();
+
+      final match = _textValue(tester, 'spatial-match-line');
+      final sceneHeader = _textValue(tester, 'spatial-scene-line');
+      final cue = _textValue(tester, 'spatial-cue-line');
+      expect(match, contains(scene.home));
+      expect(match, contains(scene.away));
+      expect(match, contains(scene.date));
+      expect(sceneHeader, contains(scene.focusPlayerName));
+      if (scene.theme == SpatialLearningTheme.pressureSupport) {
+        final gap = scene.observedNearbyDefender(replay, configuration.time)!;
+        expect(cue, contains(gap.defenderName));
+        expect(cue, contains(gap.actorName));
+      } else {
+        for (final anchor in scene.evidenceAnchors) {
+          expect(cue, contains(anchor.playerName));
+        }
+      }
+      for (final key in <String>[
+        'spatial-match-line',
+        'spatial-scene-line',
+        'spatial-cue-line',
+        'spatial-clock',
+        'spatial-direction',
+      ]) {
+        _expectTextFits(tester, key);
+      }
+      _expectTextWraps(tester, 'spatial-match-line');
+      _expectTextWraps(tester, 'spatial-cue-line');
+      for (final key in <String>[
+        'spatial-match-line',
+        'spatial-scene-line',
+        'spatial-cue-line',
+      ]) {
+        _expectRectWithin(tester, key, 'spatial-context');
+      }
+      for (final key in <String>['spatial-clock', 'spatial-direction']) {
+        _expectRectWithin(tester, key, 'spatial-controls');
+      }
+      expect(find.byKey(const ValueKey<String>('spatial-play')).hitTestable(),
+          findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('spatial-next')).hitTestable(),
+          findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('spatial-more')).hitTestable(),
+          findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
+  });
+
+  testWidgets('short landscape scrolls a long context above pinned controls',
+      (tester) async {
+    final scene = fullCatalog.scenes.firstWhere(
+      (candidate) => candidate.id == '2417-13350-goretzka-combination',
+    );
+    final replay = RealMatchReplayData.fromJsonString(
+      File(scene.asset).readAsStringSync(),
+    );
+    final reordered = _catalogWith(fullCatalog, [
+      scene,
+      ...fullCatalog.scenes.where((candidate) => candidate.id != scene.id),
+    ]);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(667, 320);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await tester.pumpWidget(_catalogApp(
+      reordered,
+      {scene.id: replay},
+      locale: const Locale('ja'),
+      textScale: 1.4,
+      dark: true,
+    ));
+    await _pumpLoaded(tester);
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump();
+    await tester.pump(
+      Duration(milliseconds: ((scene.evidenceEnd + .1) * 1000).round()),
+    );
+
+    final cue = _textValue(tester, 'spatial-cue-line');
+    for (final anchor in scene.evidenceAnchors) {
+      expect(cue, contains(anchor.playerName));
+    }
+    for (final key in <String>[
+      'spatial-match-line',
+      'spatial-scene-line',
+      'spatial-cue-line',
+      'spatial-clock',
+      'spatial-direction',
+    ]) {
+      _expectTextFits(tester, key);
+    }
+    _expectTextWraps(tester, 'spatial-cue-line');
+    final scroll = find.byKey(
+      const ValueKey<String>('spatial-context-scroll'),
+    );
+    final scrollable = tester.state<ScrollableState>(
+      find.descendant(of: scroll, matching: find.byType(Scrollable)),
+    );
+    expect(scrollable.position.maxScrollExtent, greaterThan(0));
+    final controlsBefore = tester.getRect(
+      find.byKey(const ValueKey<String>('spatial-controls')),
+    );
+    await tester.drag(scroll, Offset(0, -scrollable.position.maxScrollExtent));
+    await tester.pumpAndSettle();
+
+    _expectRectWithin(tester, 'spatial-cue-line', 'spatial-context');
+    expect(
+      tester.getRect(find.byKey(const ValueKey<String>('spatial-controls'))),
+      controlsBefore,
+    );
+    expect(find.byKey(const ValueKey<String>('spatial-play')).hitTestable(),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('spatial-next')).hitTestable(),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('spatial-more')).hitTestable(),
+        findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('tall landscape keeps critical context full width and legible',
       (tester) async {
     tester.view.devicePixelRatio = 1;
@@ -555,11 +739,50 @@ SpatialLibraryPitchPainter _painter(WidgetTester tester) => tester
 
 double _sourceTime(WidgetTester tester) => _painter(tester).time;
 
+void _seekToSceneTime(
+  WidgetTester tester,
+  SpatialLibraryScene scene,
+  double time,
+) {
+  final progress = tester.widget<Slider>(
+    find.byKey(const ValueKey<String>('spatial-progress')),
+  );
+  progress.onChanged!(time / scene.duration);
+}
+
+String _textValue(WidgetTester tester, String key) =>
+    tester.widget<Text>(find.byKey(ValueKey<String>(key))).data!;
+
 void _expectTextFits(WidgetTester tester, String key) {
   final paragraph = tester.renderObject<RenderParagraph>(
     find.byKey(ValueKey<String>(key)),
   );
   expect(paragraph.didExceedMaxLines, isFalse, reason: key);
+}
+
+void _expectTextWraps(WidgetTester tester, String key) {
+  final paragraph = tester.renderObject<RenderParagraph>(
+    find.byKey(ValueKey<String>(key)),
+  );
+  final text = paragraph.text.toPlainText();
+  final boxes = paragraph.getBoxesForSelection(
+    TextSelection(baseOffset: 0, extentOffset: text.length),
+  );
+  expect(
+    boxes.any((box) => box.top > boxes.first.top + .5),
+    isTrue,
+    reason: '$key should use more than one rendered line',
+  );
+}
+
+void _expectRectWithin(WidgetTester tester, String key, String containerKey) {
+  final rect = tester.getRect(find.byKey(ValueKey<String>(key)));
+  final container = tester.getRect(
+    find.byKey(ValueKey<String>(containerKey)),
+  );
+  expect(container.contains(rect.topLeft), isTrue, reason: '$key top-left');
+  expect(container.contains(rect.bottomRight), isTrue,
+      reason: '$key bottom-right');
 }
 
 class _Options implements OptionRepository {
