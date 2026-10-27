@@ -23943,6 +23943,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spatialLegacyViewer => 'Legacy replay reference';
 
   @override
+  String get spatialPreviousScene => 'Previous scene';
+
+  @override
   String get spatialNextScene => 'Next scene';
 
   @override
@@ -23984,7 +23987,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spatialInferredDisclosure =>
-      'Outlined players are reconstructed only to preserve the full-team display. Their positions are excluded from speed, pressure, lane, space, and coaching evidence.';
+      'The default focused view and minimap show only player positions observed at the current time. Missing players are not filled with reconstructed positions.';
 
   @override
   String get spatialSelectionDisclosure =>
@@ -24009,42 +24012,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spatialThemeCombination => 'Multi-player combination';
 
   @override
-  String get spatialThemeTurnover => 'Recorded turnover';
+  String get spatialThemeTurnover => 'Turnover';
 
   @override
-  String get spatialThemeRecovery => 'Recorded recovery';
+  String get spatialThemeRecovery => 'Recovery';
 
   @override
   String get spatialObjectiveLateralSwitch =>
-      'Watch when the far-side width becomes connected.';
+      'BEFORE · Watch the ball travel across to the far-side teammate.';
 
   @override
   String get spatialObjectiveForwardConnection =>
-      'Track how the next owner changes the team\'s field position.';
+      'BEFORE · Watch how the connection changes the team\'s forward position.';
 
   @override
   String get spatialObjectivePressureSupport =>
-      'Compare the nearest observed defender with the support spacing.';
+      'BEFORE · Compare the ball-side attacker, nearest defender, and support.';
 
   @override
   String get spatialObjectiveCarryThenConnect =>
-      'Read how carrier and ball enter a new region before the connection.';
+      'BEFORE · Watch the ball path before it reaches the next teammate.';
 
   @override
   String get spatialObjectiveWideToInside =>
-      'Watch the ball move from the touchline toward an inside lane.';
+      'BEFORE · Watch the ball move from the touchline toward an inside lane.';
 
   @override
   String get spatialObjectiveCombination =>
-      'Follow the spacing across three consecutive ownership anchors.';
+      'BEFORE · Follow the spacing as the ball reaches three teammates.';
 
   @override
   String get spatialObjectiveTurnover =>
-      'Notice how space closes when the recorded owner changes team.';
+      'BEFORE · Watch the nearby shape when the ball reaches the other team.';
 
   @override
   String get spatialObjectiveRecovery =>
-      'Watch the team shape around the recorded regain.';
+      'BEFORE · Watch the nearby shape when the ball returns to the original team.';
 
   @override
   String spatialLibraryTitle(int count) {
@@ -24054,8 +24057,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String spatialPitchSemantics(
       String home, String away, String player, String theme) {
-    return 'Full-pitch view of $home versus $away. Focus: $player, $theme.';
+    return 'Focused observed-position view of $home versus $away. Focus: $player, $theme.';
   }
+
+  @override
+  String get spatialMinimapSemantics =>
+      'Full-pitch context showing observed players, the ball, and the focused camera area';
+
+  @override
+  String get spatialRoleBallSide => 'Near ball';
+
+  @override
+  String get spatialRoleRecordedLink => 'Previous link';
+
+  @override
+  String get spatialRoleNearbyDefender => 'Nearby defender';
 
   @override
   String spatialSourceTime(int period, String clock) {
@@ -24078,6 +24094,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String spatialTeamsLine(String home, String away) {
+    return '$home v $away';
+  }
+
+  @override
+  String spatialDateTimeLine(String date, String time) {
+    return '$date · $time';
+  }
+
+  @override
   String spatialBeforeCue(String focus) {
     return 'BEFORE · $focus';
   }
@@ -24097,6 +24123,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String spatialAfterCue(String result) {
     return 'AFTER · $result';
   }
+
+  @override
+  String get spatialBeforeBallCue =>
+      'BEFORE · Watch the shape around the ball.';
+
+  @override
+  String spatialBeforeObservedCue(String player, String meters) {
+    return 'BEFORE · Watch $player, $meters m from the ball.';
+  }
+
+  @override
+  String spatialReachedConnectionCue(String first, String second) {
+    return 'CONNECTION · $first → $second';
+  }
+
+  @override
+  String spatialMovementLateralCue(String player, String meters) {
+    return 'BALL PATH · $meters m across from $player.';
+  }
+
+  @override
+  String spatialMovementForwardCue(String player, String meters) {
+    return 'BALL PATH · $meters m forward from $player.';
+  }
+
+  @override
+  String spatialMovementPressureCue(
+      String defender, String player, String meters) {
+    return 'GAP · $player ↔ $defender · $meters m';
+  }
+
+  @override
+  String spatialMovementDistanceCue(String player, String meters) {
+    return 'BALL PATH · $meters m from $player.';
+  }
+
+  @override
+  String spatialMovementCarryCue(String player, String meters) {
+    return 'BALL PATH · $meters m from $player.';
+  }
+
+  @override
+  String spatialMovementInsideCue(String player, String meters) {
+    return 'BALL PATH · $meters m closer to centre from $player.';
+  }
+
+  @override
+  String spatialMovementCombinationCue(String player, String meters) {
+    return 'BALL PATH · $meters m from $player.';
+  }
+
+  @override
+  String spatialMovementTurnoverCue(String player, String meters) {
+    return 'BALL PATH · $meters m from $player.';
+  }
+
+  @override
+  String spatialMovementRecoveryCue(String player, String meters) {
+    return 'BALL PATH · $meters m from $player.';
+  }
+
+  @override
+  String spatialMovementBackwardCue(String player, String meters) {
+    return 'BALL PATH · $meters m back from $player.';
+  }
+
+  @override
+  String get spatialSubsequentPlayCue =>
+      'NEXT PLAY · Watch how the shape changes around the ball.';
 
   @override
   String get spatialAliasLionelMessi => 'Messi';
@@ -24124,6 +24219,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String spatialDirectionTeam(String team) {
+    return '$team';
+  }
+
+  @override
   String spatialSceneRow(String home, String away, String clock) {
     return '$home v $away · $clock';
   }
@@ -24143,46 +24243,56 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String spatialSituationLateralSwitch(
       String first, String second, String meters) {
-    return 'Observed owners change from $first to $second across $meters m of width.';
+    return '$first → $second · $meters m across';
   }
 
   @override
   String spatialSituationForwardConnection(
       String first, String second, String meters) {
-    return 'Observed owners change from $first to $second, $meters m forward.';
+    return '$first → $second · $meters m forward';
   }
 
   @override
   String spatialSituationPressureSupport(
       String first, String second, String meters) {
-    return 'An observed opponent is $meters m from $first before $second becomes owner.';
+    return '$first → $second · nearest defender $meters m away';
   }
 
   @override
   String spatialSituationCarryThenConnect(
       String first, String second, String meters) {
-    return '$first moves $meters m while tagged in possession before $second becomes owner.';
+    return '$first → $second · ball carried $meters m';
   }
 
   @override
   String spatialSituationWideToInside(
       String first, String second, String meters) {
-    return 'From $first to $second, the owner is $meters m closer to the centre.';
+    return '$first → $second · $meters m closer to centre';
   }
 
   @override
   String spatialSituationCombination(
       String first, String second, String third, String seconds) {
-    return 'Recorded owner sequence: $first → $second → $third in $seconds s.';
+    return '$first → $second → $third · $seconds s';
+  }
+
+  @override
+  String spatialSituationCombinationShort(String seconds) {
+    return 'Three-player connection · $seconds s';
+  }
+
+  @override
+  String spatialDirectionCompact(String team) {
+    return '$team';
   }
 
   @override
   String spatialSituationTurnover(String first, String second) {
-    return 'After $first, the next observed owner is $second for the other team.';
+    return '$first → other team: $second';
   }
 
   @override
   String spatialSituationRecovery(String player, String seconds) {
-    return '$player\'s team has an observed owner again within $seconds s.';
+    return '$player\'s team reaches the ball again in $seconds s.';
   }
 }

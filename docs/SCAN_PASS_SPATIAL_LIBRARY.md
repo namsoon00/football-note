@@ -9,28 +9,51 @@ passages. The catalog currently covers 53 focal players and eight measured
 themes: lateral switch, forward connection, nearby-defender support, carry then
 connect, wide to inside, multi-player combination, turnover, and recovery.
 
-The pitch uses a stable metric full-field view for the entire passage. All 22
-active players remain displayed, with hollow/slashed markers for reconstructed
-off-camera positions. Only directly observed positions make player tails or
-support speed, defender distance, lane, space, and learning cues. Only the
-recorded ball trace up to the current source time is drawn; the endpoint region
-appears only after its directly observed ownership anchor. Normal playback is
-source time at 1x.
+The main pitch uses a deterministic metric focus plan computed once when a
+scene loads. It frames the recorded ball path, directly observed involved
+players, and nearby directly observed opponents, stays fixed through the main
+teaching moment, and uses short smooth camera transitions when the action
+travels. Each viewport chooses one fixed field orientation that gives the
+recorded teaching geometry the most readable metric scale; it does not rotate
+again during playback. The same uniform metric scale is applied to field lines,
+paths, players, and the ball. Measured in-frame teaching and context bands keep
+their cards clear of the live action, including a side band in short landscape.
+A small full-pitch minimap shows the focused camera area in the same orientation
+and with uniform metric scale. Field-edge alignment retains source bounds and
+jersey safety space so it cannot crop a recorded ball or an emphasized player.
+
+The default main pitch and minimap render only positions returned by the sparse
+source `renderSample(time)`. A player who is not directly observed at that
+instant is absent; reconstructed `displaySample` positions are never drawn in
+this experience. Player tails stop at every source-observation gap and never
+bridge it. The recorded ball trace and its direction arrow end at the current
+source time, so a future connection is not previewed. Current role callouts are
+recomputed from the evidence-backed current team, current observed geometry,
+and reached evidence anchors rather than accumulated across the clip. A pass
+crossing near an opponent therefore does not relabel that opponent as the
+attacker. The teaching trace clears shortly after the evidenced moment; the
+continuous source passage then uses a current-play cue instead of leaving the
+old connection over unrelated action. Normal playback is source time at 1x.
 The optional focused replay uses 0.5x only between the evidence anchors, then
 returns to source speed.
 
-The single More menu contains the searchable player/team/theme scene picker,
-source information, the retained 25-scene replay reference, and the separately
-authored first-touch sample. Neither older A-League matches nor the fictional
-sample appears in the default catalog.
+The bottom control row contains previous scene, play/pause, the current scene
+title and count with a visible expand indicator, and next scene. Selecting it
+opens the searchable player/team/theme picker. Seeking stays directly above
+these controls. The
+single More menu contains focused 0.5x replay, source information, the retained
+25-scene replay reference, and the separately authored first-touch sample.
+Neither older A-League matches nor the fictional sample appears in the default
+catalog.
 
 Theme search uses the current EN/KO/JA labels, and the principal star aliases
 (including 메시, 호날두, 음바페, メッシ, and ロナウド) are localized search terms;
 official source names remain unchanged in catalog and provenance data. In the
 nearby-defender theme, a warm ring, short source-only tail, and gap line identify
-the currently observed nearest opponent only while the actor is directly
-observed near the recorded ball. The text states the current distance and never
-turns static proximity into an approach-speed claim.
+the currently observed nearest opponent only while a directly observed player
+is near the recorded ball. The text states the current distance and never turns
+static proximity into an approach-speed claim. Teaching copy sits inside the
+pitch and describes only movement already reached in the recording.
 
 ## Source and license
 

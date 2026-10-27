@@ -40310,6 +40310,12 @@ abstract class AppLocalizations {
   /// **'Legacy replay reference'**
   String get spatialLegacyViewer;
 
+  /// No description provided for @spatialPreviousScene.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous scene'**
+  String get spatialPreviousScene;
+
   /// No description provided for @spatialNextScene.
   ///
   /// In en, this message translates to:
@@ -40385,7 +40391,7 @@ abstract class AppLocalizations {
   /// No description provided for @spatialInferredDisclosure.
   ///
   /// In en, this message translates to:
-  /// **'Outlined players are reconstructed only to preserve the full-team display. Their positions are excluded from speed, pressure, lane, space, and coaching evidence.'**
+  /// **'The default focused view and minimap show only player positions observed at the current time. Missing players are not filled with reconstructed positions.'**
   String get spatialInferredDisclosure;
 
   /// No description provided for @spatialSelectionDisclosure.
@@ -40433,61 +40439,61 @@ abstract class AppLocalizations {
   /// No description provided for @spatialThemeTurnover.
   ///
   /// In en, this message translates to:
-  /// **'Recorded turnover'**
+  /// **'Turnover'**
   String get spatialThemeTurnover;
 
   /// No description provided for @spatialThemeRecovery.
   ///
   /// In en, this message translates to:
-  /// **'Recorded recovery'**
+  /// **'Recovery'**
   String get spatialThemeRecovery;
 
   /// No description provided for @spatialObjectiveLateralSwitch.
   ///
   /// In en, this message translates to:
-  /// **'Watch when the far-side width becomes connected.'**
+  /// **'BEFORE · Watch the ball travel across to the far-side teammate.'**
   String get spatialObjectiveLateralSwitch;
 
   /// No description provided for @spatialObjectiveForwardConnection.
   ///
   /// In en, this message translates to:
-  /// **'Track how the next owner changes the team\'s field position.'**
+  /// **'BEFORE · Watch how the connection changes the team\'s forward position.'**
   String get spatialObjectiveForwardConnection;
 
   /// No description provided for @spatialObjectivePressureSupport.
   ///
   /// In en, this message translates to:
-  /// **'Compare the nearest observed defender with the support spacing.'**
+  /// **'BEFORE · Compare the ball-side attacker, nearest defender, and support.'**
   String get spatialObjectivePressureSupport;
 
   /// No description provided for @spatialObjectiveCarryThenConnect.
   ///
   /// In en, this message translates to:
-  /// **'Read how carrier and ball enter a new region before the connection.'**
+  /// **'BEFORE · Watch the ball path before it reaches the next teammate.'**
   String get spatialObjectiveCarryThenConnect;
 
   /// No description provided for @spatialObjectiveWideToInside.
   ///
   /// In en, this message translates to:
-  /// **'Watch the ball move from the touchline toward an inside lane.'**
+  /// **'BEFORE · Watch the ball move from the touchline toward an inside lane.'**
   String get spatialObjectiveWideToInside;
 
   /// No description provided for @spatialObjectiveCombination.
   ///
   /// In en, this message translates to:
-  /// **'Follow the spacing across three consecutive ownership anchors.'**
+  /// **'BEFORE · Follow the spacing as the ball reaches three teammates.'**
   String get spatialObjectiveCombination;
 
   /// No description provided for @spatialObjectiveTurnover.
   ///
   /// In en, this message translates to:
-  /// **'Notice how space closes when the recorded owner changes team.'**
+  /// **'BEFORE · Watch the nearby shape when the ball reaches the other team.'**
   String get spatialObjectiveTurnover;
 
   /// No description provided for @spatialObjectiveRecovery.
   ///
   /// In en, this message translates to:
-  /// **'Watch the team shape around the recorded regain.'**
+  /// **'BEFORE · Watch the nearby shape when the ball returns to the original team.'**
   String get spatialObjectiveRecovery;
 
   /// No description provided for @spatialLibraryTitle.
@@ -40499,9 +40505,33 @@ abstract class AppLocalizations {
   /// No description provided for @spatialPitchSemantics.
   ///
   /// In en, this message translates to:
-  /// **'Full-pitch view of {home} versus {away}. Focus: {player}, {theme}.'**
+  /// **'Focused observed-position view of {home} versus {away}. Focus: {player}, {theme}.'**
   String spatialPitchSemantics(
       String home, String away, String player, String theme);
+
+  /// No description provided for @spatialMinimapSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Full-pitch context showing observed players, the ball, and the focused camera area'**
+  String get spatialMinimapSemantics;
+
+  /// No description provided for @spatialRoleBallSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Near ball'**
+  String get spatialRoleBallSide;
+
+  /// No description provided for @spatialRoleRecordedLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous link'**
+  String get spatialRoleRecordedLink;
+
+  /// No description provided for @spatialRoleNearbyDefender.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby defender'**
+  String get spatialRoleNearbyDefender;
 
   /// No description provided for @spatialSourceTime.
   ///
@@ -40527,6 +40557,18 @@ abstract class AppLocalizations {
   /// **'{home} v {away} · {date}'**
   String spatialMatchLine(String home, String away, String date);
 
+  /// No description provided for @spatialTeamsLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{home} v {away}'**
+  String spatialTeamsLine(String home, String away);
+
+  /// No description provided for @spatialDateTimeLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {time}'**
+  String spatialDateTimeLine(String date, String time);
+
   /// No description provided for @spatialBeforeCue.
   ///
   /// In en, this message translates to:
@@ -40550,6 +40592,91 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AFTER · {result}'**
   String spatialAfterCue(String result);
+
+  /// No description provided for @spatialBeforeBallCue.
+  ///
+  /// In en, this message translates to:
+  /// **'BEFORE · Watch the shape around the ball.'**
+  String get spatialBeforeBallCue;
+
+  /// No description provided for @spatialBeforeObservedCue.
+  ///
+  /// In en, this message translates to:
+  /// **'BEFORE · Watch {player}, {meters} m from the ball.'**
+  String spatialBeforeObservedCue(String player, String meters);
+
+  /// No description provided for @spatialReachedConnectionCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONNECTION · {first} → {second}'**
+  String spatialReachedConnectionCue(String first, String second);
+
+  /// No description provided for @spatialMovementLateralCue.
+  ///
+  /// In en, this message translates to:
+  /// **'BALL PATH · {meters} m across from {player}.'**
+  String spatialMovementLateralCue(String player, String meters);
+
+  /// No description provided for @spatialMovementForwardCue.
+  ///
+  /// In en, this message translates to:
+  /// **'BALL PATH · {meters} m forward from {player}.'**
+  String spatialMovementForwardCue(String player, String meters);
+
+  /// No description provided for @spatialMovementPressureCue.
+  ///
+  /// In en, this message translates to:
+  /// **'GAP · {player} ↔ {defender} · {meters} m'**
+  String spatialMovementPressureCue(
+      String defender, String player, String meters);
+
+  /// No description provided for @spatialMovementDistanceCue.
+  ///
+  /// In en, this message translates to:
+  /// **'BALL PATH · {meters} m from {player}.'**
+  String spatialMovementDistanceCue(String player, String meters);
+
+  /// No description provided for @spatialMovementCarryCue.
+  ///
+  /// In en, this message translates to:
+  /// **'BALL PATH · {meters} m from {player}.'**
+  String spatialMovementCarryCue(String player, String meters);
+
+  /// No description provided for @spatialMovementInsideCue.
+  ///
+  /// In en, this message translates to:
+  /// **'BALL PATH · {meters} m closer to centre from {player}.'**
+  String spatialMovementInsideCue(String player, String meters);
+
+  /// No description provided for @spatialMovementCombinationCue.
+  ///
+  /// In en, this message translates to:
+  /// **'BALL PATH · {meters} m from {player}.'**
+  String spatialMovementCombinationCue(String player, String meters);
+
+  /// No description provided for @spatialMovementTurnoverCue.
+  ///
+  /// In en, this message translates to:
+  /// **'BALL PATH · {meters} m from {player}.'**
+  String spatialMovementTurnoverCue(String player, String meters);
+
+  /// No description provided for @spatialMovementRecoveryCue.
+  ///
+  /// In en, this message translates to:
+  /// **'BALL PATH · {meters} m from {player}.'**
+  String spatialMovementRecoveryCue(String player, String meters);
+
+  /// No description provided for @spatialMovementBackwardCue.
+  ///
+  /// In en, this message translates to:
+  /// **'BALL PATH · {meters} m back from {player}.'**
+  String spatialMovementBackwardCue(String player, String meters);
+
+  /// No description provided for @spatialSubsequentPlayCue.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT PLAY · Watch how the shape changes around the ball.'**
+  String get spatialSubsequentPlayCue;
 
   /// No description provided for @spatialAliasLionelMessi.
   ///
@@ -40593,6 +40720,12 @@ abstract class AppLocalizations {
   /// **'{team} attacks {direction}'**
   String spatialAttackDirection(String team, String direction);
 
+  /// No description provided for @spatialDirectionTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'{team}'**
+  String spatialDirectionTeam(String team);
+
   /// No description provided for @spatialSceneRow.
   ///
   /// In en, this message translates to:
@@ -40616,55 +40749,67 @@ abstract class AppLocalizations {
   /// No description provided for @spatialSituationLateralSwitch.
   ///
   /// In en, this message translates to:
-  /// **'Observed owners change from {first} to {second} across {meters} m of width.'**
+  /// **'{first} → {second} · {meters} m across'**
   String spatialSituationLateralSwitch(
       String first, String second, String meters);
 
   /// No description provided for @spatialSituationForwardConnection.
   ///
   /// In en, this message translates to:
-  /// **'Observed owners change from {first} to {second}, {meters} m forward.'**
+  /// **'{first} → {second} · {meters} m forward'**
   String spatialSituationForwardConnection(
       String first, String second, String meters);
 
   /// No description provided for @spatialSituationPressureSupport.
   ///
   /// In en, this message translates to:
-  /// **'An observed opponent is {meters} m from {first} before {second} becomes owner.'**
+  /// **'{first} → {second} · nearest defender {meters} m away'**
   String spatialSituationPressureSupport(
       String first, String second, String meters);
 
   /// No description provided for @spatialSituationCarryThenConnect.
   ///
   /// In en, this message translates to:
-  /// **'{first} moves {meters} m while tagged in possession before {second} becomes owner.'**
+  /// **'{first} → {second} · ball carried {meters} m'**
   String spatialSituationCarryThenConnect(
       String first, String second, String meters);
 
   /// No description provided for @spatialSituationWideToInside.
   ///
   /// In en, this message translates to:
-  /// **'From {first} to {second}, the owner is {meters} m closer to the centre.'**
+  /// **'{first} → {second} · {meters} m closer to centre'**
   String spatialSituationWideToInside(
       String first, String second, String meters);
 
   /// No description provided for @spatialSituationCombination.
   ///
   /// In en, this message translates to:
-  /// **'Recorded owner sequence: {first} → {second} → {third} in {seconds} s.'**
+  /// **'{first} → {second} → {third} · {seconds} s'**
   String spatialSituationCombination(
       String first, String second, String third, String seconds);
+
+  /// No description provided for @spatialSituationCombinationShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Three-player connection · {seconds} s'**
+  String spatialSituationCombinationShort(String seconds);
+
+  /// No description provided for @spatialDirectionCompact.
+  ///
+  /// In en, this message translates to:
+  /// **'{team}'**
+  String spatialDirectionCompact(String team);
 
   /// No description provided for @spatialSituationTurnover.
   ///
   /// In en, this message translates to:
-  /// **'After {first}, the next observed owner is {second} for the other team.'**
+  /// **'{first} → other team: {second}'**
   String spatialSituationTurnover(String first, String second);
 
   /// No description provided for @spatialSituationRecovery.
   ///
   /// In en, this message translates to:
-  /// **'{player}\'s team has an observed owner again within {seconds} s.'**
+  /// **'{player}\'s team reaches the ball again in {seconds} s.'**
   String spatialSituationRecovery(String player, String seconds);
 }
 
