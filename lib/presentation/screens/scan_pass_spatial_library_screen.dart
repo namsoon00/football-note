@@ -570,6 +570,59 @@ class _ScanPassSpatialLibraryScreenState
         ? '${scene.focusPlayerName} · ${_themeTitle(_l10n, scene.theme)}'
         : '${_l10n.spatialSceneHeader(_sceneIndex + 1, catalog.scenes.length, scene.focusPlayerName)} · ${_themeTitle(_l10n, scene.theme)}';
     final cue = _phaseCue(_l10n, scene, _data!, _time);
+    final content = Padding(
+      padding: EdgeInsets.fromLTRB(compact ? 7 : 10, 4, 4, compact ? 5 : 7),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (!sidePanel && Navigator.of(context).canPop())
+              AppBarActionButton(
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                compact: true,
+                margin: EdgeInsets.zero,
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back),
+              ),
+            Expanded(
+              child: Text(
+                matchLine,
+                key: const ValueKey<String>('spatial-match-line'),
+                style: (sidePanel || compact
+                        ? textTheme.labelMedium
+                        : textTheme.titleSmall)
+                    ?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            if (!sidePanel) _buildMoreMenu(compact: compact),
+          ]),
+          Text(
+            sceneLine,
+            key: const ValueKey<String>('spatial-scene-line'),
+            style: textTheme.labelSmall?.copyWith(
+              color: const Color(0xFFD6F39F),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          Text(
+            cue,
+            key: const ValueKey<String>('spatial-cue-line'),
+            style: (sidePanel ? textTheme.labelSmall : textTheme.bodySmall)
+                ?.copyWith(color: Colors.white),
+          ),
+          if (!sidePanel &&
+              _data!.displaySample(_time).hasReconstructedPositions)
+            Text(
+              _l10n.spatialInferredLegend,
+              style: textTheme.labelSmall?.copyWith(color: Colors.white70),
+            ),
+        ],
+      ),
+    );
     return DecoratedBox(
       key: const ValueKey<String>('spatial-context'),
       decoration: BoxDecoration(
@@ -577,62 +630,12 @@ class _ScanPassSpatialLibraryScreenState
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.white24),
       ),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(compact ? 7 : 10, 4, 4, compact ? 5 : 7),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              if (!sidePanel && Navigator.of(context).canPop())
-                IconButton(
-                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                  visualDensity: VisualDensity.compact,
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                ),
-              Expanded(
-                child: Text(
-                  matchLine,
-                  key: const ValueKey<String>('spatial-match-line'),
-                  maxLines: sidePanel || compact ? 4 : 1,
-                  style: (sidePanel || compact
-                          ? textTheme.labelMedium
-                          : textTheme.titleSmall)
-                      ?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              if (!sidePanel) _buildMoreMenu(compact: compact),
-            ]),
-            Text(
-              sceneLine,
-              key: const ValueKey<String>('spatial-scene-line'),
-              maxLines: sidePanel ? 2 : (compact ? 3 : 1),
-              style: textTheme.labelSmall?.copyWith(
-                color: const Color(0xFFD6F39F),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Text(
-              cue,
-              key: const ValueKey<String>('spatial-cue-line'),
-              maxLines: sidePanel || compact ? 3 : 1,
-              style: (sidePanel ? textTheme.labelSmall : textTheme.bodySmall)
-                  ?.copyWith(color: Colors.white),
-            ),
-            if (!sidePanel &&
-                _data!.displaySample(_time).hasReconstructedPositions)
-              Text(
-                _l10n.spatialInferredLegend,
-                maxLines: 1,
-                style: textTheme.labelSmall?.copyWith(color: Colors.white70),
-              ),
-          ],
-        ),
-      ),
+      child: sidePanel
+          ? SingleChildScrollView(
+              key: const ValueKey<String>('spatial-context-scroll'),
+              child: content,
+            )
+          : content,
     );
   }
 
@@ -767,7 +770,6 @@ class _ScanPassSpatialLibraryScreenState
             Text(
               directionLabel,
               key: const ValueKey<String>('spatial-direction'),
-              maxLines: 3,
               textAlign: TextAlign.center,
               style: Theme.of(context)
                   .textTheme
@@ -811,7 +813,6 @@ class _ScanPassSpatialLibraryScreenState
                     Text(
                       directionLabel,
                       key: const ValueKey<String>('spatial-direction'),
-                      maxLines: compact ? 2 : 1,
                       style: Theme.of(context)
                           .textTheme
                           .labelSmall
