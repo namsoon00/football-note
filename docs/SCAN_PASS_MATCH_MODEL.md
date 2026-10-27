@@ -1,10 +1,11 @@
 # Scan Pass: legacy continuous situation catalog
 
-The current public entry is a 25-scene actual-match observational library with
-a stable full-team overview. The
-[observation guide](SCAN_PASS_CURRICULUM.md) and
-[data provenance](SCAN_PASS_REPLAY_PROVENANCE.md) describe that experience. The
-simulation below is retained for regression coverage and is no longer the
+The current public entry is the 108-scene famous-match spatial library described
+in [its source and interaction guide](SCAN_PASS_SPATIAL_LIBRARY.md). The earlier
+25-scene actual-match viewer remains available as a labelled legacy reference in
+the single More menu; its [observation guide](SCAN_PASS_CURRICULUM.md) and
+[data provenance](SCAN_PASS_REPLAY_PROVENANCE.md) remain valid for that retained
+viewer. The simulation below is retained for regression coverage and is not the
 default game.
 
 The legacy screen opens directly on a catalog of 12 continuous attacking situations: central reception, half-space, touchline, layoff, third-player connection and attacking transition, each with a pressing and covering defensive setup. The six families have different spatial layouts; each defensive pair preserves the initial attacking shape. Titles and miniature pitch previews use the same scene configuration as play. A scenario starts directly with observation and an independent decision. Coach demonstration is optional within that scenario. Retry, next situation and catalog navigation remain available without a separate practice menu.

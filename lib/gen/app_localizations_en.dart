@@ -23921,4 +23921,268 @@ class AppLocalizationsEn extends AppLocalizations {
       String time, String duration, int percent) {
     return 'Playback $time of $duration seconds, $percent percent';
   }
+
+  @override
+  String get spatialLibraryLoadFailed =>
+      'The famous-match spatial library could not be loaded.';
+
+  @override
+  String get spatialLibraryLoading =>
+      'Loading the famous-match spatial library';
+
+  @override
+  String get spatialChooseScene => 'Choose a scene';
+
+  @override
+  String get spatialFocusReplay => 'Replay the key moment slowly';
+
+  @override
+  String get spatialSourceInfo => 'Library and source information';
+
+  @override
+  String get spatialLegacyViewer => 'Legacy replay reference';
+
+  @override
+  String get spatialNextScene => 'Next scene';
+
+  @override
+  String get spatialInferredLegend => 'Inferred display position';
+
+  @override
+  String get spatialFocusReplayActive =>
+      'Key moment at 0.5×, then source speed';
+
+  @override
+  String get spatialDirectionUp => 'toward the top goal';
+
+  @override
+  String get spatialDirectionDown => 'toward the bottom goal';
+
+  @override
+  String get spatialDirectionRight => 'toward the right goal';
+
+  @override
+  String get spatialDirectionLeft => 'toward the left goal';
+
+  @override
+  String get spatialSearchHint => 'Search player, team, or theme';
+
+  @override
+  String get spatialNoScenes => 'No scenes match this filter.';
+
+  @override
+  String get spatialMitAttribution =>
+      'Source: SkillCorner Open Data historical tracking, used under the MIT License. Raw match files are not bundled.';
+
+  @override
+  String get spatialInterpretationLimitation =>
+      'The learning notes are geometric interpretations of recorded play. They do not prove that a choice was optimal or that viewing improves judgement.';
+
+  @override
+  String get spatialXyOnlyDisclosure =>
+      'This library renders recorded play in the pitch plane (XY) and does not show ball height, body, foot, or scan measurements.';
+
+  @override
+  String get spatialInferredDisclosure =>
+      'Outlined players are reconstructed only to preserve the full-team display. Their positions are excluded from speed, pressure, lane, space, and coaching evidence.';
+
+  @override
+  String get spatialSelectionDisclosure =>
+      'Scenes are reproducibly selected from observed possession-owner changes, continuous ball XY, visible evidence anchors, spatial thresholds, balance caps, and non-overlapping intervals.';
+
+  @override
+  String get spatialThemeLateralSwitch => 'Lateral switch';
+
+  @override
+  String get spatialThemeForwardConnection => 'Forward connection';
+
+  @override
+  String get spatialThemePressureSupport => 'Nearby defender and support';
+
+  @override
+  String get spatialThemeCarryThenConnect => 'Carry then connect';
+
+  @override
+  String get spatialThemeWideToInside => 'Wide to inside';
+
+  @override
+  String get spatialThemeCombination => 'Multi-player combination';
+
+  @override
+  String get spatialThemeTurnover => 'Recorded turnover';
+
+  @override
+  String get spatialThemeRecovery => 'Recorded recovery';
+
+  @override
+  String get spatialObjectiveLateralSwitch =>
+      'Watch when the far-side width becomes connected.';
+
+  @override
+  String get spatialObjectiveForwardConnection =>
+      'Track how the next owner changes the team\'s field position.';
+
+  @override
+  String get spatialObjectivePressureSupport =>
+      'Compare the nearest observed defender with the support spacing.';
+
+  @override
+  String get spatialObjectiveCarryThenConnect =>
+      'Read how carrier and ball enter a new region before the connection.';
+
+  @override
+  String get spatialObjectiveWideToInside =>
+      'Watch the ball move from the touchline toward an inside lane.';
+
+  @override
+  String get spatialObjectiveCombination =>
+      'Follow the spacing across three consecutive ownership anchors.';
+
+  @override
+  String get spatialObjectiveTurnover =>
+      'Notice how space closes when the recorded owner changes team.';
+
+  @override
+  String get spatialObjectiveRecovery =>
+      'Watch the team shape around the recorded regain.';
+
+  @override
+  String spatialLibraryTitle(int count) {
+    return 'Famous-match library · $count scenes';
+  }
+
+  @override
+  String spatialPitchSemantics(
+      String home, String away, String player, String theme) {
+    return 'Full-pitch view of $home versus $away. Focus: $player, $theme.';
+  }
+
+  @override
+  String spatialSourceTime(int period, String clock) {
+    return 'P$period · $clock';
+  }
+
+  @override
+  String spatialFirstHalfTime(String clock) {
+    return '1H · $clock';
+  }
+
+  @override
+  String spatialSecondHalfTime(String clock) {
+    return '2H · $clock';
+  }
+
+  @override
+  String spatialMatchLine(String home, String away, String date) {
+    return '$home v $away · $date';
+  }
+
+  @override
+  String spatialBeforeCue(String focus) {
+    return 'BEFORE · $focus';
+  }
+
+  @override
+  String spatialDuringCue(String player) {
+    return 'NOW · Track $player and the recorded ball.';
+  }
+
+  @override
+  String spatialNearbyDefenderCue(
+      String defender, String actor, String meters) {
+    return 'NOW · $defender is $meters m from $actor; compare the support gap.';
+  }
+
+  @override
+  String spatialAfterCue(String result) {
+    return 'AFTER · $result';
+  }
+
+  @override
+  String get spatialAliasLionelMessi => 'Messi';
+
+  @override
+  String get spatialAliasCristianoRonaldo => 'Ronaldo';
+
+  @override
+  String get spatialAliasKylianMbappe => 'Mbappe';
+
+  @override
+  String get spatialAliasKevinDeBruyne => 'De Bruyne';
+
+  @override
+  String get spatialAliasErlingHaland => 'Haaland, Haland';
+
+  @override
+  String spatialSceneHeader(int current, int total, String player) {
+    return '$current/$total · $player';
+  }
+
+  @override
+  String spatialAttackDirection(String team, String direction) {
+    return '$team attacks $direction';
+  }
+
+  @override
+  String spatialSceneRow(String home, String away, String clock) {
+    return '$home v $away · $clock';
+  }
+
+  @override
+  String spatialCoverageSummary(
+      int scenes, int matches, int players, int themes) {
+    return '$scenes distinct scenes across $matches matches, $players focal players, and $themes spatial themes.';
+  }
+
+  @override
+  String spatialCurrentSceneSource(
+      String home, String away, int period, int startFrame, int endFrame) {
+    return 'Current source interval: $home v $away, period $period, frames $startFrame–$endFrame.';
+  }
+
+  @override
+  String spatialSituationLateralSwitch(
+      String first, String second, String meters) {
+    return 'Observed owners change from $first to $second across $meters m of width.';
+  }
+
+  @override
+  String spatialSituationForwardConnection(
+      String first, String second, String meters) {
+    return 'Observed owners change from $first to $second, $meters m forward.';
+  }
+
+  @override
+  String spatialSituationPressureSupport(
+      String first, String second, String meters) {
+    return 'An observed opponent is $meters m from $first before $second becomes owner.';
+  }
+
+  @override
+  String spatialSituationCarryThenConnect(
+      String first, String second, String meters) {
+    return '$first moves $meters m while tagged in possession before $second becomes owner.';
+  }
+
+  @override
+  String spatialSituationWideToInside(
+      String first, String second, String meters) {
+    return 'From $first to $second, the owner is $meters m closer to the centre.';
+  }
+
+  @override
+  String spatialSituationCombination(
+      String first, String second, String third, String seconds) {
+    return 'Recorded owner sequence: $first → $second → $third in $seconds s.';
+  }
+
+  @override
+  String spatialSituationTurnover(String first, String second) {
+    return 'After $first, the next observed owner is $second for the other team.';
+  }
+
+  @override
+  String spatialSituationRecovery(String player, String seconds) {
+    return '$player\'s team has an observed owner again within $seconds s.';
+  }
 }

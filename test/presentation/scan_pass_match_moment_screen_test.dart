@@ -10,12 +10,12 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   WidgetController.hitTestWarningShouldBeFatal = true;
 
-  testWidgets('public Scan Pass opens the actual-match replay by default',
+  testWidgets('public Scan Pass opens the spatial library by default',
       (tester) async {
     await tester.pumpWidget(_app(home: _publicEntry()));
     await tester.pump();
 
-    expect(find.byType(ScanPassRealMatchReplayScreen), findsOneWidget);
+    expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
     expect(find.byKey(const ValueKey<String>('pressure-pitch')), findsNothing);
     expect(
         find.byKey(const ValueKey<String>('match-moment-pitch')), findsNothing);

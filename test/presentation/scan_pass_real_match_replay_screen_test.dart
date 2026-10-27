@@ -793,15 +793,26 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('public ScanPassGameScreen enters the simple viewer',
+  testWidgets('public ScanPassGameScreen enters the spatial library',
       (tester) async {
     await tester.pumpWidget(_app(
       home: ScanPassGameScreen(optionRepository: _Options()),
     ));
-    await _pumpLoaded(tester);
-    expect(find.byType(ScanPassRealMatchReplayScreen), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('replay-play')), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('replay-chapters')), findsNothing);
+    for (var attempt = 0; attempt < 30; attempt++) {
+      await tester.pump();
+      if (find
+          .byKey(const ValueKey<String>('spatial-pitch'))
+          .evaluate()
+          .isNotEmpty) {
+        break;
+      }
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+    }
+    expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('spatial-play')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('replay-play')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

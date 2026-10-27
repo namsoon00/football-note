@@ -22942,4 +22942,259 @@ class AppLocalizationsJa extends AppLocalizations {
       String time, String duration, int percent) {
     return '$duration秒中$time秒を再生、$percentパーセント';
   }
+
+  @override
+  String get spatialLibraryLoadFailed => '有名試合のスペース学習ライブラリを読み込めませんでした。';
+
+  @override
+  String get spatialLibraryLoading => '有名試合のスペース学習ライブラリを読み込み中';
+
+  @override
+  String get spatialChooseScene => 'シーンを選ぶ';
+
+  @override
+  String get spatialFocusReplay => '重要な瞬間をスロー再生';
+
+  @override
+  String get spatialSourceInfo => 'ライブラリと出典情報';
+
+  @override
+  String get spatialLegacyViewer => '以前のリプレイ参照画面';
+
+  @override
+  String get spatialNextScene => '次のシーン';
+
+  @override
+  String get spatialInferredLegend => '推定表示位置';
+
+  @override
+  String get spatialFocusReplayActive => '重要な瞬間を0.5倍速、その後は実速度';
+
+  @override
+  String get spatialDirectionUp => '上側のゴール方向';
+
+  @override
+  String get spatialDirectionDown => '下側のゴール方向';
+
+  @override
+  String get spatialDirectionRight => '右側のゴール方向';
+
+  @override
+  String get spatialDirectionLeft => '左側のゴール方向';
+
+  @override
+  String get spatialSearchHint => '選手、チーム、テーマを検索';
+
+  @override
+  String get spatialNoScenes => '条件に合うシーンはありません。';
+
+  @override
+  String get spatialMitAttribution =>
+      '出典：SkillCorner Open Data の過去トラッキングデータ（MIT License）。生の試合ファイルは同梱していません。';
+
+  @override
+  String get spatialInterpretationLimitation =>
+      '学習メモは記録プレーの幾何学的な解釈です。選択が最適だったことや、視聴により判断力が向上することを証明するものではありません。';
+
+  @override
+  String get spatialXyOnlyDisclosure =>
+      'このライブラリは記録プレーをピッチ平面（XY）で表示します。ボールの高さ、身体、足、スキャンの測定値は表示しません。';
+
+  @override
+  String get spatialInferredDisclosure =>
+      '輪郭だけの選手は全員表示のための推定位置です。速度、プレッシャー、パスレーン、スペース、指導の根拠から除外しています。';
+
+  @override
+  String get spatialSelectionDisclosure =>
+      '観測された保持者の変化、連続したボールXY、可視の根拠点、空間基準、偏り上限、重複しない区間から再現可能に選定しています。';
+
+  @override
+  String get spatialThemeLateralSwitch => '横方向の展開';
+
+  @override
+  String get spatialThemeForwardConnection => '前方へのつながり';
+
+  @override
+  String get spatialThemePressureSupport => '近くの守備者とサポート';
+
+  @override
+  String get spatialThemeCarryThenConnect => '運んでからつなぐ';
+
+  @override
+  String get spatialThemeWideToInside => '外から内へ';
+
+  @override
+  String get spatialThemeCombination => '複数選手の連係';
+
+  @override
+  String get spatialThemeTurnover => '記録されたターンオーバー';
+
+  @override
+  String get spatialThemeRecovery => '記録された奪回';
+
+  @override
+  String get spatialObjectiveLateralSwitch => '逆サイドの幅がつながる瞬間を見ましょう。';
+
+  @override
+  String get spatialObjectiveForwardConnection =>
+      '次の保持者がチームの前進位置をどう変えるか追いましょう。';
+
+  @override
+  String get spatialObjectivePressureSupport => '最も近くで観測された守備者とサポートの間隔を比べましょう。';
+
+  @override
+  String get spatialObjectiveCarryThenConnect =>
+      'つながる前に選手とボールが新しい区域へ入る過程を見ましょう。';
+
+  @override
+  String get spatialObjectiveWideToInside => 'ボールがタッチライン側から内側のレーンへ動く過程を見ましょう。';
+
+  @override
+  String get spatialObjectiveCombination => '連続する3つの保持時点の間隔を追いましょう。';
+
+  @override
+  String get spatialObjectiveTurnover => '保持チームが変わるとき、スペースがどう閉じるか見ましょう。';
+
+  @override
+  String get spatialObjectiveRecovery => '記録された奪回の周囲にあるチーム形状を見ましょう。';
+
+  @override
+  String spatialLibraryTitle(int count) {
+    return '有名試合ライブラリ · $countシーン';
+  }
+
+  @override
+  String spatialPitchSemantics(
+      String home, String away, String player, String theme) {
+    return '$home対$awayのフルピッチ。注目：$player、$theme。';
+  }
+
+  @override
+  String spatialSourceTime(int period, String clock) {
+    return '第$periodピリオド · $clock';
+  }
+
+  @override
+  String spatialFirstHalfTime(String clock) {
+    return '前半 · $clock';
+  }
+
+  @override
+  String spatialSecondHalfTime(String clock) {
+    return '後半 · $clock';
+  }
+
+  @override
+  String spatialMatchLine(String home, String away, String date) {
+    return '$home 対 $away · $date';
+  }
+
+  @override
+  String spatialBeforeCue(String focus) {
+    return '見る前 · $focus';
+  }
+
+  @override
+  String spatialDuringCue(String player) {
+    return '進行中 · $playerと記録されたボールを追いましょう。';
+  }
+
+  @override
+  String spatialNearbyDefenderCue(
+      String defender, String actor, String meters) {
+    return '進行中 · $defenderは$actorから${meters}m。サポート間隔を比べましょう。';
+  }
+
+  @override
+  String spatialAfterCue(String result) {
+    return '確認 · $result';
+  }
+
+  @override
+  String get spatialAliasLionelMessi => 'メッシ';
+
+  @override
+  String get spatialAliasCristianoRonaldo => 'ロナウド';
+
+  @override
+  String get spatialAliasKylianMbappe => 'エムバペ, ムバッペ';
+
+  @override
+  String get spatialAliasKevinDeBruyne => 'デブライネ';
+
+  @override
+  String get spatialAliasErlingHaland => 'ハーランド';
+
+  @override
+  String spatialSceneHeader(int current, int total, String player) {
+    return '$current/$total · $player';
+  }
+
+  @override
+  String spatialAttackDirection(String team, String direction) {
+    return '$teamの攻撃：$direction';
+  }
+
+  @override
+  String spatialSceneRow(String home, String away, String clock) {
+    return '$home対$away · $clock';
+  }
+
+  @override
+  String spatialCoverageSummary(
+      int scenes, int matches, int players, int themes) {
+    return '$matches試合、重複しない$scenesシーン、注目選手$players人、空間テーマ$themes種を収録しています。';
+  }
+
+  @override
+  String spatialCurrentSceneSource(
+      String home, String away, int period, int startFrame, int endFrame) {
+    return '現在の原データ区間：$home対$away、第$periodピリオド、フレーム$startFrame–$endFrame。';
+  }
+
+  @override
+  String spatialSituationLateralSwitch(
+      String first, String second, String meters) {
+    return '観測保持者が$firstから$secondへ変わり、横幅${meters}mをつなぎます。';
+  }
+
+  @override
+  String spatialSituationForwardConnection(
+      String first, String second, String meters) {
+    return '観測保持者が$firstから$secondへ変わり、${meters}m前進します。';
+  }
+
+  @override
+  String spatialSituationPressureSupport(
+      String first, String second, String meters) {
+    return '$secondの保持が観測される前、$firstに最も近い観測相手は${meters}mです。';
+  }
+
+  @override
+  String spatialSituationCarryThenConnect(
+      String first, String second, String meters) {
+    return '$firstが保持者として記録される間に${meters}m移動し、その後$secondの保持が観測されます。';
+  }
+
+  @override
+  String spatialSituationWideToInside(
+      String first, String second, String meters) {
+    return '$firstから$secondへ保持が変わり、中央へ${meters}m近づきます。';
+  }
+
+  @override
+  String spatialSituationCombination(
+      String first, String second, String third, String seconds) {
+    return '記録された保持順: $first → $second → $third（$seconds秒）';
+  }
+
+  @override
+  String spatialSituationTurnover(String first, String second) {
+    return '$firstの次に観測された保持者は、相手チームの$secondです。';
+  }
+
+  @override
+  String spatialSituationRecovery(String player, String seconds) {
+    return '$playerのチームが$seconds秒以内に再び保持者として観測されます。';
+  }
 }
