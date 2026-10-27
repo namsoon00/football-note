@@ -23046,6 +23046,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get spatialLegacyViewer => '이전 리플레이 참고 화면';
 
   @override
+  String get spatialPreviousScene => '이전 장면';
+
+  @override
   String get spatialNextScene => '다음 장면';
 
   @override
@@ -23074,7 +23077,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get spatialMitAttribution =>
-      '출처: SkillCorner Open Data 역사 트래킹 데이터(MIT 라이선스). 원본 경기 파일은 앱에 포함하지 않습니다.';
+      '출처: SkillCorner Open Data의 과거 선수 위치 기록(MIT 라이선스). 원본 경기 파일은 앱에 포함하지 않습니다.';
 
   @override
   String get spatialInterpretationLimitation =>
@@ -23086,7 +23089,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get spatialInferredDisclosure =>
-      '테두리만 보이는 선수는 전체 팀 배치를 보여 주기 위한 추정 위치입니다. 속도, 압박, 패스 길, 공간, 코칭 근거에서는 제외됩니다.';
+      '기본 초점 화면과 미니맵에는 현재 시각에 직접 관측된 선수 위치만 표시합니다. 보이지 않는 선수의 위치를 추정해 채우지 않습니다.';
 
   @override
   String get spatialSelectionDisclosure =>
@@ -23111,36 +23114,40 @@ class AppLocalizationsKo extends AppLocalizations {
   String get spatialThemeCombination => '여러 선수 연속 연결';
 
   @override
-  String get spatialThemeTurnover => '기록된 소유권 전환';
+  String get spatialThemeTurnover => '소유권 전환';
 
   @override
-  String get spatialThemeRecovery => '기록된 재탈환';
+  String get spatialThemeRecovery => '재탈환';
 
   @override
-  String get spatialObjectiveLateralSwitch => '반대쪽 폭이 연결되는 순간을 보세요.';
+  String get spatialObjectiveLateralSwitch =>
+      '보기 전 · 공이 반대쪽 동료에게 가로로 이어지는 과정을 보세요.';
 
   @override
   String get spatialObjectiveForwardConnection =>
-      '다음 소유 선수가 팀의 전진 위치를 어떻게 바꾸는지 보세요.';
+      '보기 전 · 연결 뒤 팀의 위치가 얼마나 전진하는지 보세요.';
 
   @override
-  String get spatialObjectivePressureSupport => '가장 가까이 관측된 수비와 지원 간격을 비교하세요.';
+  String get spatialObjectivePressureSupport =>
+      '보기 전 · 공 주변 공격수와 가까운 수비, 지원 간격을 비교하세요.';
 
   @override
   String get spatialObjectiveCarryThenConnect =>
-      '연결 전에 선수와 공이 새 구역으로 들어가는 과정을 보세요.';
+      '보기 전 · 공이 다음 동료에게 닿기 전 이동 경로를 보세요.';
 
   @override
-  String get spatialObjectiveWideToInside => '공이 터치라인 쪽에서 안쪽 통로로 이동하는 과정을 보세요.';
+  String get spatialObjectiveWideToInside =>
+      '보기 전 · 공이 터치라인 쪽에서 안쪽 통로로 이동하는 과정을 보세요.';
 
   @override
-  String get spatialObjectiveCombination => '연속된 세 소유 시점의 간격을 따라가세요.';
+  String get spatialObjectiveCombination =>
+      '보기 전 · 공이 세 동료에게 이어질 때 선수 간격을 보세요.';
 
   @override
-  String get spatialObjectiveTurnover => '소유 팀이 바뀔 때 공간이 어떻게 닫히는지 보세요.';
+  String get spatialObjectiveTurnover => '보기 전 · 공이 상대 팀에 닿을 때 주변 대형 변화를 보세요.';
 
   @override
-  String get spatialObjectiveRecovery => '기록된 재탈환 주변의 팀 대형을 보세요.';
+  String get spatialObjectiveRecovery => '보기 전 · 공이 원래 팀으로 돌아올 때 주변 대형을 보세요.';
 
   @override
   String spatialLibraryTitle(int count) {
@@ -23150,8 +23157,20 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String spatialPitchSemantics(
       String home, String away, String player, String theme) {
-    return '$home 대 $away 전체 피치. 초점: $player, $theme.';
+    return '$home 대 $away 관측 위치 초점 화면. 초점: $player, $theme.';
   }
+
+  @override
+  String get spatialMinimapSemantics => '관측된 선수와 공, 초점 화면 범위를 보여 주는 전체 피치 미니맵';
+
+  @override
+  String get spatialRoleBallSide => '공 주변';
+
+  @override
+  String get spatialRoleRecordedLink => '직전 연결';
+
+  @override
+  String get spatialRoleNearbyDefender => '가까운 수비';
 
   @override
   String spatialSourceTime(int period, String clock) {
@@ -23171,6 +23190,16 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String spatialMatchLine(String home, String away, String date) {
     return '$home 대 $away · $date';
+  }
+
+  @override
+  String spatialTeamsLine(String home, String away) {
+    return '$home 대 $away';
+  }
+
+  @override
+  String spatialDateTimeLine(String date, String time) {
+    return '$date · $time';
   }
 
   @override
@@ -23195,6 +23224,73 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get spatialBeforeBallCue => '이전 · 공 주변 대형을 보세요.';
+
+  @override
+  String spatialBeforeObservedCue(String player, String meters) {
+    return '이전 · $player, 공과 ${meters}m';
+  }
+
+  @override
+  String spatialReachedConnectionCue(String first, String second) {
+    return '연결 · $first → $second';
+  }
+
+  @override
+  String spatialMovementLateralCue(String player, String meters) {
+    return '공 경로 · $player부터 가로 ${meters}m';
+  }
+
+  @override
+  String spatialMovementForwardCue(String player, String meters) {
+    return '공 경로 · $player부터 전방 ${meters}m';
+  }
+
+  @override
+  String spatialMovementPressureCue(
+      String defender, String player, String meters) {
+    return '간격 · $player ↔ $defender · ${meters}m';
+  }
+
+  @override
+  String spatialMovementDistanceCue(String player, String meters) {
+    return '공 경로 · $player부터 ${meters}m';
+  }
+
+  @override
+  String spatialMovementCarryCue(String player, String meters) {
+    return '공 경로 · $player부터 ${meters}m';
+  }
+
+  @override
+  String spatialMovementInsideCue(String player, String meters) {
+    return '공 경로 · $player부터 중앙 쪽 ${meters}m';
+  }
+
+  @override
+  String spatialMovementCombinationCue(String player, String meters) {
+    return '공 경로 · $player부터 ${meters}m';
+  }
+
+  @override
+  String spatialMovementTurnoverCue(String player, String meters) {
+    return '공 경로 · $player부터 ${meters}m';
+  }
+
+  @override
+  String spatialMovementRecoveryCue(String player, String meters) {
+    return '공 경로 · $player부터 ${meters}m';
+  }
+
+  @override
+  String spatialMovementBackwardCue(String player, String meters) {
+    return '공 경로 · $player부터 뒤로 ${meters}m';
+  }
+
+  @override
+  String get spatialSubsequentPlayCue => '다음 흐름 · 공 주변 대형이 어떻게 바뀌는지 보세요.';
+
+  @override
   String get spatialAliasLionelMessi => '메시';
 
   @override
@@ -23217,6 +23313,11 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String spatialAttackDirection(String team, String direction) {
     return '$team 공격: $direction';
+  }
+
+  @override
+  String spatialDirectionTeam(String team) {
+    return '$team';
   }
 
   @override
@@ -23251,13 +23352,13 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String spatialSituationPressureSupport(
       String first, String second, String meters) {
-    return '$first 주변 가장 가까운 수비 ${meters}m · 이어 $second 소유';
+    return '$first → $second · 가까운 수비 ${meters}m';
   }
 
   @override
   String spatialSituationCarryThenConnect(
       String first, String second, String meters) {
-    return '$first 소유 이동 ${meters}m · 이어 $second 소유';
+    return '$first → $second · 공과 함께 ${meters}m';
   }
 
   @override
@@ -23269,16 +23370,26 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String spatialSituationCombination(
       String first, String second, String third, String seconds) {
-    return '기록된 소유 순서: $first → $second → $third · $seconds초';
+    return '$first → $second → $third · $seconds초';
+  }
+
+  @override
+  String spatialSituationCombinationShort(String seconds) {
+    return '세 선수 연결 · $seconds초';
+  }
+
+  @override
+  String spatialDirectionCompact(String team) {
+    return '$team';
   }
 
   @override
   String spatialSituationTurnover(String first, String second) {
-    return '$first 다음 소유는 상대 팀 $second';
+    return '$first → 상대 팀 $second';
   }
 
   @override
   String spatialSituationRecovery(String player, String seconds) {
-    return '$player의 팀이 $seconds초 안에 소유 회복';
+    return '$player의 팀이 $seconds초 안에 다시 공에 도달';
   }
 }
