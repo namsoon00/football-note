@@ -1,0 +1,185 @@
+{
+  "purpose": "Independent byte-for-byte guard for the replay and authored asset families that predate the spatial library",
+  "files": [
+    {
+      "path": "assets/scan_pass_replay/LICENSE",
+      "bytes": 1097,
+      "sha256": "3384cc66ffd008209759af5e6328677eabded72756fb1f56f4f82e68e9b3c6eb"
+    },
+    {
+      "path": "assets/scan_pass_replay/catalog-proof.json",
+      "bytes": 13791,
+      "sha256": "b18a283c66c8b1cfa68912e0727d6a0ca3529b69b02c1c69a4c3cbbe0fa1a3c9"
+    },
+    {
+      "path": "assets/scan_pass_replay/catalog.json",
+      "bytes": 9095,
+      "sha256": "3c09bab7cda42573b2db327a26ad01abe6057d41c1ae846803cefa8a40d1de11"
+    },
+    {
+      "path": "assets/scan_pass_replay/data-proof.json",
+      "bytes": 721,
+      "sha256": "e2163ab8adf631135648c644e731d09fb23d8fcb3560f528e7ae3b4d4d510eb9"
+    },
+    {
+      "path": "assets/scan_pass_replay/historical-catalog-proof.json",
+      "bytes": 119727,
+      "sha256": "f46f0e403574019968ab8d9e483c444d9cbe0990c3fc80d1a982ec05db454486"
+    },
+    {
+      "path": "assets/scan_pass_replay/historical-catalog.json",
+      "bytes": 2779,
+      "sha256": "84ed096f68eda6a14188527a1b7dc9d58fb160058fbd58110eb827e38884bcfd"
+    },
+    {
+      "path": "assets/scan_pass_replay/historical-source-manifest.json",
+      "bytes": 3766,
+      "sha256": "2952e098ebaf41b45b1b2fc6c66048113c3b096f28da7a39d79d00bca7c7d07c"
+    },
+    {
+      "path": "assets/scan_pass_replay/mixed-catalog-proof.json",
+      "bytes": 6925,
+      "sha256": "dad0b118da5602f48bcb7fae60b908db6b41b31fea5efd13e840b9b68f30d5a4"
+    },
+    {
+      "path": "assets/scan_pass_replay/replay-data.json",
+      "bytes": 509710,
+      "sha256": "cf73a11f566d974f3dada609e0d16111e6896dc522d88c08c257eb7332efaa71"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/backline-switch.json",
+      "bytes": 46484,
+      "sha256": "1cc9d4931432fb4294d60666d0e26744c65614df637eb9fcb0b5783150f443e3"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/carry-shot.json",
+      "bytes": 49695,
+      "sha256": "36389bd8844318d49e9c5b68cac464098490cf98f108b9b6b71ca87cfb040ec1"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/carry-support.json",
+      "bytes": 49661,
+      "sha256": "8ac7176e9b250832c5b537773e84b2d3b167ebc99442b915f819a0c6fbfd6346"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/carry-turnover.json",
+      "bytes": 53531,
+      "sha256": "6769c4bb1ba8275cb1f7c520e8619cb679f70f1478db16df854882c4430b6ea7"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/central-build.json",
+      "bytes": 40471,
+      "sha256": "2315ecd5097c580c5528e9ac4b8748b346043c7ea8f5555c3f069dbe134f1475"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/cross-arrival.json",
+      "bytes": 34181,
+      "sha256": "863babe80e37ab8083b8df1c90b5c4de27a9553d5afb9cd4c7c92fd69cce51eb"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/de-bruyne-pressure-receive.json",
+      "bytes": 45810,
+      "sha256": "eae8c116b985703e014b66c4533cc612a8a184a54cdd632323077d6199b843e3"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/keeper-build.json",
+      "bytes": 39592,
+      "sha256": "5224d9398c085c56a61662a5d167ca6b6d4e54c3d085678fb6c94959b1826bc7"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/kroos-central-recycle.json",
+      "bytes": 55552,
+      "sha256": "87e4936f945672f7c184876307ed5b89eae615744f93af6cbf80ac71a2fb247d"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/lofted-behind.json",
+      "bytes": 33987,
+      "sha256": "1d2b5e2796850e6a121f6153dea17ec998091e868c8f244c55b92e7312e2404f"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/messi-right-connection.json",
+      "bytes": 62522,
+      "sha256": "c3f62d845320412b9cb1569f18b3fb3fe2f60b5b599ce57a49d92fed01d66f05"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/one-touch-link.json",
+      "bytes": 39008,
+      "sha256": "59cc2307bb06281e3631b89fb5560e98b0817ef7e578f8e4110b5634b5280169"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/overlap-carry.json",
+      "bytes": 41515,
+      "sha256": "2d8210f814a919a100ef6021d7f391dc77f25fd2a3d397ba61b681ef65d21c33"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/overlap-wing.json",
+      "bytes": 36603,
+      "sha256": "984f326770e866745d15df3f51d870b1bcdb0c5953cde2930aa7552acc431a92"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/pass-and-move.json",
+      "bytes": 42486,
+      "sha256": "d41e624995067c8c4608223fb40fca10e007eec0582cafc3b537eea79559f61a"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/pressure-support.json",
+      "bytes": 48138,
+      "sha256": "0dbf34e43dc1afd46f0ecb64efc906ba77eb1ab9f3f9247d1b56088e833db393"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/pressure-switch.json",
+      "bytes": 43573,
+      "sha256": "ea128a84d47d0eb0185f3708a714b320b41d33ce0a192dd10631eb25eb460916"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/pressure-turnover.json",
+      "bytes": 34135,
+      "sha256": "1a660ef19a8b7bbab794866c248066d5fd72c4aa374bb7fa25de08eebf26e54e"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/salah-right-recycle.json",
+      "bytes": 58874,
+      "sha256": "31b74f988fb7b6ea66cb9c9034cfe65a183f0da7c6967284662923e0e1a6de17"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/through-channel.json",
+      "bytes": 51351,
+      "sha256": "dad6d631d2568a022a67b3b12053581aa8ba88124875bde8c6ef74e8de19b897"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/through-middle.json",
+      "bytes": 36596,
+      "sha256": "8d41c74b3379b172c87e78e0ce59931ba53b10914f88f8d6876f8b1f5ff8d32b"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/transition-wing.json",
+      "bytes": 510630,
+      "sha256": "f03dbef8e724a84c3e19767d3e9ffad822548d9d468730e4e3d07fb7c43eedff"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/underlap-channel.json",
+      "bytes": 45299,
+      "sha256": "c913bc2e0531944e76a31579dd8ac732b35c936732d3e55887bea7af4a94b2af"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/vinicius-carry-inside.json",
+      "bytes": 63333,
+      "sha256": "898730d738f1f85a02bddee8a68b0a662e52840f148155854477ef4052bf6cd1"
+    },
+    {
+      "path": "assets/scan_pass_replay/scenes/wide-switch.json",
+      "bytes": 48003,
+      "sha256": "f15fd8eb89f4013b786b1a282f04c14b9711c8d6240ea14881173313443d2e17"
+    },
+    {
+      "path": "assets/scan_pass_replay/source-manifest.json",
+      "bytes": 6499,
+      "sha256": "6c715d36072e7a5ac6c83bfed198d5f35d081985627b757783e62b3885661a7f"
+    },
+    {
+      "path": "assets/scan_pass_authored/first-touch-open-side.json",
+      "bytes": 30371,
+      "sha256": "b2f24ab243956d226f4a624c3c214ec4845c46e9f6e3d1876c81020c315bc5f0"
+    }
+  ]
+}

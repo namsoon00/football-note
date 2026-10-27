@@ -23026,4 +23026,259 @@ class AppLocalizationsKo extends AppLocalizations {
       String time, String duration, int percent) {
     return '$duration초 중 $time초 재생, $percent퍼센트';
   }
+
+  @override
+  String get spatialLibraryLoadFailed => '유명 경기 공간 학습 라이브러리를 불러오지 못했습니다.';
+
+  @override
+  String get spatialLibraryLoading => '유명 경기 공간 학습 라이브러리 불러오는 중';
+
+  @override
+  String get spatialChooseScene => '장면 선택';
+
+  @override
+  String get spatialFocusReplay => '핵심 순간 느리게 다시 보기';
+
+  @override
+  String get spatialSourceInfo => '라이브러리와 출처 정보';
+
+  @override
+  String get spatialLegacyViewer => '이전 리플레이 참고 화면';
+
+  @override
+  String get spatialNextScene => '다음 장면';
+
+  @override
+  String get spatialInferredLegend => '추정 표시 위치';
+
+  @override
+  String get spatialFocusReplayActive => '핵심 순간 0.5배속 후 실제 속도';
+
+  @override
+  String get spatialDirectionUp => '위쪽 골문 방향';
+
+  @override
+  String get spatialDirectionDown => '아래쪽 골문 방향';
+
+  @override
+  String get spatialDirectionRight => '오른쪽 골문 방향';
+
+  @override
+  String get spatialDirectionLeft => '왼쪽 골문 방향';
+
+  @override
+  String get spatialSearchHint => '선수, 팀, 주제 검색';
+
+  @override
+  String get spatialNoScenes => '조건에 맞는 장면이 없습니다.';
+
+  @override
+  String get spatialMitAttribution =>
+      '출처: SkillCorner Open Data 역사 트래킹 데이터(MIT 라이선스). 원본 경기 파일은 앱에 포함하지 않습니다.';
+
+  @override
+  String get spatialInterpretationLimitation =>
+      '학습 설명은 기록된 플레이를 기하학적으로 해석한 내용입니다. 특정 선택이 최선이었다거나 시청만으로 판단력이 향상된다는 증거가 아닙니다.';
+
+  @override
+  String get spatialXyOnlyDisclosure =>
+      '이 라이브러리는 기록 경기를 피치 평면(XY)으로 보여 줍니다. 공 높이, 신체, 발, 스캔 측정값은 표시하지 않습니다.';
+
+  @override
+  String get spatialInferredDisclosure =>
+      '테두리만 보이는 선수는 전체 팀 배치를 보여 주기 위한 추정 위치입니다. 속도, 압박, 패스 길, 공간, 코칭 근거에서는 제외됩니다.';
+
+  @override
+  String get spatialSelectionDisclosure =>
+      '관측된 소유 선수 변화, 연속된 공 XY, 화면에 보이는 근거 지점, 공간 기준, 균형 상한, 겹치지 않는 구간으로 장면을 재현 가능하게 선정했습니다.';
+
+  @override
+  String get spatialThemeLateralSwitch => '측면 전환 연결';
+
+  @override
+  String get spatialThemeForwardConnection => '전진 연결';
+
+  @override
+  String get spatialThemePressureSupport => '가까운 수비와 지원';
+
+  @override
+  String get spatialThemeCarryThenConnect => '운반 후 연결';
+
+  @override
+  String get spatialThemeWideToInside => '측면에서 안쪽';
+
+  @override
+  String get spatialThemeCombination => '여러 선수 연속 연결';
+
+  @override
+  String get spatialThemeTurnover => '기록된 소유권 전환';
+
+  @override
+  String get spatialThemeRecovery => '기록된 재탈환';
+
+  @override
+  String get spatialObjectiveLateralSwitch => '반대쪽 폭이 연결되는 순간을 보세요.';
+
+  @override
+  String get spatialObjectiveForwardConnection =>
+      '다음 소유 선수가 팀의 전진 위치를 어떻게 바꾸는지 보세요.';
+
+  @override
+  String get spatialObjectivePressureSupport => '가장 가까이 관측된 수비와 지원 간격을 비교하세요.';
+
+  @override
+  String get spatialObjectiveCarryThenConnect =>
+      '연결 전에 선수와 공이 새 구역으로 들어가는 과정을 보세요.';
+
+  @override
+  String get spatialObjectiveWideToInside => '공이 터치라인 쪽에서 안쪽 통로로 이동하는 과정을 보세요.';
+
+  @override
+  String get spatialObjectiveCombination => '연속된 세 소유 시점의 간격을 따라가세요.';
+
+  @override
+  String get spatialObjectiveTurnover => '소유 팀이 바뀔 때 공간이 어떻게 닫히는지 보세요.';
+
+  @override
+  String get spatialObjectiveRecovery => '기록된 재탈환 주변의 팀 대형을 보세요.';
+
+  @override
+  String spatialLibraryTitle(int count) {
+    return '유명 경기 라이브러리 · $count개 장면';
+  }
+
+  @override
+  String spatialPitchSemantics(
+      String home, String away, String player, String theme) {
+    return '$home 대 $away 전체 피치. 초점: $player, $theme.';
+  }
+
+  @override
+  String spatialSourceTime(int period, String clock) {
+    return '$period피리어드 · $clock';
+  }
+
+  @override
+  String spatialFirstHalfTime(String clock) {
+    return '전반 · $clock';
+  }
+
+  @override
+  String spatialSecondHalfTime(String clock) {
+    return '후반 · $clock';
+  }
+
+  @override
+  String spatialMatchLine(String home, String away, String date) {
+    return '$home 대 $away · $date';
+  }
+
+  @override
+  String spatialBeforeCue(String focus) {
+    return '보기 전 · $focus';
+  }
+
+  @override
+  String spatialDuringCue(String player) {
+    return '진행 · $player와 기록된 공을 따라가세요.';
+  }
+
+  @override
+  String spatialNearbyDefenderCue(
+      String defender, String actor, String meters) {
+    return '진행 · $defender가 $actor와 ${meters}m 거리 · 지원 간격을 보세요.';
+  }
+
+  @override
+  String spatialAfterCue(String result) {
+    return '확인 · $result';
+  }
+
+  @override
+  String get spatialAliasLionelMessi => '메시';
+
+  @override
+  String get spatialAliasCristianoRonaldo => '호날두';
+
+  @override
+  String get spatialAliasKylianMbappe => '음바페';
+
+  @override
+  String get spatialAliasKevinDeBruyne => '더브라위너, 데브라위너';
+
+  @override
+  String get spatialAliasErlingHaland => '홀란, 홀란드';
+
+  @override
+  String spatialSceneHeader(int current, int total, String player) {
+    return '$current/$total · $player';
+  }
+
+  @override
+  String spatialAttackDirection(String team, String direction) {
+    return '$team 공격: $direction';
+  }
+
+  @override
+  String spatialSceneRow(String home, String away, String clock) {
+    return '$home 대 $away · $clock';
+  }
+
+  @override
+  String spatialCoverageSummary(
+      int scenes, int matches, int players, int themes) {
+    return '$matches경기, 서로 다른 장면 $scenes개, 초점 선수 $players명, 공간 주제 $themes개를 담았습니다.';
+  }
+
+  @override
+  String spatialCurrentSceneSource(
+      String home, String away, int period, int startFrame, int endFrame) {
+    return '현재 원본 구간: $home 대 $away, $period피리어드, 프레임 $startFrame–$endFrame.';
+  }
+
+  @override
+  String spatialSituationLateralSwitch(
+      String first, String second, String meters) {
+    return '$first → $second · 가로 ${meters}m 연결';
+  }
+
+  @override
+  String spatialSituationForwardConnection(
+      String first, String second, String meters) {
+    return '$first → $second · ${meters}m 전진';
+  }
+
+  @override
+  String spatialSituationPressureSupport(
+      String first, String second, String meters) {
+    return '$first 주변 가장 가까운 수비 ${meters}m · 이어 $second 소유';
+  }
+
+  @override
+  String spatialSituationCarryThenConnect(
+      String first, String second, String meters) {
+    return '$first 소유 이동 ${meters}m · 이어 $second 소유';
+  }
+
+  @override
+  String spatialSituationWideToInside(
+      String first, String second, String meters) {
+    return '$first → $second · 중앙 쪽 ${meters}m';
+  }
+
+  @override
+  String spatialSituationCombination(
+      String first, String second, String third, String seconds) {
+    return '기록된 소유 순서: $first → $second → $third · $seconds초';
+  }
+
+  @override
+  String spatialSituationTurnover(String first, String second) {
+    return '$first 다음 소유는 상대 팀 $second';
+  }
+
+  @override
+  String spatialSituationRecovery(String player, String seconds) {
+    return '$player의 팀이 $seconds초 안에 소유 회복';
+  }
 }

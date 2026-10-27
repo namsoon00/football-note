@@ -40273,6 +40273,399 @@ abstract class AppLocalizations {
   /// **'Playback {time} of {duration} seconds, {percent} percent'**
   String authoredTouchProgressSemantics(
       String time, String duration, int percent);
+
+  /// No description provided for @spatialLibraryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The famous-match spatial library could not be loaded.'**
+  String get spatialLibraryLoadFailed;
+
+  /// No description provided for @spatialLibraryLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the famous-match spatial library'**
+  String get spatialLibraryLoading;
+
+  /// No description provided for @spatialChooseScene.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a scene'**
+  String get spatialChooseScene;
+
+  /// No description provided for @spatialFocusReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay the key moment slowly'**
+  String get spatialFocusReplay;
+
+  /// No description provided for @spatialSourceInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Library and source information'**
+  String get spatialSourceInfo;
+
+  /// No description provided for @spatialLegacyViewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Legacy replay reference'**
+  String get spatialLegacyViewer;
+
+  /// No description provided for @spatialNextScene.
+  ///
+  /// In en, this message translates to:
+  /// **'Next scene'**
+  String get spatialNextScene;
+
+  /// No description provided for @spatialInferredLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Inferred display position'**
+  String get spatialInferredLegend;
+
+  /// No description provided for @spatialFocusReplayActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Key moment at 0.5×, then source speed'**
+  String get spatialFocusReplayActive;
+
+  /// No description provided for @spatialDirectionUp.
+  ///
+  /// In en, this message translates to:
+  /// **'toward the top goal'**
+  String get spatialDirectionUp;
+
+  /// No description provided for @spatialDirectionDown.
+  ///
+  /// In en, this message translates to:
+  /// **'toward the bottom goal'**
+  String get spatialDirectionDown;
+
+  /// No description provided for @spatialDirectionRight.
+  ///
+  /// In en, this message translates to:
+  /// **'toward the right goal'**
+  String get spatialDirectionRight;
+
+  /// No description provided for @spatialDirectionLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'toward the left goal'**
+  String get spatialDirectionLeft;
+
+  /// No description provided for @spatialSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search player, team, or theme'**
+  String get spatialSearchHint;
+
+  /// No description provided for @spatialNoScenes.
+  ///
+  /// In en, this message translates to:
+  /// **'No scenes match this filter.'**
+  String get spatialNoScenes;
+
+  /// No description provided for @spatialMitAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Source: SkillCorner Open Data historical tracking, used under the MIT License. Raw match files are not bundled.'**
+  String get spatialMitAttribution;
+
+  /// No description provided for @spatialInterpretationLimitation.
+  ///
+  /// In en, this message translates to:
+  /// **'The learning notes are geometric interpretations of recorded play. They do not prove that a choice was optimal or that viewing improves judgement.'**
+  String get spatialInterpretationLimitation;
+
+  /// No description provided for @spatialXyOnlyDisclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'This library renders recorded play in the pitch plane (XY) and does not show ball height, body, foot, or scan measurements.'**
+  String get spatialXyOnlyDisclosure;
+
+  /// No description provided for @spatialInferredDisclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'Outlined players are reconstructed only to preserve the full-team display. Their positions are excluded from speed, pressure, lane, space, and coaching evidence.'**
+  String get spatialInferredDisclosure;
+
+  /// No description provided for @spatialSelectionDisclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenes are reproducibly selected from observed possession-owner changes, continuous ball XY, visible evidence anchors, spatial thresholds, balance caps, and non-overlapping intervals.'**
+  String get spatialSelectionDisclosure;
+
+  /// No description provided for @spatialThemeLateralSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Lateral switch'**
+  String get spatialThemeLateralSwitch;
+
+  /// No description provided for @spatialThemeForwardConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward connection'**
+  String get spatialThemeForwardConnection;
+
+  /// No description provided for @spatialThemePressureSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby defender and support'**
+  String get spatialThemePressureSupport;
+
+  /// No description provided for @spatialThemeCarryThenConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry then connect'**
+  String get spatialThemeCarryThenConnect;
+
+  /// No description provided for @spatialThemeWideToInside.
+  ///
+  /// In en, this message translates to:
+  /// **'Wide to inside'**
+  String get spatialThemeWideToInside;
+
+  /// No description provided for @spatialThemeCombination.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-player combination'**
+  String get spatialThemeCombination;
+
+  /// No description provided for @spatialThemeTurnover.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded turnover'**
+  String get spatialThemeTurnover;
+
+  /// No description provided for @spatialThemeRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded recovery'**
+  String get spatialThemeRecovery;
+
+  /// No description provided for @spatialObjectiveLateralSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch when the far-side width becomes connected.'**
+  String get spatialObjectiveLateralSwitch;
+
+  /// No description provided for @spatialObjectiveForwardConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Track how the next owner changes the team\'s field position.'**
+  String get spatialObjectiveForwardConnection;
+
+  /// No description provided for @spatialObjectivePressureSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare the nearest observed defender with the support spacing.'**
+  String get spatialObjectivePressureSupport;
+
+  /// No description provided for @spatialObjectiveCarryThenConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Read how carrier and ball enter a new region before the connection.'**
+  String get spatialObjectiveCarryThenConnect;
+
+  /// No description provided for @spatialObjectiveWideToInside.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the ball move from the touchline toward an inside lane.'**
+  String get spatialObjectiveWideToInside;
+
+  /// No description provided for @spatialObjectiveCombination.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the spacing across three consecutive ownership anchors.'**
+  String get spatialObjectiveCombination;
+
+  /// No description provided for @spatialObjectiveTurnover.
+  ///
+  /// In en, this message translates to:
+  /// **'Notice how space closes when the recorded owner changes team.'**
+  String get spatialObjectiveTurnover;
+
+  /// No description provided for @spatialObjectiveRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the team shape around the recorded regain.'**
+  String get spatialObjectiveRecovery;
+
+  /// No description provided for @spatialLibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Famous-match library · {count} scenes'**
+  String spatialLibraryTitle(int count);
+
+  /// No description provided for @spatialPitchSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Full-pitch view of {home} versus {away}. Focus: {player}, {theme}.'**
+  String spatialPitchSemantics(
+      String home, String away, String player, String theme);
+
+  /// No description provided for @spatialSourceTime.
+  ///
+  /// In en, this message translates to:
+  /// **'P{period} · {clock}'**
+  String spatialSourceTime(int period, String clock);
+
+  /// No description provided for @spatialFirstHalfTime.
+  ///
+  /// In en, this message translates to:
+  /// **'1H · {clock}'**
+  String spatialFirstHalfTime(String clock);
+
+  /// No description provided for @spatialSecondHalfTime.
+  ///
+  /// In en, this message translates to:
+  /// **'2H · {clock}'**
+  String spatialSecondHalfTime(String clock);
+
+  /// No description provided for @spatialMatchLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{home} v {away} · {date}'**
+  String spatialMatchLine(String home, String away, String date);
+
+  /// No description provided for @spatialBeforeCue.
+  ///
+  /// In en, this message translates to:
+  /// **'BEFORE · {focus}'**
+  String spatialBeforeCue(String focus);
+
+  /// No description provided for @spatialDuringCue.
+  ///
+  /// In en, this message translates to:
+  /// **'NOW · Track {player} and the recorded ball.'**
+  String spatialDuringCue(String player);
+
+  /// No description provided for @spatialNearbyDefenderCue.
+  ///
+  /// In en, this message translates to:
+  /// **'NOW · {defender} is {meters} m from {actor}; compare the support gap.'**
+  String spatialNearbyDefenderCue(String defender, String actor, String meters);
+
+  /// No description provided for @spatialAfterCue.
+  ///
+  /// In en, this message translates to:
+  /// **'AFTER · {result}'**
+  String spatialAfterCue(String result);
+
+  /// No description provided for @spatialAliasLionelMessi.
+  ///
+  /// In en, this message translates to:
+  /// **'Messi'**
+  String get spatialAliasLionelMessi;
+
+  /// No description provided for @spatialAliasCristianoRonaldo.
+  ///
+  /// In en, this message translates to:
+  /// **'Ronaldo'**
+  String get spatialAliasCristianoRonaldo;
+
+  /// No description provided for @spatialAliasKylianMbappe.
+  ///
+  /// In en, this message translates to:
+  /// **'Mbappe'**
+  String get spatialAliasKylianMbappe;
+
+  /// No description provided for @spatialAliasKevinDeBruyne.
+  ///
+  /// In en, this message translates to:
+  /// **'De Bruyne'**
+  String get spatialAliasKevinDeBruyne;
+
+  /// No description provided for @spatialAliasErlingHaland.
+  ///
+  /// In en, this message translates to:
+  /// **'Haaland, Haland'**
+  String get spatialAliasErlingHaland;
+
+  /// No description provided for @spatialSceneHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total} · {player}'**
+  String spatialSceneHeader(int current, int total, String player);
+
+  /// No description provided for @spatialAttackDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'{team} attacks {direction}'**
+  String spatialAttackDirection(String team, String direction);
+
+  /// No description provided for @spatialSceneRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{home} v {away} · {clock}'**
+  String spatialSceneRow(String home, String away, String clock);
+
+  /// No description provided for @spatialCoverageSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{scenes} distinct scenes across {matches} matches, {players} focal players, and {themes} spatial themes.'**
+  String spatialCoverageSummary(
+      int scenes, int matches, int players, int themes);
+
+  /// No description provided for @spatialCurrentSceneSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Current source interval: {home} v {away}, period {period}, frames {startFrame}–{endFrame}.'**
+  String spatialCurrentSceneSource(
+      String home, String away, int period, int startFrame, int endFrame);
+
+  /// No description provided for @spatialSituationLateralSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed owners change from {first} to {second} across {meters} m of width.'**
+  String spatialSituationLateralSwitch(
+      String first, String second, String meters);
+
+  /// No description provided for @spatialSituationForwardConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed owners change from {first} to {second}, {meters} m forward.'**
+  String spatialSituationForwardConnection(
+      String first, String second, String meters);
+
+  /// No description provided for @spatialSituationPressureSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'An observed opponent is {meters} m from {first} before {second} becomes owner.'**
+  String spatialSituationPressureSupport(
+      String first, String second, String meters);
+
+  /// No description provided for @spatialSituationCarryThenConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} moves {meters} m while tagged in possession before {second} becomes owner.'**
+  String spatialSituationCarryThenConnect(
+      String first, String second, String meters);
+
+  /// No description provided for @spatialSituationWideToInside.
+  ///
+  /// In en, this message translates to:
+  /// **'From {first} to {second}, the owner is {meters} m closer to the centre.'**
+  String spatialSituationWideToInside(
+      String first, String second, String meters);
+
+  /// No description provided for @spatialSituationCombination.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded owner sequence: {first} → {second} → {third} in {seconds} s.'**
+  String spatialSituationCombination(
+      String first, String second, String third, String seconds);
+
+  /// No description provided for @spatialSituationTurnover.
+  ///
+  /// In en, this message translates to:
+  /// **'After {first}, the next observed owner is {second} for the other team.'**
+  String spatialSituationTurnover(String first, String second);
+
+  /// No description provided for @spatialSituationRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'{player}\'s team has an observed owner again within {seconds} s.'**
+  String spatialSituationRecovery(String player, String seconds);
 }
 
 class _AppLocalizationsDelegate

@@ -7,7 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../application/scan_pass_spatial_library_service.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../../domain/repositories/scan_pass_spatial_library_repository.dart';
 import '../../domain/scan_pass/scan_pass_attack.dart';
 import '../../domain/scan_pass/scan_pass_chain.dart';
 import '../../domain/scan_pass/scan_pass_curriculum.dart';
@@ -21,7 +23,9 @@ import '../../domain/scan_pass/scan_pass_pressure_lesson.dart';
 import '../../domain/scan_pass/real_match_replay.dart';
 import '../../domain/scan_pass/real_match_replay_detail.dart';
 import '../../domain/scan_pass/authored_touch_sample.dart';
+import '../../domain/scan_pass/scan_pass_spatial_library.dart';
 import '../../domain/scan_pass/scan_pass_space.dart';
+import '../../infrastructure/scan_pass_spatial_asset_repository.dart';
 import '../scan_pass/replay_pitch_geometry.dart';
 import '../theme/app_motion.dart';
 import '../widgets/app_bar_action_button.dart';
@@ -30,6 +34,7 @@ import '../widgets/match_moment_official_video.dart';
 part 'scan_pass_possession_lesson_screen.dart';
 part 'scan_pass_pressure_lesson_screen.dart';
 part 'scan_pass_real_match_replay_screen.dart';
+part 'scan_pass_spatial_library_screen.dart';
 part 'scan_pass_replay_action_detail.dart';
 part 'scan_pass_authored_touch_sample_screen.dart';
 part 'scan_pass_match_moment_screen.dart';
@@ -67,7 +72,7 @@ class ScanPassGameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScanPassRealMatchReplayScreen(
+    return ScanPassSpatialLibraryScreen(
       sourceLauncher: matchMomentSourceLauncher,
     );
   }

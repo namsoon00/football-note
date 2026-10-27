@@ -2,10 +2,16 @@
 
 ## Shipped scope, source and license
 
-The simple viewer ships 25 continuous observational scenes derived from the
+The retained legacy viewer ships 25 continuous observational scenes derived from the
 MIT-licensed [SkillCorner Open Data](https://github.com/SkillCorner/opendata).
 It keeps the original 20 A-League payloads unchanged and places five historical
 Premier League/LaLiga scenes first in the mixed catalog.
+
+The public default is now the separate 108-scene famous-match spatial library.
+Its assets, MIT source manifest, deterministic selection proof, and limitations
+are documented in
+[`SCAN_PASS_SPATIAL_LIBRARY.md`](SCAN_PASS_SPATIAL_LIBRARY.md). Nothing in that
+addition rewrites this viewer's assets or provenance.
 
 The original 20 scenes use revision
 `4340d274572876239c154c90bc507a9b3250a656` and these matches:
