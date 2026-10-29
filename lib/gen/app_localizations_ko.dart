@@ -23392,4 +23392,384 @@ class AppLocalizationsKo extends AppLocalizations {
   String spatialSituationRecovery(String player, String seconds) {
     return '$player의 팀이 $seconds초 안에 다시 공에 도달';
   }
+
+  @override
+  String get videoLearningTitle => '경기 영상 학습';
+
+  @override
+  String get videoLearningLoadFailed => '검토된 영상 목록을 불러오지 못했어요.';
+
+  @override
+  String get videoLearningRetry => '다시 시도';
+
+  @override
+  String get videoLearningVideoSemantics => '공식 경기 영상 플레이어';
+
+  @override
+  String get videoLearningNativeUnavailable =>
+      '웹에서는 영상을 바로 재생할 수 있어요. 이 기기에서는 공식 출처를 열어 주세요.';
+
+  @override
+  String get videoLearningPlayerTimeout =>
+      '공식 플레이어가 준비되지 않았어요. 다시 시도하거나 출처를 열어 주세요.';
+
+  @override
+  String get videoLearningPlayerError =>
+      '여기에서 공식 영상을 재생할 수 없어요. 다시 시도하거나 출처를 열어 주세요.';
+
+  @override
+  String get videoLearningOpenSource => '공식 영상 열기';
+
+  @override
+  String get videoLearningRetryPlayer => '플레이어 다시 시도';
+
+  @override
+  String get videoLearningAuthoredDiagramDisclosure => '공간 해설도 · 위치는 설명용';
+
+  @override
+  String get videoLearningWholeMode => '전체 플레이';
+
+  @override
+  String get videoLearningPartsMode => '구간';
+
+  @override
+  String get videoLearningPrevious => '이전';
+
+  @override
+  String get videoLearningPlay => '재생';
+
+  @override
+  String get videoLearningPause => '일시정지';
+
+  @override
+  String get videoLearningReplay => '다시 보기';
+
+  @override
+  String get videoLearningNext => '다음';
+
+  @override
+  String videoLearningSceneButton(int current, int total, String title) {
+    return '장면 $current/$total: $title';
+  }
+
+  @override
+  String get videoLearningScenesTitle => '장면';
+
+  @override
+  String get videoLearningAllTeams => '모든 팀';
+
+  @override
+  String get videoLearningAllStatus => '전체';
+
+  @override
+  String get videoLearningWatchedFilter => '시청 완료';
+
+  @override
+  String get videoLearningUnwatchedFilter => '미시청';
+
+  @override
+  String videoLearningVisibleCount(int visible, int total) {
+    return '전체 $total개 중 $visible개 장면';
+  }
+
+  @override
+  String get videoLearningEmptyScenes => '이 필터에 맞는 장면이 없어요.';
+
+  @override
+  String get videoLearningResetFilters => '필터 초기화';
+
+  @override
+  String get videoLearningNewStatus => '새 장면';
+
+  @override
+  String videoLearningPartialStatus(int percent) {
+    return '보는 중 · $percent%';
+  }
+
+  @override
+  String get videoLearningWatchedStatus => '시청 완료';
+
+  @override
+  String videoLearningSceneRow(
+      String home, String away, String date, String duration) {
+    return '$home 대 $away · $date · 클립 $duration';
+  }
+
+  @override
+  String get videoLearningSettings => '출처 및 설정';
+
+  @override
+  String get videoLearningAutoNext => '다음 미시청 장면 계속 보기';
+
+  @override
+  String get videoLearningAutoNextDetail => '현재 필터에서 전체 플레이가 끝났을 때만 이동해요.';
+
+  @override
+  String get videoLearningSourceSection => '공식 출처';
+
+  @override
+  String videoLearningSourceChannel(String channel) {
+    return '게시 채널: $channel';
+  }
+
+  @override
+  String get videoLearningOpenReport => '공식 경기 보고서 열기';
+
+  @override
+  String get videoLearningOpenChannel => '게시 채널 열기';
+
+  @override
+  String get videoLearningLegacyLibrary => '측정 2D 공간 라이브러리';
+
+  @override
+  String get videoLearningLegacyLibraryDetail => '중계에 보인 XY 장면 108개 · 경기 영상 없음';
+
+  @override
+  String get videoLearningPersistenceFailed => '이 기기에 진행 상황을 저장하지 못했어요.';
+
+  @override
+  String get videoLearningPlaybackSpeed => '재생 속도';
+
+  @override
+  String videoLearningPlaybackOptions(String mode, String rate) {
+    return '$mode · $rate';
+  }
+
+  @override
+  String videoLearningClipDuration(String duration) {
+    return '클립 $duration';
+  }
+
+  @override
+  String videoLearningPhaseRange(String title, String range) {
+    return '$title · $range';
+  }
+
+  @override
+  String videoLearningMatchLine(String home, String away, String date) {
+    return '$home 대 $away · $date';
+  }
+
+  @override
+  String videoLearningKitLine(String home, String away) {
+    return '$home (홈팀) · $away (원정팀)';
+  }
+
+  @override
+  String videoLearningPlayerNumber(int number, String name) {
+    return '$number번 $name';
+  }
+
+  @override
+  String videoLearningFocusInstruction(String players, String instruction) {
+    return '$players · $instruction';
+  }
+
+  @override
+  String videoLearningElapsed(String elapsed, String duration) {
+    return '$elapsed / $duration';
+  }
+
+  @override
+  String get videoLearningOpenSpace => '활용할 빈 공간';
+
+  @override
+  String get videoLearningPassLegend => '공 / 패스';
+
+  @override
+  String get videoLearningRunLegend => '움직임';
+
+  @override
+  String get videoLearningCarryLegend => '드리블';
+
+  @override
+  String get videoLearningShotLegend => '슛';
+
+  @override
+  String get videoLearningNoPrevious => '이 필터에는 이전 장면이 없어요';
+
+  @override
+  String get videoLearningNoNext => '이 필터에는 다음 장면이 없어요';
+
+  @override
+  String videoLearningTimingTolerance(String seconds) {
+    return '공간 해설 구간은 스토리보드 표본 기준 약 ±$seconds초 범위예요.';
+  }
+
+  @override
+  String get videoMessiWinnerTitle => '로베르토의 전진 → 알바의 가담 → 메시의 컷백 마무리';
+
+  @override
+  String get videoMessiWinnerFocus => '공보다 먼저 알바의 바깥쪽 움직임과 메시가 남겨둔 뒤쪽 공간을 보세요.';
+
+  @override
+  String get videoMessiWinnerPhase1Title => '압박 뒤로 전진';
+
+  @override
+  String get videoMessiWinnerPhase1Watch =>
+      '로베르토가 중앙으로 공을 옮길 때 앞쪽 수비가 물러나는 방향을 보세요.';
+
+  @override
+  String get videoMessiWinnerPhase2Title => '측면으로 연결';
+
+  @override
+  String get videoMessiWinnerPhase2Watch =>
+      '고메스가 공을 받을 때 알바가 바깥으로 올라오는 경로를 보세요.';
+
+  @override
+  String get videoMessiWinnerPhase3Title => '뒤로 주는 컷백';
+
+  @override
+  String get videoMessiWinnerPhase3Watch => '골문 쪽으로 몰린 수비 뒤에서 메시가 받는 위치를 보세요.';
+
+  @override
+  String get videoFodenTitle => '포든이 패스한 뒤 수비 뒤로 다시 뛰는 원투패스';
+
+  @override
+  String get videoFodenFocus => '포든이 공을 준 직후 멈추지 않고 어디로 다시 뛰는지 보세요.';
+
+  @override
+  String get videoFodenPhase1Title => '먼저 내주기';
+
+  @override
+  String get videoFodenPhase1Watch => '포든의 패스와 공이 떠난 뒤 첫 움직임을 함께 보세요.';
+
+  @override
+  String get videoFodenPhase2Title => '수비 뒤로 재침투';
+
+  @override
+  String get videoFodenPhase2Watch => '데브라위너가 돌려주기 직전 포든의 달리는 방향을 보세요.';
+
+  @override
+  String get videoFodenPhase3Title => '골문 앞으로 연결';
+
+  @override
+  String get videoFodenPhase3Watch => '돌아오는 패스가 포든의 발밑보다 앞에 놓이는 이유를 보세요.';
+
+  @override
+  String get videoDybalaControlTitle => '디발라의 첫 컨트롤 → 램지와 원투 → 안쪽 돌파';
+
+  @override
+  String get videoDybalaControlFocus =>
+      '반대편 패스를 받은 첫 컨트롤과 공을 내준 뒤 재진입하는 공간을 보세요.';
+
+  @override
+  String get videoDybalaControlPhase1Title => '반대편에서 받기';
+
+  @override
+  String get videoDybalaControlPhase1Watch =>
+      '영이 접근하는 방향과 디발라가 첫 공을 놓는 쪽을 보세요.';
+
+  @override
+  String get videoDybalaControlPhase2Title => '램지와 주고받기';
+
+  @override
+  String get videoDybalaControlPhase2Watch => '디발라가 공을 준 뒤 안쪽으로 들어가는 경로를 보세요.';
+
+  @override
+  String get videoDybalaControlPhase3Title => '회복하는 수비 통과';
+
+  @override
+  String get videoDybalaControlPhase3Watch => '다시 따라오는 영의 옆으로 공을 옮기는 순간을 보세요.';
+
+  @override
+  String get videoHiguainTitle => '중앙의 짧은 연결 → 벤탄쿠르의 전진패스 → 이과인 침투';
+
+  @override
+  String get videoHiguainFocus => '공을 주고받는 선수 뒤에서 이과인이 수비 사이로 움직이는 타이밍을 보세요.';
+
+  @override
+  String get videoHiguainPhase1Title => '중앙으로 모으기';
+
+  @override
+  String get videoHiguainPhase1Watch => '피아니치와 호날두의 짧은 연결에 수비가 반응하는 방향을 보세요.';
+
+  @override
+  String get videoHiguainPhase2Title => '앞을 향한 연결';
+
+  @override
+  String get videoHiguainPhase2Watch => '벤탄쿠르가 받을 때 이과인의 다음 위치를 먼저 찾아보세요.';
+
+  @override
+  String get videoHiguainPhase3Title => '수비 사이로 받기';
+
+  @override
+  String get videoHiguainPhase3Watch => '패스가 들어가는 틈과 이과인의 출발 시점을 함께 보세요.';
+
+  @override
+  String get videoDybalaDepthTitle => '피아니치의 전진패스와 디발라의 수비 뒤 침투';
+
+  @override
+  String get videoDybalaDepthFocus => '패스하는 순간의 수비선과 디발라가 공을 받으러 들어가는 공간을 보세요.';
+
+  @override
+  String get videoDybalaDepthPhase1Title => '전진패스 준비';
+
+  @override
+  String get videoDybalaDepthPhase1Watch => '피아니치가 공을 잡을 때 디발라와 수비선 사이를 보세요.';
+
+  @override
+  String get videoDybalaDepthPhase2Title => '수비 뒤로 받기';
+
+  @override
+  String get videoDybalaDepthPhase2Watch =>
+      '공이 오는 방향과 디발라의 달리는 방향이 만나는 곳을 보세요.';
+
+  @override
+  String get videoDybalaDepthPhase3Title => '슈팅으로 연결';
+
+  @override
+  String get videoDybalaDepthPhase3Watch =>
+      '디발라가 골문 쪽으로 공을 옮길 때 수비가 따라오는 쪽을 보세요.';
+
+  @override
+  String get videoRamseyTitle => '마튀디의 측면 전진과 램지의 뒤늦은 박스 진입';
+
+  @override
+  String get videoRamseyFocus => '크로스만 따라가지 말고 뒤에서 들어오는 램지가 어디에 서는지 보세요.';
+
+  @override
+  String get videoRamseyPhase1Title => '측면으로 전진';
+
+  @override
+  String get videoRamseyPhase1Watch => '마튀디가 바깥으로 전진할 때 램지는 공보다 뒤에 있습니다.';
+
+  @override
+  String get videoRamseyPhase2Title => '안쪽으로 내주기';
+
+  @override
+  String get videoRamseyPhase2Watch => '공이 호날두 쪽으로 들어갈 때 램지가 접근하는 경로를 보세요.';
+
+  @override
+  String get videoRamseyPhase3Title => '흘러나온 공에 반응';
+
+  @override
+  String get videoRamseyPhase3Watch => '첫 연결 뒤 공이 남는 공간과 램지의 위치를 함께 보세요.';
+
+  @override
+  String get videoMessiFirstTitle => '호나우지뉴의 띄워준 패스 → 30번 메시의 수비 뒤 침투';
+
+  @override
+  String get videoMessiFirstFocus =>
+      '공을 준 메시가 수비 뒤로 뛰는 시점과 호나우지뉴가 패스를 띄우는 순간을 보세요.';
+
+  @override
+  String get videoMessiFirstPhase1Title => '주고 다시 움직이기';
+
+  @override
+  String get videoMessiFirstPhase1Watch =>
+      '30번 메시가 공을 내준 뒤 수비선 쪽으로 움직이는 방향을 보세요.';
+
+  @override
+  String get videoMessiFirstPhase2Title => '수비 뒤 공간으로 띄우기';
+
+  @override
+  String get videoMessiFirstPhase2Watch =>
+      '10번 호나우지뉴가 발밑 대신 메시의 앞쪽 공간으로 띄워주는 패스를 보세요.';
+
+  @override
+  String get videoMessiFirstPhase3Title => '공이 떨어질 곳으로 들어가기';
+
+  @override
+  String get videoMessiFirstPhase3Watch => '메시의 달리는 길과 공이 떨어지는 곳이 만나는 순간을 보세요.';
 }

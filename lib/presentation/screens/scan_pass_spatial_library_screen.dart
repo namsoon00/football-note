@@ -582,10 +582,8 @@ class _ScanPassSpatialLibraryScreenState
       );
       final roles = scene.observedRoles(data, _time);
       final roleLabels = <SpatialObservedRoleKind, String>{
-        SpatialObservedRoleKind.ballSidePlayer: _l10n.spatialRoleBallSide,
         SpatialObservedRoleKind.connectedTeammate:
             _l10n.spatialRoleRecordedLink,
-        SpatialObservedRoleKind.nearbyDefender: _l10n.spatialRoleNearbyDefender,
       };
       return ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -1474,7 +1472,6 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     _drawTails(canvas, view);
     _drawPlayers(canvas, view, sample);
     _drawBall(canvas, view, sample.ball);
-    _drawRoleCallouts(canvas, view, sample);
     canvas.restore();
   }
 
@@ -1717,9 +1714,19 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       final jersey = _parseReplayColor(
         player.home ? data.scene.homeColor : data.scene.awayColor,
       );
-      final numberColor = _parseReplayColor(
-        player.home ? data.scene.homeNumberColor : data.scene.awayNumberColor,
-      );
+      final verifiedKit = player.keeper
+          ? null
+          : _verifiedLegacyKit(
+              data.match.date,
+              player.home ? data.match.home : data.match.away,
+            );
+      final numberColor = verifiedKit == null
+          ? _parseReplayColor(
+              player.home
+                  ? data.scene.homeNumberColor
+                  : data.scene.awayNumberColor,
+            )
+          : _parseVideoColor(verifiedKit.number);
       if (involved) {
         canvas.drawCircle(
           center,
@@ -1742,12 +1749,25 @@ class SpatialLibraryPitchPainter extends CustomPainter {
         ..lineTo(center.dx + marker * 1.02, center.dy - marker * .25)
         ..lineTo(center.dx + marker * .45, center.dy - marker * .72)
         ..close();
-      canvas.drawPath(
-        shirt,
-        Paint()
-          ..color = involved ? jersey : jersey.withValues(alpha: .82)
-          ..style = PaintingStyle.fill,
-      );
+      if (verifiedKit == null) {
+        canvas.drawPath(
+          shirt,
+          Paint()
+            ..color = involved ? jersey : jersey.withValues(alpha: .82)
+            ..style = PaintingStyle.fill,
+        );
+      } else {
+        canvas.save();
+        canvas.clipPath(shirt);
+        _paintKitPattern(canvas, shirt.getBounds(), verifiedKit);
+        if (!involved) {
+          canvas.drawRect(
+            shirt.getBounds(),
+            Paint()..color = Colors.black.withValues(alpha: .12),
+          );
+        }
+        canvas.restore();
+      }
       canvas.drawPath(
         shirt,
         Paint()
@@ -1756,6 +1776,29 @@ class SpatialLibraryPitchPainter extends CustomPainter {
           ..strokeWidth = .8,
       );
       final number = '${player.number ?? ''}';
+      if (verifiedKit != null && number.isNotEmpty) {
+        final outlineColor =
+            numberColor.computeLuminance() > .5 ? Colors.black87 : Colors.white;
+        final outline = TextPainter(
+          text: TextSpan(
+            text: number,
+            style: TextStyle(
+              foreground: Paint()
+                ..color = outlineColor
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = 2,
+              fontSize: marker * 1.02,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
+          ),
+          textDirection: textDirection,
+        )..layout();
+        outline.paint(
+          canvas,
+          center - Offset(outline.width / 2, outline.height / 2),
+        );
+      }
       final painter = TextPainter(
         text: TextSpan(
           text: number,
@@ -1801,6 +1844,9 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     );
   }
 
+  // Retained only for source-regression geometry helpers; the viewer no
+  // longer paints these generic floating labels.
+  // ignore: unused_element
   void _drawRoleCallouts(
     Canvas canvas,
     Rect view,
@@ -1839,10 +1885,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     }
   }
 
-  List<Rect> get calloutRects => _layoutRoleCallouts(
-        viewport.view,
-        data.renderSample(time),
-      ).map((layout) => layout.rect).toList(growable: false);
+  List<Rect> get calloutRects => const <Rect>[];
 
   Rect get ballSafetyRect => Rect.fromCircle(
         center: _project(viewport.view, data.renderSample(time).ball),

@@ -1,7 +1,9 @@
 # Scan Pass: legacy continuous situation catalog
 
-The current public entry is the 108-scene famous-match spatial library described
-in [its source and interaction guide](SCAN_PASS_SPATIAL_LIBRARY.md). The earlier
+The current public entry is the official-video viewer described in
+[its source and interaction guide](SCAN_PASS_VIDEO_LEARNING.md). The 108-scene
+famous-match spatial library remains a clearly labelled secondary entry. The
+earlier
 25-scene actual-match viewer remains available as a labelled legacy reference in
 the single More menu; its [observation guide](SCAN_PASS_CURRICULUM.md) and
 [data provenance](SCAN_PASS_REPLAY_PROVENANCE.md) remain valid for that retained
