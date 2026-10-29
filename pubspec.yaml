@@ -113,6 +113,7 @@ flutter:
     - assets/scan_pass_authored/
     - assets/scan_pass_spatial/
     - assets/scan_pass_spatial/scenes/
+    - assets/video_learning/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

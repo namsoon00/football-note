@@ -793,25 +793,27 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('public ScanPassGameScreen enters the spatial library',
+  testWidgets('public ScanPassGameScreen enters video learning',
       (tester) async {
     await tester.pumpWidget(_app(
       home: ScanPassGameScreen(optionRepository: _Options()),
     ));
     for (var attempt = 0; attempt < 30; attempt++) {
       await tester.pump();
-      if (find
-          .byKey(const ValueKey<String>('spatial-pitch'))
-          .evaluate()
-          .isNotEmpty) {
+      if (find.byType(ScanPassVideoLearningScreen).evaluate().isNotEmpty &&
+          find
+              .byKey(const ValueKey<String>('video-learning-play'))
+              .evaluate()
+              .isNotEmpty) {
         break;
       }
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 20)),
       );
     }
-    expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('spatial-play')), findsOneWidget);
+    expect(find.byType(ScanPassVideoLearningScreen), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('video-learning-play')),
+        findsOneWidget);
     expect(find.byKey(const ValueKey<String>('replay-play')), findsNothing);
     expect(tester.takeException(), isNull);
   });

@@ -1,8 +1,14 @@
 # Scan Pass famous-match spatial library
 
+This measured 108-scene viewer is now the secondary entry from the bottom menu
+of the video-first viewer. See
+[`SCAN_PASS_VIDEO_LEARNING.md`](SCAN_PASS_VIDEO_LEARNING.md) for the separate
+official-video catalogue and the evidence distinction between its authored
+qualitative diagrams and this library's broadcast-visible XY data.
+
 ## Public experience
 
-`ScanPassGameScreen` opens `ScanPassSpatialLibraryScreen`. It is one pitch-first
+`ScanPassSpatialLibraryScreen` is one pitch-first
 viewer with 108 distinct passages from nine familiar European matches in the
 SkillCorner 2019/20 historical sample. Each match contributes 12 non-overlapping
 passages. The catalog currently covers 53 focal players and eight measured
@@ -27,11 +33,15 @@ source `renderSample(time)`. A player who is not directly observed at that
 instant is absent; reconstructed `displaySample` positions are never drawn in
 this experience. Player tails stop at every source-observation gap and never
 bridge it. The recorded ball trace and its direction arrow end at the current
-source time, so a future connection is not previewed. Current role callouts are
-recomputed from the evidence-backed current team, current observed geometry,
-and reached evidence anchors rather than accumulated across the clip. A pass
-crossing near an opponent therefore does not relabel that opponent as the
-attacker. The teaching trace clears shortly after the evidenced moment; the
+source time, so a future connection is not previewed. Role rings, jersey
+numbers, and the factual cue remain, but generic ball-side/nearby-defender
+floating labels are intentionally omitted so they do not cover source evidence.
+Outfield shirts use match-specific 2019/20 colors and known patterns (including
+stripes, halves, centre stripes, and Barcelona's check pattern); source keeper
+colors remain untouched rather than being replaced with an outfield kit.
+Roles are recomputed from current observed geometry and reached anchors rather
+than accumulated across the clip. The teaching trace clears shortly after the
+evidenced moment; the
 continuous source passage then uses a current-play cue instead of leaving the
 old connection over unrelated action. Normal playback is source time at 1x.
 The optional focused replay uses 0.5x only between the evidence anchors, then

@@ -8,8 +8,11 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../application/scan_pass_spatial_library_service.dart';
+import '../../application/video_learning_player.dart';
+import '../../application/video_learning_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../domain/repositories/scan_pass_spatial_library_repository.dart';
+import '../../domain/repositories/video_learning_repository.dart';
 import '../../domain/scan_pass/scan_pass_attack.dart';
 import '../../domain/scan_pass/scan_pass_chain.dart';
 import '../../domain/scan_pass/scan_pass_curriculum.dart';
@@ -26,16 +29,22 @@ import '../../domain/scan_pass/authored_touch_sample.dart';
 import '../../domain/scan_pass/scan_pass_spatial_library.dart';
 import '../../domain/scan_pass/scan_pass_spatial_focus.dart';
 import '../../domain/scan_pass/scan_pass_space.dart';
+import '../../domain/scan_pass/scan_pass_video_learning.dart';
 import '../../infrastructure/scan_pass_spatial_asset_repository.dart';
+import '../../infrastructure/video_learning_asset_repository.dart';
+import '../../infrastructure/youtube_video_learning_player.dart';
 import '../scan_pass/replay_pitch_geometry.dart';
 import '../theme/app_motion.dart';
+import '../theme/app_theme.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/match_moment_official_video.dart';
+import '../widgets/video_learning_surface.dart';
 
 part 'scan_pass_possession_lesson_screen.dart';
 part 'scan_pass_pressure_lesson_screen.dart';
 part 'scan_pass_real_match_replay_screen.dart';
 part 'scan_pass_spatial_library_screen.dart';
+part 'scan_pass_video_learning_screen.dart';
 part 'scan_pass_replay_action_detail.dart';
 part 'scan_pass_authored_touch_sample_screen.dart';
 part 'scan_pass_match_moment_screen.dart';
@@ -73,7 +82,8 @@ class ScanPassGameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScanPassSpatialLibraryScreen(
+    return ScanPassVideoLearningScreen(
+      optionRepository: optionRepository,
       sourceLauncher: matchMomentSourceLauncher,
     );
   }

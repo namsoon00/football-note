@@ -10,12 +10,12 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   WidgetController.hitTestWarningShouldBeFatal = true;
 
-  testWidgets('public Scan Pass opens the spatial library by default',
+  testWidgets('public Scan Pass opens video learning by default',
       (tester) async {
     await tester.pumpWidget(_app(home: _publicEntry()));
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
 
-    expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
+    expect(find.byType(ScanPassVideoLearningScreen), findsOneWidget);
     expect(find.byKey(const ValueKey<String>('pressure-pitch')), findsNothing);
     expect(
         find.byKey(const ValueKey<String>('match-moment-pitch')), findsNothing);

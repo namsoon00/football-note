@@ -40811,6 +40811,685 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{player}\'s team reaches the ball again in {seconds} s.'**
   String spatialSituationRecovery(String player, String seconds);
+
+  /// No description provided for @videoLearningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match video learning'**
+  String get videoLearningTitle;
+
+  /// No description provided for @videoLearningLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The reviewed video catalogue could not be loaded.'**
+  String get videoLearningLoadFailed;
+
+  /// No description provided for @videoLearningRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get videoLearningRetry;
+
+  /// No description provided for @videoLearningVideoSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Official match video player'**
+  String get videoLearningVideoSemantics;
+
+  /// No description provided for @videoLearningNativeUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Embedded playback is available on the web. Open the official source on this device.'**
+  String get videoLearningNativeUnavailable;
+
+  /// No description provided for @videoLearningPlayerTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The official player did not become ready. Retry or open the source.'**
+  String get videoLearningPlayerTimeout;
+
+  /// No description provided for @videoLearningPlayerError.
+  ///
+  /// In en, this message translates to:
+  /// **'The official video cannot play here. Retry or open the source.'**
+  String get videoLearningPlayerError;
+
+  /// No description provided for @videoLearningOpenSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Open official video'**
+  String get videoLearningOpenSource;
+
+  /// No description provided for @videoLearningRetryPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry player'**
+  String get videoLearningRetryPlayer;
+
+  /// No description provided for @videoLearningAuthoredDiagramDisclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'Space guide · illustrative positions'**
+  String get videoLearningAuthoredDiagramDisclosure;
+
+  /// No description provided for @videoLearningWholeMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole play'**
+  String get videoLearningWholeMode;
+
+  /// No description provided for @videoLearningPartsMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Parts'**
+  String get videoLearningPartsMode;
+
+  /// No description provided for @videoLearningPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get videoLearningPrevious;
+
+  /// No description provided for @videoLearningPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get videoLearningPlay;
+
+  /// No description provided for @videoLearningPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get videoLearningPause;
+
+  /// No description provided for @videoLearningReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get videoLearningReplay;
+
+  /// No description provided for @videoLearningNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get videoLearningNext;
+
+  /// No description provided for @videoLearningSceneButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Scene {current} of {total}: {title}'**
+  String videoLearningSceneButton(int current, int total, String title);
+
+  /// No description provided for @videoLearningScenesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenes'**
+  String get videoLearningScenesTitle;
+
+  /// No description provided for @videoLearningAllTeams.
+  ///
+  /// In en, this message translates to:
+  /// **'All teams'**
+  String get videoLearningAllTeams;
+
+  /// No description provided for @videoLearningAllStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get videoLearningAllStatus;
+
+  /// No description provided for @videoLearningWatchedFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Watched'**
+  String get videoLearningWatchedFilter;
+
+  /// No description provided for @videoLearningUnwatchedFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Unwatched'**
+  String get videoLearningUnwatchedFilter;
+
+  /// No description provided for @videoLearningVisibleCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{visible} of {total} scenes'**
+  String videoLearningVisibleCount(int visible, int total);
+
+  /// No description provided for @videoLearningEmptyScenes.
+  ///
+  /// In en, this message translates to:
+  /// **'No scenes match these filters.'**
+  String get videoLearningEmptyScenes;
+
+  /// No description provided for @videoLearningResetFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset filters'**
+  String get videoLearningResetFilters;
+
+  /// No description provided for @videoLearningNewStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get videoLearningNewStatus;
+
+  /// No description provided for @videoLearningPartialStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress · {percent}%'**
+  String videoLearningPartialStatus(int percent);
+
+  /// No description provided for @videoLearningWatchedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Watched'**
+  String get videoLearningWatchedStatus;
+
+  /// No description provided for @videoLearningSceneRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{home} v {away} · {date} · clip {duration}'**
+  String videoLearningSceneRow(
+      String home, String away, String date, String duration);
+
+  /// No description provided for @videoLearningSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Source and settings'**
+  String get videoLearningSettings;
+
+  /// No description provided for @videoLearningAutoNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to next unseen scene'**
+  String get videoLearningAutoNext;
+
+  /// No description provided for @videoLearningAutoNextDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Only after a complete play finishes in the current filter.'**
+  String get videoLearningAutoNextDetail;
+
+  /// No description provided for @videoLearningSourceSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Official source'**
+  String get videoLearningSourceSection;
+
+  /// No description provided for @videoLearningSourceChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Published by {channel}'**
+  String videoLearningSourceChannel(String channel);
+
+  /// No description provided for @videoLearningOpenReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Open official match report'**
+  String get videoLearningOpenReport;
+
+  /// No description provided for @videoLearningOpenChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Open publisher channel'**
+  String get videoLearningOpenChannel;
+
+  /// No description provided for @videoLearningLegacyLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured 2D spatial library'**
+  String get videoLearningLegacyLibrary;
+
+  /// No description provided for @videoLearningLegacyLibraryDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'108 broadcast-visible XY scenes · no match video'**
+  String get videoLearningLegacyLibraryDetail;
+
+  /// No description provided for @videoLearningPersistenceFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress could not be saved on this device.'**
+  String get videoLearningPersistenceFailed;
+
+  /// No description provided for @videoLearningPlaybackSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback speed'**
+  String get videoLearningPlaybackSpeed;
+
+  /// No description provided for @videoLearningPlaybackOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'{mode} · {rate}'**
+  String videoLearningPlaybackOptions(String mode, String rate);
+
+  /// No description provided for @videoLearningClipDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Clip {duration}'**
+  String videoLearningClipDuration(String duration);
+
+  /// No description provided for @videoLearningPhaseRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} · {range}'**
+  String videoLearningPhaseRange(String title, String range);
+
+  /// No description provided for @videoLearningMatchLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{home} v {away} · {date}'**
+  String videoLearningMatchLine(String home, String away, String date);
+
+  /// No description provided for @videoLearningKitLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{home} (home team) · {away} (away team)'**
+  String videoLearningKitLine(String home, String away);
+
+  /// No description provided for @videoLearningPlayerNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} {name}'**
+  String videoLearningPlayerNumber(int number, String name);
+
+  /// No description provided for @videoLearningFocusInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'{players} · {instruction}'**
+  String videoLearningFocusInstruction(String players, String instruction);
+
+  /// No description provided for @videoLearningElapsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{elapsed} / {duration}'**
+  String videoLearningElapsed(String elapsed, String duration);
+
+  /// No description provided for @videoLearningOpenSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Useful open space'**
+  String get videoLearningOpenSpace;
+
+  /// No description provided for @videoLearningPassLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball / pass'**
+  String get videoLearningPassLegend;
+
+  /// No description provided for @videoLearningRunLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Run'**
+  String get videoLearningRunLegend;
+
+  /// No description provided for @videoLearningCarryLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry'**
+  String get videoLearningCarryLegend;
+
+  /// No description provided for @videoLearningShotLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Shot'**
+  String get videoLearningShotLegend;
+
+  /// No description provided for @videoLearningNoPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'No previous scene in this filter'**
+  String get videoLearningNoPrevious;
+
+  /// No description provided for @videoLearningNoNext.
+  ///
+  /// In en, this message translates to:
+  /// **'No next scene in this filter'**
+  String get videoLearningNoNext;
+
+  /// No description provided for @videoLearningTimingTolerance.
+  ///
+  /// In en, this message translates to:
+  /// **'Explanation phase boundaries are approximate (about ±{seconds}s from storyboard sampling).'**
+  String videoLearningTimingTolerance(String seconds);
+
+  /// No description provided for @videoMessiWinnerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Roberto carries forward → Alba overlaps → Messi finishes the cutback'**
+  String get videoMessiWinnerTitle;
+
+  /// No description provided for @videoMessiWinnerFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Look ahead of the ball: Alba moves outside while Messi keeps space behind the defence.'**
+  String get videoMessiWinnerFocus;
+
+  /// No description provided for @videoMessiWinnerPhase1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry behind pressure'**
+  String get videoMessiWinnerPhase1Title;
+
+  /// No description provided for @videoMessiWinnerPhase1Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'As Roberto carries centrally, watch which way the first defenders retreat.'**
+  String get videoMessiWinnerPhase1Watch;
+
+  /// No description provided for @videoMessiWinnerPhase2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect wide'**
+  String get videoMessiWinnerPhase2Title;
+
+  /// No description provided for @videoMessiWinnerPhase2Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'As Gomes receives, watch Alba\'s route around the outside.'**
+  String get videoMessiWinnerPhase2Watch;
+
+  /// No description provided for @videoMessiWinnerPhase3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cut back behind'**
+  String get videoMessiWinnerPhase3Title;
+
+  /// No description provided for @videoMessiWinnerPhase3Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Look behind the defence drawn to goal for where Messi receives.'**
+  String get videoMessiWinnerPhase3Watch;
+
+  /// No description provided for @videoFodenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Foden passes, then runs behind for the return'**
+  String get videoFodenTitle;
+
+  /// No description provided for @videoFodenFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'After releasing the ball, watch where Foden runs instead of stopping.'**
+  String get videoFodenFocus;
+
+  /// No description provided for @videoFodenPhase1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Release first'**
+  String get videoFodenPhase1Title;
+
+  /// No description provided for @videoFodenPhase1Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Foden\'s pass and his first movement after the ball leaves together.'**
+  String get videoFodenPhase1Watch;
+
+  /// No description provided for @videoFodenPhase2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Run behind again'**
+  String get videoFodenPhase2Title;
+
+  /// No description provided for @videoFodenPhase2Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Before De Bruyne returns it, watch the direction of Foden\'s run.'**
+  String get videoFodenPhase2Watch;
+
+  /// No description provided for @videoFodenPhase3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead toward goal'**
+  String get videoFodenPhase3Title;
+
+  /// No description provided for @videoFodenPhase3Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Notice why the return pass is placed ahead of Foden, not at his feet.'**
+  String get videoFodenPhase3Watch;
+
+  /// No description provided for @videoDybalaControlTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dybala\'s first touch → one-two with Ramsey → drive inside'**
+  String get videoDybalaControlTitle;
+
+  /// No description provided for @videoDybalaControlFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the first touch from the switch and the space Dybala re-enters after passing.'**
+  String get videoDybalaControlFocus;
+
+  /// No description provided for @videoDybalaControlPhase1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive the switch'**
+  String get videoDybalaControlPhase1Title;
+
+  /// No description provided for @videoDybalaControlPhase1Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Young\'s approach and where Dybala puts his first touch.'**
+  String get videoDybalaControlPhase1Watch;
+
+  /// No description provided for @videoDybalaControlPhase2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Exchange with Ramsey'**
+  String get videoDybalaControlPhase2Title;
+
+  /// No description provided for @videoDybalaControlPhase2Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'After passing, watch Dybala\'s route back inside.'**
+  String get videoDybalaControlPhase2Watch;
+
+  /// No description provided for @videoDybalaControlPhase3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass the recovering defender'**
+  String get videoDybalaControlPhase3Title;
+
+  /// No description provided for @videoDybalaControlPhase3Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the moment he moves the ball beside Young as the defender recovers.'**
+  String get videoDybalaControlPhase3Watch;
+
+  /// No description provided for @videoHiguainTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Short central links → Bentancur forward → Higuaín runs through'**
+  String get videoHiguainTitle;
+
+  /// No description provided for @videoHiguainFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Behind the short passes, watch when Higuaín moves between defenders.'**
+  String get videoHiguainFocus;
+
+  /// No description provided for @videoHiguainPhase1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw play centrally'**
+  String get videoHiguainPhase1Title;
+
+  /// No description provided for @videoHiguainPhase1Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch how the defence reacts to Pjanić and Ronaldo\'s short connection.'**
+  String get videoHiguainPhase1Watch;
+
+  /// No description provided for @videoHiguainPhase2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect forward'**
+  String get videoHiguainPhase2Title;
+
+  /// No description provided for @videoHiguainPhase2Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'As Bentancur receives, find Higuaín\'s next position first.'**
+  String get videoHiguainPhase2Watch;
+
+  /// No description provided for @videoHiguainPhase3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive between defenders'**
+  String get videoHiguainPhase3Title;
+
+  /// No description provided for @videoHiguainPhase3Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the passing gap and Higuaín\'s starting moment together.'**
+  String get videoHiguainPhase3Watch;
+
+  /// No description provided for @videoDybalaDepthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pjanić plays forward as Dybala runs behind'**
+  String get videoDybalaDepthTitle;
+
+  /// No description provided for @videoDybalaDepthFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'At the pass, watch the defensive line and the space Dybala enters to receive.'**
+  String get videoDybalaDepthFocus;
+
+  /// No description provided for @videoDybalaDepthPhase1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare the forward pass'**
+  String get videoDybalaDepthPhase1Title;
+
+  /// No description provided for @videoDybalaDepthPhase1Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'When Pjanić controls, look at the gap between Dybala and the defensive line.'**
+  String get videoDybalaDepthPhase1Watch;
+
+  /// No description provided for @videoDybalaDepthPhase2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive behind'**
+  String get videoDybalaDepthPhase2Title;
+
+  /// No description provided for @videoDybalaDepthPhase2Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch where the ball\'s path meets the direction of Dybala\'s run.'**
+  String get videoDybalaDepthPhase2Watch;
+
+  /// No description provided for @videoDybalaDepthPhase3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to the shot'**
+  String get videoDybalaDepthPhase3Title;
+
+  /// No description provided for @videoDybalaDepthPhase3Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'As Dybala moves the ball goalward, watch which side the defender follows.'**
+  String get videoDybalaDepthPhase3Watch;
+
+  /// No description provided for @videoRamseyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Matuidi advances wide; Ramsey arrives late in the box'**
+  String get videoRamseyTitle;
+
+  /// No description provided for @videoRamseyFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not follow only the cross—find where Ramsey sets himself after arriving from behind.'**
+  String get videoRamseyFocus;
+
+  /// No description provided for @videoRamseyPhase1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance wide'**
+  String get videoRamseyPhase1Title;
+
+  /// No description provided for @videoRamseyPhase1Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'As Matuidi advances outside, Ramsey remains behind the ball.'**
+  String get videoRamseyPhase1Watch;
+
+  /// No description provided for @videoRamseyPhase2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Play back inside'**
+  String get videoRamseyPhase2Title;
+
+  /// No description provided for @videoRamseyPhase2Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'As the ball goes toward Ronaldo, watch Ramsey\'s route into range.'**
+  String get videoRamseyPhase2Watch;
+
+  /// No description provided for @videoRamseyPhase3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'React to the loose ball'**
+  String get videoRamseyPhase3Title;
+
+  /// No description provided for @videoRamseyPhase3Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'After the first connection, watch the open ball space and Ramsey\'s position together.'**
+  String get videoRamseyPhase3Watch;
+
+  /// No description provided for @videoMessiFirstTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ronaldinho lifts the pass → No.30 Messi runs behind'**
+  String get videoMessiFirstTitle;
+
+  /// No description provided for @videoMessiFirstFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch when Messi moves after his pass and when Ronaldinho lifts the return into space.'**
+  String get videoMessiFirstFocus;
+
+  /// No description provided for @videoMessiFirstPhase1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass, then move'**
+  String get videoMessiFirstPhase1Title;
+
+  /// No description provided for @videoMessiFirstPhase1Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch No.30 Messi move toward the defensive line immediately after releasing the ball.'**
+  String get videoMessiFirstPhase1Watch;
+
+  /// No description provided for @videoMessiFirstPhase2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Lift into space behind'**
+  String get videoMessiFirstPhase2Title;
+
+  /// No description provided for @videoMessiFirstPhase2Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch No.10 Ronaldinho lift the return ahead of Messi, rather than to his feet.'**
+  String get videoMessiFirstPhase2Watch;
+
+  /// No description provided for @videoMessiFirstPhase3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet the dropping ball'**
+  String get videoMessiFirstPhase3Title;
+
+  /// No description provided for @videoMessiFirstPhase3Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch where Messi’s run meets the dropping ball before his finish.'**
+  String get videoMessiFirstPhase3Watch;
 }
 
 class _AppLocalizationsDelegate

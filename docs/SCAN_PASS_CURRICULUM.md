@@ -2,10 +2,10 @@
 
 ## Scope and validation status
 
-`ScanPassGameScreen` now opens the 108-scene
-`ScanPassSpatialLibraryScreen`; see
-[`SCAN_PASS_SPATIAL_LIBRARY.md`](SCAN_PASS_SPATIAL_LIBRARY.md). The viewer
-described below is retained in the More menu as the **Legacy replay reference**.
+`ScanPassGameScreen` now opens the official-video viewer; see
+[`SCAN_PASS_VIDEO_LEARNING.md`](SCAN_PASS_VIDEO_LEARNING.md). The 108-scene
+`ScanPassSpatialLibraryScreen` is a secondary bottom-menu entry, and the viewer
+described below remains its **Legacy replay reference**.
 It is a library of 25 continuous observational scenes: the existing 20 A-League
 scenes plus five historical Premier League/LaLiga scenes. The five historical
 scenes feature De Bruyne, Salah, Messi, Kroos, and Vinícius in source-continuous

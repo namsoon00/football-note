@@ -24295,4 +24295,414 @@ class AppLocalizationsEn extends AppLocalizations {
   String spatialSituationRecovery(String player, String seconds) {
     return '$player\'s team reaches the ball again in $seconds s.';
   }
+
+  @override
+  String get videoLearningTitle => 'Match video learning';
+
+  @override
+  String get videoLearningLoadFailed =>
+      'The reviewed video catalogue could not be loaded.';
+
+  @override
+  String get videoLearningRetry => 'Retry';
+
+  @override
+  String get videoLearningVideoSemantics => 'Official match video player';
+
+  @override
+  String get videoLearningNativeUnavailable =>
+      'Embedded playback is available on the web. Open the official source on this device.';
+
+  @override
+  String get videoLearningPlayerTimeout =>
+      'The official player did not become ready. Retry or open the source.';
+
+  @override
+  String get videoLearningPlayerError =>
+      'The official video cannot play here. Retry or open the source.';
+
+  @override
+  String get videoLearningOpenSource => 'Open official video';
+
+  @override
+  String get videoLearningRetryPlayer => 'Retry player';
+
+  @override
+  String get videoLearningAuthoredDiagramDisclosure =>
+      'Space guide · illustrative positions';
+
+  @override
+  String get videoLearningWholeMode => 'Whole play';
+
+  @override
+  String get videoLearningPartsMode => 'Parts';
+
+  @override
+  String get videoLearningPrevious => 'Previous';
+
+  @override
+  String get videoLearningPlay => 'Play';
+
+  @override
+  String get videoLearningPause => 'Pause';
+
+  @override
+  String get videoLearningReplay => 'Replay';
+
+  @override
+  String get videoLearningNext => 'Next';
+
+  @override
+  String videoLearningSceneButton(int current, int total, String title) {
+    return 'Scene $current of $total: $title';
+  }
+
+  @override
+  String get videoLearningScenesTitle => 'Scenes';
+
+  @override
+  String get videoLearningAllTeams => 'All teams';
+
+  @override
+  String get videoLearningAllStatus => 'All';
+
+  @override
+  String get videoLearningWatchedFilter => 'Watched';
+
+  @override
+  String get videoLearningUnwatchedFilter => 'Unwatched';
+
+  @override
+  String videoLearningVisibleCount(int visible, int total) {
+    return '$visible of $total scenes';
+  }
+
+  @override
+  String get videoLearningEmptyScenes => 'No scenes match these filters.';
+
+  @override
+  String get videoLearningResetFilters => 'Reset filters';
+
+  @override
+  String get videoLearningNewStatus => 'New';
+
+  @override
+  String videoLearningPartialStatus(int percent) {
+    return 'In progress · $percent%';
+  }
+
+  @override
+  String get videoLearningWatchedStatus => 'Watched';
+
+  @override
+  String videoLearningSceneRow(
+      String home, String away, String date, String duration) {
+    return '$home v $away · $date · clip $duration';
+  }
+
+  @override
+  String get videoLearningSettings => 'Source and settings';
+
+  @override
+  String get videoLearningAutoNext => 'Continue to next unseen scene';
+
+  @override
+  String get videoLearningAutoNextDetail =>
+      'Only after a complete play finishes in the current filter.';
+
+  @override
+  String get videoLearningSourceSection => 'Official source';
+
+  @override
+  String videoLearningSourceChannel(String channel) {
+    return 'Published by $channel';
+  }
+
+  @override
+  String get videoLearningOpenReport => 'Open official match report';
+
+  @override
+  String get videoLearningOpenChannel => 'Open publisher channel';
+
+  @override
+  String get videoLearningLegacyLibrary => 'Measured 2D spatial library';
+
+  @override
+  String get videoLearningLegacyLibraryDetail =>
+      '108 broadcast-visible XY scenes · no match video';
+
+  @override
+  String get videoLearningPersistenceFailed =>
+      'Progress could not be saved on this device.';
+
+  @override
+  String get videoLearningPlaybackSpeed => 'Playback speed';
+
+  @override
+  String videoLearningPlaybackOptions(String mode, String rate) {
+    return '$mode · $rate';
+  }
+
+  @override
+  String videoLearningClipDuration(String duration) {
+    return 'Clip $duration';
+  }
+
+  @override
+  String videoLearningPhaseRange(String title, String range) {
+    return '$title · $range';
+  }
+
+  @override
+  String videoLearningMatchLine(String home, String away, String date) {
+    return '$home v $away · $date';
+  }
+
+  @override
+  String videoLearningKitLine(String home, String away) {
+    return '$home (home team) · $away (away team)';
+  }
+
+  @override
+  String videoLearningPlayerNumber(int number, String name) {
+    return '#$number $name';
+  }
+
+  @override
+  String videoLearningFocusInstruction(String players, String instruction) {
+    return '$players · $instruction';
+  }
+
+  @override
+  String videoLearningElapsed(String elapsed, String duration) {
+    return '$elapsed / $duration';
+  }
+
+  @override
+  String get videoLearningOpenSpace => 'Useful open space';
+
+  @override
+  String get videoLearningPassLegend => 'Ball / pass';
+
+  @override
+  String get videoLearningRunLegend => 'Run';
+
+  @override
+  String get videoLearningCarryLegend => 'Carry';
+
+  @override
+  String get videoLearningShotLegend => 'Shot';
+
+  @override
+  String get videoLearningNoPrevious => 'No previous scene in this filter';
+
+  @override
+  String get videoLearningNoNext => 'No next scene in this filter';
+
+  @override
+  String videoLearningTimingTolerance(String seconds) {
+    return 'Explanation phase boundaries are approximate (about ±${seconds}s from storyboard sampling).';
+  }
+
+  @override
+  String get videoMessiWinnerTitle =>
+      'Roberto carries forward → Alba overlaps → Messi finishes the cutback';
+
+  @override
+  String get videoMessiWinnerFocus =>
+      'Look ahead of the ball: Alba moves outside while Messi keeps space behind the defence.';
+
+  @override
+  String get videoMessiWinnerPhase1Title => 'Carry behind pressure';
+
+  @override
+  String get videoMessiWinnerPhase1Watch =>
+      'As Roberto carries centrally, watch which way the first defenders retreat.';
+
+  @override
+  String get videoMessiWinnerPhase2Title => 'Connect wide';
+
+  @override
+  String get videoMessiWinnerPhase2Watch =>
+      'As Gomes receives, watch Alba\'s route around the outside.';
+
+  @override
+  String get videoMessiWinnerPhase3Title => 'Cut back behind';
+
+  @override
+  String get videoMessiWinnerPhase3Watch =>
+      'Look behind the defence drawn to goal for where Messi receives.';
+
+  @override
+  String get videoFodenTitle => 'Foden passes, then runs behind for the return';
+
+  @override
+  String get videoFodenFocus =>
+      'After releasing the ball, watch where Foden runs instead of stopping.';
+
+  @override
+  String get videoFodenPhase1Title => 'Release first';
+
+  @override
+  String get videoFodenPhase1Watch =>
+      'Watch Foden\'s pass and his first movement after the ball leaves together.';
+
+  @override
+  String get videoFodenPhase2Title => 'Run behind again';
+
+  @override
+  String get videoFodenPhase2Watch =>
+      'Before De Bruyne returns it, watch the direction of Foden\'s run.';
+
+  @override
+  String get videoFodenPhase3Title => 'Lead toward goal';
+
+  @override
+  String get videoFodenPhase3Watch =>
+      'Notice why the return pass is placed ahead of Foden, not at his feet.';
+
+  @override
+  String get videoDybalaControlTitle =>
+      'Dybala\'s first touch → one-two with Ramsey → drive inside';
+
+  @override
+  String get videoDybalaControlFocus =>
+      'Watch the first touch from the switch and the space Dybala re-enters after passing.';
+
+  @override
+  String get videoDybalaControlPhase1Title => 'Receive the switch';
+
+  @override
+  String get videoDybalaControlPhase1Watch =>
+      'Watch Young\'s approach and where Dybala puts his first touch.';
+
+  @override
+  String get videoDybalaControlPhase2Title => 'Exchange with Ramsey';
+
+  @override
+  String get videoDybalaControlPhase2Watch =>
+      'After passing, watch Dybala\'s route back inside.';
+
+  @override
+  String get videoDybalaControlPhase3Title => 'Pass the recovering defender';
+
+  @override
+  String get videoDybalaControlPhase3Watch =>
+      'Watch the moment he moves the ball beside Young as the defender recovers.';
+
+  @override
+  String get videoHiguainTitle =>
+      'Short central links → Bentancur forward → Higuaín runs through';
+
+  @override
+  String get videoHiguainFocus =>
+      'Behind the short passes, watch when Higuaín moves between defenders.';
+
+  @override
+  String get videoHiguainPhase1Title => 'Draw play centrally';
+
+  @override
+  String get videoHiguainPhase1Watch =>
+      'Watch how the defence reacts to Pjanić and Ronaldo\'s short connection.';
+
+  @override
+  String get videoHiguainPhase2Title => 'Connect forward';
+
+  @override
+  String get videoHiguainPhase2Watch =>
+      'As Bentancur receives, find Higuaín\'s next position first.';
+
+  @override
+  String get videoHiguainPhase3Title => 'Receive between defenders';
+
+  @override
+  String get videoHiguainPhase3Watch =>
+      'Watch the passing gap and Higuaín\'s starting moment together.';
+
+  @override
+  String get videoDybalaDepthTitle =>
+      'Pjanić plays forward as Dybala runs behind';
+
+  @override
+  String get videoDybalaDepthFocus =>
+      'At the pass, watch the defensive line and the space Dybala enters to receive.';
+
+  @override
+  String get videoDybalaDepthPhase1Title => 'Prepare the forward pass';
+
+  @override
+  String get videoDybalaDepthPhase1Watch =>
+      'When Pjanić controls, look at the gap between Dybala and the defensive line.';
+
+  @override
+  String get videoDybalaDepthPhase2Title => 'Receive behind';
+
+  @override
+  String get videoDybalaDepthPhase2Watch =>
+      'Watch where the ball\'s path meets the direction of Dybala\'s run.';
+
+  @override
+  String get videoDybalaDepthPhase3Title => 'Connect to the shot';
+
+  @override
+  String get videoDybalaDepthPhase3Watch =>
+      'As Dybala moves the ball goalward, watch which side the defender follows.';
+
+  @override
+  String get videoRamseyTitle =>
+      'Matuidi advances wide; Ramsey arrives late in the box';
+
+  @override
+  String get videoRamseyFocus =>
+      'Do not follow only the cross—find where Ramsey sets himself after arriving from behind.';
+
+  @override
+  String get videoRamseyPhase1Title => 'Advance wide';
+
+  @override
+  String get videoRamseyPhase1Watch =>
+      'As Matuidi advances outside, Ramsey remains behind the ball.';
+
+  @override
+  String get videoRamseyPhase2Title => 'Play back inside';
+
+  @override
+  String get videoRamseyPhase2Watch =>
+      'As the ball goes toward Ronaldo, watch Ramsey\'s route into range.';
+
+  @override
+  String get videoRamseyPhase3Title => 'React to the loose ball';
+
+  @override
+  String get videoRamseyPhase3Watch =>
+      'After the first connection, watch the open ball space and Ramsey\'s position together.';
+
+  @override
+  String get videoMessiFirstTitle =>
+      'Ronaldinho lifts the pass → No.30 Messi runs behind';
+
+  @override
+  String get videoMessiFirstFocus =>
+      'Watch when Messi moves after his pass and when Ronaldinho lifts the return into space.';
+
+  @override
+  String get videoMessiFirstPhase1Title => 'Pass, then move';
+
+  @override
+  String get videoMessiFirstPhase1Watch =>
+      'Watch No.30 Messi move toward the defensive line immediately after releasing the ball.';
+
+  @override
+  String get videoMessiFirstPhase2Title => 'Lift into space behind';
+
+  @override
+  String get videoMessiFirstPhase2Watch =>
+      'Watch No.10 Ronaldinho lift the return ahead of Messi, rather than to his feet.';
+
+  @override
+  String get videoMessiFirstPhase3Title => 'Meet the dropping ball';
+
+  @override
+  String get videoMessiFirstPhase3Watch =>
+      'Watch where Messi’s run meets the dropping ball before his finish.';
 }

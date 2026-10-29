@@ -1,0 +1,1872 @@
+{
+  "version": 1,
+  "scenes": [
+    {
+      "id": "clasico-messi-winner-20170423",
+      "titleKey": "videoMessiWinnerTitle",
+      "focusKey": "videoMessiWinnerFocus",
+      "date": "2017-04-23",
+      "homeTeam": {
+        "id": "realMadrid",
+        "name": "Real Madrid",
+        "kit": {
+          "primary": "#F7F7F4",
+          "secondary": "#65489B",
+          "accent": "#65489B",
+          "number": "#362773",
+          "pattern": "solid"
+        }
+      },
+      "awayTeam": {
+        "id": "barcelona",
+        "name": "FC Barcelona",
+        "kit": {
+          "primary": "#163E87",
+          "secondary": "#A51E3E",
+          "accent": "#A51E3E",
+          "number": "#F4CF45",
+          "pattern": "verticalStripes"
+        }
+      },
+      "videoId": "3j_daNHio4o",
+      "channel": "FC Barcelona",
+      "channelUrl": "https://www.youtube.com/@FCBarcelona",
+      "sourceDuration": 6198,
+      "start": 6045,
+      "end": 6073,
+      "goalTime": 6070,
+      "goalMinute": 92,
+      "reportUrl": "https://players.fcbarcelona.com/en/match/f869783-real-madrid-barcelona",
+      "reviewedOn": "2026-10-30",
+      "reviewMethod": "Official FC Barcelona full-match storyboard frames; 6050 shows the transition, 6060 the final connection, and 6070 the confirmed 2-3 aftermath. Broad authored explanation windows, not tracked events. The originally selected LaLiga edition returned YouTube embed error 150 and is not used.",
+      "timestampTolerance": 10,
+      "phases": [
+        {
+          "id": "1",
+          "titleKey": "videoMessiWinnerPhase1Title",
+          "watchKey": "videoMessiWinnerPhase1Watch",
+          "start": 6045,
+          "end": 6055,
+          "diagram": {
+            "players": [
+              {
+                "id": "roberto",
+                "name": "Sergi Roberto",
+                "number": 20,
+                "home": false,
+                "x": 0.18,
+                "y": 0.57
+              },
+              {
+                "id": "gomes",
+                "name": "Andre Gomes",
+                "number": 21,
+                "home": false,
+                "x": 0.55,
+                "y": 0.73
+              },
+              {
+                "id": "alba",
+                "name": "Jordi Alba",
+                "number": 18,
+                "home": false,
+                "x": 0.38,
+                "y": 0.89
+              },
+              {
+                "id": "messi",
+                "name": "Lionel Messi",
+                "number": 10,
+                "home": false,
+                "x": 0.55,
+                "y": 0.4
+              },
+              {
+                "id": "marcelo",
+                "name": "Marcelo",
+                "number": 12,
+                "home": true,
+                "x": 0.38,
+                "y": 0.52
+              },
+              {
+                "id": "kovacic",
+                "name": "Mateo Kovacic",
+                "number": 16,
+                "home": true,
+                "x": 0.36,
+                "y": 0.35
+              },
+              {
+                "id": "nacho",
+                "name": "Nacho Fernandez",
+                "number": 6,
+                "home": true,
+                "x": 0.76,
+                "y": 0.5
+              }
+            ],
+            "ball": {
+              "x": 0.19,
+              "y": 0.57
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.2,
+                  0.57
+                ],
+                "to": [
+                  0.53,
+                  0.58
+                ],
+                "kind": "carry"
+              },
+              {
+                "from": [
+                  0.55,
+                  0.4
+                ],
+                "to": [
+                  0.73,
+                  0.42
+                ],
+                "kind": "run"
+              }
+            ],
+            "space": {
+              "x": 0.39,
+              "y": 0.48,
+              "width": 0.25,
+              "height": 0.2
+            },
+            "focusIds": [
+              "roberto"
+            ]
+          }
+        },
+        {
+          "id": "2",
+          "titleKey": "videoMessiWinnerPhase2Title",
+          "watchKey": "videoMessiWinnerPhase2Watch",
+          "start": 6055,
+          "end": 6061,
+          "diagram": {
+            "players": [
+              {
+                "id": "roberto",
+                "name": "Sergi Roberto",
+                "number": 20,
+                "home": false,
+                "x": 0.54,
+                "y": 0.57
+              },
+              {
+                "id": "gomes",
+                "name": "Andre Gomes",
+                "number": 21,
+                "home": false,
+                "x": 0.65,
+                "y": 0.74
+              },
+              {
+                "id": "alba",
+                "name": "Jordi Alba",
+                "number": 18,
+                "home": false,
+                "x": 0.72,
+                "y": 0.89
+              },
+              {
+                "id": "messi",
+                "name": "Lionel Messi",
+                "number": 10,
+                "home": false,
+                "x": 0.74,
+                "y": 0.4
+              },
+              {
+                "id": "marcelo",
+                "name": "Marcelo",
+                "number": 12,
+                "home": true,
+                "x": 0.45,
+                "y": 0.58
+              },
+              {
+                "id": "kovacic",
+                "name": "Mateo Kovacic",
+                "number": 16,
+                "home": true,
+                "x": 0.55,
+                "y": 0.45
+              },
+              {
+                "id": "nacho",
+                "name": "Nacho Fernandez",
+                "number": 6,
+                "home": true,
+                "x": 0.81,
+                "y": 0.55
+              }
+            ],
+            "ball": {
+              "x": 0.65,
+              "y": 0.74
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.54,
+                  0.57
+                ],
+                "to": [
+                  0.65,
+                  0.74
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.65,
+                  0.74
+                ],
+                "to": [
+                  0.83,
+                  0.84
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.72,
+                  0.89
+                ],
+                "to": [
+                  0.87,
+                  0.85
+                ],
+                "kind": "run"
+              }
+            ],
+            "space": {
+              "x": 0.76,
+              "y": 0.75,
+              "width": 0.17,
+              "height": 0.18
+            },
+            "focusIds": [
+              "gomes",
+              "alba"
+            ]
+          }
+        },
+        {
+          "id": "3",
+          "titleKey": "videoMessiWinnerPhase3Title",
+          "watchKey": "videoMessiWinnerPhase3Watch",
+          "start": 6061,
+          "end": 6073,
+          "diagram": {
+            "players": [
+              {
+                "id": "roberto",
+                "name": "Sergi Roberto",
+                "number": 20,
+                "home": false,
+                "x": 0.58,
+                "y": 0.58
+              },
+              {
+                "id": "gomes",
+                "name": "Andre Gomes",
+                "number": 21,
+                "home": false,
+                "x": 0.66,
+                "y": 0.74
+              },
+              {
+                "id": "alba",
+                "name": "Jordi Alba",
+                "number": 18,
+                "home": false,
+                "x": 0.87,
+                "y": 0.85
+              },
+              {
+                "id": "messi",
+                "name": "Lionel Messi",
+                "number": 10,
+                "home": false,
+                "x": 0.8,
+                "y": 0.48
+              },
+              {
+                "id": "marcelo",
+                "name": "Marcelo",
+                "number": 12,
+                "home": true,
+                "x": 0.56,
+                "y": 0.6
+              },
+              {
+                "id": "kovacic",
+                "name": "Mateo Kovacic",
+                "number": 16,
+                "home": true,
+                "x": 0.67,
+                "y": 0.45
+              },
+              {
+                "id": "nacho",
+                "name": "Nacho Fernandez",
+                "number": 6,
+                "home": true,
+                "x": 0.87,
+                "y": 0.65
+              }
+            ],
+            "ball": {
+              "x": 0.87,
+              "y": 0.85
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.87,
+                  0.85
+                ],
+                "to": [
+                  0.8,
+                  0.48
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.8,
+                  0.48
+                ],
+                "to": [
+                  0.98,
+                  0.49
+                ],
+                "kind": "shot"
+              }
+            ],
+            "space": {
+              "x": 0.72,
+              "y": 0.37,
+              "width": 0.16,
+              "height": 0.2
+            },
+            "focusIds": [
+              "alba",
+              "messi"
+            ]
+          }
+        }
+      ],
+      "attackDirection": 1
+    },
+    {
+      "id": "barca-messi-first-goal-20050501",
+      "titleKey": "videoMessiFirstTitle",
+      "focusKey": "videoMessiFirstFocus",
+      "date": "2005-05-01",
+      "homeTeam": {
+        "id": "barcelona",
+        "name": "FC Barcelona",
+        "kit": {
+          "primary": "#163E87",
+          "secondary": "#A51E3E",
+          "accent": "#F4CF45",
+          "number": "#F4CF45",
+          "pattern": "verticalStripes"
+        }
+      },
+      "awayTeam": {
+        "id": "albacete",
+        "name": "Albacete Balompie",
+        "kit": {
+          "primary": "#F5F4ED",
+          "secondary": "#17314F",
+          "accent": "#17314F",
+          "number": "#172B41",
+          "pattern": "solid"
+        }
+      },
+      "videoId": "j9ihJMqZGD0",
+      "channel": "FC Barcelona",
+      "channelUrl": "https://www.youtube.com/@FCBarcelona",
+      "sourceDuration": 86,
+      "start": 26,
+      "end": 39,
+      "goalTime": 38,
+      "goalMinute": 91,
+      "attackDirection": -1,
+      "reportUrl": "https://www.fcbarcelona.com/en/football/first-team/news/1655354/15",
+      "reviewedOn": "2026-10-30",
+      "reviewMethod": "Official FC Barcelona one-second storyboard frames and club match retrospective. Only the valid second attack at26-39seconds is included; the earlier offside attempt is excluded. Only the two securely identified actors are drawn.",
+      "timestampTolerance": 1,
+      "phases": [
+        {
+          "id": "1",
+          "titleKey": "videoMessiFirstPhase1Title",
+          "watchKey": "videoMessiFirstPhase1Watch",
+          "start": 26,
+          "end": 30,
+          "diagram": {
+            "players": [
+              {
+                "id": "messi",
+                "name": "Lionel Messi",
+                "number": 30,
+                "home": true,
+                "x": 0.4,
+                "y": 0.56
+              },
+              {
+                "id": "ronaldinho",
+                "name": "Ronaldinho",
+                "number": 10,
+                "home": true,
+                "x": 0.54,
+                "y": 0.46
+              }
+            ],
+            "ball": {
+              "x": 0.4,
+              "y": 0.56
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.4,
+                  0.56
+                ],
+                "to": [
+                  0.54,
+                  0.46
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.4,
+                  0.56
+                ],
+                "to": [
+                  0.72,
+                  0.55
+                ],
+                "kind": "run"
+              }
+            ],
+            "space": {
+              "x": 0.65,
+              "y": 0.35,
+              "width": 0.24,
+              "height": 0.26
+            },
+            "focusIds": [
+              "messi",
+              "ronaldinho"
+            ]
+          }
+        },
+        {
+          "id": "2",
+          "titleKey": "videoMessiFirstPhase2Title",
+          "watchKey": "videoMessiFirstPhase2Watch",
+          "start": 30,
+          "end": 34,
+          "diagram": {
+            "players": [
+              {
+                "id": "messi",
+                "name": "Lionel Messi",
+                "number": 30,
+                "home": true,
+                "x": 0.74,
+                "y": 0.54
+              },
+              {
+                "id": "ronaldinho",
+                "name": "Ronaldinho",
+                "number": 10,
+                "home": true,
+                "x": 0.55,
+                "y": 0.46
+              }
+            ],
+            "ball": {
+              "x": 0.55,
+              "y": 0.46
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.55,
+                  0.46
+                ],
+                "to": [
+                  0.85,
+                  0.51
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.74,
+                  0.54
+                ],
+                "to": [
+                  0.85,
+                  0.51
+                ],
+                "kind": "run"
+              }
+            ],
+            "space": {
+              "x": 0.75,
+              "y": 0.35,
+              "width": 0.18,
+              "height": 0.25
+            },
+            "focusIds": [
+              "ronaldinho",
+              "messi"
+            ]
+          }
+        },
+        {
+          "id": "3",
+          "titleKey": "videoMessiFirstPhase3Title",
+          "watchKey": "videoMessiFirstPhase3Watch",
+          "start": 34,
+          "end": 39,
+          "diagram": {
+            "players": [
+              {
+                "id": "messi",
+                "name": "Lionel Messi",
+                "number": 30,
+                "home": true,
+                "x": 0.88,
+                "y": 0.5
+              },
+              {
+                "id": "ronaldinho",
+                "name": "Ronaldinho",
+                "number": 10,
+                "home": true,
+                "x": 0.58,
+                "y": 0.46
+              }
+            ],
+            "ball": {
+              "x": 0.88,
+              "y": 0.5
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.88,
+                  0.5
+                ],
+                "to": [
+                  0.99,
+                  0.48
+                ],
+                "kind": "shot"
+              }
+            ],
+            "space": {
+              "x": 0.82,
+              "y": 0.4,
+              "width": 0.13,
+              "height": 0.2
+            },
+            "focusIds": [
+              "messi"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "juve-dybala-20200308",
+      "titleKey": "videoDybalaControlTitle",
+      "focusKey": "videoDybalaControlFocus",
+      "date": "2020-03-08",
+      "homeTeam": {
+        "id": "juventus",
+        "name": "Juventus",
+        "kit": {
+          "primary": "#FFFFFF",
+          "secondary": "#161616",
+          "accent": "#ED709C",
+          "number": "#F8F8F8",
+          "pattern": "halves"
+        }
+      },
+      "awayTeam": {
+        "id": "inter",
+        "name": "Inter",
+        "kit": {
+          "primary": "#1478CD",
+          "secondary": "#111823",
+          "accent": "#111823",
+          "number": "#FFFFFF",
+          "pattern": "verticalStripes"
+        }
+      },
+      "videoId": "6K1nqPcLkZ4",
+      "channel": "Serie A",
+      "channelUrl": "https://www.youtube.com/@seriea",
+      "sourceDuration": 253,
+      "start": 116,
+      "end": 132,
+      "goalTime": 130,
+      "goalMinute": 67,
+      "reportUrl": "https://www.juventus.com/it/news/articoli/juve-inter-commento",
+      "reviewedOn": "2026-10-30",
+      "reviewMethod": "Official publisher storyboard frames cross-checked with the official match report. Authored diagrams illustrate the selected action; they are not tracking or body/foot measurements.",
+      "timestampTolerance": 2,
+      "phases": [
+        {
+          "id": "1",
+          "titleKey": "videoDybalaControlPhase1Title",
+          "watchKey": "videoDybalaControlPhase1Watch",
+          "start": 116,
+          "end": 122,
+          "diagram": {
+            "players": [
+              {
+                "id": "bentancur",
+                "name": "Rodrigo Bentancur",
+                "number": 30,
+                "home": true,
+                "x": 0.18,
+                "y": 0.72
+              },
+              {
+                "id": "dybala",
+                "name": "Paulo Dybala",
+                "number": 10,
+                "home": true,
+                "x": 0.62,
+                "y": 0.2
+              },
+              {
+                "id": "ramsey",
+                "name": "Aaron Ramsey",
+                "number": 8,
+                "home": true,
+                "x": 0.67,
+                "y": 0.48
+              },
+              {
+                "id": "young",
+                "name": "Ashley Young",
+                "number": 15,
+                "home": false,
+                "x": 0.7,
+                "y": 0.24
+              },
+              {
+                "id": "devrij",
+                "name": "Stefan de Vrij",
+                "number": 6,
+                "home": false,
+                "x": 0.8,
+                "y": 0.52
+              }
+            ],
+            "ball": {
+              "x": 0.18,
+              "y": 0.72
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.18,
+                  0.72
+                ],
+                "to": [
+                  0.62,
+                  0.2
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.62,
+                  0.2
+                ],
+                "to": [
+                  0.69,
+                  0.3
+                ],
+                "kind": "carry"
+              }
+            ],
+            "space": {
+              "x": 0.56,
+              "y": 0.14,
+              "width": 0.16,
+              "height": 0.2
+            },
+            "focusIds": [
+              "dybala"
+            ]
+          }
+        },
+        {
+          "id": "2",
+          "titleKey": "videoDybalaControlPhase2Title",
+          "watchKey": "videoDybalaControlPhase2Watch",
+          "start": 122,
+          "end": 126,
+          "diagram": {
+            "players": [
+              {
+                "id": "bentancur",
+                "name": "Rodrigo Bentancur",
+                "number": 30,
+                "home": true,
+                "x": 0.24,
+                "y": 0.7
+              },
+              {
+                "id": "dybala",
+                "name": "Paulo Dybala",
+                "number": 10,
+                "home": true,
+                "x": 0.7,
+                "y": 0.3
+              },
+              {
+                "id": "ramsey",
+                "name": "Aaron Ramsey",
+                "number": 8,
+                "home": true,
+                "x": 0.69,
+                "y": 0.48
+              },
+              {
+                "id": "young",
+                "name": "Ashley Young",
+                "number": 15,
+                "home": false,
+                "x": 0.68,
+                "y": 0.24
+              },
+              {
+                "id": "devrij",
+                "name": "Stefan de Vrij",
+                "number": 6,
+                "home": false,
+                "x": 0.82,
+                "y": 0.5
+              }
+            ],
+            "ball": {
+              "x": 0.7,
+              "y": 0.3
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.7,
+                  0.3
+                ],
+                "to": [
+                  0.69,
+                  0.48
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.7,
+                  0.3
+                ],
+                "to": [
+                  0.84,
+                  0.33
+                ],
+                "kind": "run"
+              },
+              {
+                "from": [
+                  0.69,
+                  0.48
+                ],
+                "to": [
+                  0.84,
+                  0.33
+                ],
+                "kind": "pass"
+              }
+            ],
+            "space": {
+              "x": 0.76,
+              "y": 0.24,
+              "width": 0.16,
+              "height": 0.18
+            },
+            "focusIds": [
+              "dybala",
+              "ramsey"
+            ]
+          }
+        },
+        {
+          "id": "3",
+          "titleKey": "videoDybalaControlPhase3Title",
+          "watchKey": "videoDybalaControlPhase3Watch",
+          "start": 126,
+          "end": 132,
+          "diagram": {
+            "players": [
+              {
+                "id": "bentancur",
+                "name": "Rodrigo Bentancur",
+                "number": 30,
+                "home": true,
+                "x": 0.32,
+                "y": 0.68
+              },
+              {
+                "id": "dybala",
+                "name": "Paulo Dybala",
+                "number": 10,
+                "home": true,
+                "x": 0.86,
+                "y": 0.38
+              },
+              {
+                "id": "ramsey",
+                "name": "Aaron Ramsey",
+                "number": 8,
+                "home": true,
+                "x": 0.72,
+                "y": 0.5
+              },
+              {
+                "id": "young",
+                "name": "Ashley Young",
+                "number": 15,
+                "home": false,
+                "x": 0.78,
+                "y": 0.3
+              },
+              {
+                "id": "devrij",
+                "name": "Stefan de Vrij",
+                "number": 6,
+                "home": false,
+                "x": 0.86,
+                "y": 0.52
+              }
+            ],
+            "ball": {
+              "x": 0.86,
+              "y": 0.38
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.79,
+                  0.32
+                ],
+                "to": [
+                  0.86,
+                  0.38
+                ],
+                "kind": "carry"
+              },
+              {
+                "from": [
+                  0.86,
+                  0.38
+                ],
+                "to": [
+                  0.99,
+                  0.53
+                ],
+                "kind": "shot"
+              }
+            ],
+            "space": {
+              "x": 0.8,
+              "y": 0.33,
+              "width": 0.13,
+              "height": 0.14
+            },
+            "focusIds": [
+              "dybala"
+            ]
+          }
+        }
+      ],
+      "attackDirection": -1
+    },
+    {
+      "id": "juve-higuain-20191006",
+      "titleKey": "videoHiguainTitle",
+      "focusKey": "videoHiguainFocus",
+      "date": "2019-10-06",
+      "homeTeam": {
+        "id": "inter",
+        "name": "Inter",
+        "kit": {
+          "primary": "#1478CD",
+          "secondary": "#111823",
+          "accent": "#111823",
+          "number": "#FFFFFF",
+          "pattern": "verticalStripes"
+        }
+      },
+      "awayTeam": {
+        "id": "juventus",
+        "name": "Juventus",
+        "kit": {
+          "primary": "#FFFFFF",
+          "secondary": "#161616",
+          "accent": "#ED709C",
+          "number": "#F8F8F8",
+          "pattern": "halves"
+        }
+      },
+      "videoId": "EXrtdXC65ik",
+      "channel": "Serie A",
+      "channelUrl": "https://www.youtube.com/@seriea",
+      "sourceDuration": 253,
+      "start": 186,
+      "end": 200,
+      "goalTime": 198,
+      "goalMinute": 80,
+      "reportUrl": "https://www.inter.it/it/match_center/4459/inter-juventus",
+      "reviewedOn": "2026-10-30",
+      "reviewMethod": "Official publisher storyboard frames cross-checked with the official match report. Authored diagrams illustrate the selected action; they are not tracking or body/foot measurements.",
+      "timestampTolerance": 2,
+      "phases": [
+        {
+          "id": "1",
+          "titleKey": "videoHiguainPhase1Title",
+          "watchKey": "videoHiguainPhase1Watch",
+          "start": 186,
+          "end": 190,
+          "diagram": {
+            "players": [
+              {
+                "id": "pjanic",
+                "name": "Miralem Pjanic",
+                "number": 5,
+                "home": false,
+                "x": 0.28,
+                "y": 0.45
+              },
+              {
+                "id": "ronaldo",
+                "name": "Cristiano Ronaldo",
+                "number": 7,
+                "home": false,
+                "x": 0.51,
+                "y": 0.42
+              },
+              {
+                "id": "bentancur",
+                "name": "Rodrigo Bentancur",
+                "number": 30,
+                "home": false,
+                "x": 0.62,
+                "y": 0.6
+              },
+              {
+                "id": "higuain",
+                "name": "Gonzalo Higuain",
+                "number": 21,
+                "home": false,
+                "x": 0.73,
+                "y": 0.4
+              },
+              {
+                "id": "devrij",
+                "name": "Stefan de Vrij",
+                "number": 6,
+                "home": true,
+                "x": 0.8,
+                "y": 0.46
+              },
+              {
+                "id": "skriniar",
+                "name": "Milan Skriniar",
+                "number": 37,
+                "home": true,
+                "x": 0.76,
+                "y": 0.67
+              }
+            ],
+            "ball": {
+              "x": 0.28,
+              "y": 0.45
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.28,
+                  0.45
+                ],
+                "to": [
+                  0.51,
+                  0.42
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.51,
+                  0.42
+                ],
+                "to": [
+                  0.62,
+                  0.6
+                ],
+                "kind": "pass"
+              }
+            ],
+            "space": {
+              "x": 0.61,
+              "y": 0.38,
+              "width": 0.15,
+              "height": 0.16
+            },
+            "focusIds": [
+              "pjanic",
+              "ronaldo"
+            ]
+          }
+        },
+        {
+          "id": "2",
+          "titleKey": "videoHiguainPhase2Title",
+          "watchKey": "videoHiguainPhase2Watch",
+          "start": 190,
+          "end": 194,
+          "diagram": {
+            "players": [
+              {
+                "id": "pjanic",
+                "name": "Miralem Pjanic",
+                "number": 5,
+                "home": false,
+                "x": 0.34,
+                "y": 0.45
+              },
+              {
+                "id": "ronaldo",
+                "name": "Cristiano Ronaldo",
+                "number": 7,
+                "home": false,
+                "x": 0.58,
+                "y": 0.42
+              },
+              {
+                "id": "bentancur",
+                "name": "Rodrigo Bentancur",
+                "number": 30,
+                "home": false,
+                "x": 0.67,
+                "y": 0.57
+              },
+              {
+                "id": "higuain",
+                "name": "Gonzalo Higuain",
+                "number": 21,
+                "home": false,
+                "x": 0.79,
+                "y": 0.4
+              },
+              {
+                "id": "devrij",
+                "name": "Stefan de Vrij",
+                "number": 6,
+                "home": true,
+                "x": 0.82,
+                "y": 0.48
+              },
+              {
+                "id": "skriniar",
+                "name": "Milan Skriniar",
+                "number": 37,
+                "home": true,
+                "x": 0.8,
+                "y": 0.66
+              }
+            ],
+            "ball": {
+              "x": 0.67,
+              "y": 0.57
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.79,
+                  0.4
+                ],
+                "to": [
+                  0.87,
+                  0.38
+                ],
+                "kind": "run"
+              },
+              {
+                "from": [
+                  0.67,
+                  0.57
+                ],
+                "to": [
+                  0.87,
+                  0.38
+                ],
+                "kind": "pass"
+              }
+            ],
+            "space": {
+              "x": 0.8,
+              "y": 0.29,
+              "width": 0.14,
+              "height": 0.14
+            },
+            "focusIds": [
+              "bentancur",
+              "higuain"
+            ]
+          }
+        },
+        {
+          "id": "3",
+          "titleKey": "videoHiguainPhase3Title",
+          "watchKey": "videoHiguainPhase3Watch",
+          "start": 194,
+          "end": 200,
+          "diagram": {
+            "players": [
+              {
+                "id": "pjanic",
+                "name": "Miralem Pjanic",
+                "number": 5,
+                "home": false,
+                "x": 0.4,
+                "y": 0.45
+              },
+              {
+                "id": "ronaldo",
+                "name": "Cristiano Ronaldo",
+                "number": 7,
+                "home": false,
+                "x": 0.65,
+                "y": 0.44
+              },
+              {
+                "id": "bentancur",
+                "name": "Rodrigo Bentancur",
+                "number": 30,
+                "home": false,
+                "x": 0.71,
+                "y": 0.57
+              },
+              {
+                "id": "higuain",
+                "name": "Gonzalo Higuain",
+                "number": 21,
+                "home": false,
+                "x": 0.88,
+                "y": 0.39
+              },
+              {
+                "id": "devrij",
+                "name": "Stefan de Vrij",
+                "number": 6,
+                "home": true,
+                "x": 0.83,
+                "y": 0.46
+              },
+              {
+                "id": "skriniar",
+                "name": "Milan Skriniar",
+                "number": 37,
+                "home": true,
+                "x": 0.84,
+                "y": 0.63
+              }
+            ],
+            "ball": {
+              "x": 0.88,
+              "y": 0.39
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.88,
+                  0.39
+                ],
+                "to": [
+                  0.99,
+                  0.54
+                ],
+                "kind": "shot"
+              }
+            ],
+            "space": {
+              "x": 0.83,
+              "y": 0.32,
+              "width": 0.1,
+              "height": 0.16
+            },
+            "focusIds": [
+              "higuain"
+            ]
+          }
+        }
+      ],
+      "attackDirection": 1
+    },
+    {
+      "id": "juve-dybala-depth-20191006",
+      "titleKey": "videoDybalaDepthTitle",
+      "focusKey": "videoDybalaDepthFocus",
+      "date": "2019-10-06",
+      "homeTeam": {
+        "id": "inter",
+        "name": "Inter",
+        "kit": {
+          "primary": "#1478CD",
+          "secondary": "#111823",
+          "accent": "#111823",
+          "number": "#FFFFFF",
+          "pattern": "verticalStripes"
+        }
+      },
+      "awayTeam": {
+        "id": "juventus",
+        "name": "Juventus",
+        "kit": {
+          "primary": "#FFFFFF",
+          "secondary": "#161616",
+          "accent": "#ED709C",
+          "number": "#F8F8F8",
+          "pattern": "halves"
+        }
+      },
+      "videoId": "EXrtdXC65ik",
+      "channel": "Serie A",
+      "channelUrl": "https://www.youtube.com/@seriea",
+      "sourceDuration": 253,
+      "start": 10,
+      "end": 22,
+      "goalTime": 18,
+      "goalMinute": 4,
+      "reportUrl": "https://www.juventus.com/en/news/articles/juve-move-on-top-of-serie-a-log",
+      "reviewedOn": "2026-10-30",
+      "reviewMethod": "Official publisher storyboard frames cross-checked with the official match report. Authored diagrams illustrate the selected action; they are not tracking or body/foot measurements.",
+      "timestampTolerance": 2,
+      "phases": [
+        {
+          "id": "1",
+          "titleKey": "videoDybalaDepthPhase1Title",
+          "watchKey": "videoDybalaDepthPhase1Watch",
+          "start": 10,
+          "end": 13,
+          "diagram": {
+            "players": [
+              {
+                "id": "pjanic",
+                "name": "Miralem Pjanic",
+                "number": 5,
+                "home": false,
+                "x": 0.22,
+                "y": 0.58
+              },
+              {
+                "id": "dybala",
+                "name": "Paulo Dybala",
+                "number": 10,
+                "home": false,
+                "x": 0.62,
+                "y": 0.29
+              },
+              {
+                "id": "ronaldo",
+                "name": "Cristiano Ronaldo",
+                "number": 7,
+                "home": false,
+                "x": 0.67,
+                "y": 0.66
+              },
+              {
+                "id": "godin",
+                "name": "Diego Godin",
+                "number": 2,
+                "home": true,
+                "x": 0.69,
+                "y": 0.46
+              },
+              {
+                "id": "devrij",
+                "name": "Stefan de Vrij",
+                "number": 6,
+                "home": true,
+                "x": 0.7,
+                "y": 0.58
+              },
+              {
+                "id": "skriniar",
+                "name": "Milan Skriniar",
+                "number": 37,
+                "home": true,
+                "x": 0.69,
+                "y": 0.76
+              }
+            ],
+            "ball": {
+              "x": 0.22,
+              "y": 0.58
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.22,
+                  0.58
+                ],
+                "to": [
+                  0.77,
+                  0.26
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.62,
+                  0.29
+                ],
+                "to": [
+                  0.77,
+                  0.26
+                ],
+                "kind": "run"
+              }
+            ],
+            "space": {
+              "x": 0.7,
+              "y": 0.17,
+              "width": 0.2,
+              "height": 0.2
+            },
+            "focusIds": [
+              "pjanic",
+              "dybala"
+            ]
+          }
+        },
+        {
+          "id": "2",
+          "titleKey": "videoDybalaDepthPhase2Title",
+          "watchKey": "videoDybalaDepthPhase2Watch",
+          "start": 13,
+          "end": 16,
+          "diagram": {
+            "players": [
+              {
+                "id": "pjanic",
+                "name": "Miralem Pjanic",
+                "number": 5,
+                "home": false,
+                "x": 0.28,
+                "y": 0.55
+              },
+              {
+                "id": "dybala",
+                "name": "Paulo Dybala",
+                "number": 10,
+                "home": false,
+                "x": 0.78,
+                "y": 0.27
+              },
+              {
+                "id": "ronaldo",
+                "name": "Cristiano Ronaldo",
+                "number": 7,
+                "home": false,
+                "x": 0.75,
+                "y": 0.65
+              },
+              {
+                "id": "godin",
+                "name": "Diego Godin",
+                "number": 2,
+                "home": true,
+                "x": 0.75,
+                "y": 0.45
+              },
+              {
+                "id": "devrij",
+                "name": "Stefan de Vrij",
+                "number": 6,
+                "home": true,
+                "x": 0.78,
+                "y": 0.56
+              },
+              {
+                "id": "skriniar",
+                "name": "Milan Skriniar",
+                "number": 37,
+                "home": true,
+                "x": 0.78,
+                "y": 0.72
+              }
+            ],
+            "ball": {
+              "x": 0.78,
+              "y": 0.27
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.78,
+                  0.27
+                ],
+                "to": [
+                  0.87,
+                  0.32
+                ],
+                "kind": "carry"
+              }
+            ],
+            "space": {
+              "x": 0.78,
+              "y": 0.2,
+              "width": 0.14,
+              "height": 0.19
+            },
+            "focusIds": [
+              "dybala"
+            ]
+          }
+        },
+        {
+          "id": "3",
+          "titleKey": "videoDybalaDepthPhase3Title",
+          "watchKey": "videoDybalaDepthPhase3Watch",
+          "start": 16,
+          "end": 22,
+          "diagram": {
+            "players": [
+              {
+                "id": "pjanic",
+                "name": "Miralem Pjanic",
+                "number": 5,
+                "home": false,
+                "x": 0.34,
+                "y": 0.52
+              },
+              {
+                "id": "dybala",
+                "name": "Paulo Dybala",
+                "number": 10,
+                "home": false,
+                "x": 0.87,
+                "y": 0.32
+              },
+              {
+                "id": "ronaldo",
+                "name": "Cristiano Ronaldo",
+                "number": 7,
+                "home": false,
+                "x": 0.8,
+                "y": 0.63
+              },
+              {
+                "id": "godin",
+                "name": "Diego Godin",
+                "number": 2,
+                "home": true,
+                "x": 0.82,
+                "y": 0.44
+              },
+              {
+                "id": "devrij",
+                "name": "Stefan de Vrij",
+                "number": 6,
+                "home": true,
+                "x": 0.85,
+                "y": 0.53
+              },
+              {
+                "id": "skriniar",
+                "name": "Milan Skriniar",
+                "number": 37,
+                "home": true,
+                "x": 0.83,
+                "y": 0.69
+              }
+            ],
+            "ball": {
+              "x": 0.87,
+              "y": 0.32
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.87,
+                  0.32
+                ],
+                "to": [
+                  0.99,
+                  0.54
+                ],
+                "kind": "shot"
+              }
+            ],
+            "space": {
+              "x": 0.82,
+              "y": 0.24,
+              "width": 0.12,
+              "height": 0.17
+            },
+            "focusIds": [
+              "dybala"
+            ]
+          }
+        }
+      ],
+      "attackDirection": 1
+    },
+    {
+      "id": "juve-ramsey-20200308",
+      "titleKey": "videoRamseyTitle",
+      "focusKey": "videoRamseyFocus",
+      "date": "2020-03-08",
+      "homeTeam": {
+        "id": "juventus",
+        "name": "Juventus",
+        "kit": {
+          "primary": "#FFFFFF",
+          "secondary": "#161616",
+          "accent": "#ED709C",
+          "number": "#F8F8F8",
+          "pattern": "halves"
+        }
+      },
+      "awayTeam": {
+        "id": "inter",
+        "name": "Inter",
+        "kit": {
+          "primary": "#1478CD",
+          "secondary": "#111823",
+          "accent": "#111823",
+          "number": "#FFFFFF",
+          "pattern": "verticalStripes"
+        }
+      },
+      "videoId": "6K1nqPcLkZ4",
+      "channel": "Serie A",
+      "channelUrl": "https://www.youtube.com/@seriea",
+      "sourceDuration": 253,
+      "start": 70,
+      "end": 84,
+      "goalTime": 78,
+      "goalMinute": 54,
+      "reportUrl": "https://www.inter.it/it/notizie/2020-03-08-juventus-inter-serie-a-2019-2020",
+      "reviewedOn": "2026-10-30",
+      "reviewMethod": "Official publisher storyboard frames cross-checked with the official match report. Authored diagrams illustrate the selected action; they are not tracking or body/foot measurements.",
+      "timestampTolerance": 2,
+      "phases": [
+        {
+          "id": "1",
+          "titleKey": "videoRamseyPhase1Title",
+          "watchKey": "videoRamseyPhase1Watch",
+          "start": 70,
+          "end": 74,
+          "diagram": {
+            "players": [
+              {
+                "id": "matuidi",
+                "name": "Blaise Matuidi",
+                "number": 14,
+                "home": true,
+                "x": 0.6,
+                "y": 0.83
+              },
+              {
+                "id": "ronaldo",
+                "name": "Cristiano Ronaldo",
+                "number": 7,
+                "home": true,
+                "x": 0.81,
+                "y": 0.51
+              },
+              {
+                "id": "ramsey",
+                "name": "Aaron Ramsey",
+                "number": 8,
+                "home": true,
+                "x": 0.64,
+                "y": 0.4
+              },
+              {
+                "id": "bastoni",
+                "name": "Alessandro Bastoni",
+                "number": 95,
+                "home": false,
+                "x": 0.78,
+                "y": 0.62
+              },
+              {
+                "id": "devrij",
+                "name": "Stefan de Vrij",
+                "number": 6,
+                "home": false,
+                "x": 0.86,
+                "y": 0.46
+              },
+              {
+                "id": "skriniar",
+                "name": "Milan Skriniar",
+                "number": 37,
+                "home": false,
+                "x": 0.81,
+                "y": 0.32
+              }
+            ],
+            "ball": {
+              "x": 0.6,
+              "y": 0.83
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.6,
+                  0.83
+                ],
+                "to": [
+                  0.86,
+                  0.83
+                ],
+                "kind": "carry"
+              },
+              {
+                "from": [
+                  0.64,
+                  0.4
+                ],
+                "to": [
+                  0.75,
+                  0.43
+                ],
+                "kind": "run"
+              }
+            ],
+            "space": {
+              "x": 0.75,
+              "y": 0.73,
+              "width": 0.15,
+              "height": 0.17
+            },
+            "focusIds": [
+              "matuidi",
+              "ramsey"
+            ]
+          }
+        },
+        {
+          "id": "2",
+          "titleKey": "videoRamseyPhase2Title",
+          "watchKey": "videoRamseyPhase2Watch",
+          "start": 74,
+          "end": 77,
+          "diagram": {
+            "players": [
+              {
+                "id": "matuidi",
+                "name": "Blaise Matuidi",
+                "number": 14,
+                "home": true,
+                "x": 0.86,
+                "y": 0.83
+              },
+              {
+                "id": "ronaldo",
+                "name": "Cristiano Ronaldo",
+                "number": 7,
+                "home": true,
+                "x": 0.86,
+                "y": 0.55
+              },
+              {
+                "id": "ramsey",
+                "name": "Aaron Ramsey",
+                "number": 8,
+                "home": true,
+                "x": 0.75,
+                "y": 0.43
+              },
+              {
+                "id": "bastoni",
+                "name": "Alessandro Bastoni",
+                "number": 95,
+                "home": false,
+                "x": 0.85,
+                "y": 0.62
+              },
+              {
+                "id": "devrij",
+                "name": "Stefan de Vrij",
+                "number": 6,
+                "home": false,
+                "x": 0.89,
+                "y": 0.48
+              },
+              {
+                "id": "skriniar",
+                "name": "Milan Skriniar",
+                "number": 37,
+                "home": false,
+                "x": 0.87,
+                "y": 0.34
+              }
+            ],
+            "ball": {
+              "x": 0.86,
+              "y": 0.83
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.86,
+                  0.83
+                ],
+                "to": [
+                  0.86,
+                  0.55
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.75,
+                  0.43
+                ],
+                "to": [
+                  0.82,
+                  0.49
+                ],
+                "kind": "run"
+              }
+            ],
+            "space": {
+              "x": 0.75,
+              "y": 0.39,
+              "width": 0.12,
+              "height": 0.18
+            },
+            "focusIds": [
+              "ronaldo",
+              "ramsey"
+            ]
+          }
+        },
+        {
+          "id": "3",
+          "titleKey": "videoRamseyPhase3Title",
+          "watchKey": "videoRamseyPhase3Watch",
+          "start": 77,
+          "end": 84,
+          "diagram": {
+            "players": [
+              {
+                "id": "matuidi",
+                "name": "Blaise Matuidi",
+                "number": 14,
+                "home": true,
+                "x": 0.88,
+                "y": 0.81
+              },
+              {
+                "id": "ronaldo",
+                "name": "Cristiano Ronaldo",
+                "number": 7,
+                "home": true,
+                "x": 0.87,
+                "y": 0.55
+              },
+              {
+                "id": "ramsey",
+                "name": "Aaron Ramsey",
+                "number": 8,
+                "home": true,
+                "x": 0.83,
+                "y": 0.5
+              },
+              {
+                "id": "bastoni",
+                "name": "Alessandro Bastoni",
+                "number": 95,
+                "home": false,
+                "x": 0.87,
+                "y": 0.6
+              },
+              {
+                "id": "devrij",
+                "name": "Stefan de Vrij",
+                "number": 6,
+                "home": false,
+                "x": 0.9,
+                "y": 0.46
+              },
+              {
+                "id": "skriniar",
+                "name": "Milan Skriniar",
+                "number": 37,
+                "home": false,
+                "x": 0.87,
+                "y": 0.35
+              }
+            ],
+            "ball": {
+              "x": 0.83,
+              "y": 0.5
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.83,
+                  0.5
+                ],
+                "to": [
+                  0.99,
+                  0.49
+                ],
+                "kind": "shot"
+              }
+            ],
+            "space": {
+              "x": 0.78,
+              "y": 0.44,
+              "width": 0.12,
+              "height": 0.15
+            },
+            "focusIds": [
+              "ramsey"
+            ]
+          }
+        }
+      ],
+      "attackDirection": -1
+    }
+  ]
+}

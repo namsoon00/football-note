@@ -4,7 +4,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/scan_pass/real_match_replay.dart';
@@ -33,35 +32,36 @@ void main() {
     };
   });
 
-  testWidgets('public entry opens the pitch-first famous-match library',
+  testWidgets('public entry opens video first and keeps 108 scenes secondary',
       (tester) async {
     await tester.pumpWidget(_app(
       home: ScanPassGameScreen(optionRepository: _Options()),
     ));
-    await _pumpLoaded(tester);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
 
-    expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
+    expect(find.byType(ScanPassVideoLearningScreen), findsOneWidget);
+    expect(find.byType(ScanPassSpatialLibraryScreen), findsNothing);
     expect(find.byType(ScanPassRealMatchReplayScreen), findsNothing);
-    expect(find.byKey(const ValueKey<String>('spatial-pitch')), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('spatial-play')), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('spatial-next')), findsOneWidget);
-    expect(
-        find.byKey(const ValueKey<String>('spatial-minimap')), findsOneWidget);
-    expect(find.text('Inferred display position'), findsNothing);
-    expect(find.byKey(const ValueKey<String>('replay-pitch')), findsNothing);
-    expect(find.textContaining('Brisbane Roar'), findsNothing);
-    final systemUi = tester.widget<AnnotatedRegion<SystemUiOverlayStyle>>(
-      find.byKey(const ValueKey<String>('spatial-system-ui')),
+    expect(find.byKey(const ValueKey<String>('video-learning-play')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('video-learning-scenes')),
+        findsOneWidget);
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('video-learning-settings')),
     );
-    expect(systemUi.value.statusBarIconBrightness, Brightness.light);
-    expect(systemUi.value.systemNavigationBarIconBrightness, Brightness.light);
-    final opener = fullCatalog.scenes.first;
-    expect(find.textContaining(opener.date), findsOneWidget);
-    expect(find.textContaining('BEFORE'), findsOneWidget);
-    expect(find.textContaining(opener.evidenceAnchors.last.playerName),
-        findsNothing);
-    expect(
-        find.textContaining(opener.period == 1 ? '1H' : '2H'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('video-learning-settings')),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey<String>('video-open-spatial-library')),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.byKey(const ValueKey<String>('video-open-spatial-library')),
+        findsOneWidget);
+    expect(find.textContaining('108'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -858,7 +858,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('crowded phone situation keeps its current role labels readable',
+  testWidgets('crowded phone keeps role rings without floating labels',
       (tester) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 844);
@@ -875,7 +875,7 @@ void main() {
 
     final painter = _painter(tester);
     expect(painter.roles.values.length, greaterThanOrEqualTo(2));
-    expect(painter.calloutRects.length, painter.roles.values.length);
+    expect(painter.calloutRects, isEmpty);
     expect(tester.takeException(), isNull);
   });
 
@@ -914,7 +914,7 @@ void main() {
     }
   });
 
-  test('role callouts never cover the ball, key shirts, or each other', () {
+  test('role callouts stay removed across representative viewports', () {
     final scenes = <SpatialLibraryScene>[
       fullCatalog.scenes.firstWhere(
         (scene) => scene.id == '2417-16459-müller-pressureSupport',
@@ -942,21 +942,8 @@ void main() {
           portrait: configuration.rotated,
           size: configuration.size,
         );
-        final callouts = painter.calloutRects;
-        for (var index = 0; index < callouts.length; index++) {
-          expect(callouts[index].overlaps(painter.ballSafetyRect), isFalse,
-              reason: '${scene.id} ball');
-          expect(
-            painter.keyPlayerSafetyRects
-                .any((shirt) => callouts[index].overlaps(shirt)),
-            isFalse,
-            reason: '${scene.id} key shirt',
-          );
-          for (var other = index + 1; other < callouts.length; other++) {
-            expect(callouts[index].overlaps(callouts[other]), isFalse,
-                reason: '${scene.id} callouts $index/$other');
-          }
-        }
+        expect(painter.calloutRects, isEmpty, reason: scene.id);
+        expect(painter.roles.values, isNotEmpty, reason: scene.id);
       }
     }
   });
