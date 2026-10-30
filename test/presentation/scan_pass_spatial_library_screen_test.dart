@@ -38,13 +38,27 @@ void main() {
       home: ScanPassGameScreen(optionRepository: _Options()),
     ));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 50));
 
     expect(find.byType(ScanPassVideoLearningScreen), findsOneWidget);
     expect(find.byType(ScanPassSpatialLibraryScreen), findsNothing);
     expect(find.byType(ScanPassRealMatchReplayScreen), findsNothing);
+
+    const readinessTimeout = Duration(seconds: 5);
+    final readinessWait = Stopwatch()..start();
+    while (readinessWait.elapsed < readinessTimeout &&
+        find
+            .byKey(const ValueKey<String>('video-learning-play'))
+            .evaluate()
+            .isEmpty) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+    }
     expect(find.byKey(const ValueKey<String>('video-learning-play')),
-        findsOneWidget);
+        findsOneWidget,
+        reason: 'Video learning entry did not become ready within '
+            '$readinessTimeout.');
     expect(find.byKey(const ValueKey<String>('video-learning-scenes')),
         findsOneWidget);
     await tester.ensureVisible(

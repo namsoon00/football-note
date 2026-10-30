@@ -23772,4 +23772,157 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get videoMessiFirstPhase3Watch => '메시의 달리는 길과 공이 떨어지는 곳이 만나는 순간을 보세요.';
+
+  @override
+  String get videoSonCarryTitle => '손흥민의 압박 탈출 → 중앙 운반 → 마무리';
+
+  @override
+  String get videoSonCarryFocus => '수비를 벗어난 뒤 손흥민이 공을 몰고 나가는 통로를 따라가 보세요.';
+
+  @override
+  String get videoSonCarryPhase1Title => '첫 압박 벗어나기';
+
+  @override
+  String get videoSonCarryPhase1Watch => '손흥민이 타코우스키를 벗어날 때 앞쪽에 남는 공간을 보세요.';
+
+  @override
+  String get videoSonCarryPhase2Title => '중앙 통로로 운반';
+
+  @override
+  String get videoSonCarryPhase2Watch => '손흥민의 진행 통로와 벤 미가 커버하는 위치를 함께 보세요.';
+
+  @override
+  String get videoSonCarryPhase3Title => '박스 안으로 진입';
+
+  @override
+  String get videoSonCarryPhase3Watch => '손흥민이 마지막 슛 전에 도착하는 공간을 보세요.';
+
+  @override
+  String get videoManeFarPostTitle => '헨더슨·살라의 측면 연계 → 반대편 마네';
+
+  @override
+  String get videoManeFarPostFocus => '오른쪽 연계가 이어지는 동안 반대편 마네의 위치를 함께 보세요.';
+
+  @override
+  String get videoManeFarPostPhase1Title => '오른쪽에서 연결';
+
+  @override
+  String get videoManeFarPostPhase1Watch =>
+      '살라와 패스를 주고받은 뒤 헨더슨이 계속 움직이는 모습을 보세요.';
+
+  @override
+  String get videoManeFarPostPhase2Title => '반대편으로 전달';
+
+  @override
+  String get videoManeFarPostPhase2Watch =>
+      '헨더슨이 오른쪽에서 올릴 때 먼 쪽 포스트의 마네를 따라가 보세요.';
+
+  @override
+  String get videoManeFarPostPhase3Title => '크로스 도착점으로 진입';
+
+  @override
+  String get videoManeFarPostPhase3Watch => '골문을 가로지르는 공과 마네의 도착 시점을 비교해 보세요.';
+
+  @override
+  String get videoSalahInsideTitle => '살라의 측면 수신 → 안쪽 운반 → 슛';
+
+  @override
+  String get videoSalahInsideFocus => '살라가 공을 안쪽으로 옮길 때 에메르송과의 간격을 따라가 보세요.';
+
+  @override
+  String get videoSalahInsidePhase1Title => '오른쪽에서 받기';
+
+  @override
+  String get videoSalahInsidePhase1Watch => '살라가 공을 받는 위치와 에메르송의 위치를 함께 보세요.';
+
+  @override
+  String get videoSalahInsidePhase2Title => '터치라인에서 안쪽으로';
+
+  @override
+  String get videoSalahInsidePhase2Watch => '공이 안쪽으로 이동한 뒤 수비가 서는 위치를 보세요.';
+
+  @override
+  String get videoSalahInsidePhase3Title => '슛으로 연결';
+
+  @override
+  String get videoSalahInsidePhase3Watch => '측면에서 안쪽으로 옮긴 공이 골문으로 향하는 길을 보세요.';
+
+  @override
+  String get videoWilshereCombineTitle => '카솔라 → 지루·윌셔의 짧은 연계 → 마무리';
+
+  @override
+  String get videoWilshereCombineFocus => '공의 이동과 패스 후 계속 전진하는 윌셔를 함께 따라가 보세요.';
+
+  @override
+  String get videoWilshereCombinePhase1Title => '짧은 연계에 합류';
+
+  @override
+  String get videoWilshereCombinePhase1Watch =>
+      '카솔라가 공을 받은 뒤 윌셔가 전진하는 모습을 보세요.';
+
+  @override
+  String get videoWilshereCombinePhase2Title => '패스하고 계속 이동';
+
+  @override
+  String get videoWilshereCombinePhase2Watch =>
+      '지루와 짧게 주고받는 동안 윌셔가 이동하는 길을 보세요.';
+
+  @override
+  String get videoWilshereCombinePhase3Title => '마지막 리턴 뒤로 진입';
+
+  @override
+  String get videoWilshereCombinePhase3Watch =>
+      '지루의 마지막 패스를 받으러 윌셔가 도착하는 위치를 보세요.';
+
+  @override
+  String get videoRonaldoCounterTitle => '호날두 → 박지성 → 루니 → 호날두의 역습';
+
+  @override
+  String get videoRonaldoCounterFocus => '공을 전달한 호날두가 중앙으로 다시 진입하는 움직임을 보세요.';
+
+  @override
+  String get videoRonaldoCounterPhase1Title => '전달한 뒤 전진';
+
+  @override
+  String get videoRonaldoCounterPhase1Watch =>
+      '박지성을 거쳐 루니에게 공이 가는 동안 호날두의 전진을 보세요.';
+
+  @override
+  String get videoRonaldoCounterPhase2Title => '측면 운반과 중앙 진입';
+
+  @override
+  String get videoRonaldoCounterPhase2Watch =>
+      '루니의 측면 운반과 중앙으로 달리는 호날두를 함께 보세요.';
+
+  @override
+  String get videoRonaldoCounterPhase3Title => '전달 지점에 도착';
+
+  @override
+  String get videoRonaldoCounterPhase3Watch =>
+      '루니가 공을 보내는 시점과 호날두의 박스 진입을 비교해 보세요.';
+
+  @override
+  String get videoMessiGetafeTitle => '19번 메시의 측면 수신 → 중앙 돌파 → 마무리';
+
+  @override
+  String get videoMessiGetafeFocus => '메시가 오른쪽에서 공을 받은 뒤 앞쪽 공간으로 운반하는 길을 보세요.';
+
+  @override
+  String get videoMessiGetafePhase1Title => '받고 전진하기';
+
+  @override
+  String get videoMessiGetafePhase1Watch => '사비의 패스를 받은 뒤 메시가 나아가는 통로를 보세요.';
+
+  @override
+  String get videoMessiGetafePhase2Title => '박스 쪽으로 운반';
+
+  @override
+  String get videoMessiGetafePhase2Watch =>
+      '측면 통로에서 페널티 지역 쪽으로 바뀌는 진행 방향을 보세요.';
+
+  @override
+  String get videoMessiGetafePhase3Title => '골키퍼 옆으로 이어가기';
+
+  @override
+  String get videoMessiGetafePhase3Watch => '마지막 방향 전환과 골문까지 이어지는 공의 길을 보세요.';
 }

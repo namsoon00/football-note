@@ -23679,4 +23679,152 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get videoMessiFirstPhase3Watch => 'メッシの走路とボールの落下点が合う瞬間を見ましょう。';
+
+  @override
+  String get videoSonCarryTitle => 'ソン・フンミン：プレッシャーを外す → 中央を運ぶ → フィニッシュ';
+
+  @override
+  String get videoSonCarryFocus => '守備を外した後、ソン・フンミンがボールを運ぶコースを追いましょう。';
+
+  @override
+  String get videoSonCarryPhase1Title => '最初のプレッシャーを外す';
+
+  @override
+  String get videoSonCarryPhase1Watch =>
+      'ソン・フンミンがターコウスキーを越える時、前方にあるスペースを見ましょう。';
+
+  @override
+  String get videoSonCarryPhase2Title => '中央を運ぶ';
+
+  @override
+  String get videoSonCarryPhase2Watch => 'ソン・フンミンが進むコースとベン・ミーのカバー位置を比べましょう。';
+
+  @override
+  String get videoSonCarryPhase3Title => 'ペナルティーエリアに入る';
+
+  @override
+  String get videoSonCarryPhase3Watch => '最後のシュート前にソン・フンミンが入るスペースを見ましょう。';
+
+  @override
+  String get videoManeFarPostTitle => 'ヘンダーソンとサラーの連係 → ファーポストのマネ';
+
+  @override
+  String get videoManeFarPostFocus => '右サイドでプレーが進む間、反対側のマネを見ましょう。';
+
+  @override
+  String get videoManeFarPostPhase1Title => '右サイドでつなぐ';
+
+  @override
+  String get videoManeFarPostPhase1Watch => 'サラーとの交換後も動き続けるヘンダーソンを見ましょう。';
+
+  @override
+  String get videoManeFarPostPhase2Title => '反対側を見る';
+
+  @override
+  String get videoManeFarPostPhase2Watch => 'ヘンダーソンが右から送る間、ファーポストのマネを追いましょう。';
+
+  @override
+  String get videoManeFarPostPhase3Title => 'クロスに入る';
+
+  @override
+  String get videoManeFarPostPhase3Watch => 'ゴール前を横切るボールとマネが入るタイミングを比べましょう。';
+
+  @override
+  String get videoSalahInsideTitle => 'サラー：右で受ける → 内側へ運ぶ → シュート';
+
+  @override
+  String get videoSalahInsideFocus => 'ボールが内側へ動く時、サラーとエメルソンの間隔を追いましょう。';
+
+  @override
+  String get videoSalahInsidePhase1Title => '右で受ける';
+
+  @override
+  String get videoSalahInsidePhase1Watch => 'エメルソンに対してサラーが受ける位置を見ましょう。';
+
+  @override
+  String get videoSalahInsidePhase2Title => 'タッチラインから離れる';
+
+  @override
+  String get videoSalahInsidePhase2Watch => '内側への運びと、その後の守備者の位置を追いましょう。';
+
+  @override
+  String get videoSalahInsidePhase3Title => 'シュートへつなぐ';
+
+  @override
+  String get videoSalahInsidePhase3Watch => 'ボールがサイドから内側へ動いた後のゴールまでの経路を追いましょう。';
+
+  @override
+  String get videoWilshereCombineTitle => 'カソルラ → ジルーとウィルシャーの連係 → フィニッシュ';
+
+  @override
+  String get videoWilshereCombineFocus => 'ボールの動きと、パス後も前進するウィルシャーを一緒に追いましょう。';
+
+  @override
+  String get videoWilshereCombinePhase1Title => '連係に加わる';
+
+  @override
+  String get videoWilshereCombinePhase1Watch => 'カソルラが受けた後、前進するウィルシャーを見ましょう。';
+
+  @override
+  String get videoWilshereCombinePhase2Title => 'パスして動き続ける';
+
+  @override
+  String get videoWilshereCombinePhase2Watch =>
+      'ジルーとの短い交換の間、ウィルシャーの動く経路を追いましょう。';
+
+  @override
+  String get videoWilshereCombinePhase3Title => '最後のリターンの先へ走る';
+
+  @override
+  String get videoWilshereCombinePhase3Watch => 'ジルーの最後のパスを受けるウィルシャーの位置を見ましょう。';
+
+  @override
+  String get videoRonaldoCounterTitle => 'ロナウド → パク・チソン → ルーニー → ロナウドのカウンター';
+
+  @override
+  String get videoRonaldoCounterFocus => 'ボールを離した後、中央を走るロナウドを追いましょう。';
+
+  @override
+  String get videoRonaldoCounterPhase1Title => '預けて走る';
+
+  @override
+  String get videoRonaldoCounterPhase1Watch =>
+      'ボールがパク・チソンを経てルーニーへ渡る間、ロナウドの走りを追いましょう。';
+
+  @override
+  String get videoRonaldoCounterPhase2Title => '外を運び、中央へ入る';
+
+  @override
+  String get videoRonaldoCounterPhase2Watch => '外を運ぶルーニーと中央を走るロナウドを一緒に見ましょう。';
+
+  @override
+  String get videoRonaldoCounterPhase3Title => 'ボールに合わせて入る';
+
+  @override
+  String get videoRonaldoCounterPhase3Watch =>
+      'ルーニーが送るボールとロナウドがペナルティーエリアに入るタイミングを比べましょう。';
+
+  @override
+  String get videoMessiGetafeTitle => '19番メッシ：右で受ける → 内側へ運ぶ → フィニッシュ';
+
+  @override
+  String get videoMessiGetafeFocus => '右サイドから前方のスペースへ運ぶメッシを追いましょう。';
+
+  @override
+  String get videoMessiGetafePhase1Title => '受けて前進する';
+
+  @override
+  String get videoMessiGetafePhase1Watch => 'シャビのパスを受けた後のメッシの経路を見ましょう。';
+
+  @override
+  String get videoMessiGetafePhase2Title => 'ペナルティーエリアへ運ぶ';
+
+  @override
+  String get videoMessiGetafePhase2Watch => '外側のコースからペナルティーエリアへ向かう変化を追いましょう。';
+
+  @override
+  String get videoMessiGetafePhase3Title => 'ゴールキーパーの横を進む';
+
+  @override
+  String get videoMessiGetafePhase3Watch => '最後の方向転換とゴールまでの経路を見ましょう。';
 }

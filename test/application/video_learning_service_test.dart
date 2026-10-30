@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/video_learning_player.dart';
@@ -208,6 +209,43 @@ void main() {
     );
 
     expect(service.resumeTime(uncertainScene), 109);
+  });
+
+  test('expanded catalogue preserves existing scene resume and history', () {
+    final shipped = VideoLearningCatalog.fromJsonString(
+      File('assets/video_learning/catalog.json').readAsStringSync(),
+    );
+    final existing = shipped.scenes.firstWhere(
+      (candidate) => candidate.id == 'clasico-messi-winner-20170423',
+    );
+    final options = _MemoryOptionRepository()
+      ..values[VideoLearningService.storageKey] = jsonEncode(<String, dynamic>{
+        'version': 1,
+        'lastSceneId': existing.id,
+        'resumeTimes': <String, double>{existing.id: 6060},
+        'coverage': <String, dynamic>{
+          existing.id: <String, dynamic>{
+            'intervals': <Object>[
+              <double>[existing.clip.start, existing.goalTime + .25],
+            ],
+            'reachedGoal': true,
+          },
+        },
+        'teamFilter': existing.awayTeam.id,
+        'watchFilter': 'watched',
+        'playbackRate': .75,
+        'autoNext': false,
+      });
+    final service = VideoLearningService(
+      catalogRepository: _Repository(shipped),
+      optionRepository: options,
+    );
+
+    expect(service.preferences.lastSceneId, existing.id);
+    expect(service.resumeTime(existing), 6060);
+    expect(service.isWatched(existing), isTrue);
+    expect(service.preferences.teamFilter, existing.awayTeam.id);
+    expect(service.preferences.watchFilter, VideoLearningWatchFilter.watched);
   });
 
   test('wrong saved repository type cannot crash preference recovery', () {

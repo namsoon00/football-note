@@ -2,6 +2,7 @@ import 'dart:convert';
 
 enum FootballKitPattern {
   solid,
+  contrastSleeves,
   verticalStripes,
   halves,
   centerStripe,
