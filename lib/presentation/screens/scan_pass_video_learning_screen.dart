@@ -1935,6 +1935,22 @@ void _paintKitPattern(
         Paint()..color = _parseVideoColor(kit.accent),
       );
       break;
+    case FootballKitPattern.contrastSleeves:
+      final sleeveWidth = rect.width * .22;
+      canvas.drawRect(
+        Rect.fromLTWH(rect.left, rect.top, sleeveWidth, rect.height),
+        Paint()..color = secondary,
+      );
+      canvas.drawRect(
+        Rect.fromLTWH(
+          rect.right - sleeveWidth,
+          rect.top,
+          sleeveWidth,
+          rect.height,
+        ),
+        Paint()..color = secondary,
+      );
+      break;
     case FootballKitPattern.verticalStripes:
       final width = rect.width / 5;
       for (var stripe = 1; stripe < 5; stripe += 2) {
@@ -2218,6 +2234,54 @@ String videoLearningLocalizedCopy(AppLocalizations l10n, String key) {
     'videoRamseyPhase2Watch' => l10n.videoRamseyPhase2Watch,
     'videoRamseyPhase3Title' => l10n.videoRamseyPhase3Title,
     'videoRamseyPhase3Watch' => l10n.videoRamseyPhase3Watch,
+    'videoSonCarryTitle' => l10n.videoSonCarryTitle,
+    'videoSonCarryFocus' => l10n.videoSonCarryFocus,
+    'videoSonCarryPhase1Title' => l10n.videoSonCarryPhase1Title,
+    'videoSonCarryPhase1Watch' => l10n.videoSonCarryPhase1Watch,
+    'videoSonCarryPhase2Title' => l10n.videoSonCarryPhase2Title,
+    'videoSonCarryPhase2Watch' => l10n.videoSonCarryPhase2Watch,
+    'videoSonCarryPhase3Title' => l10n.videoSonCarryPhase3Title,
+    'videoSonCarryPhase3Watch' => l10n.videoSonCarryPhase3Watch,
+    'videoManeFarPostTitle' => l10n.videoManeFarPostTitle,
+    'videoManeFarPostFocus' => l10n.videoManeFarPostFocus,
+    'videoManeFarPostPhase1Title' => l10n.videoManeFarPostPhase1Title,
+    'videoManeFarPostPhase1Watch' => l10n.videoManeFarPostPhase1Watch,
+    'videoManeFarPostPhase2Title' => l10n.videoManeFarPostPhase2Title,
+    'videoManeFarPostPhase2Watch' => l10n.videoManeFarPostPhase2Watch,
+    'videoManeFarPostPhase3Title' => l10n.videoManeFarPostPhase3Title,
+    'videoManeFarPostPhase3Watch' => l10n.videoManeFarPostPhase3Watch,
+    'videoSalahInsideTitle' => l10n.videoSalahInsideTitle,
+    'videoSalahInsideFocus' => l10n.videoSalahInsideFocus,
+    'videoSalahInsidePhase1Title' => l10n.videoSalahInsidePhase1Title,
+    'videoSalahInsidePhase1Watch' => l10n.videoSalahInsidePhase1Watch,
+    'videoSalahInsidePhase2Title' => l10n.videoSalahInsidePhase2Title,
+    'videoSalahInsidePhase2Watch' => l10n.videoSalahInsidePhase2Watch,
+    'videoSalahInsidePhase3Title' => l10n.videoSalahInsidePhase3Title,
+    'videoSalahInsidePhase3Watch' => l10n.videoSalahInsidePhase3Watch,
+    'videoWilshereCombineTitle' => l10n.videoWilshereCombineTitle,
+    'videoWilshereCombineFocus' => l10n.videoWilshereCombineFocus,
+    'videoWilshereCombinePhase1Title' => l10n.videoWilshereCombinePhase1Title,
+    'videoWilshereCombinePhase1Watch' => l10n.videoWilshereCombinePhase1Watch,
+    'videoWilshereCombinePhase2Title' => l10n.videoWilshereCombinePhase2Title,
+    'videoWilshereCombinePhase2Watch' => l10n.videoWilshereCombinePhase2Watch,
+    'videoWilshereCombinePhase3Title' => l10n.videoWilshereCombinePhase3Title,
+    'videoWilshereCombinePhase3Watch' => l10n.videoWilshereCombinePhase3Watch,
+    'videoRonaldoCounterTitle' => l10n.videoRonaldoCounterTitle,
+    'videoRonaldoCounterFocus' => l10n.videoRonaldoCounterFocus,
+    'videoRonaldoCounterPhase1Title' => l10n.videoRonaldoCounterPhase1Title,
+    'videoRonaldoCounterPhase1Watch' => l10n.videoRonaldoCounterPhase1Watch,
+    'videoRonaldoCounterPhase2Title' => l10n.videoRonaldoCounterPhase2Title,
+    'videoRonaldoCounterPhase2Watch' => l10n.videoRonaldoCounterPhase2Watch,
+    'videoRonaldoCounterPhase3Title' => l10n.videoRonaldoCounterPhase3Title,
+    'videoRonaldoCounterPhase3Watch' => l10n.videoRonaldoCounterPhase3Watch,
+    'videoMessiGetafeTitle' => l10n.videoMessiGetafeTitle,
+    'videoMessiGetafeFocus' => l10n.videoMessiGetafeFocus,
+    'videoMessiGetafePhase1Title' => l10n.videoMessiGetafePhase1Title,
+    'videoMessiGetafePhase1Watch' => l10n.videoMessiGetafePhase1Watch,
+    'videoMessiGetafePhase2Title' => l10n.videoMessiGetafePhase2Title,
+    'videoMessiGetafePhase2Watch' => l10n.videoMessiGetafePhase2Watch,
+    'videoMessiGetafePhase3Title' => l10n.videoMessiGetafePhase3Title,
+    'videoMessiGetafePhase3Watch' => l10n.videoMessiGetafePhase3Watch,
     _ => l10n.videoLearningTitle,
   };
 }

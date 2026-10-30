@@ -1867,6 +1867,1497 @@
         }
       ],
       "attackDirection": -1
+    },
+    {
+      "id": "spurs-son-burnley-20191207",
+      "titleKey": "videoSonCarryTitle",
+      "focusKey": "videoSonCarryFocus",
+      "date": "2019-12-07",
+      "homeTeam": {
+        "id": "tottenham",
+        "name": "Tottenham Hotspur",
+        "kit": {
+          "primary": "#F6F5F0",
+          "secondary": "#152249",
+          "accent": "#152249",
+          "number": "#152249",
+          "pattern": "solid"
+        }
+      },
+      "awayTeam": {
+        "id": "burnley",
+        "name": "Burnley",
+        "kit": {
+          "primary": "#7B263A",
+          "secondary": "#79BAE3",
+          "accent": "#79BAE3",
+          "number": "#FFFFFF",
+          "pattern": "contrastSleeves"
+        }
+      },
+      "videoId": "C-CefuZ6h1k",
+      "channel": "Tottenham Hotspur",
+      "channelUrl": "https://www.youtube.com/@TottenhamHotspur",
+      "sourceDuration": 215,
+      "start": 0,
+      "end": 18,
+      "goalTime": 16,
+      "goalMinute": 32,
+      "attackDirection": 1,
+      "reportUrl": "https://www.tottenhamhotspur.com/news/996297",
+      "reviewedOn": "2026-10-30",
+      "reviewMethod": "Official publisher storyboard stills reviewed with the linked official match record. Three broad authored explanation windows; diagrams are illustrative and not measured tracking. Sampling interval 2 seconds; no full-frame playback or coach validation claimed.",
+      "timestampTolerance": 2,
+      "phases": [
+        {
+          "id": "1",
+          "titleKey": "videoSonCarryPhase1Title",
+          "watchKey": "videoSonCarryPhase1Watch",
+          "start": 0,
+          "end": 6,
+          "diagram": {
+            "players": [
+              {
+                "id": "son",
+                "name": "Son Heung-min",
+                "number": 7,
+                "home": true,
+                "x": 0.12,
+                "y": 0.64
+              },
+              {
+                "id": "tarkowski",
+                "name": "James Tarkowski",
+                "number": 5,
+                "home": false,
+                "x": 0.26,
+                "y": 0.61
+              },
+              {
+                "id": "mee",
+                "name": "Ben Mee",
+                "number": 6,
+                "home": false,
+                "x": 0.7,
+                "y": 0.48
+              }
+            ],
+            "ball": {
+              "x": 0.13,
+              "y": 0.64
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.13,
+                  0.64
+                ],
+                "to": [
+                  0.42,
+                  0.55
+                ],
+                "kind": "carry"
+              }
+            ],
+            "space": {
+              "x": 0.28,
+              "y": 0.38,
+              "width": 0.35,
+              "height": 0.22
+            },
+            "focusIds": [
+              "son",
+              "tarkowski"
+            ]
+          }
+        },
+        {
+          "id": "2",
+          "titleKey": "videoSonCarryPhase2Title",
+          "watchKey": "videoSonCarryPhase2Watch",
+          "start": 6,
+          "end": 12,
+          "diagram": {
+            "players": [
+              {
+                "id": "son",
+                "name": "Son Heung-min",
+                "number": 7,
+                "home": true,
+                "x": 0.53,
+                "y": 0.52
+              },
+              {
+                "id": "tarkowski",
+                "name": "James Tarkowski",
+                "number": 5,
+                "home": false,
+                "x": 0.4,
+                "y": 0.67
+              },
+              {
+                "id": "mee",
+                "name": "Ben Mee",
+                "number": 6,
+                "home": false,
+                "x": 0.8,
+                "y": 0.5
+              }
+            ],
+            "ball": {
+              "x": 0.54,
+              "y": 0.52
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.54,
+                  0.52
+                ],
+                "to": [
+                  0.83,
+                  0.45
+                ],
+                "kind": "carry"
+              }
+            ],
+            "space": {
+              "x": 0.63,
+              "y": 0.33,
+              "width": 0.23,
+              "height": 0.23
+            },
+            "focusIds": [
+              "son",
+              "mee"
+            ]
+          }
+        },
+        {
+          "id": "3",
+          "titleKey": "videoSonCarryPhase3Title",
+          "watchKey": "videoSonCarryPhase3Watch",
+          "start": 12,
+          "end": 18,
+          "diagram": {
+            "players": [
+              {
+                "id": "son",
+                "name": "Son Heung-min",
+                "number": 7,
+                "home": true,
+                "x": 0.88,
+                "y": 0.47
+              },
+              {
+                "id": "tarkowski",
+                "name": "James Tarkowski",
+                "number": 5,
+                "home": false,
+                "x": 0.63,
+                "y": 0.62
+              },
+              {
+                "id": "mee",
+                "name": "Ben Mee",
+                "number": 6,
+                "home": false,
+                "x": 0.82,
+                "y": 0.61
+              }
+            ],
+            "ball": {
+              "x": 0.89,
+              "y": 0.47
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.89,
+                  0.47
+                ],
+                "to": [
+                  0.99,
+                  0.5
+                ],
+                "kind": "shot"
+              }
+            ],
+            "space": {
+              "x": 0.85,
+              "y": 0.35,
+              "width": 0.1,
+              "height": 0.22
+            },
+            "focusIds": [
+              "son",
+              "mee"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "liverpool-mane-far-post-20190414",
+      "titleKey": "videoManeFarPostTitle",
+      "focusKey": "videoManeFarPostFocus",
+      "date": "2019-04-14",
+      "homeTeam": {
+        "id": "liverpool",
+        "name": "Liverpool",
+        "kit": {
+          "primary": "#C8102E",
+          "secondary": "#FFFFFF",
+          "accent": "#FFFFFF",
+          "number": "#FFFFFF",
+          "pattern": "solid"
+        }
+      },
+      "awayTeam": {
+        "id": "chelsea",
+        "name": "Chelsea",
+        "kit": {
+          "primary": "#174B9B",
+          "secondary": "#FFFFFF",
+          "accent": "#FFFFFF",
+          "number": "#FFFFFF",
+          "pattern": "solid"
+        }
+      },
+      "videoId": "G3K3f8jwVKs",
+      "channel": "Liverpool FC",
+      "channelUrl": "https://www.youtube.com/@LiverpoolFC",
+      "sourceDuration": 159,
+      "start": 25,
+      "end": 33,
+      "goalTime": 32,
+      "goalMinute": 51,
+      "attackDirection": -1,
+      "reportUrl": "https://www.liverpoolfc.com/news/first-team/345837-match-report-liverpool-chelsea-premier-league",
+      "reviewedOn": "2026-10-30",
+      "reviewMethod": "Official publisher storyboard stills reviewed with the linked official match record. Three broad authored explanation windows; diagrams are illustrative and not measured tracking. Sampling interval 2 seconds; no full-frame playback or coach validation claimed.",
+      "timestampTolerance": 2,
+      "phases": [
+        {
+          "id": "1",
+          "titleKey": "videoManeFarPostPhase1Title",
+          "watchKey": "videoManeFarPostPhase1Watch",
+          "start": 25,
+          "end": 27,
+          "diagram": {
+            "players": [
+              {
+                "id": "henderson",
+                "name": "Jordan Henderson",
+                "number": 14,
+                "home": true,
+                "x": 0.56,
+                "y": 0.7
+              },
+              {
+                "id": "salah",
+                "name": "Mohamed Salah",
+                "number": 11,
+                "home": true,
+                "x": 0.64,
+                "y": 0.76
+              },
+              {
+                "id": "mane",
+                "name": "Sadio Mane",
+                "number": 10,
+                "home": true,
+                "x": 0.82,
+                "y": 0.26
+              },
+              {
+                "id": "azpilicueta",
+                "name": "Cesar Azpilicueta",
+                "number": 28,
+                "home": false,
+                "x": 0.83,
+                "y": 0.41
+              }
+            ],
+            "ball": {
+              "x": 0.57,
+              "y": 0.7
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.57,
+                  0.7
+                ],
+                "to": [
+                  0.64,
+                  0.76
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.56,
+                  0.7
+                ],
+                "to": [
+                  0.8,
+                  0.83
+                ],
+                "kind": "run"
+              }
+            ],
+            "space": {
+              "x": 0.75,
+              "y": 0.15,
+              "width": 0.18,
+              "height": 0.21
+            },
+            "focusIds": [
+              "henderson",
+              "salah"
+            ]
+          }
+        },
+        {
+          "id": "2",
+          "titleKey": "videoManeFarPostPhase2Title",
+          "watchKey": "videoManeFarPostPhase2Watch",
+          "start": 27,
+          "end": 29,
+          "diagram": {
+            "players": [
+              {
+                "id": "henderson",
+                "name": "Jordan Henderson",
+                "number": 14,
+                "home": true,
+                "x": 0.82,
+                "y": 0.83
+              },
+              {
+                "id": "salah",
+                "name": "Mohamed Salah",
+                "number": 11,
+                "home": true,
+                "x": 0.7,
+                "y": 0.68
+              },
+              {
+                "id": "mane",
+                "name": "Sadio Mane",
+                "number": 10,
+                "home": true,
+                "x": 0.85,
+                "y": 0.27
+              },
+              {
+                "id": "azpilicueta",
+                "name": "Cesar Azpilicueta",
+                "number": 28,
+                "home": false,
+                "x": 0.85,
+                "y": 0.45
+              }
+            ],
+            "ball": {
+              "x": 0.83,
+              "y": 0.83
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.83,
+                  0.83
+                ],
+                "to": [
+                  0.94,
+                  0.28
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.85,
+                  0.27
+                ],
+                "to": [
+                  0.94,
+                  0.28
+                ],
+                "kind": "run"
+              }
+            ],
+            "space": {
+              "x": 0.86,
+              "y": 0.18,
+              "width": 0.1,
+              "height": 0.17
+            },
+            "focusIds": [
+              "henderson",
+              "mane"
+            ]
+          }
+        },
+        {
+          "id": "3",
+          "titleKey": "videoManeFarPostPhase3Title",
+          "watchKey": "videoManeFarPostPhase3Watch",
+          "start": 29,
+          "end": 33,
+          "diagram": {
+            "players": [
+              {
+                "id": "henderson",
+                "name": "Jordan Henderson",
+                "number": 14,
+                "home": true,
+                "x": 0.87,
+                "y": 0.85
+              },
+              {
+                "id": "salah",
+                "name": "Mohamed Salah",
+                "number": 11,
+                "home": true,
+                "x": 0.75,
+                "y": 0.68
+              },
+              {
+                "id": "mane",
+                "name": "Sadio Mane",
+                "number": 10,
+                "home": true,
+                "x": 0.94,
+                "y": 0.28
+              },
+              {
+                "id": "azpilicueta",
+                "name": "Cesar Azpilicueta",
+                "number": 28,
+                "home": false,
+                "x": 0.91,
+                "y": 0.38
+              }
+            ],
+            "ball": {
+              "x": 0.94,
+              "y": 0.28
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.94,
+                  0.28
+                ],
+                "to": [
+                  0.99,
+                  0.47
+                ],
+                "kind": "shot"
+              }
+            ],
+            "space": {
+              "x": 0.86,
+              "y": 0.16,
+              "width": 0.1,
+              "height": 0.19
+            },
+            "focusIds": [
+              "mane",
+              "azpilicueta"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "liverpool-salah-inside-20190414",
+      "titleKey": "videoSalahInsideTitle",
+      "focusKey": "videoSalahInsideFocus",
+      "date": "2019-04-14",
+      "homeTeam": {
+        "id": "liverpool",
+        "name": "Liverpool",
+        "kit": {
+          "primary": "#C8102E",
+          "secondary": "#FFFFFF",
+          "accent": "#FFFFFF",
+          "number": "#FFFFFF",
+          "pattern": "solid"
+        }
+      },
+      "awayTeam": {
+        "id": "chelsea",
+        "name": "Chelsea",
+        "kit": {
+          "primary": "#174B9B",
+          "secondary": "#FFFFFF",
+          "accent": "#FFFFFF",
+          "number": "#FFFFFF",
+          "pattern": "solid"
+        }
+      },
+      "videoId": "G3K3f8jwVKs",
+      "channel": "Liverpool FC",
+      "channelUrl": "https://www.youtube.com/@LiverpoolFC",
+      "sourceDuration": 159,
+      "start": 63,
+      "end": 76,
+      "goalTime": 72,
+      "goalMinute": 53,
+      "attackDirection": -1,
+      "reportUrl": "https://www.liverpoolfc.com/news/first-team/345837-match-report-liverpool-chelsea-premier-league",
+      "reviewedOn": "2026-10-30",
+      "reviewMethod": "Official publisher storyboard stills reviewed with the linked official match record. Three broad authored explanation windows; diagrams are illustrative and not measured tracking. Sampling interval 2 seconds; no full-frame playback or coach validation claimed.",
+      "timestampTolerance": 2,
+      "phases": [
+        {
+          "id": "1",
+          "titleKey": "videoSalahInsidePhase1Title",
+          "watchKey": "videoSalahInsidePhase1Watch",
+          "start": 63,
+          "end": 66,
+          "diagram": {
+            "players": [
+              {
+                "id": "salah",
+                "name": "Mohamed Salah",
+                "number": 11,
+                "home": true,
+                "x": 0.48,
+                "y": 0.78
+              },
+              {
+                "id": "emerson",
+                "name": "Emerson Palmieri",
+                "number": 33,
+                "home": false,
+                "x": 0.63,
+                "y": 0.73
+              }
+            ],
+            "ball": {
+              "x": 0.25,
+              "y": 0.44
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.25,
+                  0.44
+                ],
+                "to": [
+                  0.48,
+                  0.78
+                ],
+                "kind": "pass"
+              }
+            ],
+            "space": {
+              "x": 0.51,
+              "y": 0.48,
+              "width": 0.22,
+              "height": 0.21
+            },
+            "focusIds": [
+              "salah",
+              "emerson"
+            ]
+          }
+        },
+        {
+          "id": "2",
+          "titleKey": "videoSalahInsidePhase2Title",
+          "watchKey": "videoSalahInsidePhase2Watch",
+          "start": 66,
+          "end": 69,
+          "diagram": {
+            "players": [
+              {
+                "id": "salah",
+                "name": "Mohamed Salah",
+                "number": 11,
+                "home": true,
+                "x": 0.68,
+                "y": 0.62
+              },
+              {
+                "id": "emerson",
+                "name": "Emerson Palmieri",
+                "number": 33,
+                "home": false,
+                "x": 0.7,
+                "y": 0.76
+              }
+            ],
+            "ball": {
+              "x": 0.69,
+              "y": 0.62
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.49,
+                  0.78
+                ],
+                "to": [
+                  0.69,
+                  0.62
+                ],
+                "kind": "carry"
+              }
+            ],
+            "space": {
+              "x": 0.67,
+              "y": 0.42,
+              "width": 0.2,
+              "height": 0.17
+            },
+            "focusIds": [
+              "salah",
+              "emerson"
+            ]
+          }
+        },
+        {
+          "id": "3",
+          "titleKey": "videoSalahInsidePhase3Title",
+          "watchKey": "videoSalahInsidePhase3Watch",
+          "start": 69,
+          "end": 76,
+          "diagram": {
+            "players": [
+              {
+                "id": "salah",
+                "name": "Mohamed Salah",
+                "number": 11,
+                "home": true,
+                "x": 0.73,
+                "y": 0.54
+              },
+              {
+                "id": "emerson",
+                "name": "Emerson Palmieri",
+                "number": 33,
+                "home": false,
+                "x": 0.69,
+                "y": 0.67
+              }
+            ],
+            "ball": {
+              "x": 0.74,
+              "y": 0.54
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.74,
+                  0.54
+                ],
+                "to": [
+                  0.99,
+                  0.44
+                ],
+                "kind": "shot"
+              }
+            ],
+            "space": {
+              "x": 0.76,
+              "y": 0.37,
+              "width": 0.17,
+              "height": 0.19
+            },
+            "focusIds": [
+              "salah"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "arsenal-wilshere-norwich-20131019",
+      "titleKey": "videoWilshereCombineTitle",
+      "focusKey": "videoWilshereCombineFocus",
+      "date": "2013-10-19",
+      "homeTeam": {
+        "id": "arsenal",
+        "name": "Arsenal",
+        "kit": {
+          "primary": "#D82632",
+          "secondary": "#FAFAF7",
+          "accent": "#FAFAF7",
+          "number": "#FFFFFF",
+          "pattern": "contrastSleeves"
+        }
+      },
+      "awayTeam": {
+        "id": "norwich",
+        "name": "Norwich City",
+        "kit": {
+          "primary": "#F3DF28",
+          "secondary": "#165B34",
+          "accent": "#165B34",
+          "number": "#165B34",
+          "pattern": "solid"
+        }
+      },
+      "videoId": "9iBTHM5JaMw",
+      "channel": "Arsenal",
+      "channelUrl": "https://www.youtube.com/@arsenal",
+      "sourceDuration": 367,
+      "start": 318,
+      "end": 337,
+      "goalTime": 335,
+      "goalMinute": 18,
+      "attackDirection": 1,
+      "reportUrl": "https://www.premierleague.com/en/match/694980",
+      "reviewedOn": "2026-10-30",
+      "reviewMethod": "Official publisher storyboard stills reviewed with the linked official match record. Three broad authored explanation windows; diagrams are illustrative and not measured tracking. Sampling interval 5 seconds; no full-frame playback or coach validation claimed.",
+      "timestampTolerance": 5,
+      "phases": [
+        {
+          "id": "1",
+          "titleKey": "videoWilshereCombinePhase1Title",
+          "watchKey": "videoWilshereCombinePhase1Watch",
+          "start": 318,
+          "end": 325,
+          "diagram": {
+            "players": [
+              {
+                "id": "wilshere",
+                "name": "Jack Wilshere",
+                "number": 10,
+                "home": true,
+                "x": 0.25,
+                "y": 0.62
+              },
+              {
+                "id": "cazorla",
+                "name": "Santi Cazorla",
+                "number": 19,
+                "home": true,
+                "x": 0.38,
+                "y": 0.76
+              },
+              {
+                "id": "giroud",
+                "name": "Olivier Giroud",
+                "number": 12,
+                "home": true,
+                "x": 0.74,
+                "y": 0.57
+              }
+            ],
+            "ball": {
+              "x": 0.26,
+              "y": 0.62
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.26,
+                  0.62
+                ],
+                "to": [
+                  0.38,
+                  0.76
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.38,
+                  0.76
+                ],
+                "to": [
+                  0.74,
+                  0.57
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.25,
+                  0.62
+                ],
+                "to": [
+                  0.68,
+                  0.58
+                ],
+                "kind": "run"
+              }
+            ],
+            "space": {
+              "x": 0.6,
+              "y": 0.43,
+              "width": 0.2,
+              "height": 0.2
+            },
+            "focusIds": [
+              "wilshere",
+              "cazorla",
+              "giroud"
+            ]
+          }
+        },
+        {
+          "id": "2",
+          "titleKey": "videoWilshereCombinePhase2Title",
+          "watchKey": "videoWilshereCombinePhase2Watch",
+          "start": 325,
+          "end": 330,
+          "diagram": {
+            "players": [
+              {
+                "id": "wilshere",
+                "name": "Jack Wilshere",
+                "number": 10,
+                "home": true,
+                "x": 0.7,
+                "y": 0.6
+              },
+              {
+                "id": "cazorla",
+                "name": "Santi Cazorla",
+                "number": 19,
+                "home": true,
+                "x": 0.58,
+                "y": 0.72
+              },
+              {
+                "id": "giroud",
+                "name": "Olivier Giroud",
+                "number": 12,
+                "home": true,
+                "x": 0.77,
+                "y": 0.56
+              }
+            ],
+            "ball": {
+              "x": 0.77,
+              "y": 0.56
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.77,
+                  0.56
+                ],
+                "to": [
+                  0.7,
+                  0.6
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.7,
+                  0.6
+                ],
+                "to": [
+                  0.79,
+                  0.53
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.7,
+                  0.6
+                ],
+                "to": [
+                  0.92,
+                  0.45
+                ],
+                "kind": "run"
+              }
+            ],
+            "space": {
+              "x": 0.84,
+              "y": 0.35,
+              "width": 0.12,
+              "height": 0.2
+            },
+            "focusIds": [
+              "giroud",
+              "wilshere"
+            ]
+          }
+        },
+        {
+          "id": "3",
+          "titleKey": "videoWilshereCombinePhase3Title",
+          "watchKey": "videoWilshereCombinePhase3Watch",
+          "start": 330,
+          "end": 337,
+          "diagram": {
+            "players": [
+              {
+                "id": "wilshere",
+                "name": "Jack Wilshere",
+                "number": 10,
+                "home": true,
+                "x": 0.93,
+                "y": 0.45
+              },
+              {
+                "id": "cazorla",
+                "name": "Santi Cazorla",
+                "number": 19,
+                "home": true,
+                "x": 0.62,
+                "y": 0.68
+              },
+              {
+                "id": "giroud",
+                "name": "Olivier Giroud",
+                "number": 12,
+                "home": true,
+                "x": 0.85,
+                "y": 0.54
+              }
+            ],
+            "ball": {
+              "x": 0.85,
+              "y": 0.54
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.85,
+                  0.54
+                ],
+                "to": [
+                  0.93,
+                  0.45
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.93,
+                  0.45
+                ],
+                "to": [
+                  0.99,
+                  0.5
+                ],
+                "kind": "shot"
+              }
+            ],
+            "space": {
+              "x": 0.86,
+              "y": 0.34,
+              "width": 0.1,
+              "height": 0.2
+            },
+            "focusIds": [
+              "wilshere",
+              "giroud"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "united-ronaldo-arsenal-20090505",
+      "titleKey": "videoRonaldoCounterTitle",
+      "focusKey": "videoRonaldoCounterFocus",
+      "date": "2009-05-05",
+      "homeTeam": {
+        "id": "arsenal",
+        "name": "Arsenal",
+        "kit": {
+          "primary": "#D82632",
+          "secondary": "#FAFAF7",
+          "accent": "#FAFAF7",
+          "number": "#FFFFFF",
+          "pattern": "contrastSleeves"
+        }
+      },
+      "awayTeam": {
+        "id": "manUnited",
+        "name": "Manchester United",
+        "kit": {
+          "primary": "#204EA0",
+          "secondary": "#F3F3EE",
+          "accent": "#F3F3EE",
+          "number": "#FFFFFF",
+          "pattern": "solid"
+        }
+      },
+      "videoId": "TrPCZvEixlA",
+      "channel": "Manchester United",
+      "channelUrl": "https://www.youtube.com/@manutd",
+      "sourceDuration": 593,
+      "start": 524,
+      "end": 545,
+      "goalTime": 542,
+      "goalMinute": 61,
+      "attackDirection": 1,
+      "reportUrl": "https://www.manutd.com/en/mutv/videos/detail/5-may-goal-of-the-day-ronaldo-v-arsenal",
+      "reviewedOn": "2026-10-30",
+      "reviewMethod": "Official publisher storyboard stills reviewed with the linked official match record. Three broad authored explanation windows; diagrams are illustrative and not measured tracking. Sampling interval 5 seconds; no full-frame playback or coach validation claimed.",
+      "timestampTolerance": 5,
+      "phases": [
+        {
+          "id": "1",
+          "titleKey": "videoRonaldoCounterPhase1Title",
+          "watchKey": "videoRonaldoCounterPhase1Watch",
+          "start": 524,
+          "end": 532,
+          "diagram": {
+            "players": [
+              {
+                "id": "ronaldo",
+                "name": "Cristiano Ronaldo",
+                "number": 7,
+                "home": false,
+                "x": 0.22,
+                "y": 0.52
+              },
+              {
+                "id": "park",
+                "name": "Park Ji-sung",
+                "number": 13,
+                "home": false,
+                "x": 0.3,
+                "y": 0.57
+              },
+              {
+                "id": "rooney",
+                "name": "Wayne Rooney",
+                "number": 10,
+                "home": false,
+                "x": 0.35,
+                "y": 0.82
+              }
+            ],
+            "ball": {
+              "x": 0.22,
+              "y": 0.52
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.22,
+                  0.52
+                ],
+                "to": [
+                  0.3,
+                  0.57
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.3,
+                  0.57
+                ],
+                "to": [
+                  0.35,
+                  0.82
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.22,
+                  0.52
+                ],
+                "to": [
+                  0.65,
+                  0.42
+                ],
+                "kind": "run"
+              }
+            ],
+            "space": {
+              "x": 0.46,
+              "y": 0.34,
+              "width": 0.27,
+              "height": 0.24
+            },
+            "focusIds": [
+              "ronaldo",
+              "park"
+            ]
+          }
+        },
+        {
+          "id": "2",
+          "titleKey": "videoRonaldoCounterPhase2Title",
+          "watchKey": "videoRonaldoCounterPhase2Watch",
+          "start": 532,
+          "end": 538,
+          "diagram": {
+            "players": [
+              {
+                "id": "ronaldo",
+                "name": "Cristiano Ronaldo",
+                "number": 7,
+                "home": false,
+                "x": 0.66,
+                "y": 0.43
+              },
+              {
+                "id": "park",
+                "name": "Park Ji-sung",
+                "number": 13,
+                "home": false,
+                "x": 0.54,
+                "y": 0.57
+              },
+              {
+                "id": "rooney",
+                "name": "Wayne Rooney",
+                "number": 10,
+                "home": false,
+                "x": 0.72,
+                "y": 0.82
+              }
+            ],
+            "ball": {
+              "x": 0.72,
+              "y": 0.82
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.72,
+                  0.82
+                ],
+                "to": [
+                  0.87,
+                  0.76
+                ],
+                "kind": "carry"
+              },
+              {
+                "from": [
+                  0.66,
+                  0.43
+                ],
+                "to": [
+                  0.92,
+                  0.49
+                ],
+                "kind": "run"
+              }
+            ],
+            "space": {
+              "x": 0.84,
+              "y": 0.36,
+              "width": 0.11,
+              "height": 0.25
+            },
+            "focusIds": [
+              "rooney",
+              "ronaldo"
+            ]
+          }
+        },
+        {
+          "id": "3",
+          "titleKey": "videoRonaldoCounterPhase3Title",
+          "watchKey": "videoRonaldoCounterPhase3Watch",
+          "start": 538,
+          "end": 545,
+          "diagram": {
+            "players": [
+              {
+                "id": "ronaldo",
+                "name": "Cristiano Ronaldo",
+                "number": 7,
+                "home": false,
+                "x": 0.92,
+                "y": 0.49
+              },
+              {
+                "id": "park",
+                "name": "Park Ji-sung",
+                "number": 13,
+                "home": false,
+                "x": 0.68,
+                "y": 0.57
+              },
+              {
+                "id": "rooney",
+                "name": "Wayne Rooney",
+                "number": 10,
+                "home": false,
+                "x": 0.88,
+                "y": 0.76
+              }
+            ],
+            "ball": {
+              "x": 0.88,
+              "y": 0.76
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.88,
+                  0.76
+                ],
+                "to": [
+                  0.92,
+                  0.49
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.92,
+                  0.49
+                ],
+                "to": [
+                  0.99,
+                  0.46
+                ],
+                "kind": "shot"
+              }
+            ],
+            "space": {
+              "x": 0.86,
+              "y": 0.35,
+              "width": 0.1,
+              "height": 0.22
+            },
+            "focusIds": [
+              "rooney",
+              "ronaldo"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "barca-messi-getafe-20070418",
+      "titleKey": "videoMessiGetafeTitle",
+      "focusKey": "videoMessiGetafeFocus",
+      "date": "2007-04-18",
+      "homeTeam": {
+        "id": "barcelona",
+        "name": "FC Barcelona",
+        "kit": {
+          "primary": "#173B79",
+          "secondary": "#AA2648",
+          "accent": "#AA2648",
+          "number": "#F5D833",
+          "pattern": "halves"
+        }
+      },
+      "awayTeam": {
+        "id": "getafe",
+        "name": "Getafe",
+        "kit": {
+          "primary": "#CDF15C",
+          "secondary": "#3E672A",
+          "accent": "#3E672A",
+          "number": "#3E672A",
+          "pattern": "solid"
+        }
+      },
+      "videoId": "gwoKBi3FHvo",
+      "channel": "FC Barcelona",
+      "channelUrl": "https://www.youtube.com/@FCBarcelona",
+      "sourceDuration": 107,
+      "start": 0,
+      "end": 15,
+      "goalTime": 13,
+      "goalMinute": 28,
+      "attackDirection": -1,
+      "reportUrl": "https://www.fcbarcelona.com/en/news/769781/10-years-since-messis-historic-goal-against-getafe/amp",
+      "reviewedOn": "2026-10-30",
+      "reviewMethod": "Official publisher storyboard stills reviewed with the linked official match record. Three broad authored explanation windows; diagrams are illustrative and not measured tracking. Sampling interval 1 seconds; no full-frame playback or coach validation claimed.",
+      "timestampTolerance": 1,
+      "phases": [
+        {
+          "id": "1",
+          "titleKey": "videoMessiGetafePhase1Title",
+          "watchKey": "videoMessiGetafePhase1Watch",
+          "start": 0,
+          "end": 5,
+          "diagram": {
+            "players": [
+              {
+                "id": "messi",
+                "name": "Lionel Messi",
+                "number": 19,
+                "home": true,
+                "x": 0.24,
+                "y": 0.78
+              },
+              {
+                "id": "xavi",
+                "name": "Xavi Hernandez",
+                "number": 6,
+                "home": true,
+                "x": 0.12,
+                "y": 0.54
+              }
+            ],
+            "ball": {
+              "x": 0.12,
+              "y": 0.54
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.12,
+                  0.54
+                ],
+                "to": [
+                  0.24,
+                  0.78
+                ],
+                "kind": "pass"
+              },
+              {
+                "from": [
+                  0.24,
+                  0.78
+                ],
+                "to": [
+                  0.48,
+                  0.65
+                ],
+                "kind": "carry"
+              }
+            ],
+            "space": {
+              "x": 0.35,
+              "y": 0.49,
+              "width": 0.24,
+              "height": 0.2
+            },
+            "focusIds": [
+              "xavi",
+              "messi"
+            ]
+          }
+        },
+        {
+          "id": "2",
+          "titleKey": "videoMessiGetafePhase2Title",
+          "watchKey": "videoMessiGetafePhase2Watch",
+          "start": 5,
+          "end": 9,
+          "diagram": {
+            "players": [
+              {
+                "id": "messi",
+                "name": "Lionel Messi",
+                "number": 19,
+                "home": true,
+                "x": 0.62,
+                "y": 0.56
+              },
+              {
+                "id": "xavi",
+                "name": "Xavi Hernandez",
+                "number": 6,
+                "home": true,
+                "x": 0.28,
+                "y": 0.6
+              }
+            ],
+            "ball": {
+              "x": 0.63,
+              "y": 0.56
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.49,
+                  0.65
+                ],
+                "to": [
+                  0.87,
+                  0.48
+                ],
+                "kind": "carry"
+              }
+            ],
+            "space": {
+              "x": 0.72,
+              "y": 0.33,
+              "width": 0.18,
+              "height": 0.24
+            },
+            "focusIds": [
+              "messi"
+            ]
+          }
+        },
+        {
+          "id": "3",
+          "titleKey": "videoMessiGetafePhase3Title",
+          "watchKey": "videoMessiGetafePhase3Watch",
+          "start": 9,
+          "end": 15,
+          "diagram": {
+            "players": [
+              {
+                "id": "messi",
+                "name": "Lionel Messi",
+                "number": 19,
+                "home": true,
+                "x": 0.91,
+                "y": 0.47
+              },
+              {
+                "id": "xavi",
+                "name": "Xavi Hernandez",
+                "number": 6,
+                "home": true,
+                "x": 0.4,
+                "y": 0.55
+              }
+            ],
+            "ball": {
+              "x": 0.92,
+              "y": 0.47
+            },
+            "arrows": [
+              {
+                "from": [
+                  0.92,
+                  0.47
+                ],
+                "to": [
+                  0.95,
+                  0.62
+                ],
+                "kind": "carry"
+              },
+              {
+                "from": [
+                  0.95,
+                  0.62
+                ],
+                "to": [
+                  0.99,
+                  0.5
+                ],
+                "kind": "shot"
+              }
+            ],
+            "space": {
+              "x": 0.86,
+              "y": 0.49,
+              "width": 0.1,
+              "height": 0.2
+            },
+            "focusIds": [
+              "messi"
+            ]
+          }
+        }
+      ]
     }
   ]
 }

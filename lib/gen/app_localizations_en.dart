@@ -24705,4 +24705,178 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get videoMessiFirstPhase3Watch =>
       'Watch where Messi’s run meets the dropping ball before his finish.';
+
+  @override
+  String get videoSonCarryTitle =>
+      'Son: escape pressure → carry through midfield → finish';
+
+  @override
+  String get videoSonCarryFocus =>
+      'Follow the lane Son carries into after getting away from pressure.';
+
+  @override
+  String get videoSonCarryPhase1Title => 'Leave the first pressure';
+
+  @override
+  String get videoSonCarryPhase1Watch =>
+      'Watch the space ahead as Son gets beyond Tarkowski.';
+
+  @override
+  String get videoSonCarryPhase2Title => 'Carry through the middle';
+
+  @override
+  String get videoSonCarryPhase2Watch =>
+      'Compare Son\'s forward lane with Mee\'s covering position.';
+
+  @override
+  String get videoSonCarryPhase3Title => 'Reach the box';
+
+  @override
+  String get videoSonCarryPhase3Watch =>
+      'Watch the gap Son reaches before the final shot.';
+
+  @override
+  String get videoManeFarPostTitle =>
+      'Henderson and Salah combine → Mane at the far post';
+
+  @override
+  String get videoManeFarPostFocus =>
+      'Watch Mane on the opposite side while play develops on the right.';
+
+  @override
+  String get videoManeFarPostPhase1Title => 'Combine on the right';
+
+  @override
+  String get videoManeFarPostPhase1Watch =>
+      'Watch Henderson continue after the exchange with Salah.';
+
+  @override
+  String get videoManeFarPostPhase2Title => 'Find the opposite side';
+
+  @override
+  String get videoManeFarPostPhase2Watch =>
+      'Follow Mane at the far post while Henderson delivers from the right.';
+
+  @override
+  String get videoManeFarPostPhase3Title => 'Arrive at the cross';
+
+  @override
+  String get videoManeFarPostPhase3Watch =>
+      'Compare Mane\'s arrival with the ball crossing the goalmouth.';
+
+  @override
+  String get videoSalahInsideTitle =>
+      'Salah: receive wide → carry inside → shoot';
+
+  @override
+  String get videoSalahInsideFocus =>
+      'Follow the gap between Salah and Emerson as the ball moves inside.';
+
+  @override
+  String get videoSalahInsidePhase1Title => 'Receive on the right';
+
+  @override
+  String get videoSalahInsidePhase1Watch =>
+      'Watch where Salah receives relative to Emerson.';
+
+  @override
+  String get videoSalahInsidePhase2Title => 'Move away from the touchline';
+
+  @override
+  String get videoSalahInsidePhase2Watch =>
+      'Follow the inward carry and the defender\'s next position.';
+
+  @override
+  String get videoSalahInsidePhase3Title => 'Connect to the shot';
+
+  @override
+  String get videoSalahInsidePhase3Watch =>
+      'Follow the route to goal after the ball moves in from the flank.';
+
+  @override
+  String get videoWilshereCombineTitle =>
+      'Cazorla → Giroud and Wilshere combine → finish';
+
+  @override
+  String get videoWilshereCombineFocus =>
+      'Follow the ball and Wilshere continuing forward after his passes.';
+
+  @override
+  String get videoWilshereCombinePhase1Title => 'Join the combination';
+
+  @override
+  String get videoWilshereCombinePhase1Watch =>
+      'Watch Wilshere move forward after Cazorla receives.';
+
+  @override
+  String get videoWilshereCombinePhase2Title => 'Pass and keep moving';
+
+  @override
+  String get videoWilshereCombinePhase2Watch =>
+      'Follow Wilshere between his short exchanges with Giroud.';
+
+  @override
+  String get videoWilshereCombinePhase3Title => 'Run beyond the last return';
+
+  @override
+  String get videoWilshereCombinePhase3Watch =>
+      'Watch where Wilshere arrives for Giroud\'s final pass.';
+
+  @override
+  String get videoRonaldoCounterTitle =>
+      'Ronaldo → Park → Rooney → Ronaldo on the counter';
+
+  @override
+  String get videoRonaldoCounterFocus =>
+      'Follow Ronaldo running through the middle after releasing the ball.';
+
+  @override
+  String get videoRonaldoCounterPhase1Title => 'Release and run';
+
+  @override
+  String get videoRonaldoCounterPhase1Watch =>
+      'Follow Ronaldo\'s run as the ball goes through Park to Rooney.';
+
+  @override
+  String get videoRonaldoCounterPhase2Title => 'Carry wide, arrive centrally';
+
+  @override
+  String get videoRonaldoCounterPhase2Watch =>
+      'Watch Rooney\'s wide carry and Ronaldo\'s run through the middle.';
+
+  @override
+  String get videoRonaldoCounterPhase3Title => 'Meet the delivery';
+
+  @override
+  String get videoRonaldoCounterPhase3Watch =>
+      'Compare Rooney\'s delivery with Ronaldo arriving in the box.';
+
+  @override
+  String get videoMessiGetafeTitle =>
+      'No19 Messi: receive wide → carry inside → finish';
+
+  @override
+  String get videoMessiGetafeFocus =>
+      'Follow Messi carrying from the right side into the space ahead.';
+
+  @override
+  String get videoMessiGetafePhase1Title => 'Receive and break forward';
+
+  @override
+  String get videoMessiGetafePhase1Watch =>
+      'Watch Messi\'s route after receiving Xavi\'s pass.';
+
+  @override
+  String get videoMessiGetafePhase2Title => 'Carry toward the box';
+
+  @override
+  String get videoMessiGetafePhase2Watch =>
+      'Follow the change from the wide lane toward the penalty area.';
+
+  @override
+  String get videoMessiGetafePhase3Title => 'Continue around the goalkeeper';
+
+  @override
+  String get videoMessiGetafePhase3Watch =>
+      'Watch the final change of direction and the route to goal.';
 }

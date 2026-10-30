@@ -41490,6 +41490,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Watch where Messi’s run meets the dropping ball before his finish.'**
   String get videoMessiFirstPhase3Watch;
+
+  /// No description provided for @videoSonCarryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Son: escape pressure → carry through midfield → finish'**
+  String get videoSonCarryTitle;
+
+  /// No description provided for @videoSonCarryFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the lane Son carries into after getting away from pressure.'**
+  String get videoSonCarryFocus;
+
+  /// No description provided for @videoSonCarryPhase1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the first pressure'**
+  String get videoSonCarryPhase1Title;
+
+  /// No description provided for @videoSonCarryPhase1Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the space ahead as Son gets beyond Tarkowski.'**
+  String get videoSonCarryPhase1Watch;
+
+  /// No description provided for @videoSonCarryPhase2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry through the middle'**
+  String get videoSonCarryPhase2Title;
+
+  /// No description provided for @videoSonCarryPhase2Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare Son\'s forward lane with Mee\'s covering position.'**
+  String get videoSonCarryPhase2Watch;
+
+  /// No description provided for @videoSonCarryPhase3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach the box'**
+  String get videoSonCarryPhase3Title;
+
+  /// No description provided for @videoSonCarryPhase3Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the gap Son reaches before the final shot.'**
+  String get videoSonCarryPhase3Watch;
+
+  /// No description provided for @videoManeFarPostTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Henderson and Salah combine → Mane at the far post'**
+  String get videoManeFarPostTitle;
+
+  /// No description provided for @videoManeFarPostFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Mane on the opposite side while play develops on the right.'**
+  String get videoManeFarPostFocus;
+
+  /// No description provided for @videoManeFarPostPhase1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Combine on the right'**
+  String get videoManeFarPostPhase1Title;
+
+  /// No description provided for @videoManeFarPostPhase1Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Henderson continue after the exchange with Salah.'**
+  String get videoManeFarPostPhase1Watch;
+
+  /// No description provided for @videoManeFarPostPhase2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Find the opposite side'**
+  String get videoManeFarPostPhase2Title;
+
+  /// No description provided for @videoManeFarPostPhase2Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow Mane at the far post while Henderson delivers from the right.'**
+  String get videoManeFarPostPhase2Watch;
+
+  /// No description provided for @videoManeFarPostPhase3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrive at the cross'**
+  String get videoManeFarPostPhase3Title;
+
+  /// No description provided for @videoManeFarPostPhase3Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare Mane\'s arrival with the ball crossing the goalmouth.'**
+  String get videoManeFarPostPhase3Watch;
+
+  /// No description provided for @videoSalahInsideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Salah: receive wide → carry inside → shoot'**
+  String get videoSalahInsideTitle;
+
+  /// No description provided for @videoSalahInsideFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the gap between Salah and Emerson as the ball moves inside.'**
+  String get videoSalahInsideFocus;
+
+  /// No description provided for @videoSalahInsidePhase1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive on the right'**
+  String get videoSalahInsidePhase1Title;
+
+  /// No description provided for @videoSalahInsidePhase1Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch where Salah receives relative to Emerson.'**
+  String get videoSalahInsidePhase1Watch;
+
+  /// No description provided for @videoSalahInsidePhase2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Move away from the touchline'**
+  String get videoSalahInsidePhase2Title;
+
+  /// No description provided for @videoSalahInsidePhase2Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the inward carry and the defender\'s next position.'**
+  String get videoSalahInsidePhase2Watch;
+
+  /// No description provided for @videoSalahInsidePhase3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to the shot'**
+  String get videoSalahInsidePhase3Title;
+
+  /// No description provided for @videoSalahInsidePhase3Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the route to goal after the ball moves in from the flank.'**
+  String get videoSalahInsidePhase3Watch;
+
+  /// No description provided for @videoWilshereCombineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cazorla → Giroud and Wilshere combine → finish'**
+  String get videoWilshereCombineTitle;
+
+  /// No description provided for @videoWilshereCombineFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the ball and Wilshere continuing forward after his passes.'**
+  String get videoWilshereCombineFocus;
+
+  /// No description provided for @videoWilshereCombinePhase1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Join the combination'**
+  String get videoWilshereCombinePhase1Title;
+
+  /// No description provided for @videoWilshereCombinePhase1Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Wilshere move forward after Cazorla receives.'**
+  String get videoWilshereCombinePhase1Watch;
+
+  /// No description provided for @videoWilshereCombinePhase2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass and keep moving'**
+  String get videoWilshereCombinePhase2Title;
+
+  /// No description provided for @videoWilshereCombinePhase2Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow Wilshere between his short exchanges with Giroud.'**
+  String get videoWilshereCombinePhase2Watch;
+
+  /// No description provided for @videoWilshereCombinePhase3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Run beyond the last return'**
+  String get videoWilshereCombinePhase3Title;
+
+  /// No description provided for @videoWilshereCombinePhase3Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch where Wilshere arrives for Giroud\'s final pass.'**
+  String get videoWilshereCombinePhase3Watch;
+
+  /// No description provided for @videoRonaldoCounterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ronaldo → Park → Rooney → Ronaldo on the counter'**
+  String get videoRonaldoCounterTitle;
+
+  /// No description provided for @videoRonaldoCounterFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow Ronaldo running through the middle after releasing the ball.'**
+  String get videoRonaldoCounterFocus;
+
+  /// No description provided for @videoRonaldoCounterPhase1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Release and run'**
+  String get videoRonaldoCounterPhase1Title;
+
+  /// No description provided for @videoRonaldoCounterPhase1Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow Ronaldo\'s run as the ball goes through Park to Rooney.'**
+  String get videoRonaldoCounterPhase1Watch;
+
+  /// No description provided for @videoRonaldoCounterPhase2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry wide, arrive centrally'**
+  String get videoRonaldoCounterPhase2Title;
+
+  /// No description provided for @videoRonaldoCounterPhase2Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Rooney\'s wide carry and Ronaldo\'s run through the middle.'**
+  String get videoRonaldoCounterPhase2Watch;
+
+  /// No description provided for @videoRonaldoCounterPhase3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet the delivery'**
+  String get videoRonaldoCounterPhase3Title;
+
+  /// No description provided for @videoRonaldoCounterPhase3Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare Rooney\'s delivery with Ronaldo arriving in the box.'**
+  String get videoRonaldoCounterPhase3Watch;
+
+  /// No description provided for @videoMessiGetafeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No19 Messi: receive wide → carry inside → finish'**
+  String get videoMessiGetafeTitle;
+
+  /// No description provided for @videoMessiGetafeFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow Messi carrying from the right side into the space ahead.'**
+  String get videoMessiGetafeFocus;
+
+  /// No description provided for @videoMessiGetafePhase1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive and break forward'**
+  String get videoMessiGetafePhase1Title;
+
+  /// No description provided for @videoMessiGetafePhase1Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Messi\'s route after receiving Xavi\'s pass.'**
+  String get videoMessiGetafePhase1Watch;
+
+  /// No description provided for @videoMessiGetafePhase2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry toward the box'**
+  String get videoMessiGetafePhase2Title;
+
+  /// No description provided for @videoMessiGetafePhase2Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the change from the wide lane toward the penalty area.'**
+  String get videoMessiGetafePhase2Watch;
+
+  /// No description provided for @videoMessiGetafePhase3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue around the goalkeeper'**
+  String get videoMessiGetafePhase3Title;
+
+  /// No description provided for @videoMessiGetafePhase3Watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the final change of direction and the route to goal.'**
+  String get videoMessiGetafePhase3Watch;
 }
 
 class _AppLocalizationsDelegate

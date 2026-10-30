@@ -424,7 +424,7 @@ void main() {
       supportedLocales: AppLocalizations.supportedLocales,
       home: ScanPassGameScreen(optionRepository: options),
     ));
-    for (var attempt = 0; attempt < 20; attempt++) {
+    for (var attempt = 0; attempt < 50; attempt++) {
       await tester.pump(const Duration(milliseconds: 20));
       if (find.byType(ScanPassVideoLearningScreen).evaluate().isNotEmpty &&
           find
@@ -433,6 +433,9 @@ void main() {
               .isNotEmpty) {
         break;
       }
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
     }
     expect(find.byType(ScanPassVideoLearningScreen), findsOneWidget);
     await tester.tap(

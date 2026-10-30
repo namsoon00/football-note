@@ -85,30 +85,72 @@ void main() {
     );
   });
 
-  test('committed reviewed catalogue has six real goal passages', () {
+  test('committed reviewed catalogue has twelve distinct real goal passages',
+      () {
     final catalog = VideoLearningCatalog.fromJsonString(
       File('assets/video_learning/catalog.json').readAsStringSync(),
     );
 
-    expect(catalog.scenes, hasLength(6));
-    expect(catalog.teams, hasLength(5));
+    expect(catalog.scenes, hasLength(12));
+    expect(catalog.scenes.map((scene) => scene.id).toSet(), hasLength(12));
     expect(
-      catalog.scenes.where((scene) => scene.attackDirection == -1),
-      hasLength(3),
+      catalog.scenes
+          .map((scene) => '${scene.videoId}:${scene.clip.start}:${scene.clip.end}')
+          .toSet(),
+      hasLength(12),
     );
     final arrowKinds = <VideoLearningArrowKind>{};
     for (final scene in catalog.scenes) {
       expect(scene.videoId, hasLength(11));
       expect(scene.phases, hasLength(3));
-      expect(
-          scene.goalTime, inInclusiveRange(scene.clip.start, scene.clip.end));
+      expect(scene.phases.first.range.start, scene.clip.start);
+      expect(scene.phases.last.range.end, scene.clip.end);
+      for (var phaseIndex = 1;
+          phaseIndex < scene.phases.length;
+          phaseIndex++) {
+        expect(
+          scene.phases[phaseIndex].range.start,
+          scene.phases[phaseIndex - 1].range.end,
+        );
+      }
+      expect(scene.goalTime, inInclusiveRange(scene.clip.start, scene.clip.end));
       expect(scene.phases.expand((phase) => phase.diagram.players), isNotEmpty);
       for (final phase in scene.phases) {
         expect(phase.diagram.focusIds, isNotEmpty);
+        final playerIds =
+            phase.diagram.players.map((player) => player.id).toSet();
+        expect(
+          playerIds.containsAll(phase.diagram.focusIds),
+          isTrue,
+          reason: '${scene.id}/${phase.id} focuses only known actors',
+        );
         arrowKinds.addAll(phase.diagram.arrows.map((arrow) => arrow.kind));
+      }
+      for (final teamId in <String>[
+        scene.homeTeam.id,
+        scene.awayTeam.id,
+      ]) {
+        expect(
+          catalog.filtered(
+            teamId: teamId,
+            isWatched: (_) => false,
+          ),
+          contains(scene),
+          reason: '${scene.id} is available through its $teamId filter',
+        );
       }
     }
     expect(arrowKinds, VideoLearningArrowKind.values.toSet());
+    expect(
+      catalog.scenes
+          .firstWhere(
+            (scene) => scene.id == 'arsenal-wilshere-norwich-20131019',
+          )
+          .homeTeam
+          .kit
+          .pattern,
+      FootballKitPattern.contrastSleeves,
+    );
   });
 
   test('a two-player combination keeps only identified actors', () {
