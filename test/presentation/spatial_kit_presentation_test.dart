@@ -145,11 +145,9 @@ void main() {
     expect(numbered.differenceFrom(blank), greaterThan(20));
     expect(numbered.near(kit.numberColor, tolerance: 12), greaterThan(2));
     expect(
-      numbered.near(Colors.black, tolerance: 40, alphaMinimum: 150),
-      greaterThan(
-        blank.near(Colors.black, tolerance: 40, alphaMinimum: 150),
-      ),
-      reason: 'The dark outline remains visible after blending over white.',
+      numbered.addedDarkPixelsComparedTo(blank),
+      greaterThan(0),
+      reason: 'The number adds a dark outline even when it covers shirt edges.',
     );
   });
 }
@@ -200,6 +198,21 @@ class _KitPixels {
           rgba[offset + 3] > alphaMinimum) {
         count++;
       }
+    }
+    return count;
+  }
+
+  int addedDarkPixelsComparedTo(_KitPixels before) {
+    bool isDark(List<int> pixels, int offset) =>
+        pixels[offset + 3] > 150 &&
+        pixels[offset] < 64 &&
+        pixels[offset + 1] < 64 &&
+        pixels[offset + 2] < 64;
+    var count = 0;
+    for (var offset = 0; offset < rgba.length; offset += 4) {
+      // Glyphs can cover old garment edges; only newly drawn dark pixels
+      // demonstrate the number outline, independently of that lost edge area.
+      if (isDark(rgba, offset) && !isDark(before.rgba, offset)) count++;
     }
     return count;
   }
