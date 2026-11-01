@@ -140,15 +140,103 @@ void main() {
     );
   });
 
-  test('level thresholds now support up to level 20', () {
-    expect(PlayerLevelService.levelThresholds, hasLength(20));
-    expect(PlayerLevelState.fromXp(9600).level, 20);
-    expect(PlayerLevelState.fromXp(15000).level, 20);
+  test('every level threshold boundary maps to the approved level', () {
+    const expectedThresholds = <int>[
+      0,
+      25,
+      70,
+      140,
+      240,
+      380,
+      560,
+      790,
+      1080,
+      1430,
+      1830,
+      2260,
+      2720,
+      3210,
+      3710,
+      4210,
+      4710,
+      5210,
+      5710,
+      6210,
+    ];
+
+    expect(PlayerLevelService.levelThresholds, expectedThresholds);
+    for (var index = 0; index < expectedThresholds.length; index += 1) {
+      final threshold = expectedThresholds[index];
+      expect(
+        PlayerLevelState.fromXp(threshold).level,
+        index + 1,
+        reason: 'threshold $threshold should start level ${index + 1}',
+      );
+      if (index > 0) {
+        expect(
+          PlayerLevelState.fromXp(threshold - 1).level,
+          index,
+          reason: '${threshold - 1} should remain level $index',
+        );
+      }
+    }
   });
 
-  test('max level continues with mastery stars', () {
-    final state = PlayerLevelState.fromXp(10650);
+  test('existing stored total xp recalculates level without migration', () {
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.totalXpKey, 6080);
 
+    final state = PlayerLevelService(repository).loadState();
+
+    expect(state.totalXp, 6080);
+    expect(state.level, 19);
+    expect(repository.getValue<int>(PlayerLevelService.totalXpKey), 6080);
+  });
+
+  test('newly eligible intermediate level rewards remain claimable', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.totalXpKey, 6080)
+      ..seed(PlayerLevelService.claimedRewardLevelsKey, <int>[17])
+      ..seed(PlayerLevelService.customRewardNamesKey, <String, String>{
+        '18': 'Level 18 reward',
+        '19': 'Level 19 reward',
+        '20': 'Level 20 reward',
+      });
+    final service = PlayerLevelService(repository);
+
+    final newlyEligible = service
+        .loadRewardStatuses()
+        .where(
+          (status) => status.reward.level >= 18 && status.reward.level <= 19,
+        )
+        .toList(growable: false);
+    final level20 = service
+        .loadRewardStatuses()
+        .firstWhere((status) => status.reward.level == 20);
+
+    expect(newlyEligible, hasLength(2));
+    expect(newlyEligible.every((status) => status.isAvailable), isTrue);
+    expect(newlyEligible.every((status) => !status.isClaimed), isTrue);
+    expect(level20.isAvailable, isFalse);
+    expect(await service.claimRewardForLevel(18), isNotNull);
+    expect(await service.claimRewardForLevel(19), isNotNull);
+    expect(await service.claimRewardForLevel(20), isNull);
+    expect(
+      repository.getValue<List>(PlayerLevelService.claimedRewardLevelsKey),
+      containsAll(<int>[17, 18, 19]),
+    );
+  });
+
+  test('max level transitions to 500 xp mastery stars', () {
+    final atMaxLevel = PlayerLevelState.fromXp(6210);
+    final beforeFirstStar = PlayerLevelState.fromXp(6709);
+    final state = PlayerLevelState.fromXp(7260);
+
+    expect(atMaxLevel.level, 20);
+    expect(atMaxLevel.masteryStars, 0);
+    expect(atMaxLevel.xpToNextMasteryStar, 500);
+    expect(beforeFirstStar.masteryStars, 0);
+    expect(beforeFirstStar.xpToNextMasteryStar, 1);
     expect(state.level, 20);
     expect(state.isMaxLevel, isTrue);
     expect(state.maxLevelExtraXp, 1050);
@@ -1002,6 +1090,203 @@ void main() {
     );
   });
 
+  test('challenge rounds bypass the cap while ordinary awards stay capped',
+      () async {
+    final awardDay = DateTime(2026, 6, 3, 20);
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.totalXpKey, 64)
+      ..seed(PlayerLevelService.xpHistoryKey, <Map<String, dynamic>>[
+        PlayerXpHistoryEntry(
+          awardedAt: DateTime(2026, 6, 3, 9),
+          deltaXp: 64,
+          totalXp: 64,
+          beforeLevel: 1,
+          afterLevel: 2,
+          category: PlayerXpHistoryCategory.training,
+          label: 'Passing',
+          reasons: const <String>['log'],
+        ).toMap(),
+      ]);
+    final service = PlayerLevelService(repository);
+
+    final challengeAward = await service.awardForChallengeRound(
+      challengeRunId: 'starter_3-cap-test',
+      roundNumber: 1,
+      challengeLabel: 'starter_3',
+      completedAt: awardDay,
+      rewardXp: 48,
+    );
+    final ordinaryAward = await service.awardForQuizCompletion(
+      completedAt: awardDay.add(const Duration(minutes: 5)),
+    );
+
+    expect(challengeAward.gainedXp, 48);
+    expect(challengeAward.reasons, isNot(contains('daily_xp_cap')));
+    expect(ordinaryAward.gainedXp, 0);
+    expect(ordinaryAward.reasons, contains('daily_xp_cap'));
+    expect(service.loadState().totalXp, 112);
+  });
+
+  test('zero challenge awards are retryable and are not marked paid', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.totalXpKey, 1000000);
+    final service = PlayerLevelService(repository);
+
+    final zeroAward = await service.awardForChallengeRound(
+      challengeRunId: 'starter_3-zero-test',
+      roundNumber: 1,
+      challengeLabel: 'starter_3',
+      completedAt: DateTime(2026, 6, 3, 20),
+      rewardXp: 20,
+    );
+
+    expect(zeroAward.gainedXp, 0);
+    expect(
+      repository.getValue<List>(PlayerLevelService.awardedChallengeRoundsKey) ??
+          const <dynamic>[],
+      isNot(contains('starter_3-zero-test:1')),
+    );
+
+    repository.seed(PlayerLevelService.totalXpKey, 0);
+    final retry = await service.awardForChallengeRound(
+      challengeRunId: 'starter_3-zero-test',
+      roundNumber: 1,
+      challengeLabel: 'starter_3',
+      completedAt: DateTime(2026, 6, 3, 20),
+      rewardXp: 20,
+    );
+
+    expect(retry.gainedXp, 20);
+  });
+
+  test('failed challenge awards remain retryable and then deduplicate',
+      () async {
+    final repository = _FailTotalWriteOnceOptionRepository();
+    final service = PlayerLevelService(repository);
+
+    await expectLater(
+      service.awardForChallengeRound(
+        challengeRunId: 'starter_3-failure-test',
+        roundNumber: 1,
+        challengeLabel: 'starter_3',
+        completedAt: DateTime(2026, 6, 3, 20),
+        rewardXp: 20,
+      ),
+      throwsA(isA<StateError>()),
+    );
+    expect(
+      repository.getValue<List>(PlayerLevelService.awardedChallengeRoundsKey) ??
+          const <dynamic>[],
+      isNot(contains('starter_3-failure-test:1')),
+    );
+
+    final retry = await service.awardForChallengeRound(
+      challengeRunId: 'starter_3-failure-test',
+      roundNumber: 1,
+      challengeLabel: 'starter_3',
+      completedAt: DateTime(2026, 6, 3, 20),
+      rewardXp: 20,
+    );
+    final duplicate = await service.awardForChallengeRound(
+      challengeRunId: 'starter_3-failure-test',
+      roundNumber: 1,
+      challengeLabel: 'starter_3',
+      completedAt: DateTime(2026, 6, 3, 21),
+      rewardXp: 20,
+    );
+
+    expect(retry.gainedXp, 20);
+    expect(duplicate.gainedXp, 0);
+    expect(service.loadState().totalXp, 20);
+    expect(service.loadXpHistory(), hasLength(1));
+  });
+
+  test('challenge history failure rolls back xp before a successful retry',
+      () async {
+    final repository = _FailHistoryWriteOnceOptionRepository();
+    final service = PlayerLevelService(repository);
+
+    await expectLater(
+      service.awardForChallengeRound(
+        challengeRunId: 'starter_3-history-failure',
+        roundNumber: 1,
+        challengeLabel: 'starter_3',
+        completedAt: DateTime(2026, 6, 3, 20),
+        rewardXp: 20,
+      ),
+      throwsA(isA<StateError>()),
+    );
+
+    expect(service.loadState().totalXp, 0);
+    expect(service.loadXpHistory(), isEmpty);
+    expect(
+      repository.getValue<List>(PlayerLevelService.awardedChallengeRoundsKey) ??
+          const <dynamic>[],
+      isNot(contains('starter_3-history-failure:1')),
+    );
+
+    final retry = await service.awardForChallengeRound(
+      challengeRunId: 'starter_3-history-failure',
+      roundNumber: 1,
+      challengeLabel: 'starter_3',
+      completedAt: DateTime(2026, 6, 3, 20),
+      rewardXp: 20,
+    );
+
+    expect(retry.gainedXp, 20);
+    expect(service.loadState().totalXp, 20);
+    expect(service.loadXpHistory(), hasLength(1));
+  });
+
+  test('retry repairs a missing round token without duplicating paid xp',
+      () async {
+    final repository = _FailRoundTokenWriteOnceOptionRepository();
+    final service = PlayerLevelService(repository);
+
+    await expectLater(
+      service.awardForChallengeRound(
+        challengeRunId: 'starter_3-token-failure',
+        roundNumber: 1,
+        challengeLabel: 'starter_3',
+        completedAt: DateTime(2026, 6, 3, 20),
+        rewardXp: 20,
+      ),
+      throwsA(isA<StateError>()),
+    );
+
+    expect(service.loadState().totalXp, 20);
+    expect(service.loadXpHistory(), hasLength(1));
+    expect(
+      repository.getValue<List>(PlayerLevelService.awardedChallengeRoundsKey) ??
+          const <dynamic>[],
+      isNot(contains('starter_3-token-failure:1')),
+    );
+
+    final repairedRetry = await service.awardForChallengeRound(
+      challengeRunId: 'starter_3-token-failure',
+      roundNumber: 1,
+      challengeLabel: 'starter_3',
+      completedAt: DateTime(2026, 6, 3, 21),
+      rewardXp: 20,
+    );
+    final duplicate = await service.awardForChallengeRound(
+      challengeRunId: 'starter_3-token-failure',
+      roundNumber: 1,
+      challengeLabel: 'starter_3',
+      completedAt: DateTime(2026, 6, 3, 22),
+      rewardXp: 20,
+    );
+
+    expect(repairedRetry.gainedXp, 0);
+    expect(duplicate.gainedXp, 0);
+    expect(service.loadState().totalXp, 20);
+    expect(service.loadXpHistory(), hasLength(1));
+    expect(
+      repository.getValue<List>(PlayerLevelService.awardedChallengeRoundsKey),
+      contains('starter_3-token-failure:1'),
+    );
+  });
+
   test('daily positive xp is capped to keep level-ups slower', () async {
     final repository = _MemoryOptionRepository()
       ..seed(PlayerLevelService.totalXpKey, 64)
@@ -1091,5 +1376,45 @@ class _MemoryOptionRepository implements OptionRepository {
   @override
   Future<void> setValue(String key, dynamic value) async {
     _values[key] = value;
+  }
+}
+
+class _FailTotalWriteOnceOptionRepository extends _MemoryOptionRepository {
+  bool _shouldFailTotalWrite = true;
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    if (key == PlayerLevelService.totalXpKey && _shouldFailTotalWrite) {
+      _shouldFailTotalWrite = false;
+      throw StateError('simulated total XP write failure');
+    }
+    await super.setValue(key, value);
+  }
+}
+
+class _FailHistoryWriteOnceOptionRepository extends _MemoryOptionRepository {
+  bool _shouldFailHistoryWrite = true;
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    if (key == PlayerLevelService.xpHistoryKey && _shouldFailHistoryWrite) {
+      _shouldFailHistoryWrite = false;
+      throw StateError('simulated XP history write failure');
+    }
+    await super.setValue(key, value);
+  }
+}
+
+class _FailRoundTokenWriteOnceOptionRepository extends _MemoryOptionRepository {
+  bool _shouldFailRoundTokenWrite = true;
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    if (key == PlayerLevelService.awardedChallengeRoundsKey &&
+        _shouldFailRoundTokenWrite) {
+      _shouldFailRoundTokenWrite = false;
+      throw StateError('simulated challenge round token write failure');
+    }
+    await super.setValue(key, value);
   }
 }

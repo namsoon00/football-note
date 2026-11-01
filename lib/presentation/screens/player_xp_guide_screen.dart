@@ -126,6 +126,11 @@ class PlayerXpGuideScreen extends StatelessWidget {
             xpLabel: '+${PlayerLevelService.dailyTaskCompletionXp} XP',
           ),
           _XpGuideItem(
+            icon: Icons.workspace_premium_outlined,
+            title: l10n.playerXpGuideChallengeRewards,
+            xpLabel: l10n.playerXpGuideChallengeRewardsXp,
+          ),
+          _XpGuideItem(
             icon: Icons.speed_outlined,
             title: l10n.playerXpGuideDailyCap,
             xpLabel: '${PlayerLevelService.dailyPositiveXpCap} XP',

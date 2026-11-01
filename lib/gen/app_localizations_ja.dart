@@ -2383,6 +2383,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get playerXpGuideDailyTasksComplete => '毎日の家事がすべて完了しました';
 
   @override
+  String get playerXpGuideChallengeRewards => 'チャレンジ報酬';
+
+  @override
+  String get playerXpGuideChallengeRewardsXp =>
+      '1ラウンドあたりルーキー20 / ぐんぐん32 / エース48 XP';
+
+  @override
   String get playerXpGuideDailyCap => '1 日あたりのプラス XP の上限';
 
   @override
@@ -17046,7 +17053,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get challengeRewardGuideBody =>
-      'ラウンドを連続で完了するほどラウンド報酬が増えます。最後まで完走すると完走ボーナスも加算されます。';
+      'ラウンド報酬はルーキー/ぐんぐん/エースで20/32/48 XPです。連続成功ごとに5 XP、最大25 XPが加算され、完了報酬はチャレンジ1日あたり30/55/85 XPです。約束されたラウンド報酬は1日のXP上限に達していても全額付与されます。';
 
   @override
   String get challengeRewardGuideNoActive =>

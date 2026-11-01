@@ -1268,7 +1268,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(seconds: 1));
 
-    expect(PlayerLevelService(optionRepository).loadState().totalXp, 10);
+    expect(PlayerLevelService(optionRepository).loadState().totalXp, 20);
     expect(find.text('미션 완료!'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
@@ -1449,7 +1449,7 @@ void main() {
       progress: updatedProgress!,
       playerLevelService: PlayerLevelService(optionRepository),
     );
-    expect(PlayerLevelService(optionRepository).loadState().totalXp, 10);
+    expect(PlayerLevelService(optionRepository).loadState().totalXp, 20);
 
     Navigator.of(tester.element(find.byType(EntryFormScreen))).pop();
     await tester.pump();
@@ -1457,7 +1457,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(seconds: 1));
 
-    expect(PlayerLevelService(optionRepository).loadState().totalXp, 10);
+    expect(PlayerLevelService(optionRepository).loadState().totalXp, 20);
     expect(find.text('미션 완료!'), findsOneWidget);
     expect(find.text('라운드 미션을 완료했어요. 기록을 확인하세요.'), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -1530,7 +1530,7 @@ void main() {
     );
     expect(find.text('활성 챌린지'), findsAtLeastNWidgets(1));
     expect(find.text('3일 챌린지'), findsOneWidget);
-    expect(PlayerLevelService(optionRepository).loadState().totalXp, 10);
+    expect(PlayerLevelService(optionRepository).loadState().totalXp, 20);
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());

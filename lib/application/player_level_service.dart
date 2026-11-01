@@ -125,6 +125,7 @@ class PlayerLevelService {
   final OptionRepository _options;
   final String _sportId;
   final String _plansStorageKey;
+  final Set<String> _challengeAwardsInFlight = <String>{};
   final MealCoachingService _mealCoachingService = const MealCoachingService();
 
   PlayerLevelService(OptionRepository options,
@@ -546,7 +547,29 @@ class PlayerLevelService {
     }
     final token = '$normalizedRunId:$roundNumber';
     final awardedRounds = _getStringSet(awardedChallengeRoundsKey);
-    if (!awardedRounds.add(token)) {
+    final sourceId = _challengeRoundSourceId(normalizedRunId, roundNumber);
+    if (awardedRounds.contains(token)) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+    if (_hasXpSource(sourceId)) {
+      awardedRounds.add(token);
+      await _options.setValue(
+        awardedChallengeRoundsKey,
+        awardedRounds.toList()..sort(),
+      );
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+    if (!_challengeAwardsInFlight.add(sourceId)) {
       return PlayerLevelAward(
         gainedXp: 0,
         before: before,
@@ -559,18 +582,26 @@ class PlayerLevelService {
       'challenge_round_completed',
       if (streakBonusXp > 0) 'challenge_round_streak_bonus',
     ];
-    await _options.setValue(
-      awardedChallengeRoundsKey,
-      awardedRounds.toList()..sort(),
-    );
-    return _appendSourceDelta(
-      sourceId: _challengeRoundSourceId(normalizedRunId, roundNumber),
-      category: PlayerXpHistoryCategory.challenge,
-      awardedAt: completedAt,
-      requestedXp: rewardXp,
-      label: '$challengeLabel:$roundNumber',
-      reasons: reasons,
-    );
+    try {
+      final award = await _appendSourceDelta(
+        sourceId: sourceId,
+        category: PlayerXpHistoryCategory.challenge,
+        awardedAt: completedAt,
+        requestedXp: rewardXp,
+        label: '$challengeLabel:$roundNumber',
+        reasons: reasons,
+        applyDailyCap: false,
+      );
+      if (award.gainedXp <= 0) return award;
+      awardedRounds.add(token);
+      await _options.setValue(
+        awardedChallengeRoundsKey,
+        awardedRounds.toList()..sort(),
+      );
+      return award;
+    } finally {
+      _challengeAwardsInFlight.remove(sourceId);
+    }
   }
 
   Future<PlayerLevelAward> awardForChallengeCompletion({
@@ -590,7 +621,29 @@ class PlayerLevelService {
       );
     }
     final awardedRuns = _getStringSet(awardedChallengeCompletionsKey);
-    if (!awardedRuns.add(normalizedRunId)) {
+    final sourceId = _challengeCompletionSourceId(normalizedRunId);
+    if (awardedRuns.contains(normalizedRunId)) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+    if (_hasXpSource(sourceId)) {
+      awardedRuns.add(normalizedRunId);
+      await _options.setValue(
+        awardedChallengeCompletionsKey,
+        awardedRuns.toList()..sort(),
+      );
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+    if (!_challengeAwardsInFlight.add(sourceId)) {
       return PlayerLevelAward(
         gainedXp: 0,
         before: before,
@@ -599,20 +652,27 @@ class PlayerLevelService {
       );
     }
 
-    await _options.setValue(
-      awardedChallengeCompletionsKey,
-      awardedRuns.toList()..sort(),
-    );
     final reasons = <String>['challenge_completed_bonus'];
-    return _appendSourceDelta(
-      sourceId: _challengeCompletionSourceId(normalizedRunId),
-      category: PlayerXpHistoryCategory.challenge,
-      awardedAt: completedAt,
-      requestedXp: rewardXp,
-      label: '$challengeLabel:complete',
-      reasons: reasons,
-      applyDailyCap: false,
-    );
+    try {
+      final award = await _appendSourceDelta(
+        sourceId: sourceId,
+        category: PlayerXpHistoryCategory.challenge,
+        awardedAt: completedAt,
+        requestedXp: rewardXp,
+        label: '$challengeLabel:complete',
+        reasons: reasons,
+        applyDailyCap: false,
+      );
+      if (award.gainedXp <= 0) return award;
+      awardedRuns.add(normalizedRunId);
+      await _options.setValue(
+        awardedChallengeCompletionsKey,
+        awardedRuns.toList()..sort(),
+      );
+      return award;
+    } finally {
+      _challengeAwardsInFlight.remove(sourceId);
+    }
   }
 
   static PlayerLevelReward? rewardForLevel(int level) {
@@ -1140,14 +1200,14 @@ class PlayerLevelService {
   }) async {
     final before = loadState();
     final resolvedReasons = reasons.toList(growable: true);
-    final gainedXp = applyDailyCap
+    final resolvedXp = applyDailyCap
         ? _applyDailyPositiveXpCap(
             requestedXp: requestedXp,
             awardedAt: awardedAt,
             reasons: resolvedReasons,
           )
         : requestedXp;
-    if (gainedXp == 0) {
+    if (resolvedXp == 0) {
       return PlayerLevelAward(
         gainedXp: 0,
         before: before,
@@ -1157,22 +1217,37 @@ class PlayerLevelService {
       );
     }
 
-    final nextTotal = (before.totalXp + gainedXp).clamp(0, 1000000).toInt();
+    final nextTotal = (before.totalXp + resolvedXp).clamp(0, 1000000).toInt();
+    final gainedXp = nextTotal - before.totalXp;
+    if (gainedXp == 0) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: resolvedReasons,
+        sportId: _sportId,
+      );
+    }
     await _options.setValue(totalXpKey, nextTotal);
     final after = PlayerLevelState.fromXp(nextTotal);
-    await _appendXpHistory(
-      PlayerXpHistoryEntry(
-        awardedAt: awardedAt,
-        deltaXp: gainedXp,
-        totalXp: nextTotal,
-        beforeLevel: before.level,
-        afterLevel: after.level,
-        category: category,
-        label: label,
-        reasons: resolvedReasons,
-        sourceId: sourceId,
-      ),
-    );
+    try {
+      await _appendXpHistory(
+        PlayerXpHistoryEntry(
+          awardedAt: awardedAt,
+          deltaXp: gainedXp,
+          totalXp: nextTotal,
+          beforeLevel: before.level,
+          afterLevel: after.level,
+          category: category,
+          label: label,
+          reasons: resolvedReasons,
+          sourceId: sourceId,
+        ),
+      );
+    } catch (_) {
+      await _options.setValue(totalXpKey, before.totalXp);
+      rethrow;
+    }
     return PlayerLevelAward(
       gainedXp: gainedXp,
       before: before,
@@ -1309,6 +1384,10 @@ class PlayerLevelService {
         .fold(0, (sum, entry) => sum + entry.deltaXp)
         .clamp(0, dailyPositiveXpCap)
         .toInt();
+  }
+
+  bool _hasXpSource(String sourceId) {
+    return loadXpHistory().any((entry) => entry.sourceId == sourceId);
   }
 
   Future<void> _appendXpHistory(PlayerXpHistoryEntry entry) async {
