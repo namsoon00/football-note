@@ -284,6 +284,29 @@ void main() {
           reason: '${firstScene.id} actor $id cue=$cue point=$projected',
         );
       }
+      _expectNameLabelsAreCollisionFree(painter);
+      final labelIds =
+          painter.playerNameLabels.map((label) => label.playerId).toSet();
+      final primaryIds = <int>{
+        firstScene.focusPlayerId,
+        if (painter.currentSourceOwnerId case final owner?) owner,
+      };
+      expect(labelIds.intersection(primaryIds), isNotEmpty);
+      if (painter.currentSourceOwnerId case final owner?) {
+        expect(labelIds, contains(owner));
+      }
+      if (painter.cuePlayerId case final cuePlayer?) {
+        expect(labelIds, contains(cuePlayer));
+      }
+      if (labelIds.length > 1) {
+        expect(
+          labelIds.intersection(
+            firstScene.evidenceAnchors.map((anchor) => anchor.playerId).toSet(),
+          ),
+          hasLength(greaterThanOrEqualTo(2)),
+        );
+      }
+      expect(labelIds.length, lessThanOrEqualTo(4));
       _expectTextFits(tester, 'spatial-cue-line');
       expect(
         find.byKey(const ValueKey<String>('spatial-minimap')),
@@ -460,6 +483,10 @@ void main() {
       final painter = _painter(tester);
       expect(painter.cuePlayerId, isNull);
       expect(
+        painter.playerNameLabels.map((label) => label.playerId),
+        isNot(contains(scene.evidenceAnchors.first.playerId)),
+      );
+      expect(
         _textValue(tester, 'spatial-cue-line'),
         isNot(contains(scene.evidenceAnchors.first.playerName.split(' ').last)),
       );
@@ -475,6 +502,47 @@ void main() {
         scene.evidenceAnchors.first.playerId,
       );
     }
+  });
+
+  testWidgets('compound source surname stays stable in dark scaled view',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final scene = catalog.scenes.firstWhere(
+      (scene) => scene.id == '2841-4790-de-jong-pressureSupport',
+    );
+    await tester.pumpWidget(_catalogApp(
+      _catalogStartingWith(catalog, scene),
+      locale: const Locale('ja'),
+      textScale: 1.4,
+      themeMode: ThemeMode.dark,
+    ));
+    await _pumpLoaded(tester);
+    _seekTo(scene, scene.evidenceStart + .1, tester);
+    await tester.pump();
+
+    final firstPainter = _painter(tester);
+    final firstLabel = firstPainter.playerNameLabels.singleWhere(
+      (label) => label.playerId == scene.focusPlayerId,
+    );
+    expect(firstPainter.brightness, Brightness.dark);
+    expect(firstLabel.sourceName, 'Frenkie de Jong');
+    expect(firstLabel.displayName, 'de Jong');
+    _expectNameLabelsAreCollisionFree(firstPainter);
+
+    _seekTo(scene, scene.evidenceStart + .12, tester);
+    await tester.pump();
+    final secondPainter = _painter(tester);
+    final secondLabel = secondPainter.playerNameLabels.singleWhere(
+      (label) => label.playerId == scene.focusPlayerId,
+    );
+    expect(secondLabel.placementIndex, firstLabel.placementIndex);
+    expect(
+      (secondLabel.badgeRect.center - firstLabel.badgeRect.center).distance,
+      lessThan(8),
+    );
+    _expectNameLabelsAreCollisionFree(secondPainter);
+    expect(tester.takeException(), isNull);
   });
 
   test('cue placement retains a clear phase position and moves when blocked',
@@ -576,6 +644,63 @@ void main() {
   });
 
   testWidgets(
+      'dense landscape connections retain a highest-priority player name',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(667, 320));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    for (final sceneId in <String>[
+      '2841-3915-kroos-lateralSwitch',
+      '3442-16202-kroos-pressureSupport',
+      '2841-64724-modric-combination',
+    ]) {
+      final scene = catalog.scenes.firstWhere((value) => value.id == sceneId);
+      await tester.pumpWidget(_catalogApp(
+        _catalogStartingWith(catalog, scene),
+        key: ValueKey<String>('dense-landscape-$sceneId'),
+        locale: const Locale('ko'),
+      ));
+      await _pumpLoaded(tester);
+      final firstSample = (scene.evidenceStart * 4).ceil();
+      final lastSample = (scene.evidenceEnd * 4).floor();
+      for (var sampleIndex = firstSample;
+          sampleIndex <= lastSample;
+          sampleIndex++) {
+        final time = sampleIndex / 4;
+        _seekTo(scene, time, tester);
+        await tester.pump();
+
+        final painter = _painter(tester);
+        final sample = painter.data.renderSample(painter.time);
+        final primaryIds = <int>{
+          scene.focusPlayerId,
+          if (painter.currentSourceOwnerId case final owner?) owner,
+          if (painter.cuePlayerId case final cuePlayer?) cuePlayer,
+        };
+        final safelyVisiblePrimaryIds = primaryIds.where((playerId) {
+          final point = sample.players[painter.data.playerIndex(playerId)];
+          return point != null &&
+              painter.viewport.contains(point, safetyPixels: 25);
+        }).toSet();
+        expect(
+          safelyVisiblePrimaryIds,
+          isNotEmpty,
+          reason: '$sceneId at $time',
+        );
+        expect(
+          painter.playerNameLabels
+              .map((label) => label.playerId)
+              .toSet()
+              .intersection(safelyVisiblePrimaryIds),
+          isNotEmpty,
+          reason: '$sceneId at $time',
+        );
+        _expectNameLabelsAreCollisionFree(painter);
+        expect(tester.takeException(), isNull);
+      }
+    }
+  });
+
+  testWidgets(
       'Griezmann pressure aftermath keeps every required actor cue-clear in landscape',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(667, 320));
@@ -645,10 +770,12 @@ Widget _catalogApp(
   Key? key,
   Locale locale = const Locale('en'),
   double textScale = 1,
+  ThemeMode themeMode = ThemeMode.system,
 }) =>
     _app(
       locale: locale,
       textScale: textScale,
+      themeMode: themeMode,
       home: ScanPassSpatialLibraryScreen(
         key: key,
         catalogLoader: () async => catalog,
@@ -660,11 +787,13 @@ Widget _app({
   required Widget home,
   Locale locale = const Locale('en'),
   double textScale = 1,
+  ThemeMode themeMode = ThemeMode.system,
 }) =>
     MaterialApp(
       locale: locale,
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
+      themeMode: themeMode,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) => MediaQuery(
@@ -678,6 +807,32 @@ Widget _app({
 
 RealMatchReplayData _replay(SpatialLibraryScene scene) =>
     RealMatchReplayData.fromJsonString(File(scene.asset).readAsStringSync());
+
+void _expectNameLabelsAreCollisionFree(SpatialLibraryPitchPainter painter) {
+  final labels = painter.playerNameLabels;
+  final sample = painter.data.renderSample(painter.time);
+  for (var index = 0; index < labels.length; index++) {
+    final label = labels[index];
+    expect(label.sourceName, painter.data.player(label.playerId).name);
+    expect(
+      sample.players[painter.data.playerIndex(label.playerId)],
+      isNotNull,
+    );
+    expect(painter.viewport.view.contains(label.rect.topLeft), isTrue);
+    expect(painter.viewport.view.contains(label.rect.bottomRight), isTrue);
+    expect(label.rect.overlaps(painter.ballSafetyRect), isFalse);
+    for (final overlay in painter.reservedOverlayRects) {
+      expect(label.rect.overlaps(overlay), isFalse);
+    }
+    for (final badge in painter.playerBadgeSafetyRects) {
+      expect(label.rect.overlaps(badge), isFalse);
+    }
+    for (var other = index + 1; other < labels.length; other++) {
+      expect(label.rect.overlaps(labels[other].rect), isFalse);
+    }
+    expect(label.hasConnector, label.placementIndex >= 8);
+  }
+}
 
 String _cueLabel(RealMatchReplayData data, int id) {
   final player = data.player(id);

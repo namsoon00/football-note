@@ -96,6 +96,8 @@ class _ScanPassSpatialLibraryScreenState
   Rect? _cuePlacementRect;
   String? _directionPlacementKey;
   Rect? _directionPlacementRect;
+  String? _nameLabelPlacementKey;
+  Map<int, int> _nameLabelPlacements = const <int, int>{};
 
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
   SpatialLibraryScene? get _scene => _catalog?.scenes[_sceneIndex];
@@ -240,6 +242,8 @@ class _ScanPassSpatialLibraryScreenState
       _cuePlacementRect = null;
       _directionPlacementKey = null;
       _directionPlacementRect = null;
+      _nameLabelPlacementKey = null;
+      _nameLabelPlacements = const <int, int>{};
     });
   }
 
@@ -702,10 +706,54 @@ class _ScanPassSpatialLibraryScreenState
       );
       _directionPlacementKey = directionPlacementKey;
       _directionPlacementRect = directionRect;
-      final roleLabels = <SpatialObservedRoleKind, String>{
-        SpatialObservedRoleKind.connectedTeammate:
-            _l10n.spatialRoleRecordedLink,
+      final nameLabelPlayerIds = <int>{
+        scene.focusPlayerId,
+        if (currentOwner != null) currentOwner,
+        if (cueActorPoint != null) cue.targetPlayerId!,
+        for (final role in roles.values)
+          if (role.kind != SpatialObservedRoleKind.nearbyDefender)
+            role.playerId,
+        if (_time < scene.evidenceEnd)
+          for (final player in data.players)
+            if (cue.text.contains(_cuePlayerLabel(data, player.id))) player.id,
       };
+      final locale = Localizations.localeOf(context);
+      final nameLabelPlacementKey = '${scene.id}:$rotated:'
+          '${size.width.toStringAsFixed(1)}x${size.height.toStringAsFixed(1)}:'
+          '${textScaler.scale(10).toStringAsFixed(1)}:'
+          '${locale.toLanguageTag()}';
+      final pitchPainter = SpatialLibraryPitchPainter(
+        data: data,
+        scene: scene,
+        focusPlan: focusPlan,
+        viewport: viewport,
+        time: _time,
+        brightness: Theme.of(context).brightness,
+        portrait: rotated,
+        textDirection: Directionality.of(context),
+        textScaler: textScaler,
+        locale: locale,
+        roles: roles,
+        cuePlayerId: cueActorPoint == null ? null : cue.targetPlayerId,
+        requiredPlayerIds: protectedPlayerIds,
+        nameLabelPlayerIds: nameLabelPlayerIds,
+        cueRect: cardRect,
+        cueTarget: cueTarget,
+        reservedOverlayRects: [cardRect, directionRect],
+        preferredNameLabelPlacements:
+            nameLabelPlacementKey == _nameLabelPlacementKey
+                ? _nameLabelPlacements
+                : const <int, int>{},
+      );
+      final nextNameLabelPlacements =
+          nameLabelPlacementKey == _nameLabelPlacementKey
+              ? Map<int, int>.of(_nameLabelPlacements)
+              : <int, int>{};
+      for (final label in pitchPainter.playerNameLabels) {
+        nextNameLabelPlacements[label.playerId] = label.placementIndex;
+      }
+      _nameLabelPlacementKey = nameLabelPlacementKey;
+      _nameLabelPlacements = nextNameLabelPlacements;
       return ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Stack(children: [
@@ -722,25 +770,7 @@ class _ScanPassSpatialLibraryScreenState
               child: ExcludeSemantics(
                 child: CustomPaint(
                   key: const ValueKey<String>('spatial-pitch'),
-                  painter: SpatialLibraryPitchPainter(
-                    data: data,
-                    scene: scene,
-                    focusPlan: focusPlan,
-                    viewport: viewport,
-                    time: _time,
-                    brightness: Theme.of(context).brightness,
-                    portrait: rotated,
-                    textDirection: Directionality.of(context),
-                    textScaler: textScaler,
-                    roles: roles,
-                    roleLabels: roleLabels,
-                    cuePlayerId:
-                        cueActorPoint == null ? null : cue.targetPlayerId,
-                    requiredPlayerIds: protectedPlayerIds,
-                    cueRect: cardRect,
-                    cueTarget: cueTarget,
-                    reservedOverlayRects: [cardRect, directionRect],
-                  ),
+                  painter: pitchPainter,
                 ),
               ),
             ),
@@ -1774,6 +1804,30 @@ class SpatialPitchViewport {
       view.deflate(safetyPixels).contains(project(point));
 }
 
+class SpatialPlayerNameLabelGeometry {
+  final int playerId;
+  final String sourceName;
+  final String displayName;
+  final Rect rect;
+  final Rect badgeRect;
+  final int placementIndex;
+  final Offset? connectorStart;
+  final Offset? connectorEnd;
+
+  const SpatialPlayerNameLabelGeometry({
+    required this.playerId,
+    required this.sourceName,
+    required this.displayName,
+    required this.rect,
+    required this.badgeRect,
+    required this.placementIndex,
+    this.connectorStart,
+    this.connectorEnd,
+  });
+
+  bool get hasConnector => connectorStart != null && connectorEnd != null;
+}
+
 class SpatialLibraryPitchPainter extends CustomPainter {
   final RealMatchReplayData data;
   final SpatialLibraryScene scene;
@@ -1784,15 +1838,23 @@ class SpatialLibraryPitchPainter extends CustomPainter {
   final bool portrait;
   final TextDirection textDirection;
   final TextScaler textScaler;
+  final Locale locale;
   final SpatialObservedRoles roles;
-  final Map<SpatialObservedRoleKind, String> roleLabels;
   final int? cuePlayerId;
   final Set<int> requiredPlayerIds;
+  final Set<int> nameLabelPlayerIds;
   final Rect cueRect;
   final Offset cueTarget;
   final List<Rect> reservedOverlayRects;
+  final Map<int, int> preferredNameLabelPlacements;
+  late final List<
+      ({
+        SpatialPlayerNameLabelGeometry geometry,
+        TextPainter painter,
+        Color tone,
+      })> _playerNameLayouts = _layoutPlayerNameLabels(data.renderSample(time));
 
-  const SpatialLibraryPitchPainter({
+  SpatialLibraryPitchPainter({
     required this.data,
     required this.scene,
     required this.focusPlan,
@@ -1802,13 +1864,15 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     required this.portrait,
     required this.textDirection,
     required this.textScaler,
+    this.locale = const Locale('en'),
     required this.roles,
-    required this.roleLabels,
     this.cuePlayerId,
     this.requiredPlayerIds = const <int>{},
+    this.nameLabelPlayerIds = const <int>{},
     this.cueRect = Rect.zero,
     this.cueTarget = Offset.zero,
     this.reservedOverlayRects = const [],
+    this.preferredNameLabelPlacements = const <int, int>{},
   });
 
   Color get _pitch => brightness == Brightness.dark
@@ -1829,6 +1893,14 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       scene.observedNearbyDefender(data, time);
 
   List<int> get currentHighlightPlayerIds => roles.playerIds;
+
+  int? get currentSourceOwnerId {
+    if (data.sourcePossessionOwners.isEmpty) return null;
+    final frame = (time.clamp(0.0, data.duration) * data.fps)
+        .floor()
+        .clamp(0, data.sourcePossessionOwners.length - 1);
+    return data.sourcePossessionOwners[frame];
+  }
 
   List<int> get observedPlayerIds {
     final sample = data.renderSample(time);
@@ -1854,11 +1926,13 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     );
     _drawPitch(canvas, view);
     final sample = data.renderSample(time);
+    _drawPlayerNameConnectors(canvas);
     _drawCueConnector(canvas);
     _drawEvidence(canvas, view);
     _drawRoleGap(canvas, view);
     _drawTails(canvas, view);
     _drawPlayers(canvas, view, sample);
+    _drawPlayerNameLabels(canvas);
     _drawBall(canvas, view, sample.ball);
     canvas.restore();
   }
@@ -2201,6 +2275,361 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     }
   }
 
+  Map<int, ({Offset center, double radius, Rect rect})> _playerBadges(
+    RealMatchReplaySample sample,
+  ) {
+    final roleById = <int, SpatialObservedRole>{
+      for (final role in roles.values) role.playerId: role,
+    };
+    return <int, ({Offset center, double radius, Rect rect})>{
+      for (var index = 0; index < data.players.length; index++)
+        if (sample.players[index] case final point?)
+          data.players[index].id: () {
+            final playerId = data.players[index].id;
+            final involved =
+                roleById.containsKey(playerId) || playerId == cuePlayerId;
+            final radius = involved ? 16.2 : 13.2;
+            final center =
+                _project(viewport.view, point) - Offset(0, radius * .38);
+            final outerRadius = involved ? radius + 3.2 : radius + 1;
+            return (
+              center: center,
+              radius: radius,
+              rect: Rect.fromCircle(center: center, radius: outerRadius),
+            );
+          }(),
+    };
+  }
+
+  List<Rect> get playerBadgeSafetyRects =>
+      _playerBadges(data.renderSample(time))
+          .values
+          .map((badge) => badge.rect)
+          .toList(growable: false);
+
+  List<SpatialPlayerNameLabelGeometry> get playerNameLabels =>
+      _playerNameLayouts
+          .map((layout) => layout.geometry)
+          .toList(growable: false);
+
+  List<
+      ({
+        SpatialPlayerNameLabelGeometry geometry,
+        TextPainter painter,
+        Color tone,
+      })> _layoutPlayerNameLabels(RealMatchReplaySample sample) {
+    final badges = _playerBadges(sample);
+    final occupied = <Rect>[
+      ...reservedOverlayRects.map((rect) => rect.inflate(3)),
+      ballSafetyRect,
+      ...badges.values.map((badge) => badge.rect.inflate(2)),
+    ];
+    final roleById = <int, SpatialObservedRole>{
+      for (final role in roles.values) role.playerId: role,
+    };
+    final prioritizedIds = <int>[];
+    void addPriority(int? playerId) {
+      if (playerId != null &&
+          nameLabelPlayerIds.contains(playerId) &&
+          !prioritizedIds.contains(playerId)) {
+        prioritizedIds.add(playerId);
+      }
+    }
+
+    addPriority(currentSourceOwnerId);
+    addPriority(scene.focusPlayerId);
+    addPriority(cuePlayerId);
+    for (final role in roles.values) {
+      if (role.kind == SpatialObservedRoleKind.connectedTeammate) {
+        addPriority(role.playerId);
+      }
+    }
+    for (final role in roles.values) {
+      if (role.kind == SpatialObservedRoleKind.ballSidePlayer) {
+        addPriority(role.playerId);
+      }
+    }
+    for (final playerId in nameLabelPlayerIds) {
+      addPriority(playerId);
+    }
+
+    final layouts = <({
+      SpatialPlayerNameLabelGeometry geometry,
+      TextPainter painter,
+      Color tone,
+    })>[];
+    final safeView = viewport.view.deflate(4);
+    final cueConnectorStart = cueRect == Rect.zero
+        ? null
+        : SpatialCuePlacement.connectorStart(cueRect, cueTarget);
+    for (final playerId in prioritizedIds) {
+      final badge = badges[playerId];
+      if (badge == null || !safeView.contains(badge.center)) continue;
+      final player = data.player(playerId);
+      final sourceName = player.name?.trim() ?? '';
+      if (sourceName.isEmpty) continue;
+      final displayName = _spatialShortPlayerName(sourceName);
+      final painter = TextPainter(
+        text: TextSpan(
+          text: displayName,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 10.5,
+            fontWeight: FontWeight.w800,
+            height: 1,
+          ),
+        ),
+        maxLines: 1,
+        ellipsis: '…',
+        locale: locale,
+        textScaler: textScaler,
+        textDirection: textDirection,
+      )..layout(
+          maxWidth: math.max(
+            48,
+            math.min(176, viewport.view.width * .55) - 12,
+          ),
+        );
+      final labelSize = Size(painter.width + 12, painter.height + 8);
+      final center = badge.center;
+      final rect = badge.rect;
+      final adjacentCandidates = <Rect>[
+        Rect.fromLTWH(
+          rect.right + 6,
+          center.dy - labelSize.height / 2,
+          labelSize.width,
+          labelSize.height,
+        ),
+        Rect.fromLTWH(
+          rect.left - labelSize.width - 6,
+          center.dy - labelSize.height / 2,
+          labelSize.width,
+          labelSize.height,
+        ),
+        Rect.fromLTWH(
+          rect.right + 6,
+          rect.bottom + 5,
+          labelSize.width,
+          labelSize.height,
+        ),
+        Rect.fromLTWH(
+          rect.left - labelSize.width - 6,
+          rect.bottom + 5,
+          labelSize.width,
+          labelSize.height,
+        ),
+        Rect.fromLTWH(
+          rect.right + 6,
+          rect.top - labelSize.height - 5,
+          labelSize.width,
+          labelSize.height,
+        ),
+        Rect.fromLTWH(
+          rect.left - labelSize.width - 6,
+          rect.top - labelSize.height - 5,
+          labelSize.width,
+          labelSize.height,
+        ),
+        Rect.fromLTWH(
+          center.dx - labelSize.width / 2,
+          rect.bottom + 7,
+          labelSize.width,
+          labelSize.height,
+        ),
+        Rect.fromLTWH(
+          center.dx - labelSize.width / 2,
+          rect.top - labelSize.height - 7,
+          labelSize.width,
+          labelSize.height,
+        ),
+      ];
+      final allowsDistantFallback =
+          playerId == currentSourceOwnerId || playerId == scene.focusPlayerId;
+      final displacedCandidates = <Rect>[
+        for (var row = -8; row <= 8; row++)
+          for (var column = -8; column <= 8; column++)
+            if (row != 0 || column != 0)
+              Rect.fromCenter(
+                center: center + Offset(column * 18, row * 18),
+                width: labelSize.width,
+                height: labelSize.height,
+              ),
+      ]..sort((left, right) {
+          final distanceOrder = (left.center - center)
+              .distanceSquared
+              .compareTo((right.center - center).distanceSquared);
+          if (distanceOrder != 0) return distanceOrder;
+          final verticalOrder = left.center.dy.compareTo(right.center.dy);
+          return verticalOrder != 0
+              ? verticalOrder
+              : left.center.dx.compareTo(right.center.dx);
+        });
+      // Dense short-landscape scenes can consume every player-adjacent slot.
+      // Keep the usual attached positions first, then let only the owner or
+      // focus player use the wider viewport with an unambiguous connector.
+      // These cells stay in a fixed order so a retained placement does not
+      // jump merely because the player moves a few pixels between frames.
+      final distantFallbackCandidates = <Rect>[
+        if (allowsDistantFallback)
+          for (var row = 0; row <= 16; row++)
+            for (var column = 0; column <= 32; column++)
+              Rect.fromLTWH(
+                safeView.left +
+                    1 +
+                    (safeView.width - labelSize.width - 2) * column / 32,
+                safeView.top +
+                    1 +
+                    (safeView.height - labelSize.height - 2) * row / 16,
+                labelSize.width,
+                labelSize.height,
+              ),
+      ];
+      final candidates = <Rect>[
+        ...adjacentCandidates,
+        ...displacedCandidates,
+        ...distantFallbackCandidates,
+      ];
+      final preferred = preferredNameLabelPlacements[playerId];
+      final distantFallbackStart =
+          adjacentCandidates.length + displacedCandidates.length;
+      final distantFallbackIndices = <int>[
+        for (var index = distantFallbackStart;
+            index < candidates.length;
+            index++)
+          index,
+      ]..sort((left, right) => (candidates[left].center - center)
+          .distanceSquared
+          .compareTo((candidates[right].center - center).distanceSquared));
+      final candidateIndices = <int>[
+        if (preferred != null && preferred < candidates.length) preferred,
+        for (var index = 0; index < distantFallbackStart; index++)
+          if (index != preferred) index,
+        for (final index in distantFallbackIndices)
+          if (index != preferred) index,
+      ];
+      final connectorObstacles = <Rect>[
+        ...reservedOverlayRects.map((value) => value.inflate(3)),
+        for (final layout in layouts) layout.geometry.rect.inflate(2),
+      ];
+      Rect? chosen;
+      int? placementIndex;
+      Offset? connectorStart;
+      Offset? connectorEnd;
+      for (final candidateIndex in candidateIndices) {
+        final candidate = candidates[candidateIndex];
+        if (!safeView.contains(candidate.topLeft) ||
+            !safeView.contains(candidate.bottomRight) ||
+            occupied.any(candidate.overlaps) ||
+            // The teaching connector ends at the cue player's badge, so its
+            // own attached name may share that final strip. Other names keep
+            // the connector fully visible.
+            (playerId != cuePlayerId &&
+                cueConnectorStart != null &&
+                SpatialCuePlacement._segmentIntersectsRect(
+                  cueConnectorStart,
+                  cueTarget,
+                  candidate.inflate(2),
+                ))) {
+          continue;
+        }
+        if (candidateIndex >= 8) {
+          final candidateConnectorStart = SpatialCuePlacement.connectorStart(
+            candidate,
+            center,
+          );
+          final vector = candidateConnectorStart - center;
+          final candidateConnectorEnd = vector.distance <= badge.radius
+              ? center
+              : center + vector / vector.distance * (badge.radius + 1.5);
+          if (connectorObstacles.any(
+            (obstacle) => SpatialCuePlacement._segmentIntersectsRect(
+              candidateConnectorStart,
+              candidateConnectorEnd,
+              obstacle,
+            ),
+          )) {
+            continue;
+          }
+          connectorStart = candidateConnectorStart;
+          connectorEnd = candidateConnectorEnd;
+        }
+        chosen = candidate;
+        placementIndex = candidateIndex;
+        break;
+      }
+      if (chosen == null || placementIndex == null) continue;
+      occupied.add(chosen.inflate(2));
+      final role = roleById[playerId];
+      final tone = playerId == currentSourceOwnerId ||
+              playerId == scene.focusPlayerId ||
+              playerId == cuePlayerId
+          ? _focus
+          : role?.kind == SpatialObservedRoleKind.nearbyDefender
+              ? _turnover
+              : _connection;
+      layouts.add((
+        geometry: SpatialPlayerNameLabelGeometry(
+          playerId: playerId,
+          sourceName: sourceName,
+          displayName: displayName,
+          rect: chosen,
+          badgeRect: badge.rect,
+          placementIndex: placementIndex,
+          connectorStart: connectorStart,
+          connectorEnd: connectorEnd,
+        ),
+        painter: painter,
+        tone: tone,
+      ));
+    }
+    return layouts;
+  }
+
+  void _drawPlayerNameConnectors(Canvas canvas) {
+    for (final layout in _playerNameLayouts) {
+      final geometry = layout.geometry;
+      if (geometry.connectorStart case final start?) {
+        canvas.drawLine(
+          start,
+          geometry.connectorEnd!,
+          Paint()
+            ..color = layout.tone.withValues(alpha: .68)
+            ..strokeWidth = 1.1
+            ..strokeCap = StrokeCap.round,
+        );
+      }
+    }
+  }
+
+  void _drawPlayerNameLabels(Canvas canvas) {
+    for (final layout in _playerNameLayouts) {
+      final geometry = layout.geometry;
+      final background = brightness == Brightness.dark
+          ? const Color(0xEB0C1B15)
+          : const Color(0xE6173025);
+      final shape = RRect.fromRectAndRadius(
+        geometry.rect,
+        const Radius.circular(5),
+      );
+      canvas.drawRRect(shape, Paint()..color = background);
+      canvas.drawRRect(
+        shape,
+        Paint()
+          ..color = layout.tone.withValues(alpha: .82)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1,
+      );
+      layout.painter.paint(
+        canvas,
+        Offset(
+          geometry.rect.left + 6,
+          geometry.rect.top +
+              (geometry.rect.height - layout.painter.height) / 2,
+        ),
+      );
+    }
+  }
+
   void _drawBall(Canvas canvas, Rect pitch, RealMatchReplayPoint ball) {
     final center = _project(pitch, ball);
     canvas.drawCircle(
@@ -2229,47 +2658,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     );
   }
 
-  // Retained only for source-regression geometry helpers; the viewer no
-  // longer paints these generic floating labels.
-  // ignore: unused_element
-  void _drawRoleCallouts(
-    Canvas canvas,
-    Rect view,
-    RealMatchReplaySample sample,
-  ) {
-    for (final layout in _layoutRoleCallouts(view, sample)) {
-      final center = _project(view, layout.role.point);
-      final chosen = layout.rect;
-      final painter = layout.painter;
-      final tone = _roleColor(layout.role.kind);
-      canvas.drawLine(
-        center,
-        chosen.center,
-        Paint()
-          ..color = tone.withValues(alpha: .7)
-          ..strokeWidth = 1.2,
-      );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(chosen, const Radius.circular(7)),
-        Paint()..color = const Color(0xE810291F),
-      );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(chosen, const Radius.circular(7)),
-        Paint()
-          ..color = tone
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.2,
-      );
-      painter.paint(
-        canvas,
-        Offset(
-          chosen.left + 7,
-          chosen.top + (chosen.height - painter.height) / 2,
-        ),
-      );
-    }
-  }
-
+  // Kept for compatibility with source-regression geometry checks.
   List<Rect> get calloutRects => const <Rect>[];
 
   Rect get ballSafetyRect => Rect.fromCircle(
@@ -2287,119 +2676,6 @@ class SpatialLibraryPitchPainter extends CustomPainter {
             ),
       ];
 
-  List<
-      ({
-        SpatialObservedRole role,
-        TextPainter painter,
-        Rect rect,
-      })> _layoutRoleCallouts(
-    Rect view,
-    RealMatchReplaySample sample,
-  ) {
-    final occupied = <Rect>[
-      ...reservedOverlayRects,
-      Rect.fromCircle(center: _project(view, sample.ball), radius: 12),
-    ];
-    for (var index = 0; index < data.players.length; index++) {
-      final point = sample.players[index];
-      if (point == null) continue;
-      occupied.add(Rect.fromCircle(center: _project(view, point), radius: 25));
-    }
-    final layouts = <({
-      SpatialObservedRole role,
-      TextPainter painter,
-      Rect rect,
-    })>[];
-
-    for (final role in roles.values.take(3)) {
-      final label = '${roleLabels[role.kind] ?? ''}\n${role.playerName}';
-      final painter = TextPainter(
-        text: TextSpan(
-          text: label,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: textScaler.scale(10.5),
-            fontWeight: FontWeight.w800,
-            height: 1,
-          ),
-        ),
-        maxLines: 2,
-        ellipsis: '…',
-        textDirection: textDirection,
-      )..layout(maxWidth: math.min(180, view.width * .5) - 14);
-      final labelSize = Size(painter.width + 14, painter.height + 9);
-      final center = _project(view, role.point);
-      final candidates = <Offset>[
-        center + Offset(22, -labelSize.height - 14),
-        center + Offset(-labelSize.width - 22, -labelSize.height - 14),
-        center + const Offset(22, 20),
-        center + Offset(-labelSize.width - 22, 20),
-        center + Offset(-labelSize.width / 2, -labelSize.height - 28),
-        center + Offset(-labelSize.width / 2, 32),
-        center + Offset(36, -labelSize.height / 2),
-        center + Offset(-labelSize.width - 36, -labelSize.height / 2),
-        center + Offset(52, -labelSize.height - 28),
-        center + Offset(-labelSize.width - 52, -labelSize.height - 28),
-        center + const Offset(52, 34),
-        center + Offset(-labelSize.width - 52, 34),
-        for (final radius in <double>[84, 120, 156])
-          for (final direction in const <Offset>[
-            Offset(-.7071, .7071),
-            Offset(.7071, .7071),
-            Offset(0, 1),
-            Offset(-1, 0),
-            Offset(1, 0),
-            Offset(-.7071, -.7071),
-            Offset(.7071, -.7071),
-            Offset(0, -1),
-          ])
-            center +
-                direction * radius -
-                Offset(labelSize.width / 2, labelSize.height / 2),
-      ];
-      Rect? chosen;
-      for (final origin in candidates) {
-        final candidate = origin & labelSize;
-        if (!view.deflate(5).contains(candidate.topLeft) ||
-            !view.deflate(5).contains(candidate.bottomRight) ||
-            occupied.any(candidate.overlaps)) {
-          continue;
-        }
-        chosen = candidate;
-        break;
-      }
-      if (chosen == null) {
-        final radius = math.min(260.0, view.shortestSide * .75);
-        final steps = (radius / 24).ceil();
-        var nearestSquared = double.infinity;
-        for (var row = -steps; row <= steps; row++) {
-          for (var column = -steps; column <= steps; column++) {
-            final offset = Offset(column * 24.0, row * 24.0);
-            final squared = offset.distanceSquared;
-            if (squared > radius * radius || squared >= nearestSquared) {
-              continue;
-            }
-            final candidate = (center +
-                    offset -
-                    Offset(labelSize.width / 2, labelSize.height / 2)) &
-                labelSize;
-            if (!view.deflate(5).contains(candidate.topLeft) ||
-                !view.deflate(5).contains(candidate.bottomRight) ||
-                occupied.any(candidate.overlaps)) {
-              continue;
-            }
-            chosen = candidate;
-            nearestSquared = squared;
-          }
-        }
-      }
-      if (chosen == null) continue;
-      occupied.add(chosen);
-      layouts.add((role: role, painter: painter, rect: chosen));
-    }
-    return layouts;
-  }
-
   Color _roleColor(SpatialObservedRoleKind kind) => switch (kind) {
         SpatialObservedRoleKind.ballSidePlayer => _focus,
         SpatialObservedRoleKind.connectedTeammate => _connection,
@@ -2414,11 +2690,17 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       oldDelegate.brightness != brightness ||
       oldDelegate.portrait != portrait ||
       oldDelegate.textDirection != textDirection ||
+      oldDelegate.locale != locale ||
       oldDelegate.viewport.camera != viewport.camera ||
       oldDelegate.cuePlayerId != cuePlayerId ||
+      !setEquals(oldDelegate.nameLabelPlayerIds, nameLabelPlayerIds) ||
       oldDelegate.cueRect != cueRect ||
       oldDelegate.cueTarget != cueTarget ||
-      oldDelegate.textScaler != textScaler;
+      oldDelegate.textScaler != textScaler ||
+      !mapEquals(
+        oldDelegate.preferredNameLabelPlacements,
+        preferredNameLabelPlacements,
+      );
 }
 
 class SpatialLibraryMinimapPainter extends CustomPainter {
@@ -2823,6 +3105,34 @@ String _cuePlayerLabel(RealMatchReplayData data, int playerId) {
   final shortName =
       fullName.isEmpty ? playerId.toString() : fullName.split(' ').last;
   return player.number == null ? shortName : '#${player.number} $shortName';
+}
+
+String _spatialShortPlayerName(String sourceName) {
+  final parts = sourceName
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList(growable: false);
+  if (parts.length <= 1) return sourceName.trim();
+  var firstFamilyPart = parts.length - 1;
+  const familyParticles = <String>{
+    'da',
+    'de',
+    'del',
+    'der',
+    'di',
+    'dos',
+    'la',
+    'le',
+    'ter',
+    'van',
+    'von',
+  };
+  while (firstFamilyPart > 0 &&
+      familyParticles.contains(parts[firstFamilyPart - 1].toLowerCase())) {
+    firstFamilyPart--;
+  }
+  return parts.sublist(firstFamilyPart).join(' ');
 }
 
 String _legacyPhaseCueText(
