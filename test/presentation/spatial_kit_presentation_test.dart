@@ -145,10 +145,11 @@ void main() {
     expect(numbered.differenceFrom(blank), greaterThan(20));
     expect(numbered.near(kit.numberColor, tolerance: 12), greaterThan(2));
     expect(
-      numbered.near(Colors.black, tolerance: 12, alphaMinimum: 150),
+      numbered.near(Colors.black, tolerance: 40, alphaMinimum: 150),
       greaterThan(
-        blank.near(Colors.black, tolerance: 12, alphaMinimum: 150),
+        blank.near(Colors.black, tolerance: 40, alphaMinimum: 150),
       ),
+      reason: 'The dark outline remains visible after blending over white.',
     );
   });
 }
