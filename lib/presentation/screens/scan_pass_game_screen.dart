@@ -34,6 +34,7 @@ import '../../infrastructure/scan_pass_spatial_asset_repository.dart';
 import '../../infrastructure/video_learning_asset_repository.dart';
 import '../../infrastructure/youtube_video_learning_player.dart';
 import '../scan_pass/replay_pitch_geometry.dart';
+import '../scan_pass/spatial_kit_presentation.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bar_action_button.dart';

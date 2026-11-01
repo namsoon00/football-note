@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -852,6 +853,25 @@ void main() {
     expect(painter.blueTeachingFocusPlayerIds, contains(owned.playerId));
     expect(painter.ownershipCueColor, const Color(0xFFFFD15C));
     expect(painter.teachingFocusCueColor, const Color(0xFF73CFFF));
+    final ownerBadge = painter.badgeGeometryForPlayer(owned.playerId);
+    expect(ownerBadge, isNotNull);
+    final pitchPixels = await tester.runAsync(
+      () => _renderPitchPixels(
+        painter,
+        tester.getSize(
+          find.byKey(const ValueKey<String>('spatial-pitch')),
+        ),
+      ),
+    );
+    expect(
+      pitchPixels!.nearInAnnulus(
+        painter.ownershipCueColor,
+        center: ownerBadge!.center,
+        innerRadius: ownerBadge.radius + 3.5,
+        outerRadius: ownerBadge.radius + 7.2,
+      ),
+      greaterThan(20),
+    );
 
     final nearby = nearbyOnly!;
     await tester.pumpWidget(_catalogApp(
@@ -868,6 +888,31 @@ void main() {
       painter.blueTeachingFocusPlayerIds,
       contains(nearby.playerId),
     );
+  });
+
+  testWidgets('pitch kits and minimap markers resolve the same team colors',
+      (tester) async {
+    await tester.pumpWidget(_catalogApp(catalog));
+    await _pumpLoaded(tester);
+    final pitch = _painter(tester);
+    final minimap = SpatialLibraryMinimapPainter(
+      data: pitch.data,
+      scene: pitch.scene,
+      time: pitch.time,
+      viewportCamera: pitch.viewport.camera,
+      portrait: pitch.portrait,
+    );
+
+    for (final player in pitch.data.players) {
+      expect(
+        minimap.markerColorForPlayer(player),
+        pitch.kitForPlayer(player).mainColor,
+        reason: '${player.name} (${player.id})',
+      );
+      if (player.keeper) {
+        expect(pitch.kitForPlayer(player).curated, isFalse);
+      }
+    }
   });
 
   testWidgets('approved themes use stable source-named phase cues',
@@ -1378,6 +1423,68 @@ String _cueLabel(RealMatchReplayData data, int id) {
   final player = data.player(id);
   final shortName = player.name!.trim().split(' ').last;
   return player.number == null ? shortName : '#${player.number} $shortName';
+}
+
+Future<_PitchPixels> _renderPitchPixels(
+  SpatialLibraryPitchPainter painter,
+  Size size,
+) async {
+  final width = size.width.ceil();
+  final height = size.height.ceil();
+  final recorder = ui.PictureRecorder();
+  painter.paint(Canvas(recorder), Size(width.toDouble(), height.toDouble()));
+  final picture = recorder.endRecording();
+  final image = await picture.toImage(width, height);
+  final bytes = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+  image.dispose();
+  picture.dispose();
+  return _PitchPixels(width, height, bytes!.buffer.asUint8List());
+}
+
+class _PitchPixels {
+  final int width;
+  final int height;
+  final List<int> rgba;
+
+  const _PitchPixels(this.width, this.height, this.rgba);
+
+  int nearInAnnulus(
+    Color color, {
+    required Offset center,
+    required double innerRadius,
+    required double outerRadius,
+    int tolerance = 12,
+  }) {
+    final value = color.toARGB32();
+    final red = value >> 16 & 0xff;
+    final green = value >> 8 & 0xff;
+    final blue = value & 0xff;
+    final innerSquared = innerRadius * innerRadius;
+    final outerSquared = outerRadius * outerRadius;
+    final left = math.max(0, (center.dx - outerRadius).floor());
+    final right = math.min(width - 1, (center.dx + outerRadius).ceil());
+    final top = math.max(0, (center.dy - outerRadius).floor());
+    final bottom = math.min(height - 1, (center.dy + outerRadius).ceil());
+    var count = 0;
+    for (var y = top; y <= bottom; y++) {
+      for (var x = left; x <= right; x++) {
+        final dx = x + .5 - center.dx;
+        final dy = y + .5 - center.dy;
+        final distanceSquared = dx * dx + dy * dy;
+        if (distanceSquared < innerSquared || distanceSquared > outerSquared) {
+          continue;
+        }
+        final offset = (y * width + x) * 4;
+        if ((rgba[offset] - red).abs() <= tolerance &&
+            (rgba[offset + 1] - green).abs() <= tolerance &&
+            (rgba[offset + 2] - blue).abs() <= tolerance &&
+            rgba[offset + 3] > 220) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
 }
 
 SpatialLibraryCatalog _catalogStartingWith(

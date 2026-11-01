@@ -2139,6 +2139,8 @@ class SpatialPlayerNameLabelGeometry {
 }
 
 class SpatialLibraryPitchPainter extends CustomPainter {
+  static const _kitResolver = SpatialKitResolver();
+
   final RealMatchReplayData data;
   final SpatialLibraryScene scene;
   final SpatialFocusPlan focusPlan;
@@ -2220,6 +2222,20 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       for (final role in roles.values)
         if (role.kind == SpatialObservedRoleKind.ballSidePlayer) role.playerId,
     };
+  }
+
+  SpatialKitPresentation kitForPlayer(RealMatchReplayPlayer player) {
+    final homeSide = player.home;
+    return _kitResolver.resolve(
+      fixtureId: scene.matchId,
+      homeTeam: scene.home,
+      awayTeam: scene.away,
+      playerHome: homeSide,
+      goalkeeper: player.keeper,
+      sourceShirtColor: homeSide ? data.scene.homeColor : data.scene.awayColor,
+      sourceNumberColor:
+          homeSide ? data.scene.homeNumberColor : data.scene.awayNumberColor,
+    );
   }
 
   List<int> get observedPlayerIds {
@@ -2478,12 +2494,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       final involved = role != null || cueActor || confirmedOwner;
       final marker = involved ? 16.2 : 13.2;
       final badgeCenter = center - Offset(0, marker * .38);
-      final jersey = _parseReplayColor(
-        player.home ? data.scene.homeColor : data.scene.awayColor,
-      );
-      final numberColor = _parseReplayColor(
-        player.home ? data.scene.homeNumberColor : data.scene.awayNumberColor,
-      );
+      final kit = kitForPlayer(player);
       canvas.drawLine(
         badgeCenter,
         center,
@@ -2543,35 +2554,15 @@ class SpatialLibraryPitchPainter extends CustomPainter {
             ..strokeWidth = 3.2,
         );
       }
-      canvas.drawCircle(
-        badgeCenter,
-        marker,
-        Paint()..color = involved ? jersey : jersey.withValues(alpha: .84),
-      );
-      canvas.drawCircle(
-        badgeCenter,
-        marker,
-        Paint()
-          ..color = Colors.black.withValues(alpha: .55)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1,
-      );
       final number = '${player.number ?? ''}';
-      final painter = TextPainter(
-        text: TextSpan(
-          text: number,
-          style: TextStyle(
-            color: numberColor,
-            fontSize: marker * 1.02,
-            fontWeight: FontWeight.w900,
-            height: 1,
-          ),
-        ),
+      SpatialKitPainter.paint(
+        canvas: canvas,
+        center: badgeCenter,
+        radius: marker,
+        kit: kit,
+        number: number,
         textDirection: textDirection,
-      )..layout();
-      painter.paint(
-        canvas,
-        badgeCenter - Offset(painter.width / 2, painter.height / 2),
+        opacity: involved ? 1 : .84,
       );
       if (confirmedOwner) {
         _drawOwnerFootballMotif(canvas, badgeCenter, marker);
@@ -2648,6 +2639,12 @@ class SpatialLibraryPitchPainter extends CustomPainter {
           .values
           .map((badge) => badge.rect)
           .toList(growable: false);
+
+  ({Offset center, double radius})? badgeGeometryForPlayer(int playerId) {
+    final badge = _playerBadges(data.renderSample(time))[playerId];
+    if (badge == null) return null;
+    return (center: badge.center, radius: badge.radius);
+  }
 
   List<SpatialPlayerNameLabelGeometry> get playerNameLabels =>
       _playerNameLayouts
@@ -3003,17 +3000,39 @@ class SpatialLibraryPitchPainter extends CustomPainter {
 }
 
 class SpatialLibraryMinimapPainter extends CustomPainter {
+  static const _kitResolver = SpatialKitResolver();
+
   final RealMatchReplayData data;
+  final SpatialLibraryScene scene;
   final double time;
   final RealMatchReplayCamera viewportCamera;
   final bool portrait;
 
   const SpatialLibraryMinimapPainter({
     required this.data,
+    required this.scene,
     required this.time,
     required this.viewportCamera,
     required this.portrait,
   });
+
+  Color markerColorForPlayer(RealMatchReplayPlayer player) {
+    final homeSide = player.home;
+    return _kitResolver
+        .resolve(
+          fixtureId: scene.matchId,
+          homeTeam: scene.home,
+          awayTeam: scene.away,
+          playerHome: homeSide,
+          goalkeeper: player.keeper,
+          sourceShirtColor:
+              homeSide ? data.scene.homeColor : data.scene.awayColor,
+          sourceNumberColor: homeSide
+              ? data.scene.homeNumberColor
+              : data.scene.awayNumberColor,
+        )
+        .mainColor;
+  }
 
   List<int> get observedPlayerIds {
     final sample = data.renderSample(time);
@@ -3091,10 +3110,11 @@ class SpatialLibraryMinimapPainter extends CustomPainter {
       final point = sample.players[index];
       if (point == null) continue;
       final player = data.players[index];
-      final jersey = _parseReplayColor(
-        player.home ? data.scene.homeColor : data.scene.awayColor,
+      canvas.drawCircle(
+        project(point),
+        2.1,
+        Paint()..color = markerColorForPlayer(player),
       );
-      canvas.drawCircle(project(point), 2.1, Paint()..color = jersey);
     }
     final ball = project(sample.ball);
     canvas.drawCircle(ball, 2.8, Paint()..color = Colors.black87);
@@ -3104,16 +3124,10 @@ class SpatialLibraryMinimapPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant SpatialLibraryMinimapPainter oldDelegate) =>
       oldDelegate.data != data ||
+      oldDelegate.scene != scene ||
       oldDelegate.time != time ||
       oldDelegate.viewportCamera != viewportCamera ||
       oldDelegate.portrait != portrait;
-}
-
-Color _parseReplayColor(String source) {
-  final normalized = source.replaceFirst('#', '');
-  final value = int.tryParse(normalized, radix: 16);
-  if (value == null) return Colors.white;
-  return Color(0xFF000000 | value);
 }
 
 String _themeTitle(AppLocalizations l10n, SpatialLearningTheme theme) =>
