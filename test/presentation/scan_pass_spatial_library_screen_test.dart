@@ -24,7 +24,7 @@ void main() {
       File('assets/scan_pass_spatial/catalog.json').readAsStringSync(),
     );
     firstScene = loaded.scenes.firstWhere(
-      (scene) => scene.theme == SpatialLearningTheme.lateralSwitch,
+      (scene) => scene.id == '2417-59318-hummels-lateralSwitch',
     );
     catalog = _catalogStartingWith(loaded, firstScene);
     firstData = _replay(firstScene);
@@ -178,6 +178,469 @@ void main() {
       find.byKey(const ValueKey<String>('spatial-theme-turnover')),
       findsNothing,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('participant search shows the actual connection and focal player',
+      (tester) async {
+    await tester.pumpWidget(_catalogApp(catalog, locale: const Locale('ko')));
+    await _pumpLoaded(tester);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-scene-selector')),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey<String>('spatial-search')),
+      '하키미',
+    );
+    await tester.pump();
+
+    final row = find.byKey(
+      ValueKey<String>('spatial-scene-${firstScene.id}'),
+    );
+    expect(row, findsOneWidget);
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(
+              ValueKey<String>('spatial-focus-player-${firstScene.id}'),
+            ),
+          )
+          .data,
+      firstScene.focusPlayerName,
+    );
+    expect(
+      find.byKey(
+        ValueKey<String>('spatial-participants-${firstScene.id}'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Hummels → Hakimi'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final configuration in <({Size size, String label})>[
+    (size: const Size(320, 640), label: 'narrow portrait'),
+    (size: const Size(667, 320), label: 'short landscape'),
+  ]) {
+    testWidgets(
+        'secondary participant result keeps full identity in ${configuration.label}',
+        (tester) async {
+      await tester.binding.setSurfaceSize(configuration.size);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final target = catalog.scenes.firstWhere(
+        (scene) => scene.id == '2841-22836-benzema-lateralSwitch',
+      );
+      await tester.pumpWidget(_catalogApp(
+        catalog,
+        locale: const Locale('ko'),
+        textScale: 1.4,
+      ));
+      await _pumpLoaded(tester);
+      await tester.tap(
+        find.byKey(const ValueKey<String>('spatial-scene-selector')),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('spatial-search')),
+        '크로스',
+      );
+      await tester.pump();
+
+      final scroll = find.byKey(
+        const ValueKey<String>('spatial-library-scroll'),
+      );
+      final scrollable =
+          find.descendant(of: scroll, matching: find.byType(Scrollable)).first;
+      final result = find.byKey(
+        ValueKey<String>('spatial-scene-${target.id}'),
+      );
+      await tester.scrollUntilVisible(
+        result,
+        80,
+        scrollable: scrollable,
+      );
+      await tester.pump();
+
+      final l10n = AppLocalizations.of(tester.element(result))!;
+      _expectResultTextWithinCard(
+        tester,
+        result,
+        key: 'spatial-focus-player-${target.id}',
+        expectedText: 'Karim Benzema',
+      );
+      final matchText = _expectResultTextWithinCard(
+        tester,
+        result,
+        key: 'spatial-match-${target.id}',
+      );
+      expect(matchText, contains('FC Barcelona'));
+      expect(matchText, contains('Real Madrid'));
+      _expectResultTextWithinCard(
+        tester,
+        result,
+        key: 'spatial-result-theme-${target.id}',
+        expectedText: l10n.spatialThemeLateralSwitch,
+      );
+      _expectResultTextWithinCard(
+        tester,
+        result,
+        key: 'spatial-duration-text-${target.id}',
+        expectedText: l10n.spatialDurationBadge(
+          target.duration.toStringAsFixed(1),
+        ),
+      );
+      _expectResultTextWithinCard(
+        tester,
+        result,
+        key: 'spatial-participants-${target.id}',
+        expectedText: 'Benzema → Kroos',
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets(
+      'query and selectors survive close and scene selection until reset',
+      (tester) async {
+    final target = catalog.scenes.firstWhere(
+      (scene) => scene.id == '3442-50144-messi-lateralSwitch',
+    );
+    const query = '바르셀로나 메시';
+    await tester.pumpWidget(_catalogApp(catalog, locale: const Locale('ko')));
+    await _pumpLoaded(tester);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-scene-selector')),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey<String>('spatial-search')),
+      query,
+    );
+    await tester.tap(
+      find.byKey(
+        const ValueKey<String>('spatial-theme-lateralSwitch'),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-team-filter')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('FC Barcelona').last);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-player-filter')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Lionel Messi').last);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(ValueKey<String>('spatial-scene-${target.id}')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-library-close')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-scene-selector')),
+    );
+    await tester.pumpAndSettle();
+    _expectRetainedSpatialFilters(tester, query);
+
+    await tester.tap(
+      find.byKey(ValueKey<String>('spatial-scene-${target.id}')),
+    );
+    await _pumpScene(tester, target.id);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-scene-selector')),
+    );
+    await tester.pumpAndSettle();
+    _expectRetainedSpatialFilters(tester, query);
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-reset-filters')),
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-library-close')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-scene-selector')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TextField>(
+            find.byKey(const ValueKey<String>('spatial-search')),
+          )
+          .controller!
+          .text,
+      isEmpty,
+    );
+    expect(
+      tester
+          .widget<DropdownButtonFormField<String?>>(
+            find.byKey(const ValueKey<String>('spatial-team-filter')),
+          )
+          .initialValue,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<DropdownButtonFormField<String?>>(
+            find.byKey(const ValueKey<String>('spatial-player-filter')),
+          )
+          .initialValue,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<ChoiceChip>(
+            find.byKey(const ValueKey<String>('spatial-theme-all')),
+          )
+          .selected,
+      isTrue,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('localized mixed search clears, resets, and opens scene identity',
+      (tester) async {
+    final target = catalog.scenes.firstWhere(
+      (scene) => scene.id == '2269-32665-caleta-car-lateralSwitch',
+    );
+    await tester.pumpWidget(_catalogApp(catalog, locale: const Locale('ko')));
+    await _pumpLoaded(tester);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-scene-selector')),
+    );
+    await tester.pumpAndSettle();
+
+    final search = find.byKey(const ValueKey<String>('spatial-search'));
+    await tester.enterText(search, '레알 크로스');
+    await tester.pump();
+    final mixedCount = catalog.scenes
+        .where(
+          (scene) => SpatialLibraryDiscovery.matchesScene(scene, '레알 크로스'),
+        )
+        .length;
+    final l10n = AppLocalizations.of(tester.element(search))!;
+    expect(
+      find.text(l10n.spatialFilteredResultCount(mixedCount)),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-clear-search')),
+    );
+    await tester.pump();
+    expect(
+      find.text(l10n.spatialFilteredResultCount(catalog.scenes.length)),
+      findsOneWidget,
+    );
+
+    await tester.enterText(search, '존재하지않는선수');
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey<String>('spatial-empty-results')),
+      findsOneWidget,
+    );
+    expect(find.text(l10n.spatialFilteredResultCount(0)), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-reset-filters')),
+    );
+    await tester.pump();
+    expect(
+      find.text(l10n.spatialFilteredResultCount(catalog.scenes.length)),
+      findsOneWidget,
+    );
+
+    await tester.enterText(search, '마르세유 칼레타카르');
+    await tester.pump();
+    expect(
+      find.byKey(ValueKey<String>('spatial-scene-${target.id}')),
+      findsOneWidget,
+    );
+    await tester.tap(
+      find.byKey(ValueKey<String>('spatial-scene-${target.id}')),
+    );
+    await _pumpScene(tester, target.id);
+    expect(_painter(tester).scene.id, target.id);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('attacking team narrows players and clears an incompatible one',
+      (tester) async {
+    await tester.pumpWidget(_catalogApp(catalog));
+    await _pumpLoaded(tester);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-scene-selector')),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-team-filter')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Paris').last);
+    await tester.pumpAndSettle();
+    final playerField = tester.widget<DropdownButtonFormField<String?>>(
+      find.byKey(const ValueKey<String>('spatial-player-filter')),
+    );
+    playerField.onChanged!('Kylian Mbappe');
+    await tester.pump();
+    final parisMbappe = catalog.scenes
+        .where(
+          (scene) =>
+              scene.attackingTeam == 'Paris' &&
+              scene.involvesPlayer('Kylian Mbappe'),
+        )
+        .length;
+    final l10n = AppLocalizations.of(
+      tester.element(
+        find.byKey(const ValueKey<String>('spatial-result-count')),
+      ),
+    )!;
+    expect(
+      find.text(l10n.spatialFilteredResultCount(parisMbappe)),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-team-filter')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Real Madrid').last);
+    await tester.pumpAndSettle();
+    final realCount = catalog.scenes
+        .where((scene) => scene.attackingTeam == 'Real Madrid')
+        .length;
+    expect(
+      find.text(l10n.spatialFilteredResultCount(realCount)),
+      findsOneWidget,
+    );
+    expect(find.text('Kylian Mbappe'), findsNothing);
+    expect(find.text(l10n.spatialAllPlayers), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final configuration in <({Size size, double scale})>[
+    (size: const Size(320, 640), scale: 1.4),
+    (size: const Size(667, 320), scale: 1.4),
+  ]) {
+    testWidgets(
+        'picker remains scrollable with keyboard at ${configuration.size}',
+        (tester) async {
+      await tester.binding.setSurfaceSize(configuration.size);
+      addTearDown(() {
+        tester.binding.setSurfaceSize(null);
+        tester.view.resetViewInsets();
+      });
+      await tester.pumpWidget(_catalogApp(
+        catalog,
+        locale: const Locale('ja'),
+        textScale: configuration.scale,
+      ));
+      await _pumpLoaded(tester);
+      await tester.tap(
+        find.byKey(const ValueKey<String>('spatial-scene-selector')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('spatial-search')));
+      tester.view.viewInsets = const FakeViewPadding(bottom: 180);
+      await tester.pump();
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('spatial-search')),
+        'Messi Barcelona',
+      );
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey<String>('spatial-library-scroll')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('spatial-team-filter')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('spatial-player-filter')),
+        findsOneWidget,
+      );
+      final scroll =
+          find.byKey(const ValueKey<String>('spatial-library-scroll'));
+      final scrollable =
+          find.descendant(of: scroll, matching: find.byType(Scrollable)).first;
+      final reset = find.byKey(const ValueKey<String>('spatial-reset-filters'));
+      await tester.scrollUntilVisible(
+        reset,
+        80,
+        scrollable: scrollable,
+      );
+      await tester.pump();
+      expect(
+        tester.getRect(reset).bottom,
+        lessThanOrEqualTo(configuration.size.height - 180),
+      );
+
+      final target = catalog.scenes.firstWhere(
+        (scene) => scene.id == '3442-50144-messi-lateralSwitch',
+      );
+      final result = find.byKey(ValueKey<String>('spatial-scene-${target.id}'));
+      await tester.scrollUntilVisible(
+        result,
+        80,
+        scrollable: scrollable,
+      );
+      await tester.pump();
+      expect(
+        tester.getRect(result).bottom,
+        lessThanOrEqualTo(configuration.size.height - 180),
+      );
+      await tester.tap(result);
+      await _pumpScene(tester, target.id);
+      expect(_painter(tester).scene.id, target.id);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('scene stays laid out behind a DPR 1 landscape library keyboard',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    await tester.binding.setSurfaceSize(const Size(667, 320));
+    addTearDown(() async {
+      tester.view.resetViewInsets();
+      tester.view.resetDevicePixelRatio();
+      await tester.binding.setSurfaceSize(null);
+    });
+    await tester.pumpWidget(_catalogApp(
+      catalog,
+      locale: const Locale('ja'),
+      textScale: 1.4,
+    ));
+    await _pumpLoaded(tester);
+
+    final pitch = find.byKey(const ValueKey<String>('spatial-pitch'));
+    final cue = find.byKey(const ValueKey<String>('spatial-context'));
+    final pitchRectBeforeKeyboard = tester.getRect(pitch);
+    final cueRectBeforeKeyboard = tester.getRect(cue);
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-scene-selector')),
+    );
+    await tester.pumpAndSettle();
+    tester.view.viewInsets = const FakeViewPadding(bottom: 160);
+    await tester.pump();
+
+    final search = find.byKey(const ValueKey<String>('spatial-search'));
+    expect(MediaQuery.viewInsetsOf(tester.element(search)).bottom, 160);
+    expect(tester.getRect(pitch), pitchRectBeforeKeyboard);
+    expect(tester.getRect(cue), cueRectBeforeKeyboard);
     expect(tester.takeException(), isNull);
   });
 
@@ -843,6 +1306,44 @@ Widget _app({
       home: home,
     );
 
+void _expectRetainedSpatialFilters(WidgetTester tester, String query) {
+  expect(
+    tester
+        .widget<TextField>(
+          find.byKey(const ValueKey<String>('spatial-search')),
+        )
+        .controller!
+        .text,
+    query,
+  );
+  expect(
+    tester
+        .widget<DropdownButtonFormField<String?>>(
+          find.byKey(const ValueKey<String>('spatial-team-filter')),
+        )
+        .initialValue,
+    'FC Barcelona',
+  );
+  expect(
+    tester
+        .widget<DropdownButtonFormField<String?>>(
+          find.byKey(const ValueKey<String>('spatial-player-filter')),
+        )
+        .initialValue,
+    'Lionel Messi',
+  );
+  expect(
+    tester
+        .widget<ChoiceChip>(
+          find.byKey(
+            const ValueKey<String>('spatial-theme-lateralSwitch'),
+          ),
+        )
+        .selected,
+    isTrue,
+  );
+}
+
 RealMatchReplayData _replay(SpatialLibraryScene scene) =>
     RealMatchReplayData.fromJsonString(File(scene.asset).readAsStringSync());
 
@@ -965,6 +1466,31 @@ void _expectTextFits(WidgetTester tester, String key) {
     isFalse,
     reason: '$key "${paragraph.text.toPlainText()}" ${paragraph.size}',
   );
+}
+
+String _expectResultTextWithinCard(
+  WidgetTester tester,
+  Finder card, {
+  required String key,
+  String? expectedText,
+}) {
+  final text = find.byKey(ValueKey<String>(key));
+  expect(text, findsOneWidget);
+  final paragraph = tester.renderObject<RenderParagraph>(text);
+  final renderedText = paragraph.text.toPlainText();
+  if (expectedText != null) expect(renderedText, expectedText);
+  expect(
+    paragraph.didExceedMaxLines,
+    isFalse,
+    reason: '$key "$renderedText" ${paragraph.size}',
+  );
+  final cardRect = tester.getRect(card);
+  final textRect = tester.getRect(text);
+  expect(textRect.left, greaterThanOrEqualTo(cardRect.left));
+  expect(textRect.right, lessThanOrEqualTo(cardRect.right));
+  expect(textRect.top, greaterThanOrEqualTo(cardRect.top));
+  expect(textRect.bottom, lessThanOrEqualTo(cardRect.bottom));
+  return renderedText;
 }
 
 class _Options implements OptionRepository {

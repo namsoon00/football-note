@@ -18,9 +18,10 @@ void main() {
   });
 
   test('catalogue exposes only representative source-supported objectives', () {
-    expect(catalog.scenes, isNotEmpty);
-    expect(catalog.matchIds.length, greaterThanOrEqualTo(3));
-    expect(catalog.focalPlayers.length, greaterThanOrEqualTo(3));
+    expect(catalog.scenes, hasLength(72));
+    expect(catalog.scenes.first.id, '2269-34881-mbappe-combination');
+    expect(catalog.matchIds.length, 9);
+    expect(catalog.focalPlayers.length, 62);
     expect(
       catalog.themes,
       {
@@ -56,6 +57,83 @@ void main() {
         }),
       );
     }
+  });
+
+  test('discovery folds accents and combines localized team/player tokens', () {
+    expect(SpatialLibraryDiscovery.normalize('  Mbappé '), 'mbappe');
+    expect(SpatialLibraryDiscovery.normalize('GÜN DOĞAN'), 'gundogan');
+    expect(SpatialLibraryDiscovery.normalize('Real-Madrid'), 'realmadrid');
+
+    final realKroos = catalog.scenes
+        .where(
+          (scene) => SpatialLibraryDiscovery.matchesScene(scene, '레알 크로스'),
+        )
+        .toList(growable: false);
+    expect(realKroos, isNotEmpty);
+    expect(
+      realKroos.every(
+        (scene) =>
+            <String>{scene.home, scene.away}.contains('Real Madrid') &&
+            scene.involvesPlayer('Toni Kroos'),
+      ),
+      isTrue,
+    );
+
+    final parisMbappe = catalog.scenes
+        .where(
+          (scene) => SpatialLibraryDiscovery.matchesScene(
+            scene,
+            'PSG Mbappé',
+          ),
+        )
+        .toList(growable: false);
+    expect(parisMbappe, isNotEmpty);
+    expect(parisMbappe.every((scene) => scene.involvesPlayer('Kylian Mbappe')),
+        isTrue);
+  });
+
+  test('discovery indexes evidence participants but not the match roster', () {
+    final messiEvidence = catalog.scenes.firstWhere(
+      (scene) =>
+          scene.focusPlayerName != 'Lionel Messi' &&
+          scene.evidenceAnchors.any(
+            (anchor) => anchor.playerName == 'Lionel Messi',
+          ),
+    );
+    expect(
+      SpatialLibraryDiscovery.matchesScene(messiEvidence, '메시'),
+      isTrue,
+    );
+
+    final rosterOnly = catalog.scenes.firstWhere(
+      (scene) =>
+          <String>{scene.home, scene.away}.contains('FC Barcelona') &&
+          !scene.involvesPlayer('Lionel Messi'),
+    );
+    expect(
+      SpatialLibraryDiscovery.matchesScene(rosterOnly, '메시'),
+      isFalse,
+    );
+  });
+
+  test('attacking-team and participant filters use actual scene evidence', () {
+    final realPlayers = catalog.participants(attackingTeam: 'Real Madrid');
+    expect(realPlayers, contains('Toni Kroos'));
+    expect(realPlayers, isNot(contains('Kylian Mbappe')));
+
+    final values = catalog.filtered(
+      attackingTeam: 'Real Madrid',
+      player: 'Toni Kroos',
+    );
+    expect(values, isNotEmpty);
+    expect(
+      values.every(
+        (scene) =>
+            scene.attackingTeam == 'Real Madrid' &&
+            scene.involvesPlayer('Toni Kroos'),
+      ),
+      isTrue,
+    );
   });
 
   test('shipped passages recompute guarded actors and owned-ball visibility',

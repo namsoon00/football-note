@@ -40367,8 +40367,50 @@ abstract class AppLocalizations {
   /// No description provided for @spatialSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search player, team, or theme'**
+  /// **'Search players or teams'**
   String get spatialSearchHint;
+
+  /// No description provided for @spatialClearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get spatialClearSearch;
+
+  /// No description provided for @spatialAttackingTeamFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Attacking team'**
+  String get spatialAttackingTeamFilter;
+
+  /// No description provided for @spatialAllAttackingTeams.
+  ///
+  /// In en, this message translates to:
+  /// **'All teams'**
+  String get spatialAllAttackingTeams;
+
+  /// No description provided for @spatialPlayerFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Player'**
+  String get spatialPlayerFilter;
+
+  /// No description provided for @spatialAllPlayers.
+  ///
+  /// In en, this message translates to:
+  /// **'All players'**
+  String get spatialAllPlayers;
+
+  /// No description provided for @spatialFilteredResultCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} results'**
+  String spatialFilteredResultCount(int count);
+
+  /// No description provided for @spatialResetFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset filters'**
+  String get spatialResetFilters;
 
   /// No description provided for @spatialNoScenes.
   ///
