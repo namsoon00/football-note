@@ -404,6 +404,7 @@ class RealMatchReplayData {
   final List<String> joints;
   final List<Int32List> frames;
   final List<Uint8List> visibility;
+  final Uint8List ballVisibility;
   final List<Int32List> displayFrames;
   final List<Uint8List> displayProvenance;
   final int? missingPlayerCoordinate;
@@ -436,6 +437,7 @@ class RealMatchReplayData {
     required this.joints,
     required this.frames,
     required this.visibility,
+    required this.ballVisibility,
     required this.displayFrames,
     required this.displayProvenance,
     required this.missingPlayerCoordinate,
@@ -520,6 +522,20 @@ class RealMatchReplayData {
             }).toList(growable: false));
           }).toList(growable: false);
     final displayFrameValue = json['displayFrames'];
+    final ballVisibilityValue = json['ballVisibility'];
+    final ballVisibility = ballVisibilityValue == null
+        ? Uint8List.fromList(List<int>.filled(frames.length, 1))
+        : Uint8List.fromList(
+            _asList(ballVisibilityValue, 'ballVisibility').map((entry) {
+              final flag = _asInteger(entry, 'ball visibility value');
+              if (flag != 0 && flag != 1) {
+                throw const FormatException(
+                  'Ball visibility values must be zero or one.',
+                );
+              }
+              return flag;
+            }).toList(growable: false),
+          );
     final displayFrames = displayFrameValue == null
         ? const <Int32List>[]
         : _asList(displayFrameValue, 'displayFrames').map((value) {
@@ -629,6 +645,7 @@ class RealMatchReplayData {
       joints: joints,
       frames: frames,
       visibility: visibility,
+      ballVisibility: ballVisibility,
       displayFrames: displayFrames,
       displayProvenance: displayProvenance,
       missingPlayerCoordinate: missingPlayerCoordinate,
@@ -679,6 +696,8 @@ class RealMatchReplayData {
 
   bool isVisibleAtFrame(int frameIndex, int playerIndex) =>
       visibility[frameIndex][playerIndex] == 1;
+
+  bool isBallVisibleAtFrame(int frameIndex) => ballVisibility[frameIndex] == 1;
 
   bool get hasDisplayReconstruction => displayFrames.isNotEmpty;
 
@@ -926,6 +945,7 @@ class RealMatchReplayData {
         sourceCommit.isEmpty ||
         !_validWebUrl(sourceUrl) ||
         visibility.length != frames.length ||
+        ballVisibility.length != frames.length ||
         (sourcePossessionOwners.isNotEmpty &&
             sourcePossessionOwners.length != frames.length) ||
         (displayFrames.isEmpty != displayProvenance.isEmpty) ||

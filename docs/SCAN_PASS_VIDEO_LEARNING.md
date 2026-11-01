@@ -59,9 +59,12 @@ trajectories, or a claim of exact synchronization. They describe what to
 observe without claiming player intent, expert approval, or one globally best
 action.
 
-The primary **Measured 2D spatial library** has 18 reviewed 20.8–30.0 second
-passages from nine pinned matches. It uses broadcast-visible XY source data and
-retains real timing, visibility gaps and source limitations, as documented in
+The primary **Measured 2D spatial library** has 70 evidence-reviewed 20–40
+second passages from 10 represented pinned matches across 2019/20 and 2024/25.
+The original
+72-scene catalogue remains an archive fixture; 25 of those scenes passed the
+new learning-outcome audit. The primary library uses broadcast-visible XY
+source data and retains real timing, visibility gaps and source limitations, as documented in
 [`SCAN_PASS_SPATIAL_LIBRARY.md`](SCAN_PASS_SPATIAL_LIBRARY.md). The two systems
 must not be presented as equivalent evidence.
 

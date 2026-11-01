@@ -16,6 +16,140 @@ enum SpatialLearningTheme {
 
 enum SpatialEvidenceRole { departure, arrival }
 
+enum SpatialLearningObjective {
+  receivingLane,
+  pressureOutlet,
+  thirdPlayer,
+  switchingSpace,
+}
+
+enum SpatialEducationMeasurement {
+  laneAngleDegrees,
+  defenderClearanceMeters,
+  forwardAdvanceMeters,
+}
+
+class SpatialLearningActor {
+  final int playerId;
+  final String playerName;
+
+  const SpatialLearningActor({
+    required this.playerId,
+    required this.playerName,
+  });
+}
+
+class SpatialEducationLesson {
+  static const expectedProofVersion = 'spatial-education-evidence-v2';
+  static const quantizationMeters = .005;
+
+  final SpatialLearningObjective objective;
+  final SpatialEducationMeasurement measurement;
+  final String proofVersion;
+  final List<String> referenceUrls;
+  final String questionKey;
+  final String actionKey;
+  final String resultKey;
+  final SpatialLearningActor focusActor;
+  final List<SpatialLearningActor> supportActors;
+  final List<SpatialLearningActor> opponentActors;
+  final SpatialLearningActor? nextActor;
+  final double movementStart;
+  final double trigger;
+  final double outcome;
+  final double slowStart;
+  final double slowEnd;
+  final double? nextConnection;
+  final int movementStartFrame;
+  final int triggerFrame;
+  final int outcomeFrame;
+  final int? nextConnectionFrame;
+  final double beforeValue;
+  final double afterValue;
+  final double improvement;
+  final double movementMeters;
+  final double? pressureMeters;
+  final double? lateralMeters;
+  final double? forwardMeters;
+  final double? receiverContributionDegrees;
+  final double? defenderProjectionBefore;
+  final double? defenderProjectionAfter;
+  final double? movementAlignment;
+  final double? baselinePassLineGapMeters;
+  final double? afterPassLineGapMeters;
+  final double? receiverLineGapContributionMeters;
+
+  const SpatialEducationLesson({
+    required this.objective,
+    required this.measurement,
+    required this.proofVersion,
+    required this.referenceUrls,
+    required this.questionKey,
+    required this.actionKey,
+    required this.resultKey,
+    required this.focusActor,
+    required this.supportActors,
+    required this.opponentActors,
+    required this.nextActor,
+    required this.movementStart,
+    required this.trigger,
+    required this.outcome,
+    required this.slowStart,
+    required this.slowEnd,
+    required this.nextConnection,
+    required this.movementStartFrame,
+    required this.triggerFrame,
+    required this.outcomeFrame,
+    required this.nextConnectionFrame,
+    required this.beforeValue,
+    required this.afterValue,
+    required this.improvement,
+    required this.movementMeters,
+    required this.pressureMeters,
+    required this.lateralMeters,
+    required this.forwardMeters,
+    required this.receiverContributionDegrees,
+    required this.defenderProjectionBefore,
+    required this.defenderProjectionAfter,
+    required this.movementAlignment,
+    required this.baselinePassLineGapMeters,
+    required this.afterPassLineGapMeters,
+    required this.receiverLineGapContributionMeters,
+  });
+
+  Set<int> get actorIds => <int>{
+        focusActor.playerId,
+        ...supportActors.map((actor) => actor.playerId),
+        ...opponentActors.map((actor) => actor.playerId),
+        if (nextActor != null) nextActor!.playerId,
+      };
+
+  Set<String> get actorNames => <String>{
+        focusActor.playerName,
+        ...supportActors.map((actor) => actor.playerName),
+        ...opponentActors.map((actor) => actor.playerName),
+        if (nextActor != null) nextActor!.playerName,
+      };
+}
+
+class SpatialSourcePin {
+  final String key;
+  final String provider;
+  final String license;
+  final String commit;
+  final String sourceUrl;
+  final Set<int> matchIds;
+
+  const SpatialSourcePin({
+    required this.key,
+    required this.provider,
+    required this.license,
+    required this.commit,
+    required this.sourceUrl,
+    required this.matchIds,
+  });
+}
+
 class SpatialLibraryDiscovery {
   const SpatialLibraryDiscovery._();
 
@@ -51,6 +185,9 @@ class SpatialLibraryDiscovery {
       ..._aliasesFor(scene.away, _spatialTeamSearchAliases),
       scene.focusPlayerName,
       ...scene.evidenceAnchors.map((anchor) => anchor.playerName),
+      scene.season,
+      if (scene.education != null) scene.education!.objective.name,
+      if (scene.education != null) ...scene.education!.actorNames,
       for (final player in scene.participantNames)
         ..._aliasesFor(player, _spatialPlayerSearchAliases),
       scene.theme.name,
@@ -152,6 +289,8 @@ class SpatialLibraryScene {
   final SpatialEvidenceMetrics metrics;
   final String sourceCommit;
   final String sourceUrl;
+  final String season;
+  final SpatialEducationLesson? education;
 
   const SpatialLibraryScene({
     required this.id,
@@ -183,6 +322,8 @@ class SpatialLibraryScene {
     required this.metrics,
     required this.sourceCommit,
     required this.sourceUrl,
+    this.season = '',
+    this.education,
   });
 
   String get attackingTeam => attackingHome ? home : away;
@@ -190,6 +331,19 @@ class SpatialLibraryScene {
   Set<String> get participantNames => <String>{
         focusPlayerName,
         ...evidenceAnchors.map((anchor) => anchor.playerName),
+        if (education != null) ...education!.actorNames,
+      };
+
+  double get teachingStart => education?.slowStart ?? evidenceStart;
+  double get teachingEnd => education?.slowEnd ?? evidenceEnd;
+  double get teachingCoreStart => education?.movementStart ?? coreStart;
+  double get teachingCoreEnd => education?.outcome ?? coreEnd;
+  Set<int> get teachingActorIds =>
+      education?.actorIds ??
+      <int>{
+        ...corePlayerIds,
+        ...supportPlayerIds,
+        ...opponentContextPlayerIds,
       };
 
   bool involvesPlayer(String playerName) =>
@@ -332,12 +486,478 @@ class SpatialLibraryScene {
       throw const FormatException(
           'Spatial replay has no visible ownership run.');
     }
+    education?.validateReplay(this, data);
   }
 }
+
+extension SpatialEducationReplayValidation on SpatialEducationLesson {
+  void validateReplay(SpatialLibraryScene scene, RealMatchReplayData data) {
+    const metricTolerance = .0011;
+    if (proofVersion != SpatialEducationLesson.expectedProofVersion ||
+        referenceUrls.isEmpty ||
+        referenceUrls.any((url) => !url.startsWith('https://')) ||
+        questionKey !=
+            'spatialEducation${_objectiveSuffix(objective)}Question' ||
+        actionKey != 'spatialEducation${_objectiveSuffix(objective)}Action' ||
+        resultKey != 'spatialEducation${_objectiveSuffix(objective)}Result' ||
+        supportActors.isEmpty ||
+        opponentActors.isEmpty ||
+        movementStart < 0 ||
+        movementStart >= trigger ||
+        trigger >= outcome ||
+        slowStart > movementStart ||
+        slowEnd < outcome ||
+        slowEnd > data.duration ||
+        movementStartFrame !=
+            scene.startFrame + (movementStart * data.fps).round() ||
+        triggerFrame != scene.startFrame + (trigger * data.fps).round() ||
+        outcomeFrame != scene.startFrame + (outcome * data.fps).round() ||
+        (nextConnection == null) != (nextConnectionFrame == null) ||
+        (nextConnection != null &&
+            (nextConnection! <= outcome ||
+                nextConnection! > data.duration ||
+                nextConnectionFrame !=
+                    scene.startFrame + (nextConnection! * data.fps).round())) ||
+        (afterValue - beforeValue - improvement).abs() > metricTolerance) {
+      throw const FormatException('Invalid spatial education lesson metadata.');
+    }
+
+    for (final actor in <SpatialLearningActor>{
+      focusActor,
+      ...supportActors,
+      ...opponentActors,
+      if (nextActor != null) nextActor!,
+    }) {
+      final player = data.player(actor.playerId);
+      if (player.name != actor.playerName) {
+        throw const FormatException(
+          'Spatial education actor identity does not match the replay.',
+        );
+      }
+    }
+    final focusPlayer = data.player(focusActor.playerId);
+    final supportIds = supportActors.map((actor) => actor.playerId).toSet();
+    final opponentIds = opponentActors.map((actor) => actor.playerId).toSet();
+    if (supportIds.contains(focusActor.playerId) ||
+        opponentIds.contains(focusActor.playerId) ||
+        supportIds.intersection(opponentIds).isNotEmpty ||
+        supportActors.any(
+          (actor) => data.player(actor.playerId).home != focusPlayer.home,
+        ) ||
+        opponentActors.any(
+          (actor) => data.player(actor.playerId).home == focusPlayer.home,
+        ) ||
+        (nextActor != null &&
+            data.player(nextActor!.playerId).home != focusPlayer.home)) {
+      throw const FormatException(
+        'Spatial education actor roles do not match source teams.',
+      );
+    }
+    final firstFrame = (movementStart * data.fps).round();
+    final lastFrame = (outcome * data.fps).round();
+    for (final actor in <SpatialLearningActor>{
+      focusActor,
+      ...supportActors,
+      ...opponentActors,
+    }) {
+      final index = data.playerIndex(actor.playerId);
+      for (var frame = firstFrame; frame <= lastFrame; frame++) {
+        if (!data.isVisibleAtFrame(frame, index)) {
+          throw const FormatException(
+            'Spatial education evidence contains an unobserved actor.',
+          );
+        }
+      }
+    }
+    final finalFrame = ((nextConnection ?? outcome) * data.fps).round();
+    for (var frame = firstFrame; frame <= finalFrame; frame++) {
+      if (!data.isBallVisibleAtFrame(frame)) {
+        throw const FormatException(
+          'Spatial education evidence contains a hidden ball.',
+        );
+      }
+    }
+    if (nextActor != null && nextConnection != null) {
+      final index = data.playerIndex(nextActor!.playerId);
+      for (var frame = firstFrame; frame <= finalFrame; frame++) {
+        if (!data.isVisibleAtFrame(frame, index)) {
+          throw const FormatException(
+            'Spatial education next actor has a visibility gap.',
+          );
+        }
+      }
+    }
+
+    RealMatchReplayPoint point(SpatialLearningActor actor, double time) {
+      final value = data.sample(time).players[data.playerIndex(actor.playerId)];
+      if (value == null) {
+        throw const FormatException('Spatial education actor is hidden.');
+      }
+      return value;
+    }
+
+    void expectMetric(double actual, double stored) {
+      if ((actual - stored).abs() > metricTolerance) {
+        throw const FormatException(
+          'Spatial education measurement does not match the replay.',
+        );
+      }
+    }
+
+    final focusStart = point(focusActor, movementStart);
+    final focusTrigger = point(focusActor, trigger);
+    final focusOutcome = point(focusActor, outcome);
+    switch (objective) {
+      case SpatialLearningObjective.receivingLane:
+        if (measurement != SpatialEducationMeasurement.laneAngleDegrees ||
+            supportActors.length != 1 ||
+            opponentActors.length != 1 ||
+            nextActor != null) {
+          throw const FormatException('Invalid receiving-lane evidence roles.');
+        }
+        final passer = supportActors.single;
+        final defender = opponentActors.single;
+        final before = _angleDegrees(
+          point(passer, movementStart),
+          focusStart,
+          point(defender, movementStart),
+        );
+        final after = _angleDegrees(
+          point(passer, trigger),
+          focusTrigger,
+          point(defender, trigger),
+        );
+        expectMetric(before, beforeValue);
+        expectMetric(after, afterValue);
+        expectMetric(_distance(focusStart, focusTrigger), movementMeters);
+        final projectionBefore = _segmentProjection(
+          point(passer, movementStart),
+          focusStart,
+          point(defender, movementStart),
+        );
+        final projectionAfter = _segmentProjection(
+          point(passer, trigger),
+          focusTrigger,
+          point(defender, trigger),
+        );
+        final frozenReceiverAngle = _angleDegrees(
+          point(passer, trigger),
+          focusStart,
+          point(defender, trigger),
+        );
+        final contribution = after - frozenReceiverAngle;
+        final baselineLineGap = _lineGap(
+          point(passer, movementStart),
+          focusStart,
+          point(defender, movementStart),
+        );
+        final afterLineGap = _lineGap(
+          point(passer, trigger),
+          focusTrigger,
+          point(defender, trigger),
+        );
+        final frozenReceiverLineGap = _lineGap(
+          point(passer, trigger),
+          focusStart,
+          point(defender, trigger),
+        );
+        final lineGapContribution = afterLineGap - frozenReceiverLineGap;
+        if (receiverContributionDegrees == null ||
+            defenderProjectionBefore == null ||
+            defenderProjectionAfter == null ||
+            baselinePassLineGapMeters == null ||
+            afterPassLineGapMeters == null ||
+            receiverLineGapContributionMeters == null) {
+          throw const FormatException(
+            'Receiving-lane causal measurements are missing.',
+          );
+        }
+        expectMetric(contribution, receiverContributionDegrees!);
+        expectMetric(projectionBefore, defenderProjectionBefore!);
+        expectMetric(projectionAfter, defenderProjectionAfter!);
+        expectMetric(baselineLineGap, baselinePassLineGapMeters!);
+        expectMetric(afterLineGap, afterPassLineGapMeters!);
+        expectMetric(
+          lineGapContribution,
+          receiverLineGapContributionMeters!,
+        );
+        if (projectionBefore < -.001 ||
+            projectionBefore > 1.001 ||
+            projectionAfter < -.001 ||
+            projectionAfter > 1.001 ||
+            baselineLineGap > 3.001 ||
+            before > 25.001 ||
+            afterLineGap - baselineLineGap + .01 < .5 ||
+            lineGapContribution + .01 < .25 ||
+            movementMeters + .01 < .75 ||
+            improvement + .001 < 3 ||
+            contribution + .001 < 1) {
+          throw const FormatException('Receiving-lane threshold is not met.');
+        }
+        _expectOrderedOwnership(data, <(double, int)>[
+          (trigger, passer.playerId),
+          (outcome, focusActor.playerId),
+        ]);
+        _expectOwnerNearBall(data, trigger, passer.playerId);
+        _expectOwnerNearBall(data, outcome, focusActor.playerId);
+        break;
+      case SpatialLearningObjective.pressureOutlet:
+        if (measurement !=
+                SpatialEducationMeasurement.defenderClearanceMeters ||
+            supportActors.length < 2 ||
+            opponentActors.length < 2 ||
+            nextActor == null ||
+            nextConnection == null ||
+            pressureMeters == null) {
+          throw const FormatException(
+              'Invalid pressure-outlet evidence roles.');
+        }
+        final passer = supportActors.first;
+        final pressureDefender = opponentActors.first;
+        final comparisonDefender = opponentActors.last;
+        expectMetric(
+          _distance(point(passer, trigger), point(pressureDefender, trigger)),
+          pressureMeters!,
+        );
+        expectMetric(
+          _distance(focusStart, point(comparisonDefender, movementStart)),
+          beforeValue,
+        );
+        expectMetric(
+          _distance(focusOutcome, point(comparisonDefender, outcome)),
+          afterValue,
+        );
+        expectMetric(_distance(focusStart, focusOutcome), movementMeters);
+        if (pressureMeters! - .01 > 4 || improvement + .01 < 1) {
+          throw const FormatException('Pressure-outlet threshold is not met.');
+        }
+        _expectOrderedOwnership(data, <(double, int)>[
+          (trigger, passer.playerId),
+          (outcome, focusActor.playerId),
+          (nextConnection!, nextActor!.playerId),
+        ]);
+        _expectOwnerNearBall(data, trigger, passer.playerId);
+        _expectOwnerNearBall(data, outcome, focusActor.playerId);
+        _expectOwnerNearBall(data, nextConnection!, nextActor!.playerId);
+        break;
+      case SpatialLearningObjective.thirdPlayer:
+        if (supportActors.length != 2 ||
+            <int>{
+                  supportActors[0].playerId,
+                  supportActors[1].playerId,
+                  focusActor.playerId,
+                }.length !=
+                3) {
+          throw const FormatException('Third-player actors must be distinct.');
+        }
+        expectMetric(_distance(focusStart, focusTrigger), movementMeters);
+        final totalMovement = _distance(focusStart, focusOutcome);
+        final preX = focusTrigger.x - focusStart.x;
+        final preY = focusTrigger.y - focusStart.y;
+        final totalX = focusOutcome.x - focusStart.x;
+        final totalY = focusOutcome.y - focusStart.y;
+        final alignment = movementMeters <= 1e-9 || totalMovement <= 1e-9
+            ? -1.0
+            : (preX * totalX + preY * totalY) /
+                (movementMeters * totalMovement);
+        if (movementMeters + .01 < .6 ||
+            totalMovement + .01 < 1 ||
+            alignment + .001 < .5) {
+          throw const FormatException(
+              'Third-player movement is late or absent.');
+        }
+        if (movementAlignment == null) {
+          throw const FormatException(
+            'Third-player movement alignment is missing.',
+          );
+        }
+        expectMetric(alignment, movementAlignment!);
+        if (measurement == SpatialEducationMeasurement.forwardAdvanceMeters) {
+          final forward =
+              (focusOutcome.x - focusStart.x) * scene.attackDirection;
+          expectMetric(0, beforeValue);
+          expectMetric(forward, afterValue);
+          if (improvement + .01 < 1.5) {
+            throw const FormatException(
+                'Third-player advance is insufficient.');
+          }
+        } else if (measurement ==
+            SpatialEducationMeasurement.defenderClearanceMeters) {
+          final defender = opponentActors.single;
+          expectMetric(
+            _distance(focusStart, point(defender, movementStart)),
+            beforeValue,
+          );
+          expectMetric(
+            _distance(focusOutcome, point(defender, outcome)),
+            afterValue,
+          );
+          if (improvement + .01 < 1) {
+            throw const FormatException(
+              'Third-player clearance improvement is insufficient.',
+            );
+          }
+        } else {
+          throw const FormatException('Invalid third-player measurement.');
+        }
+        final firstConnection = scene.evidenceAnchors.first.time;
+        _expectOrderedOwnership(data, <(double, int)>[
+          (firstConnection, supportActors[0].playerId),
+          (trigger, supportActors[1].playerId),
+          (outcome, focusActor.playerId),
+        ]);
+        _expectOwnerNearBall(
+          data,
+          firstConnection,
+          supportActors[0].playerId,
+        );
+        _expectOwnerNearBall(data, trigger, supportActors[1].playerId);
+        _expectOwnerNearBall(data, outcome, focusActor.playerId);
+        break;
+      case SpatialLearningObjective.switchingSpace:
+        if (measurement !=
+                SpatialEducationMeasurement.defenderClearanceMeters ||
+            supportActors.length != 1 ||
+            opponentActors.length != 1 ||
+            lateralMeters == null) {
+          throw const FormatException(
+              'Invalid switching-space evidence roles.');
+        }
+        final passer = supportActors.single;
+        final defender = opponentActors.single;
+        expectMetric(
+          _distance(focusStart, point(defender, movementStart)),
+          beforeValue,
+        );
+        expectMetric(
+          _distance(focusOutcome, point(defender, outcome)),
+          afterValue,
+        );
+        expectMetric(_distance(focusStart, focusOutcome), movementMeters);
+        final lateral = (point(passer, trigger).y - focusOutcome.y).abs();
+        expectMetric(lateral, lateralMeters!);
+        if (lateralMeters! + .01 < 22 || improvement + .01 < 1) {
+          throw const FormatException('Switching-space threshold is not met.');
+        }
+        _expectOrderedOwnership(data, <(double, int)>[
+          (trigger, passer.playerId),
+          (outcome, focusActor.playerId),
+        ]);
+        _expectOwnerNearBall(data, trigger, passer.playerId);
+        _expectOwnerNearBall(data, outcome, focusActor.playerId);
+        break;
+    }
+  }
+}
+
+void _expectOwnerNearBall(
+  RealMatchReplayData data,
+  double time,
+  int playerId,
+) {
+  final frame = (time * data.fps).round();
+  if (frame < 0 ||
+      frame >= data.sourcePossessionOwners.length ||
+      data.sourcePossessionOwners[frame] != playerId ||
+      !data.isBallVisibleAtFrame(frame)) {
+    throw const FormatException(
+      'Spatial education source ownership does not match the lesson.',
+    );
+  }
+  final player = data.sample(time).players[data.playerIndex(playerId)];
+  if (player == null || _distance(player, data.sample(time).ball) > 3.5) {
+    throw const FormatException(
+      'Spatial education owner is not observed with the visible ball.',
+    );
+  }
+}
+
+void _expectOrderedOwnership(
+  RealMatchReplayData data,
+  List<(double, int)> anchors,
+) {
+  for (var index = 0; index + 1 < anchors.length; index++) {
+    final first = anchors[index];
+    final second = anchors[index + 1];
+    final start = (first.$1 * data.fps).round();
+    final end = (second.$1 * data.fps).round();
+    if (start >= end ||
+        data.sourcePossessionOwners[start] != first.$2 ||
+        data.sourcePossessionOwners[end] != second.$2) {
+      throw const FormatException(
+        'Spatial education source ownership order is invalid.',
+      );
+    }
+    var advanced = false;
+    for (var frame = start; frame <= end; frame++) {
+      final owner = data.sourcePossessionOwners[frame];
+      if (owner == null) continue;
+      if (owner == second.$2) {
+        advanced = true;
+      } else if (owner != first.$2 || advanced) {
+        throw const FormatException(
+          'Spatial education connection has intervening possession.',
+        );
+      }
+    }
+  }
+}
+
+double _angleDegrees(
+  RealMatchReplayPoint origin,
+  RealMatchReplayPoint first,
+  RealMatchReplayPoint second,
+) {
+  final ax = first.x - origin.x;
+  final ay = first.y - origin.y;
+  final bx = second.x - origin.x;
+  final by = second.y - origin.y;
+  final denominator =
+      math.sqrt(ax * ax + ay * ay) * math.sqrt(bx * bx + by * by);
+  if (denominator <= 1e-9) return 0;
+  final cosine = ((ax * bx + ay * by) / denominator).clamp(-1.0, 1.0);
+  return math.acos(cosine) * 180 / math.pi;
+}
+
+double _segmentProjection(
+  RealMatchReplayPoint start,
+  RealMatchReplayPoint end,
+  RealMatchReplayPoint point,
+) {
+  final dx = end.x - start.x;
+  final dy = end.y - start.y;
+  final denominator = dx * dx + dy * dy;
+  if (denominator <= 1e-9) return double.infinity;
+  return ((point.x - start.x) * dx + (point.y - start.y) * dy) / denominator;
+}
+
+double _lineGap(
+  RealMatchReplayPoint start,
+  RealMatchReplayPoint end,
+  RealMatchReplayPoint point,
+) {
+  final dx = end.x - start.x;
+  final dy = end.y - start.y;
+  final denominator = math.sqrt(dx * dx + dy * dy);
+  if (denominator <= 1e-9) return double.infinity;
+  return (dx * (point.y - start.y) - dy * (point.x - start.x)).abs() /
+      denominator;
+}
+
+String _objectiveSuffix(SpatialLearningObjective objective) =>
+    switch (objective) {
+      SpatialLearningObjective.receivingLane => 'ReceivingLane',
+      SpatialLearningObjective.pressureOutlet => 'PressureOutlet',
+      SpatialLearningObjective.thirdPlayer => 'ThirdPlayer',
+      SpatialLearningObjective.switchingSpace => 'SwitchingSpace',
+    };
 
 class SpatialLibraryCatalog {
   static const expectedSourceCommit =
       '1ed50b775f93075c2a6d00d0d795f13b7b89709e';
+  static const expectedRecentSourceCommit =
+      '4340d274572876239c154c90bc507a9b3250a656';
+  static const expectedEducationProofVersion = 'spatial-education-catalog-v2';
 
   final int version;
   final String provider;
@@ -346,6 +966,8 @@ class SpatialLibraryCatalog {
   final String sourceUrl;
   final int matchCount;
   final List<SpatialLibraryScene> scenes;
+  final String? proofVersion;
+  final List<SpatialSourcePin> sourcePins;
 
   const SpatialLibraryCatalog({
     required this.version,
@@ -355,6 +977,8 @@ class SpatialLibraryCatalog {
     required this.sourceUrl,
     required this.matchCount,
     required this.scenes,
+    this.proofVersion,
+    this.sourcePins = const <SpatialSourcePin>[],
   });
 
   factory SpatialLibraryCatalog.fromJsonString(String source) {
@@ -366,6 +990,7 @@ class SpatialLibraryCatalog {
   }
 
   factory SpatialLibraryCatalog.fromJson(Map<String, dynamic> json) {
+    final version = _integer(json, 'version');
     final values = _list(json, 'scenes');
     final scenes = values.map((value) {
       final item = _mapValue(value, 'spatial scene');
@@ -386,6 +1011,9 @@ class SpatialLibraryCatalog {
       final highlightPlayerIds = _list(item, 'highlightPlayerIds')
           .map((value) => _integerValue(value, 'highlight player id'))
           .toList(growable: false);
+      final education = item['learning'] == null
+          ? null
+          : _educationLesson(_map(item, 'learning'));
       return SpatialLibraryScene(
         id: _string(item, 'id'),
         asset: _string(item, 'asset'),
@@ -433,16 +1061,34 @@ class SpatialLibraryCatalog {
         ),
         sourceCommit: _string(item, 'sourceCommit'),
         sourceUrl: _string(item, 'sourceUrl'),
+        season: item['season'] == null ? '' : _string(item, 'season'),
+        education: education,
       );
     }).toList(growable: false);
+    final sourcePins = json['sourcePins'] == null
+        ? const <SpatialSourcePin>[]
+        : _list(json, 'sourcePins').map((value) {
+            final pin = _mapValue(value, 'spatial source pin');
+            return SpatialSourcePin(
+              key: _string(pin, 'key'),
+              provider: _string(pin, 'provider'),
+              license: _string(pin, 'license'),
+              commit: _string(pin, 'commit'),
+              sourceUrl: _string(pin, 'sourceUrl'),
+              matchIds: _integerList(pin, 'matchIds').toSet(),
+            );
+          }).toList(growable: false);
     final catalog = SpatialLibraryCatalog(
-      version: _integer(json, 'version'),
+      version: version,
       provider: _string(json, 'provider'),
       license: _string(json, 'license'),
       sourceCommit: _string(json, 'sourceCommit'),
       sourceUrl: _string(json, 'sourceUrl'),
       matchCount: _integer(json, 'matchCount'),
       scenes: scenes,
+      proofVersion:
+          json['proofVersion'] == null ? null : _string(json, 'proofVersion'),
+      sourcePins: sourcePins,
     );
     catalog._validate();
     return catalog;
@@ -480,6 +1126,10 @@ class SpatialLibraryCatalog {
           .toList(growable: false);
 
   void _validate() {
+    if (version == 2) {
+      _validateEducation();
+      return;
+    }
     final ids = <String>{};
     if (version != 1 ||
         provider != 'SkillCorner Open Data' ||
@@ -552,6 +1202,173 @@ class SpatialLibraryCatalog {
       }
     }
   }
+
+  void _validateEducation() {
+    const historicalRoot =
+        'https://github.com/SkillCorner/opendata/tree/$expectedSourceCommit';
+    const recentRoot =
+        'https://github.com/SkillCorner/opendata/tree/$expectedRecentSourceCommit';
+    final ids = <String>{};
+    if (provider != 'SkillCorner Open Data' ||
+        license != 'MIT' ||
+        proofVersion != expectedEducationProofVersion ||
+        sourceCommit != 'mixed-pinned-sources-v1' ||
+        sourceUrl != 'https://github.com/SkillCorner/opendata' ||
+        sourcePins.length != 2 ||
+        scenes.isEmpty ||
+        matchCount != matchIds.length) {
+      throw const FormatException('Invalid spatial education metadata.');
+    }
+    final pinByCommit = <String, SpatialSourcePin>{
+      for (final pin in sourcePins) pin.commit: pin,
+    };
+    final historical = pinByCommit[expectedSourceCommit];
+    final recent = pinByCommit[expectedRecentSourceCommit];
+    if (historical == null ||
+        recent == null ||
+        historical.key != 'historical-2019-20' ||
+        recent.key != 'recent-2024-25' ||
+        historical.provider != provider ||
+        recent.provider != provider ||
+        historical.license != license ||
+        recent.license != license ||
+        historical.sourceUrl != historicalRoot ||
+        recent.sourceUrl != recentRoot ||
+        recent.matchIds.difference(const <int>{1925299, 1996435}).isNotEmpty ||
+        recent.matchIds.isEmpty ||
+        sourcePins.expand((pin) => pin.matchIds).toSet().length != matchCount) {
+      throw const FormatException('Invalid spatial education source pins.');
+    }
+    for (final scene in scenes) {
+      final lesson = scene.education;
+      final pin = pinByCommit[scene.sourceCommit];
+      if (!ids.add(scene.id) ||
+          lesson == null ||
+          pin == null ||
+          !pin.matchIds.contains(scene.matchId) ||
+          scene.sourceUrl != '${pin.sourceUrl}/data/matches/${scene.matchId}' ||
+          scene.assetSha256.length != 64 ||
+          scene.season !=
+              (scene.sourceCommit == expectedRecentSourceCommit
+                  ? '2024/25'
+                  : '2019/20') ||
+          (scene.sourceCommit == expectedRecentSourceCommit
+              ? !scene.asset.startsWith(
+                  'assets/scan_pass_spatial/education_scenes/',
+                )
+              : !scene.asset.startsWith('assets/scan_pass_spatial/scenes/')) ||
+          scene.duration < 20 ||
+          scene.duration > 40 ||
+          scene.duration - lesson.outcome < 4 ||
+          lesson.movementStart < 4 ||
+          scene.attackDirection.abs() != 1 ||
+          !lesson.actorIds.every(scene.highlightPlayerIds.contains) ||
+          lesson.focusActor.playerName.isEmpty ||
+          scene.evidenceAnchors.any(
+            (anchor) =>
+                anchor.time <= 0 ||
+                anchor.time >= scene.duration ||
+                anchor.playerName.isEmpty,
+          )) {
+        throw const FormatException('Invalid spatial education scene.');
+      }
+    }
+    if (scenes.map((scene) => scene.education!.objective).toSet().length !=
+        SpatialLearningObjective.values.length) {
+      throw const FormatException(
+        'Spatial education catalog must cover every learning objective.',
+      );
+    }
+  }
+}
+
+SpatialEducationLesson _educationLesson(Map<String, dynamic> json) {
+  SpatialLearningActor actor(Object? value, String label) {
+    final item = _mapValue(value, label);
+    return SpatialLearningActor(
+      playerId: _integer(item, 'playerId'),
+      playerName: _string(item, 'playerName'),
+    );
+  }
+
+  List<SpatialLearningActor> actors(String key) => _list(json, key)
+      .map((value) => actor(value, key))
+      .toList(growable: false);
+  final metrics = _map(json, 'measurements');
+  final sourceFrames = _map(json, 'sourceFrames');
+  return SpatialEducationLesson(
+    objective: _enumValue(
+      SpatialLearningObjective.values,
+      _string(json, 'objective'),
+      'spatial learning objective',
+    ),
+    measurement: _enumValue(
+      SpatialEducationMeasurement.values,
+      _string(metrics, 'kind'),
+      'spatial education measurement',
+    ),
+    proofVersion: _string(json, 'proofVersion'),
+    referenceUrls: _list(json, 'referenceUrls')
+        .map((value) => _stringValue(value, 'reference URL'))
+        .toList(growable: false),
+    questionKey: _string(json, 'questionKey'),
+    actionKey: _string(json, 'actionKey'),
+    resultKey: _string(json, 'resultKey'),
+    focusActor: actor(json['focusActor'], 'focus actor'),
+    supportActors: actors('supportActors'),
+    opponentActors: actors('opponentActors'),
+    nextActor: json['nextActor'] == null
+        ? null
+        : actor(json['nextActor'], 'next actor'),
+    movementStart: _number(json, 'movementStart'),
+    trigger: _number(json, 'trigger'),
+    outcome: _number(json, 'outcome'),
+    slowStart: _number(json, 'slowStart'),
+    slowEnd: _number(json, 'slowEnd'),
+    nextConnection:
+        json['nextConnection'] == null ? null : _number(json, 'nextConnection'),
+    movementStartFrame: _integer(sourceFrames, 'movementStart'),
+    triggerFrame: _integer(sourceFrames, 'trigger'),
+    outcomeFrame: _integer(sourceFrames, 'outcome'),
+    nextConnectionFrame: sourceFrames['nextConnection'] == null
+        ? null
+        : _integer(sourceFrames, 'nextConnection'),
+    beforeValue: _number(metrics, 'before'),
+    afterValue: _number(metrics, 'after'),
+    improvement: _number(metrics, 'improvement'),
+    movementMeters: _number(metrics, 'movementMeters'),
+    pressureMeters: metrics['pressureMeters'] == null
+        ? null
+        : _number(metrics, 'pressureMeters'),
+    lateralMeters: metrics['lateralMeters'] == null
+        ? null
+        : _number(metrics, 'lateralMeters'),
+    forwardMeters: metrics['forwardMeters'] == null
+        ? null
+        : _number(metrics, 'forwardMeters'),
+    receiverContributionDegrees: metrics['receiverContributionDegrees'] == null
+        ? null
+        : _number(metrics, 'receiverContributionDegrees'),
+    defenderProjectionBefore: metrics['defenderProjectionBefore'] == null
+        ? null
+        : _number(metrics, 'defenderProjectionBefore'),
+    defenderProjectionAfter: metrics['defenderProjectionAfter'] == null
+        ? null
+        : _number(metrics, 'defenderProjectionAfter'),
+    movementAlignment: metrics['movementAlignment'] == null
+        ? null
+        : _number(metrics, 'movementAlignment'),
+    baselinePassLineGapMeters: metrics['baselinePassLineGapMeters'] == null
+        ? null
+        : _number(metrics, 'baselinePassLineGapMeters'),
+    afterPassLineGapMeters: metrics['afterPassLineGapMeters'] == null
+        ? null
+        : _number(metrics, 'afterPassLineGapMeters'),
+    receiverLineGapContributionMeters:
+        metrics['receiverLineGapContributionMeters'] == null
+            ? null
+            : _number(metrics, 'receiverLineGapContributionMeters'),
+  );
 }
 
 const _spatialSearchCharacterFolds = <String, String>{

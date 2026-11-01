@@ -75,7 +75,7 @@ extension SpatialConfirmedPossession on RealMatchReplayData {
         .floor()
         .clamp(0, sourcePossessionOwners.length - 1);
     final sourceOwnerId = sourcePossessionOwners[frame];
-    if (sourceOwnerId == null) return null;
+    if (sourceOwnerId == null || !isBallVisibleAtFrame(frame)) return null;
     final ownerIndex =
         players.indexWhere((player) => player.id == sourceOwnerId);
     if (ownerIndex < 0) return null;
@@ -124,11 +124,18 @@ class SpatialFocusPlan {
       final time = frame / data.fps;
       final sample = data.sample(time);
       final activeHome = _activeHomeAt(data, scene, time);
-      final namesLessonActors =
-          (time >= scene.coreStart && time <= scene.evidenceEnd + 1.6) ||
-              time >= data.duration - 1 / data.fps;
       final relevant = <int>{
-        if (namesLessonActors) ...scene.highlightPlayerIds,
+        if (scene.education case final lesson?) ...[
+          ..._educationVisibleCueActors(lesson, time),
+          if (time >= lesson.movementStart &&
+              time <= (lesson.nextConnection ?? lesson.outcome) + 1.6)
+            ...lesson.actorIds,
+        ],
+        if (scene.education == null &&
+            ((time >= scene.teachingCoreStart &&
+                    time <= scene.teachingCoreEnd + 1.6) ||
+                time >= data.duration - 1 / data.fps))
+          ...scene.teachingActorIds,
       };
       if (data.sourcePossessionOwners.isNotEmpty) {
         final owner = data.sourcePossessionOwners[frame];
@@ -148,17 +155,23 @@ class SpatialFocusPlan {
           nearbyDefenders.add((id: player.id, meters: meters));
         }
       }
-      for (final anchor in scene.evidenceAnchors) {
-        if ((anchor.time - time) > .8 || (time - anchor.time) > 1.8) continue;
-        final point = sample.players[data.playerIndex(anchor.playerId)];
-        if (point != null) relevant.add(anchor.playerId);
+      if (scene.education == null) {
+        for (final anchor in scene.evidenceAnchors) {
+          if ((anchor.time - time) > .8 || (time - anchor.time) > 1.8) {
+            continue;
+          }
+          final point = sample.players[data.playerIndex(anchor.playerId)];
+          if (point != null) relevant.add(anchor.playerId);
+        }
       }
       nearbyAttackers.sort((a, b) => a.meters.compareTo(b.meters));
       nearbyDefenders.sort((a, b) => a.meters.compareTo(b.meters));
-      relevant
-        ..addAll(nearbyAttackers.take(4).map((value) => value.id))
-        ..addAll(nearbyDefenders.take(3).map((value) => value.id));
-      relevant.addAll(scene.observedRoles(data, time).playerIds);
+      if (scene.education == null) {
+        relevant
+          ..addAll(nearbyAttackers.take(4).map((value) => value.id))
+          ..addAll(nearbyDefenders.take(3).map((value) => value.id))
+          ..addAll(scene.observedRoles(data, time).playerIds);
+      }
       relevantByFrame.add(relevant.toList(growable: false));
     }
 
@@ -243,7 +256,8 @@ class SpatialFocusPlan {
         data.duration,
       ),
     ));
-    final teachingCamera = cameraFor(scene.coreStart, scene.coreEnd);
+    final teachingCamera =
+        cameraFor(scene.teachingCoreStart, scene.teachingCoreEnd);
     return SpatialFocusPlan._(
       fps: data.fps,
       duration: data.duration,
@@ -277,6 +291,58 @@ class SpatialFocusPlan {
         .clamp(0, _relevantPlayerIdsByFrame.length - 1);
     return _relevantPlayerIdsByFrame[frame];
   }
+}
+
+Set<int> _educationVisibleCueActors(
+  SpatialEducationLesson lesson,
+  double time,
+) {
+  final values = <int>{lesson.focusActor.playerId};
+  if (time < lesson.slowStart) {
+    switch (lesson.objective) {
+      case SpatialLearningObjective.receivingLane:
+      case SpatialLearningObjective.switchingSpace:
+        values.add(lesson.supportActors.first.playerId);
+      case SpatialLearningObjective.pressureOutlet:
+        values.add(lesson.opponentActors.last.playerId);
+      case SpatialLearningObjective.thirdPlayer:
+        values.add(lesson.supportActors[1].playerId);
+    }
+    return values;
+  }
+  if (time < lesson.outcome) {
+    switch (lesson.objective) {
+      case SpatialLearningObjective.receivingLane:
+      case SpatialLearningObjective.switchingSpace:
+        values.add(lesson.supportActors.first.playerId);
+      case SpatialLearningObjective.pressureOutlet:
+        values
+          ..add(lesson.supportActors.first.playerId)
+          ..add(lesson.opponentActors.first.playerId);
+      case SpatialLearningObjective.thirdPlayer:
+        values.add(lesson.supportActors[1].playerId);
+    }
+    return values;
+  }
+  switch (lesson.objective) {
+    case SpatialLearningObjective.receivingLane:
+      values
+        ..add(lesson.supportActors.first.playerId)
+        ..add(lesson.opponentActors.single.playerId);
+    case SpatialLearningObjective.pressureOutlet:
+      values.add(lesson.opponentActors.last.playerId);
+      if (lesson.nextConnection != null && time >= lesson.nextConnection!) {
+        values.add(lesson.nextActor!.playerId);
+      }
+    case SpatialLearningObjective.thirdPlayer:
+      if (lesson.measurement ==
+          SpatialEducationMeasurement.defenderClearanceMeters) {
+        values.add(lesson.opponentActors.single.playerId);
+      }
+    case SpatialLearningObjective.switchingSpace:
+      values.add(lesson.opponentActors.single.playerId);
+  }
+  return values;
 }
 
 double _smoothStep(double value) => value * value * (3 - 2 * value);

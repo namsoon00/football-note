@@ -1,0 +1,81 @@
+{
+  "provider": "SkillCorner Open Data",
+  "license": "MIT",
+  "commit": "4340d274572876239c154c90bc507a9b3250a656",
+  "sourceUrl": "https://github.com/SkillCorner/opendata/tree/4340d274572876239c154c90bc507a9b3250a656",
+  "matchIds": [
+    1925299,
+    1996435
+  ],
+  "sourceSemantics": "Only is_detected player positions count as observed; exclude extrapolated actors from teaching evidence.",
+  "files": [
+    {
+      "path": "LICENSE",
+      "bytes": 1097,
+      "sha256": "3384cc66ffd008209759af5e6328677eabded72756fb1f56f4f82e68e9b3c6eb",
+      "url": "https://raw.githubusercontent.com/SkillCorner/opendata/4340d274572876239c154c90bc507a9b3250a656/LICENSE"
+    },
+    {
+      "path": "data/matches/1925299/1925299_dynamic_events.csv",
+      "bytes": 5043601,
+      "sha256": "2557acbdcba6547d764b9f7c277c3d7e81a4d58692d6c20c2bfa28625ae0cce3",
+      "url": "https://raw.githubusercontent.com/SkillCorner/opendata/4340d274572876239c154c90bc507a9b3250a656/data/matches/1925299/1925299_dynamic_events.csv"
+    },
+    {
+      "path": "data/matches/1925299/1925299_match.json",
+      "bytes": 28396,
+      "sha256": "f4345b32c0fdd7c9990df70050b3a74f57b1992cf762e20f2a4d309bd2fba7d2",
+      "url": "https://raw.githubusercontent.com/SkillCorner/opendata/4340d274572876239c154c90bc507a9b3250a656/data/matches/1925299/1925299_match.json"
+    },
+    {
+      "path": "data/matches/1925299/1925299_phases_of_play.csv",
+      "bytes": 131104,
+      "sha256": "a1682a736a9cf1c311cb799f0a949f7e023dca4ebaa9dd294b138e8929271274",
+      "url": "https://raw.githubusercontent.com/SkillCorner/opendata/4340d274572876239c154c90bc507a9b3250a656/data/matches/1925299/1925299_phases_of_play.csv"
+    },
+    {
+      "path": "data/matches/1925299/1925299_tracking_extrapolated.jsonl",
+      "bytes": 97091519,
+      "sha256": "48528be40ad82fa3e2b232e1af8d311705f7d6d119925ef199d2b59ea36fd3c9",
+      "url": "https://media.githubusercontent.com/media/SkillCorner/opendata/4340d274572876239c154c90bc507a9b3250a656/data/matches/1925299/1925299_tracking_extrapolated.jsonl"
+    },
+    {
+      "path": "data/matches/1996435/1996435_dynamic_events.csv",
+      "bytes": 4964532,
+      "sha256": "379e5bbd90df47d2358a2bfc5b741f7626b934db780ff33d3337a8b1d5efc87c",
+      "url": "https://raw.githubusercontent.com/SkillCorner/opendata/4340d274572876239c154c90bc507a9b3250a656/data/matches/1996435/1996435_dynamic_events.csv"
+    },
+    {
+      "path": "data/matches/1996435/1996435_match.json",
+      "bytes": 27830,
+      "sha256": "f54179645d3c3f308a7094086283277f2a7c99da5f3919302e622cbd82f9d065",
+      "url": "https://raw.githubusercontent.com/SkillCorner/opendata/4340d274572876239c154c90bc507a9b3250a656/data/matches/1996435/1996435_match.json"
+    },
+    {
+      "path": "data/matches/1996435/1996435_phases_of_play.csv",
+      "bytes": 120335,
+      "sha256": "ff7ed406c900ad98bd48b6b9913e088c40bf176a3915f061430c1af7405ccb09",
+      "url": "https://raw.githubusercontent.com/SkillCorner/opendata/4340d274572876239c154c90bc507a9b3250a656/data/matches/1996435/1996435_phases_of_play.csv"
+    },
+    {
+      "path": "data/matches/1996435/1996435_tracking_extrapolated.jsonl",
+      "bytes": 88634016,
+      "sha256": "f42764d8bde290e8f738fa21141cadbed75408314b0b337bbf1d5a3444540a02",
+      "url": "https://media.githubusercontent.com/media/SkillCorner/opendata/4340d274572876239c154c90bc507a9b3250a656/data/matches/1996435/1996435_tracking_extrapolated.jsonl"
+    }
+  ],
+  "archivePreservation": {
+    "fileCount": 115,
+    "derivedFrom": [
+      "assets/scan_pass_spatial/catalog.json#scenes[].assetSha256",
+      "assets/scan_pass_spatial/legacy-asset-preservation.json#files[].sha256"
+    ],
+    "metadataSha256": {
+      "assets/scan_pass_spatial/source-manifest.json": "146ac3a9d1b6ad521a869b12a2e692bfef6c5533a0e8ce6a102836331b96ba1b",
+      "assets/scan_pass_spatial/legacy-asset-preservation.json": "4b36f839cd639572f34cf0cd762c9e81e6942dfa49f0639b1e56d14cefdea4b8",
+      "assets/scan_pass_spatial/LICENSE": "3384cc66ffd008209759af5e6328677eabded72756fb1f56f4f82e68e9b3c6eb",
+      "assets/scan_pass_spatial/quality-proof.json": "a0b6a92442f408f6a340d98b7631b2afb1b4b447c1444008f6f6fe7a5c13e879",
+      "assets/scan_pass_spatial/catalog.json": "1535cfef76a5d28c51e6cd438ca484b90906acef92fc8ed3aba384bb7d1796f1"
+    }
+  }
+}
