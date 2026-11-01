@@ -2447,6 +2447,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'All daily home tasks completed';
 
   @override
+  String get playerXpGuideChallengeRewards => 'Challenge rewards';
+
+  @override
+  String get playerXpGuideChallengeRewardsXp =>
+      'Rookie 20 / Grow-Up 32 / Ace 48 XP per round';
+
+  @override
   String get playerXpGuideDailyCap => 'Daily positive XP cap';
 
   @override
@@ -17674,7 +17681,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeRewardGuideBody =>
-      'Round rewards grow when rounds are completed consecutively. A finished challenge also adds the finish bonus.';
+      'Rounds pay 20/32/48 XP at Rookie/Grow-Up/Ace. Consecutive rounds add 5 XP up to 25 XP, and completion adds 30/55/85 XP per challenge day. Promised round rewards are always paid in full, even when the daily XP cap is reached.';
 
   @override
   String get challengeRewardGuideNoActive =>

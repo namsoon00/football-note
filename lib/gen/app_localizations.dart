@@ -4299,6 +4299,18 @@ abstract class AppLocalizations {
   /// **'All daily home tasks completed'**
   String get playerXpGuideDailyTasksComplete;
 
+  /// No description provided for @playerXpGuideChallengeRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge rewards'**
+  String get playerXpGuideChallengeRewards;
+
+  /// No description provided for @playerXpGuideChallengeRewardsXp.
+  ///
+  /// In en, this message translates to:
+  /// **'Rookie 20 / Grow-Up 32 / Ace 48 XP per round'**
+  String get playerXpGuideChallengeRewardsXp;
+
   /// No description provided for @playerXpGuideDailyCap.
   ///
   /// In en, this message translates to:
@@ -30184,7 +30196,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeRewardGuideBody.
   ///
   /// In en, this message translates to:
-  /// **'Round rewards grow when rounds are completed consecutively. A finished challenge also adds the finish bonus.'**
+  /// **'Rounds pay 20/32/48 XP at Rookie/Grow-Up/Ace. Consecutive rounds add 5 XP up to 25 XP, and completion adds 30/55/85 XP per challenge day. Promised round rewards are always paid in full, even when the daily XP cap is reached.'**
   String get challengeRewardGuideBody;
 
   /// No description provided for @challengeRewardGuideNoActive.

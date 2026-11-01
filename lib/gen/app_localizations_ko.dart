@@ -2380,6 +2380,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get playerXpGuideDailyTasksComplete => '홈 오늘 할일 모두 완료';
 
   @override
+  String get playerXpGuideChallengeRewards => '도전 보상';
+
+  @override
+  String get playerXpGuideChallengeRewardsXp =>
+      '라운드당 루키 20 / 쑥쑥 32 / 에이스 48 XP';
+
+  @override
   String get playerXpGuideDailyCap => '하루 긍정 경험치 상한';
 
   @override
@@ -17097,7 +17104,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get challengeRewardGuideBody =>
-      '라운드를 연속으로 완료할수록 라운드 보상이 커져요. 챌린지를 끝까지 완주하면 완주 보너스도 더해집니다.';
+      '라운드 보상은 루키/쑥쑥/에이스 기준 20/32/48 XP이며, 연속 성공마다 5 XP씩 최대 25 XP까지 더해집니다. 완료 보상은 도전 일수당 30/55/85 XP이고, 약속된 라운드 보상은 하루 경험치 상한에 도달해도 전액 지급됩니다.';
 
   @override
   String get challengeRewardGuideNoActive =>

@@ -17,9 +17,9 @@ void main() {
     expect(templates[1].rounds, hasLength(7));
     expect(templates[2].rounds, hasLength(14));
     expect(templates.map((template) => template.rewardXpPerRound), <int>[
-      10,
-      10,
-      10,
+      20,
+      20,
+      20,
     ]);
     expect(templates[2].rounds.first.targetTrainingMinutes, 30);
     expect(templates[2].rounds.last.targetTrainingMinutes, 30);
@@ -57,8 +57,27 @@ void main() {
     expect(ace.targetTrainingMinutes, 120);
     expect(ace.targetJumpRopeMinutes, 30);
     expect(ace.targetLiftingMinutes, 30);
-    expect(rookie.rewardXp, 10);
-    expect(ace.rewardXp, 24);
+    expect(rookie.rewardXp, 20);
+    expect(growth.rewardXp, 32);
+    expect(ace.rewardXp, 48);
+    expect(
+      service.completionBonusXpFor(
+        template,
+        ChallengeTrainingLevel.rookie,
+      ),
+      90,
+    );
+    expect(
+      service.completionBonusXpFor(
+        template,
+        ChallengeTrainingLevel.growth,
+      ),
+      165,
+    );
+    expect(
+      service.completionBonusXpFor(template, ChallengeTrainingLevel.ace),
+      255,
+    );
     expect(
       service.completionBonusXpFor(template, ChallengeTrainingLevel.ace),
       greaterThan(
@@ -72,20 +91,65 @@ void main() {
     final template = service.templateById('starter_3')!;
 
     expect(challengeRoundStreakBonusXpFor(1), 0);
-    expect(challengeRoundStreakBonusXpFor(3), 6);
-    expect(challengeRoundStreakBonusXpFor(7), 15);
+    expect(challengeRoundStreakBonusXpFor(3), 10);
+    expect(challengeRoundStreakBonusXpFor(6), 25);
+    expect(challengeRoundStreakBonusXpFor(7), 25);
+    expect(challengeRoundStreakBonusXpFor(14), 25);
     expect(
-      challengeRoundRewardXpFor(baseRewardXp: 10, consecutiveRoundNumber: 7),
-      25,
+      challengeRoundRewardXpFor(baseRewardXp: 20, consecutiveRoundNumber: 7),
+      45,
     );
     expect(
       challengeTotalRoundRewardXpFor(template, ChallengeTrainingLevel.rookie),
-      39,
+      75,
     );
     expect(
       service.totalPotentialXpFor(template, ChallengeTrainingLevel.rookie),
-      159,
+      165,
     );
+  });
+
+  test('3, 7, and 14 day totals match every training level', () {
+    final service = ChallengeService(_MemoryOptionRepository());
+    const expectedRoundTotals = <ChallengeTrainingLevel, List<int>>{
+      ChallengeTrainingLevel.rookie: <int>[75, 240, 555],
+      ChallengeTrainingLevel.growth: <int>[111, 324, 723],
+      ChallengeTrainingLevel.ace: <int>[159, 436, 947],
+    };
+    const expectedCompletionTotals = <ChallengeTrainingLevel, List<int>>{
+      ChallengeTrainingLevel.rookie: <int>[90, 210, 420],
+      ChallengeTrainingLevel.growth: <int>[165, 385, 770],
+      ChallengeTrainingLevel.ace: <int>[255, 595, 1190],
+    };
+    const expectedPotentialTotals = <ChallengeTrainingLevel, List<int>>{
+      ChallengeTrainingLevel.rookie: <int>[165, 450, 975],
+      ChallengeTrainingLevel.growth: <int>[276, 709, 1493],
+      ChallengeTrainingLevel.ace: <int>[414, 1031, 2137],
+    };
+
+    for (final level in ChallengeTrainingLevel.values) {
+      expect(
+        service.templates().map(
+              (template) => challengeTotalRoundRewardXpFor(template, level),
+            ),
+        expectedRoundTotals[level],
+        reason: '${level.name} round totals',
+      );
+      expect(
+        service.templates().map(
+              (template) => service.completionBonusXpFor(template, level),
+            ),
+        expectedCompletionTotals[level],
+        reason: '${level.name} completion totals',
+      );
+      expect(
+        service.templates().map(
+              (template) => service.totalPotentialXpFor(template, level),
+            ),
+        expectedPotentialTotals[level],
+        reason: '${level.name} potential totals',
+      );
+    }
   });
 
   test('multiple active challenges keep their own cadence', () async {
@@ -612,7 +676,7 @@ void main() {
 
     expect(service.activeRun(), isNull);
     expect(service.latestCompletedRun(), isNotNull);
-    expect(levelService.loadState().totalXp, 159);
+    expect(levelService.loadState().totalXp, 165);
     expect(
       levelService
           .loadXpHistory()
@@ -692,7 +756,7 @@ void main() {
       );
 
       expect(service.activeRun(), isNotNull);
-      expect(roundAwards.map((award) => award.gainedXp), <int>[10, 13, 16]);
+      expect(roundAwards.map((award) => award.gainedXp), <int>[20, 25, 30]);
       expect(
         roundAwards.map((award) => award.reasons).expand((reasons) => reasons),
         isNot(contains('challenge_completed_bonus')),
@@ -711,7 +775,7 @@ void main() {
             .expand((reasons) => reasons),
         contains('challenge_completed_bonus'),
       );
-      expect(levelService.loadState().totalXp, 159);
+      expect(levelService.loadState().totalXp, 165);
     },
   );
 
@@ -768,17 +832,17 @@ void main() {
 
       expect(
         firstAwards.map((award) => award.gainedXp).where((xp) => xp != 0),
-        <int>[10],
+        <int>[20],
       );
       expect(
         revokedAwards.map((award) => award.gainedXp).where((xp) => xp != 0),
-        <int>[-10],
+        <int>[-20],
       );
       expect(
         secondAwards.map((award) => award.gainedXp).where((xp) => xp != 0),
-        <int>[10],
+        <int>[20],
       );
-      expect(levelService.loadState().totalXp, 10);
+      expect(levelService.loadState().totalXp, 20);
     },
   );
 
@@ -848,9 +912,9 @@ void main() {
       expect(failed.completedRoundNumbers, <int>[1, 3]);
       expect(
         finalAwards.map((award) => award.gainedXp).where((xp) => xp > 0),
-        <int>[10, 10],
+        <int>[20, 20],
       );
-      expect(levelService.loadState().totalXp, 20);
+      expect(levelService.loadState().totalXp, 40);
     },
   );
 }

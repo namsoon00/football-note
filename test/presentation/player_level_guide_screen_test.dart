@@ -114,6 +114,27 @@ void main() {
     expect(find.text('퀴즈 완료', skipOffstage: false), findsOneWidget);
     expect(find.text('식사 두 끼 이상 기록', skipOffstage: false), findsOneWidget);
     expect(find.text('홈 오늘 할일 모두 완료', skipOffstage: false), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('도전 보상'),
+      240,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('도전 보상', skipOffstage: false), findsOneWidget);
+    expect(
+      find.text(
+        '라운드당 루키 20 / 쑥쑥 32 / 에이스 48 XP',
+        skipOffstage: false,
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        '하루 긍정 경험치 상한',
+        skipOffstage: false,
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('parent mode hides reward claim action and keeps reward edit', (

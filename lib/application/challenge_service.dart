@@ -7,8 +7,8 @@ import '../domain/repositories/option_repository.dart';
 import 'player_level_service.dart';
 import 'sport_scoped_storage.dart';
 
-const int challengeConsecutiveRoundBonusStepXp = 3;
-const int challengeConsecutiveRoundBonusMaxXp = 15;
+const int challengeConsecutiveRoundBonusStepXp = 5;
+const int challengeConsecutiveRoundBonusMaxXp = 25;
 
 class ChallengeService {
   static const String storageKey = 'challenge_runs_v1';
@@ -658,8 +658,8 @@ const List<ChallengeTrainingLevelConfig> challengeTrainingLevelConfigs =
     targetJumpRopeMinutes: 10,
     targetLiftingMinutes: 10,
     targetRiceBowls: 3,
-    rewardXpPerRound: 10,
-    completionBonusXpPerDay: 40,
+    rewardXpPerRound: 20,
+    completionBonusXpPerDay: 30,
   ),
   ChallengeTrainingLevelConfig(
     level: ChallengeTrainingLevel.growth,
@@ -667,8 +667,8 @@ const List<ChallengeTrainingLevelConfig> challengeTrainingLevelConfigs =
     targetJumpRopeMinutes: 20,
     targetLiftingMinutes: 20,
     targetRiceBowls: 3.5,
-    rewardXpPerRound: 16,
-    completionBonusXpPerDay: 70,
+    rewardXpPerRound: 32,
+    completionBonusXpPerDay: 55,
   ),
   ChallengeTrainingLevelConfig(
     level: ChallengeTrainingLevel.ace,
@@ -676,8 +676,8 @@ const List<ChallengeTrainingLevelConfig> challengeTrainingLevelConfigs =
     targetJumpRopeMinutes: 30,
     targetLiftingMinutes: 30,
     targetRiceBowls: 4,
-    rewardXpPerRound: 24,
-    completionBonusXpPerDay: 110,
+    rewardXpPerRound: 48,
+    completionBonusXpPerDay: 85,
   ),
 ];
 
@@ -746,7 +746,7 @@ ChallengeTemplate _defaultChallengeTemplate({
   return ChallengeTemplate(
     id: id,
     dayCount: dayCount,
-    rewardXpPerRound: 10,
+    rewardXpPerRound: 20,
     rounds: List<ChallengeRound>.generate(
       dayCount,
       (index) => ChallengeRound(
@@ -755,7 +755,7 @@ ChallengeTemplate _defaultChallengeTemplate({
         targetJumpRopeMinutes: 10,
         targetLiftingMinutes: 10,
         targetRiceBowls: 3,
-        rewardXp: 10,
+        rewardXp: 20,
       ),
       growable: false,
     ),
