@@ -16,6 +16,58 @@ enum SpatialLearningTheme {
 
 enum SpatialEvidenceRole { departure, arrival }
 
+class SpatialLibraryDiscovery {
+  const SpatialLibraryDiscovery._();
+
+  static String normalize(String value) {
+    final buffer = StringBuffer();
+    for (final rune in value.trim().toLowerCase().runes) {
+      final character = String.fromCharCode(rune);
+      final folded = _spatialSearchCharacterFolds[character] ?? character;
+      if (!RegExp(r"[\s\-_.·/\\'’]").hasMatch(folded)) {
+        buffer.write(folded);
+      }
+    }
+    return buffer.toString();
+  }
+
+  static bool matchesScene(
+    SpatialLibraryScene scene,
+    String query, {
+    Iterable<String> themeTerms = const <String>[],
+  }) {
+    final tokens = query
+        .trim()
+        .split(RegExp(r'\s+'))
+        .map(normalize)
+        .where((token) => token.isNotEmpty)
+        .toList(growable: false);
+    if (tokens.isEmpty) return true;
+
+    final values = <String>{
+      scene.home,
+      scene.away,
+      ..._aliasesFor(scene.home, _spatialTeamSearchAliases),
+      ..._aliasesFor(scene.away, _spatialTeamSearchAliases),
+      scene.focusPlayerName,
+      ...scene.evidenceAnchors.map((anchor) => anchor.playerName),
+      for (final player in scene.participantNames)
+        ..._aliasesFor(player, _spatialPlayerSearchAliases),
+      scene.theme.name,
+      ...themeTerms,
+    }.map(normalize).where((value) => value.isNotEmpty).toSet();
+    return tokens.every(
+      (token) => values.any((value) => value.contains(token)),
+    );
+  }
+
+  static Iterable<String> _aliasesFor(
+    String value,
+    Map<String, List<String>> aliases,
+  ) =>
+      aliases[value] ?? const <String>[];
+}
+
 class SpatialEvidenceAnchor {
   final double time;
   final SpatialEvidenceRole role;
@@ -135,17 +187,16 @@ class SpatialLibraryScene {
 
   String get attackingTeam => attackingHome ? home : away;
 
-  bool matchesSearch(String query) {
-    final normalized = query.trim().toLowerCase();
-    if (normalized.isEmpty) return true;
-    return <String>[
-      home,
-      away,
-      focusPlayerName,
-      ...evidenceAnchors.map((anchor) => anchor.playerName),
-      theme.name,
-    ].any((value) => value.toLowerCase().contains(normalized));
-  }
+  Set<String> get participantNames => <String>{
+        focusPlayerName,
+        ...evidenceAnchors.map((anchor) => anchor.playerName),
+      };
+
+  bool involvesPlayer(String playerName) =>
+      participantNames.contains(playerName);
+
+  bool matchesSearch(String query) =>
+      SpatialLibraryDiscovery.matchesScene(this, query);
 
   SpatialObservedDefenderGap? observedNearbyDefender(
     RealMatchReplayData data,
@@ -402,13 +453,29 @@ class SpatialLibraryCatalog {
       scenes.map((scene) => scene.focusPlayerName).toSet();
   Set<SpatialLearningTheme> get themes =>
       scenes.map((scene) => scene.theme).toSet();
+  Set<String> get attackingTeams =>
+      scenes.map((scene) => scene.attackingTeam).toSet();
+  Set<String> participants({String? attackingTeam}) => scenes
+      .where(
+        (scene) =>
+            attackingTeam == null || scene.attackingTeam == attackingTeam,
+      )
+      .expand((scene) => scene.participantNames)
+      .toSet();
 
   List<SpatialLibraryScene> filtered({
     SpatialLearningTheme? theme,
     String query = '',
+    String? attackingTeam,
+    String? player,
   }) =>
       scenes
           .where((scene) => theme == null || scene.theme == theme)
+          .where(
+            (scene) =>
+                attackingTeam == null || scene.attackingTeam == attackingTeam,
+          )
+          .where((scene) => player == null || scene.involvesPlayer(player))
           .where((scene) => scene.matchesSearch(query))
           .toList(growable: false);
 
@@ -486,6 +553,253 @@ class SpatialLibraryCatalog {
     }
   }
 }
+
+const _spatialSearchCharacterFolds = <String, String>{
+  'à': 'a',
+  'á': 'a',
+  'â': 'a',
+  'ã': 'a',
+  'ä': 'a',
+  'å': 'a',
+  'ā': 'a',
+  'ă': 'a',
+  'ą': 'a',
+  'æ': 'ae',
+  'ç': 'c',
+  'ć': 'c',
+  'č': 'c',
+  'ď': 'd',
+  'đ': 'd',
+  'è': 'e',
+  'é': 'e',
+  'ê': 'e',
+  'ë': 'e',
+  'ē': 'e',
+  'ė': 'e',
+  'ę': 'e',
+  'ě': 'e',
+  'ğ': 'g',
+  'ì': 'i',
+  'í': 'i',
+  'î': 'i',
+  'ï': 'i',
+  'ī': 'i',
+  'ı': 'i',
+  'ľ': 'l',
+  'ł': 'l',
+  'ñ': 'n',
+  'ń': 'n',
+  'ň': 'n',
+  'ò': 'o',
+  'ó': 'o',
+  'ô': 'o',
+  'õ': 'o',
+  'ö': 'o',
+  'ø': 'o',
+  'ō': 'o',
+  'œ': 'oe',
+  'ř': 'r',
+  'ś': 's',
+  'š': 's',
+  'ş': 's',
+  'ß': 'ss',
+  'ť': 't',
+  'ù': 'u',
+  'ú': 'u',
+  'û': 'u',
+  'ü': 'u',
+  'ū': 'u',
+  'ý': 'y',
+  'ÿ': 'y',
+  'ž': 'z',
+  'ź': 'z',
+  'ż': 'z',
+};
+
+const _spatialTeamSearchAliases = <String, List<String>>{
+  'Manchester City': <String>[
+    'Man City',
+    'Man City FC',
+    'MCFC',
+    '맨시티',
+    '맨체스터 시티',
+    'マンチェスターシティ',
+  ],
+  'Liverpool': <String>['Liverpool FC', 'LFC', '리버풀', 'リヴァプール'],
+  'Dortmund': <String>[
+    'Borussia Dortmund',
+    'BVB',
+    '도르트문트',
+    'ドルトムント',
+  ],
+  'Bayern Munchen': <String>[
+    'Bayern München',
+    'Bayern Munich',
+    'FC Bayern',
+    'Bayern',
+    '바이에른',
+    '바이에른 뮌헨',
+    'バイエルン',
+  ],
+  'Juventus': <String>['Juve', '유벤투스', 'ユヴェントス'],
+  'Inter': <String>[
+    'Inter Milan',
+    'Internazionale',
+    '인테르',
+    '인터 밀란',
+    'インテル',
+  ],
+  'Real Madrid': <String>[
+    'Real',
+    'RMA',
+    '레알',
+    '레알 마드리드',
+    'レアル',
+    'レアルマドリード',
+  ],
+  'FC Barcelona': <String>[
+    'Barcelona',
+    'Barca',
+    'Barça',
+    'FCB',
+    '바르셀로나',
+    '바르사',
+    'バルセロナ',
+  ],
+  'Paris': <String>[
+    'Paris Saint-Germain',
+    'Paris Saint Germain',
+    'PSG',
+    '파리',
+    '파리 생제르맹',
+    'パリ',
+    'パリサンジェルマン',
+  ],
+  'Marseille': <String>[
+    'Olympique Marseille',
+    'Olympique de Marseille',
+    'OM',
+    '마르세유',
+    'マルセイユ',
+  ],
+};
+
+const _spatialPlayerSearchAliases = <String, List<String>>{
+  'Aaron Ramsey': <String>['애런 램지'],
+  'Achraf Hakimi': <String>['아슈라프 하키미'],
+  'Alessandro Bastoni': <String>['알레산드로 바스토니'],
+  'Alex Sandro': <String>['알렉스 산드루', '알렉스 산드로'],
+  'Alisson Ramses Becker': <String>['알리송', '알리송 베케르'],
+  'Ander Herrera': <String>['안데르 에레라'],
+  'Antoine Griezmann': <String>['앙투안 그리즈만', '그리즈만'],
+  'Arthur': <String>['아르투르'],
+  'Arturo Vidal': <String>['아르투로 비달', '비달'],
+  'Ashley Young': <String>['애슐리 영'],
+  'Aymeric Laporte': <String>['아이메릭 라포르트', '라포르트'],
+  'Benjamin Mendy': <String>['뱅자맹 멘디'],
+  'Benjamin Pavard': <String>['뱅자맹 파바르'],
+  'Bernardo Silva': <String>['베르나르두 실바', '베르나르도 실바'],
+  'Casemiro': <String>['카세미루'],
+  'Christian Eriksen': <String>['크리스티안 에릭센', '에릭센'],
+  'Clément Lenglet': <String>['클레망 랑글레', '랑글레'],
+  'Cristiano Ronaldo': <String>[
+    '크리스티아누 호날두',
+    '호날두',
+    'クリスティアーノロナウド',
+    'ロナウド',
+  ],
+  'Daniel Carvajal': <String>['다니 카르바할', '카르바할'],
+  'David Alaba': <String>['다비드 알라바', '알라바'],
+  'Dejan Lovren': <String>['데얀 로브렌', '로브렌'],
+  'Douglas Costa': <String>['더글라스 코스타'],
+  'Duje Caleta-Car': <String>['두예 찰레타차르', '칼레타카르'],
+  'Ederson': <String>['에데르송'],
+  'Emre Can': <String>['엠레 잔'],
+  'Eric Garcia': <String>['에릭 가르시아'],
+  'Fabinho': <String>['파비뉴'],
+  'Federico Valverde': <String>['페데리코 발베르데', '발베르데'],
+  'Frenkie de Jong': <String>['프렝키 더용', '프렝키 데용', '더용', '데용'],
+  'Gareth Bale': <String>['가레스 베일', '베일'],
+  'Georginio Wijnaldum': <String>['조르지니오 바이날둠', '바이날둠'],
+  'Gerard Pique': <String>['제라르 피케', '피케'],
+  'Gonzalo Higuain': <String>['곤살로 이과인', '이과인'],
+  'Ilkay Gündogan': <String>['일카이 귄도안', '귄도안', '권도안'],
+  'Isco': <String>['이스코'],
+  'Ivan Rakitic': <String>['이반 라키티치', '라키티치'],
+  'Javier Martinez': <String>['하비 마르티네스'],
+  'Joe Gomez': <String>['조 고메즈', '고메즈'],
+  'John Stones': <String>['존 스톤스', '스톤스'],
+  'Jordan Amavi': <String>['조르당 아마비', '아마비'],
+  'Jordan Henderson': <String>['조던 헨더슨', '헨더슨'],
+  'Jordi Alba': <String>['조르디 알바', '알바'],
+  'Jose Tasende': <String>['호세 타센데', '타센데'],
+  'Joshua Kimmich': <String>['요주아 키미히', '키미히'],
+  'Juan Cuadrado': <String>['후안 콰드라도', '콰드라도'],
+  'Karim Benzema': <String>['카림 벤제마', '벤제마'],
+  'Kevin de Bruyne': <String>[
+    '케빈 더브라위너',
+    '더브라위너',
+    '데브라위너',
+    'デブライネ',
+  ],
+  'Kingsley Coman': <String>['킹슬리 코망', '코망'],
+  'Kwadwo Asamoah': <String>['콰드워 아사모아', '아사모아'],
+  'Kyle Walker': <String>['카일 워커', '워커'],
+  'Kylian Mbappe': <String>[
+    'Kylian Mbappé',
+    'Mbappé',
+    '킬리안 음바페',
+    '음바페',
+    'エムバペ',
+    'ムバッペ',
+  ],
+  'Lautaro Martinez': <String>['라우타로 마르티네스', '라우타로'],
+  'Leandro Paredes': <String>['레안드로 파레데스', '파레데스'],
+  'Leonardo Bonucci': <String>['레오나르도 보누치', '보누치'],
+  'Lionel Messi': <String>['리오넬 메시', '메시', 'メッシ'],
+  'Luis Suarez': <String>['루이스 수아레스', '수아레스'],
+  'Luiz Fernandinho': <String>['페르난지뉴'],
+  'Luka Modric': <String>['루카 모드리치', '모드리치'],
+  'Manuel Akanji': <String>['마누엘 아칸지', '아칸지'],
+  'Marc-Andre ter Stegen': <String>[
+    'Marc-André ter Stegen',
+    '마르크안드레 테어슈테겐',
+    '테어 슈테겐',
+    '테어슈테겐',
+  ],
+  'Marcelo': <String>['마르셀루'],
+  'Marcelo Brozovic': <String>['마르셀로 브로조비치', '브로조비치'],
+  'Marquinhos': <String>['마르키뉴스'],
+  'Matias Vecino': <String>['마티아스 베시노', '베시노'],
+  'Mats Hummels': <String>['마츠 후멜스', '후멜스'],
+  'Matthijs de Ligt': <String>['마테이스 더리흐트', '더 리흐트', '더리흐트'],
+  'Milan Skriniar': <String>['밀란 슈크리니아르', '슈크리니아르'],
+  'Nelson Semedo': <String>['넬송 세메두', '세메두'],
+  'Nicolo Barella': <String>['니콜로 바렐라', '바렐라'],
+  'Paulo Dybala': <String>['파울로 디발라', '디발라'],
+  'Raheem Sterling': <String>['라힘 스털링', '스털링'],
+  'Raphael Guerreiro': <String>['하파엘 게헤이루', '게헤이루'],
+  'Raphael Varane': <String>['라파엘 바란', '바란'],
+  'Rodrigo Hernandez': <String>['로드리', '로드리고'],
+  'Romelu Lukaku': <String>['로멜루 루카쿠', '루카쿠'],
+  'Samir Handanovic': <String>['사미르 한다노비치', '한다노비치'],
+  'Samuel Umtiti': <String>['사뮈엘 움티티', '움티티'],
+  'Serge Gnabry': <String>['세르주 그나브리', '그나브리'],
+  'Sergi Roberto': <String>['세르지 로베르토', '로베르토'],
+  'Sergio Busquets': <String>['세르히오 부스케츠', '부스케츠'],
+  'Sergio Ramos': <String>['세르히오 라모스', '라모스'],
+  'Stefan de Vrij': <String>['스테판 더프레이', '더프레이'],
+  'Thiago Alcantara': <String>['티아고 알칸타라', '알칸타라'],
+  'Thiago Silva': <String>['치아구 실바', '티아고 실바'],
+  'Toni Kroos': <String>['토니 크로스', '크로스', 'クロース'],
+  'Trent Alexander-Arnold': <String>[
+    '트렌트 알렉산더아놀드',
+    '알렉산더 아놀드',
+    '아놀드',
+  ],
+  'Virgil van Dijk': <String>['버질 반다이크', '반다이크'],
+  'Wojciech Szczesny': <String>['보이치에흐 슈쳉스니', '슈쳉스니'],
+};
 
 double _distance(RealMatchReplayPoint a, RealMatchReplayPoint b) {
   final dx = a.x - b.x;

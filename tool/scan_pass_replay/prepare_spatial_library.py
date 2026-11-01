@@ -51,9 +51,10 @@ ACTOR_GUARD_FRAMES = 5
 MIN_ANCHOR_SEPARATION = 200
 MIN_PRESSURE_CONNECTION_METERS = 4
 MIN_COMBINATION_LEG_METERS = 5
-MAX_CATALOG_SCENES = 18
+MAX_CATALOG_SCENES = 72
 MAX_VALIDATED_CANDIDATES_PER_MATCH = 24
 MISSING_COORDINATE = -(2**31)
+DEFAULT_OPENER_ID = "2269-34881-mbappe-combination"
 
 THEMES = (
     "lateralSwitch",
@@ -1387,15 +1388,12 @@ def interleave(entries: list[dict]) -> list[dict]:
     ]
     if not eligible:
         raise ValueError("No recognisable opener has sufficient source context")
-    opener = min(
-        eligible,
-        key=lambda entry: (
-            opener_priority[entry["focusPlayerName"]],
-            -entry["duration"],
-            -(entry["evidenceEnd"] - entry["evidenceStart"]),
-            entry["id"],
-        ),
+    opener = next(
+        (entry for entry in eligible if entry["id"] == DEFAULT_OPENER_ID),
+        None,
     )
+    if opener is None:
+        raise ValueError("The stable default spatial-library opener was not selected")
     remaining = [entry for entry in remaining if entry is not opener]
     balanced = [opener]
     while remaining:
@@ -1695,6 +1693,9 @@ def generate(raw_dir: Path, audit_path: Path) -> None:
             "actorGuardSeconds": ACTOR_GUARD_FRAMES / FPS,
             "minimumAnchorSeparationSeconds": MIN_ANCHOR_SEPARATION / FPS,
             "catalogueLimit": MAX_CATALOG_SCENES,
+            "actualCatalogueScenes": len(scenes),
+            "validatedCandidateLimitPerMatch": MAX_VALIDATED_CANDIDATES_PER_MATCH,
+            "defaultOpenerId": DEFAULT_OPENER_ID,
             "interleaving": (
                 "recognisable context-rich opener, then deterministic balanced "
                 "source-match interleaving"
@@ -1775,6 +1776,8 @@ def generate(raw_dir: Path, audit_path: Path) -> None:
             ),
         },
         "counts": {
+            "catalogueTarget": MAX_CATALOG_SCENES,
+            "catalogueTargetMet": len(scenes) == MAX_CATALOG_SCENES,
             "validatedSafeCandidates": len(safe_built),
             "validatedSafeThemes": collections.Counter(
                 candidate["theme"] for candidate, _, _ in safe_built

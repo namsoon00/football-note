@@ -2,7 +2,7 @@
 
 ## Scope and validation status
 
-`ScanPassGameScreen` now opens the 18-passage source-grounded
+`ScanPassGameScreen` now opens the 72-passage source-grounded
 `ScanPassSpatialLibraryScreen`; see
 [`SCAN_PASS_SPATIAL_LIBRARY.md`](SCAN_PASS_SPATIAL_LIBRARY.md). The separate
 official-video viewer is an optional menu route described in

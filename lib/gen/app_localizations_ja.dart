@@ -22989,7 +22989,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get spatialDirectionLeft => '左側のゴール方向';
 
   @override
-  String get spatialSearchHint => '選手、チーム、テーマを検索';
+  String get spatialSearchHint => '選手またはチームを検索';
+
+  @override
+  String get spatialClearSearch => '検索をクリア';
+
+  @override
+  String get spatialAttackingTeamFilter => '攻撃チーム';
+
+  @override
+  String get spatialAllAttackingTeams => 'すべてのチーム';
+
+  @override
+  String get spatialPlayerFilter => '選手';
+
+  @override
+  String get spatialAllPlayers => 'すべての選手';
+
+  @override
+  String spatialFilteredResultCount(int count) {
+    return '$count件';
+  }
+
+  @override
+  String get spatialResetFilters => 'フィルターをリセット';
 
   @override
   String get spatialNoScenes => '条件に合うシーンはありません。';

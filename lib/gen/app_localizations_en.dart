@@ -23973,7 +23973,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spatialDirectionLeft => 'toward the left goal';
 
   @override
-  String get spatialSearchHint => 'Search player, team, or theme';
+  String get spatialSearchHint => 'Search players or teams';
+
+  @override
+  String get spatialClearSearch => 'Clear search';
+
+  @override
+  String get spatialAttackingTeamFilter => 'Attacking team';
+
+  @override
+  String get spatialAllAttackingTeams => 'All teams';
+
+  @override
+  String get spatialPlayerFilter => 'Player';
+
+  @override
+  String get spatialAllPlayers => 'All players';
+
+  @override
+  String spatialFilteredResultCount(int count) {
+    return '$count results';
+  }
+
+  @override
+  String get spatialResetFilters => 'Reset filters';
 
   @override
   String get spatialNoScenes => 'No scenes match this filter.';

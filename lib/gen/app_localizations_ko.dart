@@ -23073,7 +23073,30 @@ class AppLocalizationsKo extends AppLocalizations {
   String get spatialDirectionLeft => '왼쪽 골문 방향';
 
   @override
-  String get spatialSearchHint => '선수, 팀, 주제 검색';
+  String get spatialSearchHint => '선수 또는 팀 검색';
+
+  @override
+  String get spatialClearSearch => '검색어 지우기';
+
+  @override
+  String get spatialAttackingTeamFilter => '공격 팀';
+
+  @override
+  String get spatialAllAttackingTeams => '전체 팀';
+
+  @override
+  String get spatialPlayerFilter => '선수';
+
+  @override
+  String get spatialAllPlayers => '모든 선수';
+
+  @override
+  String spatialFilteredResultCount(int count) {
+    return '결과 $count개';
+  }
+
+  @override
+  String get spatialResetFilters => '필터 초기화';
 
   @override
   String get spatialNoScenes => '조건에 맞는 장면이 없습니다.';

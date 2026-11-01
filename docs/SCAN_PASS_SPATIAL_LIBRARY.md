@@ -9,13 +9,13 @@ see [`SCAN_PASS_VIDEO_LEARNING.md`](SCAN_PASS_VIDEO_LEARNING.md).
 
 ## Shipped catalogue
 
-The reviewed catalogue contains 18 passages from all nine pinned 2019/20
-matches, with 17 focal players. Durations are 20.8–30.0 seconds. The three
+The reviewed catalogue contains 72 passages from all nine pinned 2019/20
+matches, with 62 focal players. Durations are 20.7–30.0 seconds. The three
 source-backed themes are:
 
-- 6 spatial switches (`lateralSwitch`);
-- 6 support-under-pressure passages (`pressureSupport`); and
-- 6 observed combinations (`combination`).
+- 24 spatial switches (`lateralSwitch`);
+- 24 support-under-pressure passages (`pressureSupport`); and
+- 24 observed combinations (`combination`).
 
 These counts result from the stronger evidence gates; they are not per-match or
 per-player quotas. The previous 108-scene catalogue was reassessed and is not
@@ -45,6 +45,12 @@ evidence window, then returns to 1x for the aftermath. Previous, play/pause,
 scene list and next remain in the bottom controls.
 
 The scene list reports the actual clip duration, match, focal player and theme.
+One search field matches Korean and English player/team aliases as well as
+accent, case and spacing variants. Its attacking/play-team and player selectors
+combine with search and theme filters; the player selector contains only focal
+players and directly evidenced connection participants, never an entire match
+roster. The filtered count, clear-search action and one-step reset remain in the
+same scrollable bottom sheet.
 Source information and guided replay are discreet More-menu actions. There are
 no tabs, scores, joystick controls, mandatory quiz or separate start screen.
 
@@ -106,7 +112,7 @@ The three theme claims are deliberately narrow:
 - an observed combination has three directly observed same-team ownership
   segments within eight seconds, with at least 5 m of recorded ball travel on
   each leg. The first and third may be the same player in a return link. The
-  shipped six contain three A→B→A returns and three A→B→C links.
+  shipped 24 contain nine A→B→A returns and 15 A→B→C links.
 
 They do not assert intent, a globally best play, a goal, a precise foot/body
 action, expert validation or learning transfer.
@@ -127,7 +133,7 @@ Generation scans the raw files deterministically, records all rejection
 reasons, and emits only the selected source-safe catalogue. The shipped proof
 currently records 198 source-safe candidates before non-overlap and catalogue
 curation: 56 switches, 73 support-under-pressure candidates and 69
-combinations. It ships 18 selected scenes and records 10,769 rejected or
+combinations. It ships 72 selected scenes and records 10,715 rejected or
 ranked-out candidates.
 Rejections include short/discontinuous context, absent guard/core/ownership
 actors, missing opponent or support context, post-filter actor loss and

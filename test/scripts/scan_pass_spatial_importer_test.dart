@@ -34,6 +34,44 @@ void main() {
     final catalog = _json('assets/scan_pass_spatial/catalog.json');
     final scenes =
         (catalog['scenes'] as List<dynamic>).cast<Map<String, dynamic>>();
+    expect(scenes, hasLength(72));
+    expect(scenes.first['id'], '2269-34881-mbappe-combination');
+    expect(scenes.map((scene) => scene['matchId']).toSet(), hasLength(9));
+    expect(
+      scenes.map((scene) => scene['focusPlayerName']).toSet(),
+      hasLength(62),
+    );
+    expect(
+      scenes.map((scene) => scene['id']).toSet(),
+      containsAll(<String>{
+        '2440-60995-silva-lateralSwitch',
+        '2417-59318-hummels-lateralSwitch',
+        '3442-17463-griezmann-pressureSupport',
+        '4039-8125-sterling-lateralSwitch',
+        '2269-34881-mbappe-combination',
+        '3442-16202-kroos-pressureSupport',
+        '3442-20531-isco-lateralSwitch',
+        '4039-3133-laporte-combination',
+        '2417-61071-alaba-combination',
+        '2841-5738-ramos-combination',
+        '2841-64724-modric-combination',
+        '3518-6985-young-pressureSupport',
+        '2068-46505-brozovic-pressureSupport',
+        '3442-5842-carvajal-pressureSupport',
+        '2841-39562-bale-lateralSwitch',
+        '2841-3915-kroos-lateralSwitch',
+        '3749-64216-can-combination',
+        '2841-4790-de-jong-pressureSupport',
+      }),
+    );
+    expect(
+      scenes.any((scene) => scene['focusPlayerName'] == 'Lionel Messi'),
+      isTrue,
+    );
+    expect(
+      scenes.any((scene) => scene['focusPlayerName'] == 'Cristiano Ronaldo'),
+      isTrue,
+    );
     expect(scenes.map((value) => value['theme']).toSet(), {
       'lateralSwitch',
       'pressureSupport',
@@ -44,6 +82,7 @@ void main() {
       final theme = scene['theme'] as String;
       themeCounts[theme] = (themeCounts[theme] ?? 0) + 1;
     }
+    expect(themeCounts.values.toSet(), <int>{24});
     expect(
       themeCounts.values.reduce((left, right) => left > right ? left : right) -
           themeCounts.values

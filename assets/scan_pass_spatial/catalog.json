@@ -13,7 +13,10 @@
     "minimumContextBeforeAndAfterSeconds": 4.0,
     "actorGuardSeconds": 0.5,
     "minimumAnchorSeparationSeconds": 20.0,
-    "catalogueLimit": 18,
+    "catalogueLimit": 72,
+    "actualCatalogueScenes": 72,
+    "validatedCandidateLimitPerMatch": 24,
+    "defaultOpenerId": "2269-34881-mbappe-combination",
     "interleaving": "recognisable context-rich opener, then deterministic balanced source-match interleaving"
   },
   "scenes": [
@@ -95,6 +98,207 @@
       "assetSha256": "416c143dc3ca499977d1fa7a4f1355c93f5ce5deaad1ddf4583e926baa2c6618"
     },
     {
+      "id": "2068-8591-barella-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/2068-8591-barella-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 2068,
+      "date": "2019-10-06",
+      "home": "Inter",
+      "away": "Juventus",
+      "period": 1,
+      "startFrame": 8491,
+      "endFrame": 8791,
+      "startClock": 671.0,
+      "duration": 30.0,
+      "focusPlayerId": 8052,
+      "focusPlayerName": "Nicolo Barella",
+      "evidenceAnchors": [
+        {
+          "time": 10.0,
+          "role": "departure",
+          "playerId": 8052,
+          "playerName": "Nicolo Barella"
+        },
+        {
+          "time": 12.4,
+          "role": "arrival",
+          "playerId": 6024,
+          "playerName": "Kwadwo Asamoah"
+        }
+      ],
+      "highlightPlayerIds": [
+        8052,
+        6024,
+        6717,
+        1372,
+        2083
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 10.0,
+      "evidenceEnd": 12.4,
+      "coreStart": 9.5,
+      "coreEnd": 12.9,
+      "corePlayerIds": [
+        8052,
+        6024
+      ],
+      "supportPlayerIds": [
+        6717
+      ],
+      "opponentContextPlayerIds": [
+        1372,
+        2083
+      ],
+      "metrics": {
+        "forwardMeters": 13.89,
+        "lateralMeters": 38.219,
+        "startWidthMeters": 7.937,
+        "insideGainMeters": -22.345,
+        "pressureMeters": 4.035,
+        "carryMeters": 8.744,
+        "sequenceSeconds": 2.4,
+        "connectionMeters": 38.727
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2068",
+      "assetSha256": "03b832c04a25dcb62df66c8bd893ee2f97356414ecc763dfa8e2fd9f84807a91"
+    },
+    {
+      "id": "2269-32665-caleta-car-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/2269-32665-caleta-car-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 2269,
+      "date": "2019-10-27",
+      "home": "Paris",
+      "away": "Marseille",
+      "period": 2,
+      "startFrame": 32600,
+      "endFrame": 32815,
+      "startClock": 2890.0,
+      "duration": 21.5,
+      "focusPlayerId": 11335,
+      "focusPlayerName": "Duje Caleta-Car",
+      "evidenceAnchors": [
+        {
+          "time": 6.5,
+          "role": "departure",
+          "playerId": 11335,
+          "playerName": "Duje Caleta-Car"
+        },
+        {
+          "time": 8.7,
+          "role": "arrival",
+          "playerId": 5313,
+          "playerName": "Jordan Amavi"
+        }
+      ],
+      "highlightPlayerIds": [
+        11335,
+        5313,
+        5875,
+        6828,
+        885
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 6.5,
+      "evidenceEnd": 8.7,
+      "coreStart": 6.0,
+      "coreEnd": 9.2,
+      "corePlayerIds": [
+        11335,
+        5313
+      ],
+      "supportPlayerIds": [
+        5875
+      ],
+      "opponentContextPlayerIds": [
+        6828,
+        885
+      ],
+      "metrics": {
+        "forwardMeters": -3.985,
+        "lateralMeters": 30.003,
+        "startWidthMeters": 8.271,
+        "insideGainMeters": -13.46,
+        "pressureMeters": 1.241,
+        "carryMeters": 0.139,
+        "sequenceSeconds": 2.2,
+        "connectionMeters": 26.09
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2269",
+      "assetSha256": "f504917ed4daf42cd26e348ecd63a85254ee9ec4a06a718670a0976ab4d130f8"
+    },
+    {
+      "id": "2068-62562-ronaldo-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/2068-62562-ronaldo-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 2068,
+      "date": "2019-10-06",
+      "home": "Inter",
+      "away": "Juventus",
+      "period": 2,
+      "startFrame": 62471,
+      "endFrame": 62698,
+      "startClock": 4735.8,
+      "duration": 22.7,
+      "focusPlayerId": 2083,
+      "focusPlayerName": "Cristiano Ronaldo",
+      "evidenceAnchors": [
+        {
+          "time": 9.1,
+          "role": "departure",
+          "playerId": 2083,
+          "playerName": "Cristiano Ronaldo"
+        },
+        {
+          "time": 11.3,
+          "role": "arrival",
+          "playerId": 5521,
+          "playerName": "Juan Cuadrado"
+        }
+      ],
+      "highlightPlayerIds": [
+        2083,
+        5521,
+        11322,
+        7209,
+        6717
+      ],
+      "attackingTeam": "away",
+      "attackDirection": 1,
+      "evidenceStart": 9.1,
+      "evidenceEnd": 11.3,
+      "coreStart": 8.6,
+      "coreEnd": 11.8,
+      "corePlayerIds": [
+        2083,
+        5521
+      ],
+      "supportPlayerIds": [
+        11322
+      ],
+      "opponentContextPlayerIds": [
+        7209,
+        6717
+      ],
+      "metrics": {
+        "forwardMeters": 4.295,
+        "lateralMeters": 32.328,
+        "startWidthMeters": 2.467,
+        "insideGainMeters": -27.394,
+        "pressureMeters": 1.847,
+        "carryMeters": 0.352,
+        "sequenceSeconds": 2.2,
+        "connectionMeters": 29.822
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2068",
+      "assetSha256": "b285f47055094c2b547d87a93a09201b4d422914cdb30ee61d748690ff14d0b3"
+    },
+    {
       "id": "2417-59318-hummels-lateralSwitch",
       "asset": "assets/scan_pass_spatial/scenes/2417-59318-hummels-lateralSwitch.json",
       "theme": "lateralSwitch",
@@ -162,71 +366,205 @@
       "assetSha256": "94f3d4416c5b1bb091d9e640ac29ff3ee09caf624e64e4970827bc5ebf9debac"
     },
     {
-      "id": "2440-60995-silva-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/2440-60995-silva-lateralSwitch.json",
+      "id": "2440-16546-lovren-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/2440-16546-lovren-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 2440,
+      "date": "2019-11-10",
+      "home": "Liverpool",
+      "away": "Manchester City",
+      "period": 1,
+      "startFrame": 16421,
+      "endFrame": 16721,
+      "startClock": 1551.0,
+      "duration": 30.0,
+      "focusPlayerId": 2599,
+      "focusPlayerName": "Dejan Lovren",
+      "evidenceAnchors": [
+        {
+          "time": 12.5,
+          "role": "departure",
+          "playerId": 2599,
+          "playerName": "Dejan Lovren"
+        },
+        {
+          "time": 14.5,
+          "role": "arrival",
+          "playerId": 10748,
+          "playerName": "Virgil van Dijk"
+        }
+      ],
+      "highlightPlayerIds": [
+        2599,
+        10748,
+        3267,
+        9750,
+        5821
+      ],
+      "attackingTeam": "home",
+      "attackDirection": -1,
+      "evidenceStart": 12.5,
+      "evidenceEnd": 14.5,
+      "coreStart": 12.0,
+      "coreEnd": 15.0,
+      "corePlayerIds": [
+        2599,
+        10748
+      ],
+      "supportPlayerIds": [
+        3267
+      ],
+      "opponentContextPlayerIds": [
+        9750,
+        5821
+      ],
+      "metrics": {
+        "forwardMeters": -5.958,
+        "lateralMeters": 29.22,
+        "startWidthMeters": 18.212,
+        "insideGainMeters": 7.204,
+        "pressureMeters": 11.643,
+        "carryMeters": 0.179,
+        "sequenceSeconds": 2.0,
+        "connectionMeters": 26.263
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2440",
+      "assetSha256": "99ad1ff6f06424a482173737575f336c11a2d66fb69caae225c971a133654e97"
+    },
+    {
+      "id": "2841-2912-semedo-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/2841-2912-semedo-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 2841,
+      "date": "2019-12-18",
+      "home": "FC Barcelona",
+      "away": "Real Madrid",
+      "period": 1,
+      "startFrame": 2791,
+      "endFrame": 3091,
+      "startClock": 265.4,
+      "duration": 30.0,
+      "focusPlayerId": 11514,
+      "focusPlayerName": "Nelson Semedo",
+      "evidenceAnchors": [
+        {
+          "time": 12.1,
+          "role": "departure",
+          "playerId": 11514,
+          "playerName": "Nelson Semedo"
+        },
+        {
+          "time": 17.8,
+          "role": "arrival",
+          "playerId": 11712,
+          "playerName": "Clément Lenglet"
+        }
+      ],
+      "highlightPlayerIds": [
+        11514,
+        11712,
+        9745,
+        10530,
+        11311
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 12.1,
+      "evidenceEnd": 17.8,
+      "coreStart": 11.6,
+      "coreEnd": 18.3,
+      "corePlayerIds": [
+        11514,
+        11712
+      ],
+      "supportPlayerIds": [
+        9745
+      ],
+      "opponentContextPlayerIds": [
+        10530,
+        11311
+      ],
+      "metrics": {
+        "forwardMeters": -12.234,
+        "lateralMeters": 40.107,
+        "startWidthMeters": 28.776,
+        "insideGainMeters": 17.445,
+        "pressureMeters": 1.968,
+        "carryMeters": 2.167,
+        "sequenceSeconds": 5.7,
+        "connectionMeters": 40.729
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
+      "assetSha256": "b01af757b1846db4b2fbdf9934872d3c52adb9c9d0bfc9b45c10617d186cc9a2"
+    },
+    {
+      "id": "2440-48036-hernandez-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/2440-48036-hernandez-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 2440,
       "date": "2019-11-10",
       "home": "Liverpool",
       "away": "Manchester City",
       "period": 2,
-      "startFrame": 60910,
-      "endFrame": 61210,
-      "startClock": 4886.2,
+      "startFrame": 47862,
+      "endFrame": 48162,
+      "startClock": 3581.4,
       "duration": 30.0,
-      "focusPlayerId": 1336,
-      "focusPlayerName": "Bernardo Silva",
+      "focusPlayerId": 9202,
+      "focusPlayerName": "Rodrigo Hernandez",
       "evidenceAnchors": [
         {
-          "time": 8.5,
+          "time": 17.4,
           "role": "departure",
-          "playerId": 1336,
-          "playerName": "Bernardo Silva"
+          "playerId": 9202,
+          "playerName": "Rodrigo Hernandez"
         },
         {
-          "time": 15.1,
+          "time": 19.0,
           "role": "arrival",
-          "playerId": 4460,
-          "playerName": "Ilkay Gündogan"
+          "playerId": 12843,
+          "playerName": "Jose Tasende"
         }
       ],
       "highlightPlayerIds": [
-        1336,
+        9202,
+        12843,
         4460,
-        6037,
-        851,
-        4683
+        9143,
+        7745
       ],
       "attackingTeam": "away",
       "attackDirection": -1,
-      "evidenceStart": 8.5,
-      "evidenceEnd": 15.1,
-      "coreStart": 8.0,
-      "coreEnd": 15.6,
+      "evidenceStart": 17.4,
+      "evidenceEnd": 19.0,
+      "coreStart": 16.9,
+      "coreEnd": 19.5,
       "corePlayerIds": [
-        1336,
-        4460
+        9202,
+        12843
       ],
       "supportPlayerIds": [
-        6037
+        4460
       ],
       "opponentContextPlayerIds": [
-        851,
-        4683
+        9143,
+        7745
       ],
       "metrics": {
-        "forwardMeters": -7.257,
-        "lateralMeters": 39.927,
-        "startWidthMeters": 31.248,
-        "insideGainMeters": 22.569,
-        "pressureMeters": 6.116,
-        "carryMeters": 5.045,
-        "sequenceSeconds": 6.6,
-        "connectionMeters": 39.944
+        "forwardMeters": -2.199,
+        "lateralMeters": 29.265,
+        "startWidthMeters": 7.825,
+        "insideGainMeters": -13.615,
+        "pressureMeters": 3.895,
+        "carryMeters": 9.444,
+        "sequenceSeconds": 1.6,
+        "connectionMeters": 26.522
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2440",
-      "assetSha256": "03a331fe0d03d8b08293ecb020224a8c579ffa77e35d867bd52e55c343e18516"
+      "assetSha256": "d8b438ea07eaf7436a7204a60664cfd53644a3af0a2a0a3af5b9243eb2befeeb"
     },
     {
       "id": "2841-3915-kroos-lateralSwitch",
@@ -296,71 +634,339 @@
       "assetSha256": "d6f35a05d8bf6aa78ffb88d7217c4a12af9aa9dd6a73ac7ecbad4596100955a8"
     },
     {
-      "id": "3442-20531-isco-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/3442-20531-isco-lateralSwitch.json",
+      "id": "2440-60405-stones-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/2440-60405-stones-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 2440,
+      "date": "2019-11-10",
+      "home": "Liverpool",
+      "away": "Manchester City",
+      "period": 2,
+      "startFrame": 60308,
+      "endFrame": 60608,
+      "startClock": 4826.0,
+      "duration": 30.0,
+      "focusPlayerId": 5202,
+      "focusPlayerName": "John Stones",
+      "evidenceAnchors": [
+        {
+          "time": 9.7,
+          "role": "departure",
+          "playerId": 5202,
+          "playerName": "John Stones"
+        },
+        {
+          "time": 11.4,
+          "role": "arrival",
+          "playerId": 12843,
+          "playerName": "Jose Tasende"
+        }
+      ],
+      "highlightPlayerIds": [
+        5202,
+        12843,
+        3397,
+        7745,
+        9449
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 9.7,
+      "evidenceEnd": 11.4,
+      "coreStart": 9.2,
+      "coreEnd": 11.9,
+      "corePlayerIds": [
+        5202,
+        12843
+      ],
+      "supportPlayerIds": [
+        3397
+      ],
+      "opponentContextPlayerIds": [
+        7745,
+        9449
+      ],
+      "metrics": {
+        "forwardMeters": 10.597,
+        "lateralMeters": 29.411,
+        "startWidthMeters": 6.637,
+        "insideGainMeters": -16.137,
+        "pressureMeters": 12.008,
+        "carryMeters": 12.358,
+        "sequenceSeconds": 1.7,
+        "connectionMeters": 26.973
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2440",
+      "assetSha256": "58dd03de87fea270996223dcbf436188d25e1b10cd8a255a8a2ef0203925326b"
+    },
+    {
+      "id": "2841-17953-pique-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/2841-17953-pique-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 2841,
+      "date": "2019-12-18",
+      "home": "FC Barcelona",
+      "away": "Real Madrid",
+      "period": 1,
+      "startFrame": 17831,
+      "endFrame": 18131,
+      "startClock": 1769.4,
+      "duration": 30.0,
+      "focusPlayerId": 3862,
+      "focusPlayerName": "Gerard Pique",
+      "evidenceAnchors": [
+        {
+          "time": 12.2,
+          "role": "departure",
+          "playerId": 3862,
+          "playerName": "Gerard Pique"
+        },
+        {
+          "time": 16.1,
+          "role": "arrival",
+          "playerId": 12524,
+          "playerName": "Frenkie de Jong"
+        }
+      ],
+      "highlightPlayerIds": [
+        3862,
+        12524,
+        9745,
+        10530,
+        4497
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 12.2,
+      "evidenceEnd": 16.1,
+      "coreStart": 11.7,
+      "coreEnd": 16.6,
+      "corePlayerIds": [
+        3862,
+        12524
+      ],
+      "supportPlayerIds": [
+        9745
+      ],
+      "opponentContextPlayerIds": [
+        10530,
+        4497
+      ],
+      "metrics": {
+        "forwardMeters": -12.628,
+        "lateralMeters": 37.082,
+        "startWidthMeters": 15.451,
+        "insideGainMeters": -6.18,
+        "pressureMeters": 2.858,
+        "carryMeters": 6.14,
+        "sequenceSeconds": 3.9,
+        "connectionMeters": 39.481
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
+      "assetSha256": "c05179cd007b0af269768738f4271aeef1fab5dae5c82a5281421299894745b6"
+    },
+    {
+      "id": "2440-60995-silva-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/2440-60995-silva-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 2440,
+      "date": "2019-11-10",
+      "home": "Liverpool",
+      "away": "Manchester City",
+      "period": 2,
+      "startFrame": 60910,
+      "endFrame": 61210,
+      "startClock": 4886.2,
+      "duration": 30.0,
+      "focusPlayerId": 1336,
+      "focusPlayerName": "Bernardo Silva",
+      "evidenceAnchors": [
+        {
+          "time": 8.5,
+          "role": "departure",
+          "playerId": 1336,
+          "playerName": "Bernardo Silva"
+        },
+        {
+          "time": 15.1,
+          "role": "arrival",
+          "playerId": 4460,
+          "playerName": "Ilkay Gündogan"
+        }
+      ],
+      "highlightPlayerIds": [
+        1336,
+        4460,
+        6037,
+        851,
+        4683
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 8.5,
+      "evidenceEnd": 15.1,
+      "coreStart": 8.0,
+      "coreEnd": 15.6,
+      "corePlayerIds": [
+        1336,
+        4460
+      ],
+      "supportPlayerIds": [
+        6037
+      ],
+      "opponentContextPlayerIds": [
+        851,
+        4683
+      ],
+      "metrics": {
+        "forwardMeters": -7.257,
+        "lateralMeters": 39.927,
+        "startWidthMeters": 31.248,
+        "insideGainMeters": 22.569,
+        "pressureMeters": 6.116,
+        "carryMeters": 5.045,
+        "sequenceSeconds": 6.6,
+        "connectionMeters": 39.944
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2440",
+      "assetSha256": "03a331fe0d03d8b08293ecb020224a8c579ffa77e35d867bd52e55c343e18516"
+    },
+    {
+      "id": "2841-22836-benzema-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/2841-22836-benzema-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 2841,
+      "date": "2019-12-18",
+      "home": "FC Barcelona",
+      "away": "Real Madrid",
+      "period": 1,
+      "startFrame": 22711,
+      "endFrame": 23011,
+      "startClock": 2257.4,
+      "duration": 30.0,
+      "focusPlayerId": 5720,
+      "focusPlayerName": "Karim Benzema",
+      "evidenceAnchors": [
+        {
+          "time": 12.5,
+          "role": "departure",
+          "playerId": 5720,
+          "playerName": "Karim Benzema"
+        },
+        {
+          "time": 17.4,
+          "role": "arrival",
+          "playerId": 10530,
+          "playerName": "Toni Kroos"
+        }
+      ],
+      "highlightPlayerIds": [
+        5720,
+        10530,
+        1684,
+        12524,
+        6260
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 12.5,
+      "evidenceEnd": 17.4,
+      "coreStart": 12.0,
+      "coreEnd": 17.9,
+      "corePlayerIds": [
+        5720,
+        10530
+      ],
+      "supportPlayerIds": [
+        1684
+      ],
+      "opponentContextPlayerIds": [
+        12524,
+        6260
+      ],
+      "metrics": {
+        "forwardMeters": -26.375,
+        "lateralMeters": 32.872,
+        "startWidthMeters": 13.678,
+        "insideGainMeters": -5.516,
+        "pressureMeters": 4.446,
+        "carryMeters": 9.624,
+        "sequenceSeconds": 4.9,
+        "connectionMeters": 41.903
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
+      "assetSha256": "6f293b1a699d3cb00f388beb6e037869163c3b5d34e3fdee3709c1f506b3eada"
+    },
+    {
+      "id": "3442-15598-busquets-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/3442-15598-busquets-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 3442,
       "date": "2020-03-01",
       "home": "Real Madrid",
       "away": "FC Barcelona",
       "period": 1,
-      "startFrame": 20361,
-      "endFrame": 20618,
-      "startClock": 1944.6,
-      "duration": 25.7,
-      "focusPlayerId": 4497,
-      "focusPlayerName": "Isco",
+      "startFrame": 15463,
+      "endFrame": 15763,
+      "startClock": 1454.8,
+      "duration": 30.0,
+      "focusPlayerId": 9759,
+      "focusPlayerName": "Sergio Busquets",
       "evidenceAnchors": [
         {
-          "time": 17.0,
+          "time": 13.5,
           "role": "departure",
-          "playerId": 4497,
-          "playerName": "Isco"
+          "playerId": 9759,
+          "playerName": "Sergio Busquets"
         },
         {
-          "time": 19.6,
+          "time": 16.5,
           "role": "arrival",
-          "playerId": 6733,
-          "playerName": "Marcelo"
+          "playerId": 11514,
+          "playerName": "Nelson Semedo"
         }
       ],
       "highlightPlayerIds": [
-        4497,
-        6733,
-        2199,
+        9759,
+        11514,
         956,
-        12802
+        1684,
+        4497
       ],
-      "attackingTeam": "home",
-      "attackDirection": 1,
-      "evidenceStart": 17.0,
-      "evidenceEnd": 19.6,
-      "coreStart": 16.5,
-      "coreEnd": 20.1,
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 13.5,
+      "evidenceEnd": 16.5,
+      "coreStart": 13.0,
+      "coreEnd": 17.0,
       "corePlayerIds": [
-        4497,
-        6733
+        9759,
+        11514
       ],
       "supportPlayerIds": [
-        2199
+        956
       ],
       "opponentContextPlayerIds": [
-        956,
-        12802
+        1684,
+        4497
       ],
       "metrics": {
-        "forwardMeters": 3.038,
-        "lateralMeters": 42.246,
-        "startWidthMeters": 22.383,
-        "insideGainMeters": 2.521,
-        "pressureMeters": 3.489,
-        "carryMeters": 2.802,
-        "sequenceSeconds": 2.6,
-        "connectionMeters": 40.245
+        "forwardMeters": 17.003,
+        "lateralMeters": 28.691,
+        "startWidthMeters": 8.824,
+        "insideGainMeters": -11.044,
+        "pressureMeters": 4.785,
+        "carryMeters": 2.494,
+        "sequenceSeconds": 3.0,
+        "connectionMeters": 30.174
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
-      "assetSha256": "5ea4a3d0e1c2171ccda61e60f7b6857be4168e215a17c13625396908de85788f"
+      "assetSha256": "fa36a90da29f12a774cb7222a890357696a9faba0573aff1de785ecab7ba1e4d"
     },
     {
       "id": "2841-39562-bale-lateralSwitch",
@@ -430,6 +1036,408 @@
       "assetSha256": "4a5aa9bed347905b2735fba09746b797ead8081498c82ad69d34ec6c94327f65"
     },
     {
+      "id": "3442-20531-isco-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/3442-20531-isco-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 3442,
+      "date": "2020-03-01",
+      "home": "Real Madrid",
+      "away": "FC Barcelona",
+      "period": 1,
+      "startFrame": 20361,
+      "endFrame": 20618,
+      "startClock": 1944.6,
+      "duration": 25.7,
+      "focusPlayerId": 4497,
+      "focusPlayerName": "Isco",
+      "evidenceAnchors": [
+        {
+          "time": 17.0,
+          "role": "departure",
+          "playerId": 4497,
+          "playerName": "Isco"
+        },
+        {
+          "time": 19.6,
+          "role": "arrival",
+          "playerId": 6733,
+          "playerName": "Marcelo"
+        }
+      ],
+      "highlightPlayerIds": [
+        4497,
+        6733,
+        2199,
+        956,
+        12802
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 17.0,
+      "evidenceEnd": 19.6,
+      "coreStart": 16.5,
+      "coreEnd": 20.1,
+      "corePlayerIds": [
+        4497,
+        6733
+      ],
+      "supportPlayerIds": [
+        2199
+      ],
+      "opponentContextPlayerIds": [
+        956,
+        12802
+      ],
+      "metrics": {
+        "forwardMeters": 3.038,
+        "lateralMeters": 42.246,
+        "startWidthMeters": 22.383,
+        "insideGainMeters": 2.521,
+        "pressureMeters": 3.489,
+        "carryMeters": 2.802,
+        "sequenceSeconds": 2.6,
+        "connectionMeters": 40.245
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
+      "assetSha256": "5ea4a3d0e1c2171ccda61e60f7b6857be4168e215a17c13625396908de85788f"
+    },
+    {
+      "id": "3518-3267-ronaldo-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/3518-3267-ronaldo-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 1,
+      "startFrame": 3131,
+      "endFrame": 3422,
+      "startClock": 258.9,
+      "duration": 29.1,
+      "focusPlayerId": 2083,
+      "focusPlayerName": "Cristiano Ronaldo",
+      "evidenceAnchors": [
+        {
+          "time": 13.6,
+          "role": "departure",
+          "playerId": 2083,
+          "playerName": "Cristiano Ronaldo"
+        },
+        {
+          "time": 19.2,
+          "role": "arrival",
+          "playerId": 4023,
+          "playerName": "Gonzalo Higuain"
+        }
+      ],
+      "highlightPlayerIds": [
+        2083,
+        4023,
+        2868,
+        975,
+        7648
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 13.6,
+      "evidenceEnd": 19.2,
+      "coreStart": 13.1,
+      "coreEnd": 19.7,
+      "corePlayerIds": [
+        2083,
+        4023
+      ],
+      "supportPlayerIds": [
+        2868
+      ],
+      "opponentContextPlayerIds": [
+        975,
+        7648
+      ],
+      "metrics": {
+        "forwardMeters": 20.668,
+        "lateralMeters": 30.44,
+        "startWidthMeters": 31.704,
+        "insideGainMeters": 30.44,
+        "pressureMeters": 4.401,
+        "carryMeters": 8.567,
+        "sequenceSeconds": 5.6,
+        "connectionMeters": 36.145
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "b29ce0525ac155251d0682eded822a1517a974ea122ea78b7b1008eca80d108d"
+    },
+    {
+      "id": "3442-50144-messi-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/3442-50144-messi-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 3442,
+      "date": "2020-03-01",
+      "home": "Real Madrid",
+      "away": "FC Barcelona",
+      "period": 2,
+      "startFrame": 50010,
+      "endFrame": 50310,
+      "startClock": 3892.0,
+      "duration": 30.0,
+      "focusPlayerId": 6260,
+      "focusPlayerName": "Lionel Messi",
+      "evidenceAnchors": [
+        {
+          "time": 13.4,
+          "role": "departure",
+          "playerId": 6260,
+          "playerName": "Lionel Messi"
+        },
+        {
+          "time": 16.6,
+          "role": "arrival",
+          "playerId": 5336,
+          "playerName": "Jordi Alba"
+        }
+      ],
+      "highlightPlayerIds": [
+        6260,
+        5336,
+        12802,
+        1684,
+        10530
+      ],
+      "attackingTeam": "away",
+      "attackDirection": 1,
+      "evidenceStart": 13.4,
+      "evidenceEnd": 16.6,
+      "coreStart": 12.9,
+      "coreEnd": 17.1,
+      "corePlayerIds": [
+        6260,
+        5336
+      ],
+      "supportPlayerIds": [
+        12802
+      ],
+      "opponentContextPlayerIds": [
+        1684,
+        10530
+      ],
+      "metrics": {
+        "forwardMeters": -6.559,
+        "lateralMeters": 41.622,
+        "startWidthMeters": 28.794,
+        "insideGainMeters": 15.966,
+        "pressureMeters": 2.15,
+        "carryMeters": 0.4,
+        "sequenceSeconds": 3.2,
+        "connectionMeters": 42.206
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
+      "assetSha256": "674ccd9ea94b4aa565049ed6d4591d6fb5e00702ff70dfcb94d4245a10e153f6"
+    },
+    {
+      "id": "3518-4178-szczesny-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/3518-4178-szczesny-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 1,
+      "startFrame": 4071,
+      "endFrame": 4371,
+      "startClock": 352.9,
+      "duration": 30.0,
+      "focusPlayerId": 10913,
+      "focusPlayerName": "Wojciech Szczesny",
+      "evidenceAnchors": [
+        {
+          "time": 10.7,
+          "role": "departure",
+          "playerId": 10913,
+          "playerName": "Wojciech Szczesny"
+        },
+        {
+          "time": 12.4,
+          "role": "arrival",
+          "playerId": 5521,
+          "playerName": "Juan Cuadrado"
+        }
+      ],
+      "highlightPlayerIds": [
+        10913,
+        5521,
+        11636,
+        12801,
+        9279
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 10.7,
+      "evidenceEnd": 12.4,
+      "coreStart": 10.2,
+      "coreEnd": 12.9,
+      "corePlayerIds": [
+        10913,
+        5521
+      ],
+      "supportPlayerIds": [
+        11636
+      ],
+      "opponentContextPlayerIds": [
+        12801,
+        9279
+      ],
+      "metrics": {
+        "forwardMeters": 14.632,
+        "lateralMeters": 29.462,
+        "startWidthMeters": 4.206,
+        "insideGainMeters": -21.05,
+        "pressureMeters": 18.066,
+        "carryMeters": 6.464,
+        "sequenceSeconds": 1.7,
+        "connectionMeters": 28.573
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "554ce72c901e9c2d02afbe376e03a13a6f511321f8e6a14081b14ff365005139"
+    },
+    {
+      "id": "4039-4817-gündogan-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/4039-4817-gündogan-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 4039,
+      "date": "2020-07-02",
+      "home": "Manchester City",
+      "away": "Liverpool",
+      "period": 1,
+      "startFrame": 4711,
+      "endFrame": 4998,
+      "startClock": 426.9,
+      "duration": 28.7,
+      "focusPlayerId": 4460,
+      "focusPlayerName": "Ilkay Gündogan",
+      "evidenceAnchors": [
+        {
+          "time": 10.6,
+          "role": "departure",
+          "playerId": 4460,
+          "playerName": "Ilkay Gündogan"
+        },
+        {
+          "time": 12.6,
+          "role": "arrival",
+          "playerId": 6037,
+          "playerName": "Kyle Walker"
+        }
+      ],
+      "highlightPlayerIds": [
+        4460,
+        6037,
+        9202,
+        9143,
+        7745
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 10.6,
+      "evidenceEnd": 12.6,
+      "coreStart": 10.1,
+      "coreEnd": 13.1,
+      "corePlayerIds": [
+        4460,
+        6037
+      ],
+      "supportPlayerIds": [
+        9202
+      ],
+      "opponentContextPlayerIds": [
+        9143,
+        7745
+      ],
+      "metrics": {
+        "forwardMeters": 1.776,
+        "lateralMeters": 33.72,
+        "startWidthMeters": 12.434,
+        "insideGainMeters": -8.851,
+        "pressureMeters": 3.718,
+        "carryMeters": 2.846,
+        "sequenceSeconds": 2.0,
+        "connectionMeters": 30.424
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/4039",
+      "assetSha256": "044d3d4c787334c6cf6506ad748eaef47a36c36da2762c4238c44384d05b4e57"
+    },
+    {
+      "id": "3518-18716-bonucci-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/3518-18716-bonucci-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 1,
+      "startFrame": 18555,
+      "endFrame": 18855,
+      "startClock": 1801.3,
+      "duration": 30.0,
+      "focusPlayerId": 6179,
+      "focusPlayerName": "Leonardo Bonucci",
+      "evidenceAnchors": [
+        {
+          "time": 16.1,
+          "role": "departure",
+          "playerId": 6179,
+          "playerName": "Leonardo Bonucci"
+        },
+        {
+          "time": 18.6,
+          "role": "arrival",
+          "playerId": 5521,
+          "playerName": "Juan Cuadrado"
+        }
+      ],
+      "highlightPlayerIds": [
+        6179,
+        5521,
+        11322,
+        9279,
+        6717
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 16.1,
+      "evidenceEnd": 18.6,
+      "coreStart": 15.6,
+      "coreEnd": 19.1,
+      "corePlayerIds": [
+        6179,
+        5521
+      ],
+      "supportPlayerIds": [
+        11322
+      ],
+      "opponentContextPlayerIds": [
+        9279,
+        6717
+      ],
+      "metrics": {
+        "forwardMeters": -1.283,
+        "lateralMeters": 36.076,
+        "startWidthMeters": 17.047,
+        "insideGainMeters": -1.983,
+        "pressureMeters": 4.466,
+        "carryMeters": 2.629,
+        "sequenceSeconds": 2.5,
+        "connectionMeters": 32.337
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "2efddd41656f56fa4c5202986230fcbb0c86b963b82d15411ccd73c66e9428fe"
+    },
+    {
       "id": "4039-8125-sterling-lateralSwitch",
       "asset": "assets/scan_pass_spatial/scenes/4039-8125-sterling-lateralSwitch.json",
       "theme": "lateralSwitch",
@@ -495,6 +1503,274 @@
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/4039",
       "assetSha256": "dc8a217f39102b5178f24f34bd71c886460eb16d4919f902a5eeca42fa23db28"
+    },
+    {
+      "id": "3518-41345-brozovic-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/3518-41345-brozovic-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 2,
+      "startFrame": 41195,
+      "endFrame": 41495,
+      "startClock": 3101.1,
+      "duration": 30.0,
+      "focusPlayerId": 6717,
+      "focusPlayerName": "Marcelo Brozovic",
+      "evidenceAnchors": [
+        {
+          "time": 15.0,
+          "role": "departure",
+          "playerId": 6717,
+          "playerName": "Marcelo Brozovic"
+        },
+        {
+          "time": 18.1,
+          "role": "arrival",
+          "playerId": 19244,
+          "playerName": "Alessandro Bastoni"
+        }
+      ],
+      "highlightPlayerIds": [
+        6717,
+        19244,
+        12801,
+        11322,
+        4023
+      ],
+      "attackingTeam": "away",
+      "attackDirection": 1,
+      "evidenceStart": 15.0,
+      "evidenceEnd": 18.1,
+      "coreStart": 14.5,
+      "coreEnd": 18.6,
+      "corePlayerIds": [
+        6717,
+        19244
+      ],
+      "supportPlayerIds": [
+        12801
+      ],
+      "opponentContextPlayerIds": [
+        11322,
+        4023
+      ],
+      "metrics": {
+        "forwardMeters": -2.372,
+        "lateralMeters": 31.383,
+        "startWidthMeters": 15.486,
+        "insideGainMeters": -0.41,
+        "pressureMeters": 4.131,
+        "carryMeters": 1.29,
+        "sequenceSeconds": 3.1,
+        "connectionMeters": 31.131
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "e10c1a4435c7b2865cee48b1f54f3e726cd91b5f2cf0858d8ad50a7137141ed0"
+    },
+    {
+      "id": "4039-24426-van-dijk-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/4039-24426-van-dijk-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 4039,
+      "date": "2020-07-02",
+      "home": "Manchester City",
+      "away": "Liverpool",
+      "period": 1,
+      "startFrame": 24279,
+      "endFrame": 24579,
+      "startClock": 2383.7,
+      "duration": 30.0,
+      "focusPlayerId": 10748,
+      "focusPlayerName": "Virgil van Dijk",
+      "evidenceAnchors": [
+        {
+          "time": 14.7,
+          "role": "departure",
+          "playerId": 10748,
+          "playerName": "Virgil van Dijk"
+        },
+        {
+          "time": 16.5,
+          "role": "arrival",
+          "playerId": 11537,
+          "playerName": "Joe Gomez"
+        }
+      ],
+      "highlightPlayerIds": [
+        10748,
+        11537,
+        3847,
+        11566,
+        4460
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 14.7,
+      "evidenceEnd": 16.5,
+      "coreStart": 14.2,
+      "coreEnd": 17.0,
+      "corePlayerIds": [
+        10748,
+        11537
+      ],
+      "supportPlayerIds": [
+        3847
+      ],
+      "opponentContextPlayerIds": [
+        11566,
+        4460
+      ],
+      "metrics": {
+        "forwardMeters": -4.195,
+        "lateralMeters": 28.093,
+        "startWidthMeters": 22.283,
+        "insideGainMeters": 16.473,
+        "pressureMeters": 6.889,
+        "carryMeters": 1.123,
+        "sequenceSeconds": 1.8,
+        "connectionMeters": 25.572
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/4039",
+      "assetSha256": "42d7e43bb38aff815bcf7566735b5dc7d6b59dc2ff4dd3a00f2f545bc57c2915"
+    },
+    {
+      "id": "2068-17423-sandro-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/2068-17423-sandro-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 2068,
+      "date": "2019-10-06",
+      "home": "Inter",
+      "away": "Juventus",
+      "period": 1,
+      "startFrame": 17371,
+      "endFrame": 17671,
+      "startClock": 1559.0,
+      "duration": 30.0,
+      "focusPlayerId": 520,
+      "focusPlayerName": "Alex Sandro",
+      "evidenceAnchors": [
+        {
+          "time": 5.2,
+          "role": "departure",
+          "playerId": 520,
+          "playerName": "Alex Sandro"
+        },
+        {
+          "time": 7.0,
+          "role": "arrival",
+          "playerId": 11636,
+          "playerName": "Matthijs de Ligt"
+        }
+      ],
+      "highlightPlayerIds": [
+        520,
+        11636,
+        1372,
+        9279,
+        12801
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 5.2,
+      "evidenceEnd": 7.0,
+      "coreStart": 4.7,
+      "coreEnd": 7.5,
+      "corePlayerIds": [
+        520,
+        11636
+      ],
+      "supportPlayerIds": [
+        1372
+      ],
+      "opponentContextPlayerIds": [
+        9279,
+        12801
+      ],
+      "metrics": {
+        "forwardMeters": -8.379,
+        "lateralMeters": 13.357,
+        "startWidthMeters": 27.522,
+        "insideGainMeters": 13.357,
+        "pressureMeters": 1.511,
+        "carryMeters": 1.842,
+        "sequenceSeconds": 1.8,
+        "connectionMeters": 14.921
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2068",
+      "assetSha256": "00860f54cb334aba5e16a290d83f6bf797b1910236d51e1b553efac094639f2b"
+    },
+    {
+      "id": "4039-26293-mendy-lateralSwitch",
+      "asset": "assets/scan_pass_spatial/scenes/4039-26293-mendy-lateralSwitch.json",
+      "theme": "lateralSwitch",
+      "matchId": 4039,
+      "date": "2020-07-02",
+      "home": "Manchester City",
+      "away": "Liverpool",
+      "period": 1,
+      "startFrame": 26241,
+      "endFrame": 26487,
+      "startClock": 2579.9,
+      "duration": 24.6,
+      "focusPlayerId": 1302,
+      "focusPlayerName": "Benjamin Mendy",
+      "evidenceAnchors": [
+        {
+          "time": 5.2,
+          "role": "departure",
+          "playerId": 1302,
+          "playerName": "Benjamin Mendy"
+        },
+        {
+          "time": 9.4,
+          "role": "arrival",
+          "playerId": 6037,
+          "playerName": "Kyle Walker"
+        }
+      ],
+      "highlightPlayerIds": [
+        1302,
+        6037,
+        4460,
+        5318,
+        9449
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 5.2,
+      "evidenceEnd": 9.4,
+      "coreStart": 4.7,
+      "coreEnd": 9.9,
+      "corePlayerIds": [
+        1302,
+        6037
+      ],
+      "supportPlayerIds": [
+        4460
+      ],
+      "opponentContextPlayerIds": [
+        5318,
+        9449
+      ],
+      "metrics": {
+        "forwardMeters": 1.526,
+        "lateralMeters": 37.487,
+        "startWidthMeters": 15.222,
+        "insideGainMeters": -7.042,
+        "pressureMeters": 3.956,
+        "carryMeters": 8.78,
+        "sequenceSeconds": 4.2,
+        "connectionMeters": 36.56
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/4039",
+      "assetSha256": "b1b0312e20d1c4ea0e2bc854f79773c6658a40e9bd77c1fdb8479c84f3973e85"
     },
     {
       "id": "2068-46505-brozovic-pressureSupport",
@@ -564,6 +1840,207 @@
       "assetSha256": "f6c01576ea49cfde96e29de619ba50f22b522d255a6c7488e8860979356b39b1"
     },
     {
+      "id": "2269-45011-silva-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/2269-45011-silva-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 2269,
+      "date": "2019-10-27",
+      "home": "Paris",
+      "away": "Marseille",
+      "period": 2,
+      "startFrame": 44881,
+      "endFrame": 45129,
+      "startClock": 4118.1,
+      "duration": 24.8,
+      "focusPlayerId": 10263,
+      "focusPlayerName": "Thiago Silva",
+      "evidenceAnchors": [
+        {
+          "time": 13.0,
+          "role": "departure",
+          "playerId": 10263,
+          "playerName": "Thiago Silva"
+        },
+        {
+          "time": 14.4,
+          "role": "arrival",
+          "playerId": 698,
+          "playerName": "Ander Herrera"
+        }
+      ],
+      "highlightPlayerIds": [
+        10263,
+        698,
+        7322,
+        5875,
+        11343
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 13.0,
+      "evidenceEnd": 14.4,
+      "coreStart": 12.5,
+      "coreEnd": 14.9,
+      "corePlayerIds": [
+        10263,
+        698
+      ],
+      "supportPlayerIds": [
+        7322
+      ],
+      "opponentContextPlayerIds": [
+        5875,
+        11343
+      ],
+      "metrics": {
+        "forwardMeters": 6.343,
+        "lateralMeters": 8.497,
+        "startWidthMeters": 1.924,
+        "insideGainMeters": -8.497,
+        "pressureMeters": 1.204,
+        "carryMeters": 20.036,
+        "sequenceSeconds": 1.4,
+        "connectionMeters": 8.593
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2269",
+      "assetSha256": "0033e2976c53456de700bfed77dcd5e8bfe7279d7534d439f38b9b057f65f738"
+    },
+    {
+      "id": "2417-51987-coman-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/2417-51987-coman-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 2417,
+      "date": "2019-11-09",
+      "home": "Bayern Munchen",
+      "away": "Dortmund",
+      "period": 2,
+      "startFrame": 51941,
+      "endFrame": 52239,
+      "startClock": 3909.3,
+      "duration": 29.8,
+      "focusPlayerId": 5932,
+      "focusPlayerName": "Kingsley Coman",
+      "evidenceAnchors": [
+        {
+          "time": 4.6,
+          "role": "departure",
+          "playerId": 5932,
+          "playerName": "Kingsley Coman"
+        },
+        {
+          "time": 5.8,
+          "role": "arrival",
+          "playerId": 2405,
+          "playerName": "David Alaba"
+        }
+      ],
+      "highlightPlayerIds": [
+        5932,
+        2405,
+        18099,
+        11559,
+        10336
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 4.6,
+      "evidenceEnd": 5.8,
+      "coreStart": 4.1,
+      "coreEnd": 6.3,
+      "corePlayerIds": [
+        5932,
+        2405
+      ],
+      "supportPlayerIds": [
+        18099
+      ],
+      "opponentContextPlayerIds": [
+        11559,
+        10336
+      ],
+      "metrics": {
+        "forwardMeters": -14.64,
+        "lateralMeters": 0.321,
+        "startWidthMeters": 23.665,
+        "insideGainMeters": 0.321,
+        "pressureMeters": 1.774,
+        "carryMeters": 0.61,
+        "sequenceSeconds": 1.2,
+        "connectionMeters": 11.699
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2417",
+      "assetSha256": "5e06483ac27b08b30f6ecec1a87bed6f92b65283333f26c2042d8138f81f1eba"
+    },
+    {
+      "id": "2440-15192-gündogan-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/2440-15192-gündogan-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 2440,
+      "date": "2019-11-10",
+      "home": "Liverpool",
+      "away": "Manchester City",
+      "period": 1,
+      "startFrame": 15017,
+      "endFrame": 15317,
+      "startClock": 1410.6,
+      "duration": 30.0,
+      "focusPlayerId": 4460,
+      "focusPlayerName": "Ilkay Gündogan",
+      "evidenceAnchors": [
+        {
+          "time": 17.5,
+          "role": "departure",
+          "playerId": 4460,
+          "playerName": "Ilkay Gündogan"
+        },
+        {
+          "time": 18.9,
+          "role": "arrival",
+          "playerId": 6037,
+          "playerName": "Kyle Walker"
+        }
+      ],
+      "highlightPlayerIds": [
+        4460,
+        6037,
+        9202,
+        7745,
+        9143
+      ],
+      "attackingTeam": "away",
+      "attackDirection": 1,
+      "evidenceStart": 17.5,
+      "evidenceEnd": 18.9,
+      "coreStart": 17.0,
+      "coreEnd": 19.4,
+      "corePlayerIds": [
+        4460,
+        6037
+      ],
+      "supportPlayerIds": [
+        9202
+      ],
+      "opponentContextPlayerIds": [
+        7745,
+        9143
+      ],
+      "metrics": {
+        "forwardMeters": -3.9,
+        "lateralMeters": 18.422,
+        "startWidthMeters": 5.264,
+        "insideGainMeters": -18.422,
+        "pressureMeters": 1.537,
+        "carryMeters": 5.6,
+        "sequenceSeconds": 1.4,
+        "connectionMeters": 17.253
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2440",
+      "assetSha256": "30b5b105cc8a2b08f5f2ab6dc582de43363e19d3413fe593896891d57bde34ea"
+    },
+    {
       "id": "2841-4790-de-jong-pressureSupport",
       "asset": "assets/scan_pass_spatial/scenes/2841-4790-de-jong-pressureSupport.json",
       "theme": "pressureSupport",
@@ -629,6 +2106,475 @@
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
       "assetSha256": "b0c513e0fb8a73fd4d5a51dbd91b3d7d327d57dc035c0c19610ed7b0c92ada22"
+    },
+    {
+      "id": "2440-46935-sterling-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/2440-46935-sterling-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 2440,
+      "date": "2019-11-10",
+      "home": "Liverpool",
+      "away": "Manchester City",
+      "period": 2,
+      "startFrame": 46811,
+      "endFrame": 47111,
+      "startClock": 3476.3,
+      "duration": 30.0,
+      "focusPlayerId": 8856,
+      "focusPlayerName": "Raheem Sterling",
+      "evidenceAnchors": [
+        {
+          "time": 12.4,
+          "role": "departure",
+          "playerId": 8856,
+          "playerName": "Raheem Sterling"
+        },
+        {
+          "time": 13.2,
+          "role": "arrival",
+          "playerId": 12843,
+          "playerName": "Jose Tasende"
+        }
+      ],
+      "highlightPlayerIds": [
+        8856,
+        12843,
+        5821,
+        5318,
+        11847
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 12.4,
+      "evidenceEnd": 13.2,
+      "coreStart": 11.9,
+      "coreEnd": 13.7,
+      "corePlayerIds": [
+        8856,
+        12843
+      ],
+      "supportPlayerIds": [
+        5821
+      ],
+      "opponentContextPlayerIds": [
+        5318,
+        11847
+      ],
+      "metrics": {
+        "forwardMeters": 4.527,
+        "lateralMeters": 9.409,
+        "startWidthMeters": 22.887,
+        "insideGainMeters": -9.409,
+        "pressureMeters": 1.905,
+        "carryMeters": 2.22,
+        "sequenceSeconds": 0.8,
+        "connectionMeters": 6.955
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2440",
+      "assetSha256": "a495ab760693f215d8a5a0e68ddc5cb6159ebd5b068898c242398dcd3c375cc2"
+    },
+    {
+      "id": "2841-40151-messi-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/2841-40151-messi-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 2841,
+      "date": "2019-12-18",
+      "home": "FC Barcelona",
+      "away": "Real Madrid",
+      "period": 2,
+      "startFrame": 40031,
+      "endFrame": 40265,
+      "startClock": 2883.0,
+      "duration": 23.4,
+      "focusPlayerId": 6260,
+      "focusPlayerName": "Lionel Messi",
+      "evidenceAnchors": [
+        {
+          "time": 12.0,
+          "role": "departure",
+          "playerId": 6260,
+          "playerName": "Lionel Messi"
+        },
+        {
+          "time": 15.3,
+          "role": "arrival",
+          "playerId": 11712,
+          "playerName": "Clément Lenglet"
+        }
+      ],
+      "highlightPlayerIds": [
+        6260,
+        11712,
+        9745,
+        4497,
+        11311
+      ],
+      "attackingTeam": "home",
+      "attackDirection": -1,
+      "evidenceStart": 12.0,
+      "evidenceEnd": 15.3,
+      "coreStart": 11.5,
+      "coreEnd": 15.8,
+      "corePlayerIds": [
+        6260,
+        11712
+      ],
+      "supportPlayerIds": [
+        9745
+      ],
+      "opponentContextPlayerIds": [
+        4497,
+        11311
+      ],
+      "metrics": {
+        "forwardMeters": -3.643,
+        "lateralMeters": 17.594,
+        "startWidthMeters": 7.376,
+        "insideGainMeters": -2.842,
+        "pressureMeters": 0.747,
+        "carryMeters": 0.0,
+        "sequenceSeconds": 3.3,
+        "connectionMeters": 17.623
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
+      "assetSha256": "5524cd52be008b10027f01b674b086dde249a39d0ff8667588cf3cf000d9b639"
+    },
+    {
+      "id": "2440-53508-fabinho-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/2440-53508-fabinho-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 2440,
+      "date": "2019-11-10",
+      "home": "Liverpool",
+      "away": "Manchester City",
+      "period": 2,
+      "startFrame": 53435,
+      "endFrame": 53735,
+      "startClock": 4138.7,
+      "duration": 30.0,
+      "focusPlayerId": 3267,
+      "focusPlayerName": "Fabinho",
+      "evidenceAnchors": [
+        {
+          "time": 7.3,
+          "role": "departure",
+          "playerId": 3267,
+          "playerName": "Fabinho"
+        },
+        {
+          "time": 8.0,
+          "role": "arrival",
+          "playerId": 11847,
+          "playerName": "Trent Alexander-Arnold"
+        }
+      ],
+      "highlightPlayerIds": [
+        3267,
+        11847,
+        3847,
+        9202,
+        5821
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 7.3,
+      "evidenceEnd": 8.0,
+      "coreStart": 6.8,
+      "coreEnd": 8.5,
+      "corePlayerIds": [
+        3267,
+        11847
+      ],
+      "supportPlayerIds": [
+        3847
+      ],
+      "opponentContextPlayerIds": [
+        9202,
+        5821
+      ],
+      "metrics": {
+        "forwardMeters": -2.048,
+        "lateralMeters": 11.025,
+        "startWidthMeters": 17.735,
+        "insideGainMeters": -11.025,
+        "pressureMeters": 1.02,
+        "carryMeters": 4.141,
+        "sequenceSeconds": 0.7,
+        "connectionMeters": 8.262
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2440",
+      "assetSha256": "2c4c4539e2bf94e53af590f938cb25e5b62e5bc2c0189b5e0e1f105edaed5afe"
+    },
+    {
+      "id": "2841-62241-suarez-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/2841-62241-suarez-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 2841,
+      "date": "2019-12-18",
+      "home": "FC Barcelona",
+      "away": "Real Madrid",
+      "period": 2,
+      "startFrame": 62095,
+      "endFrame": 62395,
+      "startClock": 5089.4,
+      "duration": 30.0,
+      "focusPlayerId": 6460,
+      "focusPlayerName": "Luis Suarez",
+      "evidenceAnchors": [
+        {
+          "time": 14.6,
+          "role": "departure",
+          "playerId": 6460,
+          "playerName": "Luis Suarez"
+        },
+        {
+          "time": 15.3,
+          "role": "arrival",
+          "playerId": 12524,
+          "playerName": "Frenkie de Jong"
+        }
+      ],
+      "highlightPlayerIds": [
+        6460,
+        12524,
+        1101,
+        8886,
+        10530
+      ],
+      "attackingTeam": "home",
+      "attackDirection": -1,
+      "evidenceStart": 14.6,
+      "evidenceEnd": 15.3,
+      "coreStart": 14.1,
+      "coreEnd": 15.8,
+      "corePlayerIds": [
+        6460,
+        12524
+      ],
+      "supportPlayerIds": [
+        1101
+      ],
+      "opponentContextPlayerIds": [
+        8886,
+        10530
+      ],
+      "metrics": {
+        "forwardMeters": -8.873,
+        "lateralMeters": 2.607,
+        "startWidthMeters": 11.463,
+        "insideGainMeters": -2.607,
+        "pressureMeters": 1.507,
+        "carryMeters": 0.479,
+        "sequenceSeconds": 0.7,
+        "connectionMeters": 6.493
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
+      "assetSha256": "22d5749260b4b140c17758fb28fd8f795344724d42b1442457423b7391581dc1"
+    },
+    {
+      "id": "2440-66816-fernandinho-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/2440-66816-fernandinho-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 2440,
+      "date": "2019-11-10",
+      "home": "Liverpool",
+      "away": "Manchester City",
+      "period": 2,
+      "startFrame": 66629,
+      "endFrame": 66929,
+      "startClock": 5458.1,
+      "duration": 30.0,
+      "focusPlayerId": 3397,
+      "focusPlayerName": "Luiz Fernandinho",
+      "evidenceAnchors": [
+        {
+          "time": 18.7,
+          "role": "departure",
+          "playerId": 3397,
+          "playerName": "Luiz Fernandinho"
+        },
+        {
+          "time": 19.2,
+          "role": "arrival",
+          "playerId": 4460,
+          "playerName": "Ilkay Gündogan"
+        }
+      ],
+      "highlightPlayerIds": [
+        3397,
+        4460,
+        12843,
+        9449,
+        11847
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 18.7,
+      "evidenceEnd": 19.2,
+      "coreStart": 18.2,
+      "coreEnd": 19.7,
+      "corePlayerIds": [
+        3397,
+        4460
+      ],
+      "supportPlayerIds": [
+        12843
+      ],
+      "opponentContextPlayerIds": [
+        9449,
+        11847
+      ],
+      "metrics": {
+        "forwardMeters": 9.444,
+        "lateralMeters": 4.246,
+        "startWidthMeters": 16.471,
+        "insideGainMeters": 4.246,
+        "pressureMeters": 1.606,
+        "carryMeters": 4.689,
+        "sequenceSeconds": 0.5,
+        "connectionMeters": 6.357
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2440",
+      "assetSha256": "380c414a86341574d3b13e58a031f8fedbaacdaf597eaeada89966ccd660c809"
+    },
+    {
+      "id": "3442-3262-alba-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/3442-3262-alba-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 3442,
+      "date": "2020-03-01",
+      "home": "Real Madrid",
+      "away": "FC Barcelona",
+      "period": 1,
+      "startFrame": 3019,
+      "endFrame": 3319,
+      "startClock": 210.4,
+      "duration": 30.0,
+      "focusPlayerId": 5336,
+      "focusPlayerName": "Jordi Alba",
+      "evidenceAnchors": [
+        {
+          "time": 24.3,
+          "role": "departure",
+          "playerId": 5336,
+          "playerName": "Jordi Alba"
+        },
+        {
+          "time": 25.8,
+          "role": "arrival",
+          "playerId": 3862,
+          "playerName": "Gerard Pique"
+        }
+      ],
+      "highlightPlayerIds": [
+        5336,
+        3862,
+        9533,
+        12395,
+        5720
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 24.3,
+      "evidenceEnd": 25.8,
+      "coreStart": 23.8,
+      "coreEnd": 26.3,
+      "corePlayerIds": [
+        5336,
+        3862
+      ],
+      "supportPlayerIds": [
+        9533
+      ],
+      "opponentContextPlayerIds": [
+        12395,
+        5720
+      ],
+      "metrics": {
+        "forwardMeters": -9.834,
+        "lateralMeters": 11.403,
+        "startWidthMeters": 25.89,
+        "insideGainMeters": 11.403,
+        "pressureMeters": 1.062,
+        "carryMeters": 0.774,
+        "sequenceSeconds": 1.5,
+        "connectionMeters": 14.291
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
+      "assetSha256": "703537f91d97aa34d1ee88a5e3e53fb1747ea55c0ed2ef91823a1efe666715a4"
+    },
+    {
+      "id": "3518-1462-costa-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/3518-1462-costa-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 1,
+      "startFrame": 1316,
+      "endFrame": 1616,
+      "startClock": 77.4,
+      "duration": 30.0,
+      "focusPlayerId": 2868,
+      "focusPlayerName": "Douglas Costa",
+      "evidenceAnchors": [
+        {
+          "time": 14.6,
+          "role": "departure",
+          "playerId": 2868,
+          "playerName": "Douglas Costa"
+        },
+        {
+          "time": 15.4,
+          "role": "arrival",
+          "playerId": 5521,
+          "playerName": "Juan Cuadrado"
+        }
+      ],
+      "highlightPlayerIds": [
+        2868,
+        5521,
+        105,
+        1112,
+        8052
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 14.6,
+      "evidenceEnd": 15.4,
+      "coreStart": 14.1,
+      "coreEnd": 15.9,
+      "corePlayerIds": [
+        2868,
+        5521
+      ],
+      "supportPlayerIds": [
+        105
+      ],
+      "opponentContextPlayerIds": [
+        1112,
+        8052
+      ],
+      "metrics": {
+        "forwardMeters": -11.263,
+        "lateralMeters": 2.533,
+        "startWidthMeters": 26.699,
+        "insideGainMeters": 2.533,
+        "pressureMeters": 1.809,
+        "carryMeters": 5.849,
+        "sequenceSeconds": 0.8,
+        "connectionMeters": 5.828
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "2e8bbfcb0cc8b320616e9802278ae2d1865308bad33608ec12f6f01ae779480e"
     },
     {
       "id": "3442-5842-carvajal-pressureSupport",
@@ -765,6 +2711,140 @@
       "assetSha256": "e55ddd4a97916307bfacc4e4bf66537001170f1ecf4815a0343ba4101373c415"
     },
     {
+      "id": "3442-10004-arthur-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/3442-10004-arthur-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 3442,
+      "date": "2020-03-01",
+      "home": "Real Madrid",
+      "away": "FC Barcelona",
+      "period": 1,
+      "startFrame": 9961,
+      "endFrame": 10261,
+      "startClock": 904.6,
+      "duration": 30.0,
+      "focusPlayerId": 12802,
+      "focusPlayerName": "Arthur",
+      "evidenceAnchors": [
+        {
+          "time": 4.3,
+          "role": "departure",
+          "playerId": 12802,
+          "playerName": "Arthur"
+        },
+        {
+          "time": 5.3,
+          "role": "arrival",
+          "playerId": 9533,
+          "playerName": "Samuel Umtiti"
+        }
+      ],
+      "highlightPlayerIds": [
+        12802,
+        9533,
+        12524,
+        10530,
+        2199
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 4.3,
+      "evidenceEnd": 5.3,
+      "coreStart": 3.8,
+      "coreEnd": 5.8,
+      "corePlayerIds": [
+        12802,
+        9533
+      ],
+      "supportPlayerIds": [
+        12524
+      ],
+      "opponentContextPlayerIds": [
+        10530,
+        2199
+      ],
+      "metrics": {
+        "forwardMeters": -12.111,
+        "lateralMeters": 5.794,
+        "startWidthMeters": 9.387,
+        "insideGainMeters": -5.794,
+        "pressureMeters": 0.769,
+        "carryMeters": 8.435,
+        "sequenceSeconds": 1.0,
+        "connectionMeters": 10.084
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
+      "assetSha256": "5ea906213890765bf6df228f60ba42101c1b5b1da53c71bfb7a4e0d02c6ade84"
+    },
+    {
+      "id": "3518-9655-sandro-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/3518-9655-sandro-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 1,
+      "startFrame": 9501,
+      "endFrame": 9776,
+      "startClock": 895.9,
+      "duration": 27.5,
+      "focusPlayerId": 520,
+      "focusPlayerName": "Alex Sandro",
+      "evidenceAnchors": [
+        {
+          "time": 15.4,
+          "role": "departure",
+          "playerId": 520,
+          "playerName": "Alex Sandro"
+        },
+        {
+          "time": 16.5,
+          "role": "arrival",
+          "playerId": 11636,
+          "playerName": "Matthijs de Ligt"
+        }
+      ],
+      "highlightPlayerIds": [
+        520,
+        11636,
+        11322,
+        975,
+        6717
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 15.4,
+      "evidenceEnd": 16.5,
+      "coreStart": 14.9,
+      "coreEnd": 17.0,
+      "corePlayerIds": [
+        520,
+        11636
+      ],
+      "supportPlayerIds": [
+        11322
+      ],
+      "opponentContextPlayerIds": [
+        975,
+        6717
+      ],
+      "metrics": {
+        "forwardMeters": -8.733,
+        "lateralMeters": 22.289,
+        "startWidthMeters": 15.148,
+        "insideGainMeters": 8.008,
+        "pressureMeters": 1.537,
+        "carryMeters": 3.825,
+        "sequenceSeconds": 1.1,
+        "connectionMeters": 19.779
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "0b2573786bcc1d165af6ceedac1cbf0fd44ed6ec684f81d822f49d737a94cd12"
+    },
+    {
       "id": "3442-16202-kroos-pressureSupport",
       "asset": "assets/scan_pass_spatial/scenes/3442-16202-kroos-pressureSupport.json",
       "theme": "pressureSupport",
@@ -830,6 +2910,955 @@
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
       "assetSha256": "acdd93e26dd21fea55965f83d61545008d4b4060b4bcaadb346a18c276a40247"
+    },
+    {
+      "id": "3518-46051-de-ligt-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/3518-46051-de-ligt-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 2,
+      "startFrame": 45981,
+      "endFrame": 46190,
+      "startClock": 3579.7,
+      "duration": 20.9,
+      "focusPlayerId": 11636,
+      "focusPlayerName": "Matthijs de Ligt",
+      "evidenceAnchors": [
+        {
+          "time": 7.0,
+          "role": "departure",
+          "playerId": 11636,
+          "playerName": "Matthijs de Ligt"
+        },
+        {
+          "time": 7.7,
+          "role": "arrival",
+          "playerId": 6179,
+          "playerName": "Leonardo Bonucci"
+        }
+      ],
+      "highlightPlayerIds": [
+        11636,
+        6179,
+        11322,
+        12801,
+        9279
+      ],
+      "attackingTeam": "home",
+      "attackDirection": -1,
+      "evidenceStart": 7.0,
+      "evidenceEnd": 7.7,
+      "coreStart": 6.5,
+      "coreEnd": 8.2,
+      "corePlayerIds": [
+        11636,
+        6179
+      ],
+      "supportPlayerIds": [
+        11322
+      ],
+      "opponentContextPlayerIds": [
+        12801,
+        9279
+      ],
+      "metrics": {
+        "forwardMeters": -8.257,
+        "lateralMeters": 11.85,
+        "startWidthMeters": 4.923,
+        "insideGainMeters": -2.004,
+        "pressureMeters": 1.577,
+        "carryMeters": 8.116,
+        "sequenceSeconds": 0.7,
+        "connectionMeters": 9.857
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "d22ba8e3a4f500e1079fa395b4f7a3b20bb0eb29f6664edeb12b7840f847f43a"
+    },
+    {
+      "id": "3442-17463-griezmann-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/3442-17463-griezmann-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 3442,
+      "date": "2020-03-01",
+      "home": "Real Madrid",
+      "away": "FC Barcelona",
+      "period": 1,
+      "startFrame": 17341,
+      "endFrame": 17641,
+      "startClock": 1642.6,
+      "duration": 30.0,
+      "focusPlayerId": 956,
+      "focusPlayerName": "Antoine Griezmann",
+      "evidenceAnchors": [
+        {
+          "time": 12.2,
+          "role": "departure",
+          "playerId": 956,
+          "playerName": "Antoine Griezmann"
+        },
+        {
+          "time": 13.3,
+          "role": "arrival",
+          "playerId": 6260,
+          "playerName": "Lionel Messi"
+        }
+      ],
+      "highlightPlayerIds": [
+        956,
+        6260,
+        1101,
+        9775,
+        8886
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 12.2,
+      "evidenceEnd": 13.3,
+      "coreStart": 11.7,
+      "coreEnd": 13.8,
+      "corePlayerIds": [
+        956,
+        6260
+      ],
+      "supportPlayerIds": [
+        1101
+      ],
+      "opponentContextPlayerIds": [
+        9775,
+        8886
+      ],
+      "metrics": {
+        "forwardMeters": -0.711,
+        "lateralMeters": 4.432,
+        "startWidthMeters": 1.636,
+        "insideGainMeters": -4.432,
+        "pressureMeters": 0.289,
+        "carryMeters": 2.225,
+        "sequenceSeconds": 1.1,
+        "connectionMeters": 4.607
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
+      "assetSha256": "902072f4a3c139bd1f212679d928ab4757aad0c91f580c4896c4e86578de5564"
+    },
+    {
+      "id": "3518-47261-eriksen-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/3518-47261-eriksen-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 2,
+      "startFrame": 47131,
+      "endFrame": 47431,
+      "startClock": 3694.7,
+      "duration": 30.0,
+      "focusPlayerId": 1837,
+      "focusPlayerName": "Christian Eriksen",
+      "evidenceAnchors": [
+        {
+          "time": 13.0,
+          "role": "departure",
+          "playerId": 1837,
+          "playerName": "Christian Eriksen"
+        },
+        {
+          "time": 16.9,
+          "role": "arrival",
+          "playerId": 7209,
+          "playerName": "Matias Vecino"
+        }
+      ],
+      "highlightPlayerIds": [
+        1837,
+        7209,
+        1112,
+        105,
+        5521
+      ],
+      "attackingTeam": "away",
+      "attackDirection": 1,
+      "evidenceStart": 13.0,
+      "evidenceEnd": 16.9,
+      "coreStart": 12.5,
+      "coreEnd": 17.4,
+      "corePlayerIds": [
+        1837,
+        7209
+      ],
+      "supportPlayerIds": [
+        1112
+      ],
+      "opponentContextPlayerIds": [
+        105,
+        5521
+      ],
+      "metrics": {
+        "forwardMeters": 3.146,
+        "lateralMeters": 14.562,
+        "startWidthMeters": 15.369,
+        "insideGainMeters": 14.562,
+        "pressureMeters": 2.069,
+        "carryMeters": 0.371,
+        "sequenceSeconds": 3.9,
+        "connectionMeters": 16.122
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "5b082f8c04eb91f6f3d58db7c3cabbdba239032813c6bba3fca9996643261560"
+    },
+    {
+      "id": "3442-26061-vidal-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/3442-26061-vidal-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 3442,
+      "date": "2020-03-01",
+      "home": "Real Madrid",
+      "away": "FC Barcelona",
+      "period": 1,
+      "startFrame": 25915,
+      "endFrame": 26215,
+      "startClock": 2500.0,
+      "duration": 30.0,
+      "focusPlayerId": 1101,
+      "focusPlayerName": "Arturo Vidal",
+      "evidenceAnchors": [
+        {
+          "time": 14.6,
+          "role": "departure",
+          "playerId": 1101,
+          "playerName": "Arturo Vidal"
+        },
+        {
+          "time": 15.4,
+          "role": "arrival",
+          "playerId": 12524,
+          "playerName": "Frenkie de Jong"
+        }
+      ],
+      "highlightPlayerIds": [
+        1101,
+        12524,
+        5336,
+        4497,
+        12395
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 14.6,
+      "evidenceEnd": 15.4,
+      "coreStart": 14.1,
+      "coreEnd": 15.9,
+      "corePlayerIds": [
+        1101,
+        12524
+      ],
+      "supportPlayerIds": [
+        5336
+      ],
+      "opponentContextPlayerIds": [
+        4497,
+        12395
+      ],
+      "metrics": {
+        "forwardMeters": -1.285,
+        "lateralMeters": 10.734,
+        "startWidthMeters": 11.208,
+        "insideGainMeters": -10.734,
+        "pressureMeters": 0.974,
+        "carryMeters": 0.822,
+        "sequenceSeconds": 0.8,
+        "connectionMeters": 8.674
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
+      "assetSha256": "867a7426d615a1f38061a4ac1ecee135714458cf3d5ac0831b2a43a38306d669"
+    },
+    {
+      "id": "3518-50108-ramsey-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/3518-50108-ramsey-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 2,
+      "startFrame": 50041,
+      "endFrame": 50328,
+      "startClock": 3985.7,
+      "duration": 28.7,
+      "focusPlayerId": 105,
+      "focusPlayerName": "Aaron Ramsey",
+      "evidenceAnchors": [
+        {
+          "time": 6.7,
+          "role": "departure",
+          "playerId": 105,
+          "playerName": "Aaron Ramsey"
+        },
+        {
+          "time": 8.0,
+          "role": "arrival",
+          "playerId": 10913,
+          "playerName": "Wojciech Szczesny"
+        }
+      ],
+      "highlightPlayerIds": [
+        105,
+        10913,
+        11636,
+        1837,
+        12801
+      ],
+      "attackingTeam": "home",
+      "attackDirection": -1,
+      "evidenceStart": 6.7,
+      "evidenceEnd": 8.0,
+      "coreStart": 6.2,
+      "coreEnd": 8.5,
+      "corePlayerIds": [
+        105,
+        10913
+      ],
+      "supportPlayerIds": [
+        11636
+      ],
+      "opponentContextPlayerIds": [
+        1837,
+        12801
+      ],
+      "metrics": {
+        "forwardMeters": -16.074,
+        "lateralMeters": 12.549,
+        "startWidthMeters": 12.242,
+        "insideGainMeters": 11.935,
+        "pressureMeters": 1.19,
+        "carryMeters": 0.282,
+        "sequenceSeconds": 1.3,
+        "connectionMeters": 15.365
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "e12d64772505a49fa8350b738f7099ddea8b018138fdae90d51895f41bbbe704"
+    },
+    {
+      "id": "2068-26825-skriniar-combination",
+      "asset": "assets/scan_pass_spatial/scenes/2068-26825-skriniar-combination.json",
+      "theme": "combination",
+      "matchId": 2068,
+      "date": "2019-10-06",
+      "home": "Inter",
+      "away": "Juventus",
+      "period": 1,
+      "startFrame": 26781,
+      "endFrame": 27081,
+      "startClock": 2500.0,
+      "duration": 30.0,
+      "focusPlayerId": 7648,
+      "focusPlayerName": "Milan Skriniar",
+      "evidenceAnchors": [
+        {
+          "time": 4.4,
+          "role": "departure",
+          "playerId": 7648,
+          "playerName": "Milan Skriniar"
+        },
+        {
+          "time": 5.4,
+          "role": "arrival",
+          "playerId": 8052,
+          "playerName": "Nicolo Barella"
+        },
+        {
+          "time": 7.4,
+          "role": "arrival",
+          "playerId": 6024,
+          "playerName": "Kwadwo Asamoah"
+        }
+      ],
+      "highlightPlayerIds": [
+        7648,
+        8052,
+        6024,
+        6717,
+        3343,
+        9500
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 4.4,
+      "evidenceEnd": 7.4,
+      "coreStart": 3.9,
+      "coreEnd": 7.9,
+      "corePlayerIds": [
+        7648,
+        8052,
+        6024
+      ],
+      "supportPlayerIds": [
+        6717
+      ],
+      "opponentContextPlayerIds": [
+        3343,
+        9500
+      ],
+      "metrics": {
+        "forwardMeters": 15.59,
+        "lateralMeters": 3.21,
+        "startWidthMeters": 16.044,
+        "insideGainMeters": -3.21,
+        "pressureMeters": 4.618,
+        "carryMeters": 0.168,
+        "sequenceSeconds": 3.0,
+        "connectionMeters": 14.638,
+        "legMeters": [
+          14.638,
+          12.395
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2068",
+      "assetSha256": "2f65a5ff3a771b19948eb288f49360456e0e1abd8d4a2c475cf6ec049de1557b"
+    },
+    {
+      "id": "3518-60014-bastoni-pressureSupport",
+      "asset": "assets/scan_pass_spatial/scenes/3518-60014-bastoni-pressureSupport.json",
+      "theme": "pressureSupport",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 2,
+      "startFrame": 59869,
+      "endFrame": 60169,
+      "startClock": 4968.5,
+      "duration": 30.0,
+      "focusPlayerId": 19244,
+      "focusPlayerName": "Alessandro Bastoni",
+      "evidenceAnchors": [
+        {
+          "time": 14.5,
+          "role": "departure",
+          "playerId": 19244,
+          "playerName": "Alessandro Bastoni"
+        },
+        {
+          "time": 15.5,
+          "role": "arrival",
+          "playerId": 9982,
+          "playerName": "Stefan de Vrij"
+        }
+      ],
+      "highlightPlayerIds": [
+        19244,
+        9982,
+        6717,
+        2083,
+        8514
+      ],
+      "attackingTeam": "away",
+      "attackDirection": 1,
+      "evidenceStart": 14.5,
+      "evidenceEnd": 15.5,
+      "coreStart": 14.0,
+      "coreEnd": 16.0,
+      "corePlayerIds": [
+        19244,
+        9982
+      ],
+      "supportPlayerIds": [
+        6717
+      ],
+      "opponentContextPlayerIds": [
+        2083,
+        8514
+      ],
+      "metrics": {
+        "forwardMeters": -0.137,
+        "lateralMeters": 17.376,
+        "startWidthMeters": 6.415,
+        "insideGainMeters": -4.546,
+        "pressureMeters": 1.55,
+        "carryMeters": 1.011,
+        "sequenceSeconds": 1.0,
+        "connectionMeters": 13.802
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "f2d996ef5fadcc1fb0c0a3ab91dcc2bd704304172429211474f5c4b87f070321"
+    },
+    {
+      "id": "2068-59528-vecino-combination",
+      "asset": "assets/scan_pass_spatial/scenes/2068-59528-vecino-combination.json",
+      "theme": "combination",
+      "matchId": 2068,
+      "date": "2019-10-06",
+      "home": "Inter",
+      "away": "Juventus",
+      "period": 2,
+      "startFrame": 59333,
+      "endFrame": 59633,
+      "startClock": 4422.0,
+      "duration": 30.0,
+      "focusPlayerId": 7209,
+      "focusPlayerName": "Matias Vecino",
+      "evidenceAnchors": [
+        {
+          "time": 19.5,
+          "role": "departure",
+          "playerId": 7209,
+          "playerName": "Matias Vecino"
+        },
+        {
+          "time": 20.4,
+          "role": "arrival",
+          "playerId": 12801,
+          "playerName": "Lautaro Martinez"
+        },
+        {
+          "time": 21.2,
+          "role": "arrival",
+          "playerId": 9279,
+          "playerName": "Romelu Lukaku"
+        }
+      ],
+      "highlightPlayerIds": [
+        7209,
+        12801,
+        9279,
+        6024,
+        5521,
+        3104
+      ],
+      "attackingTeam": "home",
+      "attackDirection": -1,
+      "evidenceStart": 19.5,
+      "evidenceEnd": 21.2,
+      "coreStart": 19.0,
+      "coreEnd": 21.7,
+      "corePlayerIds": [
+        7209,
+        12801,
+        9279
+      ],
+      "supportPlayerIds": [
+        6024
+      ],
+      "opponentContextPlayerIds": [
+        5521,
+        3104
+      ],
+      "metrics": {
+        "forwardMeters": 6.385,
+        "lateralMeters": 12.785,
+        "startWidthMeters": 33.232,
+        "insideGainMeters": 12.785,
+        "pressureMeters": 2.712,
+        "carryMeters": 0.465,
+        "sequenceSeconds": 1.7,
+        "connectionMeters": 13.596,
+        "legMeters": [
+          13.596,
+          7.402
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2068",
+      "assetSha256": "f8f0d4a7a89c73802d590f9b5203e3794fecb0deb2190127315f88e943311621"
+    },
+    {
+      "id": "2269-44125-marquinhos-combination",
+      "asset": "assets/scan_pass_spatial/scenes/2269-44125-marquinhos-combination.json",
+      "theme": "combination",
+      "matchId": 2269,
+      "date": "2019-10-27",
+      "home": "Paris",
+      "away": "Marseille",
+      "period": 2,
+      "startFrame": 43899,
+      "endFrame": 44199,
+      "startClock": 4019.9,
+      "duration": 30.0,
+      "focusPlayerId": 7023,
+      "focusPlayerName": "Marquinhos",
+      "evidenceAnchors": [
+        {
+          "time": 22.6,
+          "role": "departure",
+          "playerId": 7023,
+          "playerName": "Marquinhos"
+        },
+        {
+          "time": 23.5,
+          "role": "arrival",
+          "playerId": 6106,
+          "playerName": "Leandro Paredes"
+        },
+        {
+          "time": 24.7,
+          "role": "arrival",
+          "playerId": 7023,
+          "playerName": "Marquinhos"
+        }
+      ],
+      "highlightPlayerIds": [
+        7023,
+        6106,
+        8748,
+        24026,
+        10633
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 22.6,
+      "evidenceEnd": 24.7,
+      "coreStart": 22.1,
+      "coreEnd": 25.2,
+      "corePlayerIds": [
+        7023,
+        6106
+      ],
+      "supportPlayerIds": [
+        8748
+      ],
+      "opponentContextPlayerIds": [
+        24026,
+        10633
+      ],
+      "metrics": {
+        "forwardMeters": 13.175,
+        "lateralMeters": 0.492,
+        "startWidthMeters": 2.736,
+        "insideGainMeters": 0.492,
+        "pressureMeters": 10.165,
+        "carryMeters": 0.436,
+        "sequenceSeconds": 2.1,
+        "connectionMeters": 9.093,
+        "legMeters": [
+          9.093,
+          10.5
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2269",
+      "assetSha256": "4c30f2c161b0defefb7f5a7c2f200ba91c972e62d320de0db484bd856f444212"
+    },
+    {
+      "id": "2417-20653-kimmich-combination",
+      "asset": "assets/scan_pass_spatial/scenes/2417-20653-kimmich-combination.json",
+      "theme": "combination",
+      "matchId": 2417,
+      "date": "2019-11-09",
+      "home": "Bayern Munchen",
+      "away": "Dortmund",
+      "period": 1,
+      "startFrame": 20550,
+      "endFrame": 20757,
+      "startClock": 1923.6,
+      "duration": 20.7,
+      "focusPlayerId": 5482,
+      "focusPlayerName": "Joshua Kimmich",
+      "evidenceAnchors": [
+        {
+          "time": 10.3,
+          "role": "departure",
+          "playerId": 5482,
+          "playerName": "Joshua Kimmich"
+        },
+        {
+          "time": 11.2,
+          "role": "arrival",
+          "playerId": 9734,
+          "playerName": "Serge Gnabry"
+        },
+        {
+          "time": 12.4,
+          "role": "arrival",
+          "playerId": 4822,
+          "playerName": "Javier Martinez"
+        }
+      ],
+      "highlightPlayerIds": [
+        5482,
+        9734,
+        4822,
+        10318,
+        6900,
+        10336
+      ],
+      "attackingTeam": "home",
+      "attackDirection": -1,
+      "evidenceStart": 10.3,
+      "evidenceEnd": 12.4,
+      "coreStart": 9.8,
+      "coreEnd": 12.9,
+      "corePlayerIds": [
+        5482,
+        9734,
+        4822
+      ],
+      "supportPlayerIds": [
+        10318
+      ],
+      "opponentContextPlayerIds": [
+        6900,
+        10336
+      ],
+      "metrics": {
+        "forwardMeters": 10.344,
+        "lateralMeters": 4.12,
+        "startWidthMeters": 3.226,
+        "insideGainMeters": 2.332,
+        "pressureMeters": 2.877,
+        "carryMeters": 6.033,
+        "sequenceSeconds": 2.1,
+        "connectionMeters": 8.578,
+        "legMeters": [
+          8.578,
+          12.604
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2417",
+      "assetSha256": "599616f6a414399066b5eff55956bcec6b53a9f351b2dd00b705d041ef0e3337"
+    },
+    {
+      "id": "2440-9699-van-dijk-combination",
+      "asset": "assets/scan_pass_spatial/scenes/2440-9699-van-dijk-combination.json",
+      "theme": "combination",
+      "matchId": 2440,
+      "date": "2019-11-10",
+      "home": "Liverpool",
+      "away": "Manchester City",
+      "period": 1,
+      "startFrame": 9541,
+      "endFrame": 9841,
+      "startClock": 863.0,
+      "duration": 30.0,
+      "focusPlayerId": 10748,
+      "focusPlayerName": "Virgil van Dijk",
+      "evidenceAnchors": [
+        {
+          "time": 15.8,
+          "role": "departure",
+          "playerId": 10748,
+          "playerName": "Virgil van Dijk"
+        },
+        {
+          "time": 16.6,
+          "role": "arrival",
+          "playerId": 3847,
+          "playerName": "Georginio Wijnaldum"
+        },
+        {
+          "time": 18.4,
+          "role": "arrival",
+          "playerId": 11565,
+          "playerName": "Alisson Ramses Becker"
+        }
+      ],
+      "highlightPlayerIds": [
+        10748,
+        3847,
+        11565,
+        3267,
+        5821,
+        9202
+      ],
+      "attackingTeam": "home",
+      "attackDirection": -1,
+      "evidenceStart": 15.8,
+      "evidenceEnd": 18.4,
+      "coreStart": 15.3,
+      "coreEnd": 18.9,
+      "corePlayerIds": [
+        10748,
+        3847,
+        11565
+      ],
+      "supportPlayerIds": [
+        3267
+      ],
+      "opponentContextPlayerIds": [
+        5821,
+        9202
+      ],
+      "metrics": {
+        "forwardMeters": 10.759,
+        "lateralMeters": 4.452,
+        "startWidthMeters": 19.467,
+        "insideGainMeters": 4.452,
+        "pressureMeters": 4.068,
+        "carryMeters": 1.733,
+        "sequenceSeconds": 2.6,
+        "connectionMeters": 7.512,
+        "legMeters": [
+          7.512,
+          20.861
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2440",
+      "assetSha256": "c32092ad4125ee2f18f4ee47913c8af5c8f9fe39ba24df1d479f94c123aba91c"
+    },
+    {
+      "id": "2417-42406-martinez-combination",
+      "asset": "assets/scan_pass_spatial/scenes/2417-42406-martinez-combination.json",
+      "theme": "combination",
+      "matchId": 2417,
+      "date": "2019-11-09",
+      "home": "Bayern Munchen",
+      "away": "Dortmund",
+      "period": 2,
+      "startFrame": 42296,
+      "endFrame": 42570,
+      "startClock": 2944.8,
+      "duration": 27.4,
+      "focusPlayerId": 4822,
+      "focusPlayerName": "Javier Martinez",
+      "evidenceAnchors": [
+        {
+          "time": 11.0,
+          "role": "departure",
+          "playerId": 4822,
+          "playerName": "Javier Martinez"
+        },
+        {
+          "time": 11.9,
+          "role": "arrival",
+          "playerId": 1308,
+          "playerName": "Benjamin Pavard"
+        },
+        {
+          "time": 13.8,
+          "role": "arrival",
+          "playerId": 4822,
+          "playerName": "Javier Martinez"
+        }
+      ],
+      "highlightPlayerIds": [
+        4822,
+        1308,
+        6168,
+        6900,
+        5578
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 11.0,
+      "evidenceEnd": 13.8,
+      "coreStart": 10.5,
+      "coreEnd": 14.3,
+      "corePlayerIds": [
+        4822,
+        1308
+      ],
+      "supportPlayerIds": [
+        6168
+      ],
+      "opponentContextPlayerIds": [
+        6900,
+        5578
+      ],
+      "metrics": {
+        "forwardMeters": 2.295,
+        "lateralMeters": 15.079,
+        "startWidthMeters": 8.414,
+        "insideGainMeters": -15.079,
+        "pressureMeters": 11.092,
+        "carryMeters": 2.748,
+        "sequenceSeconds": 2.8,
+        "connectionMeters": 12.475,
+        "legMeters": [
+          12.475,
+          8.677
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2417",
+      "assetSha256": "2524c09ae1cd1fa75a2d8fc77a4265655e4a8728ed58e1bb88fc305ca1167006"
+    },
+    {
+      "id": "2841-5738-ramos-combination",
+      "asset": "assets/scan_pass_spatial/scenes/2841-5738-ramos-combination.json",
+      "theme": "combination",
+      "matchId": 2841,
+      "date": "2019-12-18",
+      "home": "FC Barcelona",
+      "away": "Real Madrid",
+      "period": 1,
+      "startFrame": 5596,
+      "endFrame": 5896,
+      "startClock": 545.9,
+      "duration": 30.0,
+      "focusPlayerId": 9775,
+      "focusPlayerName": "Sergio Ramos",
+      "evidenceAnchors": [
+        {
+          "time": 14.2,
+          "role": "departure",
+          "playerId": 9775,
+          "playerName": "Sergio Ramos"
+        },
+        {
+          "time": 14.9,
+          "role": "arrival",
+          "playerId": 10530,
+          "playerName": "Toni Kroos"
+        },
+        {
+          "time": 15.8,
+          "role": "arrival",
+          "playerId": 9775,
+          "playerName": "Sergio Ramos"
+        }
+      ],
+      "highlightPlayerIds": [
+        9775,
+        10530,
+        11311,
+        6460,
+        9745
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 14.2,
+      "evidenceEnd": 15.8,
+      "coreStart": 13.7,
+      "coreEnd": 16.3,
+      "corePlayerIds": [
+        9775,
+        10530
+      ],
+      "supportPlayerIds": [
+        11311
+      ],
+      "opponentContextPlayerIds": [
+        6460,
+        9745
+      ],
+      "metrics": {
+        "forwardMeters": 10.864,
+        "lateralMeters": 0.039,
+        "startWidthMeters": 25.524,
+        "insideGainMeters": 0.039,
+        "pressureMeters": 13.496,
+        "carryMeters": 1.656,
+        "sequenceSeconds": 1.6,
+        "connectionMeters": 7.098,
+        "legMeters": [
+          7.098,
+          7.697
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
+      "assetSha256": "d2ffdad1f52f37523356009fae884f17f8f48d45d8a315e68f402bf0602bd79a"
     },
     {
       "id": "2417-61071-alaba-combination",
@@ -911,227 +3940,318 @@
       "assetSha256": "95e3b89711b3e39f5c84eef53d2f5dd57eba19737c6562b01e89fa17dbabab56"
     },
     {
-      "id": "3442-17463-griezmann-pressureSupport",
-      "asset": "assets/scan_pass_spatial/scenes/3442-17463-griezmann-pressureSupport.json",
-      "theme": "pressureSupport",
-      "matchId": 3442,
-      "date": "2020-03-01",
-      "home": "Real Madrid",
-      "away": "FC Barcelona",
-      "period": 1,
-      "startFrame": 17341,
-      "endFrame": 17641,
-      "startClock": 1642.6,
-      "duration": 30.0,
-      "focusPlayerId": 956,
-      "focusPlayerName": "Antoine Griezmann",
-      "evidenceAnchors": [
-        {
-          "time": 12.2,
-          "role": "departure",
-          "playerId": 956,
-          "playerName": "Antoine Griezmann"
-        },
-        {
-          "time": 13.3,
-          "role": "arrival",
-          "playerId": 6260,
-          "playerName": "Lionel Messi"
-        }
-      ],
-      "highlightPlayerIds": [
-        956,
-        6260,
-        1101,
-        9775,
-        8886
-      ],
-      "attackingTeam": "away",
-      "attackDirection": -1,
-      "evidenceStart": 12.2,
-      "evidenceEnd": 13.3,
-      "coreStart": 11.7,
-      "coreEnd": 13.8,
-      "corePlayerIds": [
-        956,
-        6260
-      ],
-      "supportPlayerIds": [
-        1101
-      ],
-      "opponentContextPlayerIds": [
-        9775,
-        8886
-      ],
-      "metrics": {
-        "forwardMeters": -0.711,
-        "lateralMeters": 4.432,
-        "startWidthMeters": 1.636,
-        "insideGainMeters": -4.432,
-        "pressureMeters": 0.289,
-        "carryMeters": 2.225,
-        "sequenceSeconds": 1.1,
-        "connectionMeters": 4.607
-      },
-      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
-      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
-      "assetSha256": "902072f4a3c139bd1f212679d928ab4757aad0c91f580c4896c4e86578de5564"
-    },
-    {
-      "id": "2841-5738-ramos-combination",
-      "asset": "assets/scan_pass_spatial/scenes/2841-5738-ramos-combination.json",
+      "id": "2841-8050-rakitic-combination",
+      "asset": "assets/scan_pass_spatial/scenes/2841-8050-rakitic-combination.json",
       "theme": "combination",
       "matchId": 2841,
       "date": "2019-12-18",
       "home": "FC Barcelona",
       "away": "Real Madrid",
       "period": 1,
-      "startFrame": 5596,
-      "endFrame": 5896,
-      "startClock": 545.9,
+      "startFrame": 7921,
+      "endFrame": 8221,
+      "startClock": 778.4,
       "duration": 30.0,
-      "focusPlayerId": 9775,
-      "focusPlayerName": "Sergio Ramos",
+      "focusPlayerId": 4560,
+      "focusPlayerName": "Ivan Rakitic",
       "evidenceAnchors": [
         {
-          "time": 14.2,
+          "time": 12.9,
           "role": "departure",
-          "playerId": 9775,
-          "playerName": "Sergio Ramos"
+          "playerId": 4560,
+          "playerName": "Ivan Rakitic"
+        },
+        {
+          "time": 13.6,
+          "role": "arrival",
+          "playerId": 9745,
+          "playerName": "Sergi Roberto"
         },
         {
           "time": 14.9,
           "role": "arrival",
-          "playerId": 10530,
-          "playerName": "Toni Kroos"
-        },
-        {
-          "time": 15.8,
-          "role": "arrival",
-          "playerId": 9775,
-          "playerName": "Sergio Ramos"
+          "playerId": 3862,
+          "playerName": "Gerard Pique"
         }
       ],
       "highlightPlayerIds": [
-        9775,
-        10530,
-        11311,
-        6460,
-        9745
+        4560,
+        9745,
+        3862,
+        11712,
+        5720,
+        12395
       ],
-      "attackingTeam": "away",
-      "attackDirection": -1,
-      "evidenceStart": 14.2,
-      "evidenceEnd": 15.8,
-      "coreStart": 13.7,
-      "coreEnd": 16.3,
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 12.9,
+      "evidenceEnd": 14.9,
+      "coreStart": 12.4,
+      "coreEnd": 15.4,
       "corePlayerIds": [
-        9775,
-        10530
+        4560,
+        9745,
+        3862
       ],
       "supportPlayerIds": [
-        11311
+        11712
       ],
       "opponentContextPlayerIds": [
-        6460,
-        9745
+        5720,
+        12395
       ],
       "metrics": {
-        "forwardMeters": 10.864,
-        "lateralMeters": 0.039,
-        "startWidthMeters": 25.524,
-        "insideGainMeters": 0.039,
-        "pressureMeters": 13.496,
-        "carryMeters": 1.656,
-        "sequenceSeconds": 1.6,
-        "connectionMeters": 7.098,
+        "forwardMeters": 8.442,
+        "lateralMeters": 10.328,
+        "startWidthMeters": 5.788,
+        "insideGainMeters": 1.248,
+        "pressureMeters": 6.798,
+        "carryMeters": 2.632,
+        "sequenceSeconds": 2.0,
+        "connectionMeters": 8.448,
         "legMeters": [
-          7.098,
-          7.697
+          8.448,
+          10.833
         ]
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
-      "assetSha256": "d2ffdad1f52f37523356009fae884f17f8f48d45d8a315e68f402bf0602bd79a"
+      "assetSha256": "6f1e335920282a3e3697d78f44ab6073d05978bb9320f6ab07b6f31968243108"
     },
     {
-      "id": "3749-64216-can-combination",
-      "asset": "assets/scan_pass_spatial/scenes/3749-64216-can-combination.json",
+      "id": "3442-1123-varane-combination",
+      "asset": "assets/scan_pass_spatial/scenes/3442-1123-varane-combination.json",
       "theme": "combination",
-      "matchId": 3749,
-      "date": "2020-05-26",
-      "home": "Dortmund",
-      "away": "Bayern Munchen",
-      "period": 2,
-      "startFrame": 64123,
-      "endFrame": 64346,
-      "startClock": 5339.5,
-      "duration": 22.3,
-      "focusPlayerId": 3104,
-      "focusPlayerName": "Emre Can",
+      "matchId": 3442,
+      "date": "2020-03-01",
+      "home": "Real Madrid",
+      "away": "FC Barcelona",
+      "period": 1,
+      "startFrame": 1071,
+      "endFrame": 1371,
+      "startClock": 15.6,
+      "duration": 30.0,
+      "focusPlayerId": 8886,
+      "focusPlayerName": "Raphael Varane",
       "evidenceAnchors": [
         {
-          "time": 9.3,
+          "time": 5.2,
           "role": "departure",
-          "playerId": 3104,
-          "playerName": "Emre Can"
+          "playerId": 8886,
+          "playerName": "Raphael Varane"
         },
         {
-          "time": 10.0,
+          "time": 5.9,
           "role": "arrival",
-          "playerId": 6617,
-          "playerName": "Manuel Akanji"
+          "playerId": 2199,
+          "playerName": "Daniel Carvajal"
         },
         {
-          "time": 13.5,
+          "time": 7.2,
           "role": "arrival",
-          "playerId": 8879,
-          "playerName": "Raphael Guerreiro"
+          "playerId": 1684,
+          "playerName": "Casemiro"
         }
       ],
       "highlightPlayerIds": [
-        3104,
-        6617,
-        8879,
-        11559,
-        5482,
-        6168
+        8886,
+        2199,
+        1684,
+        10271,
+        956,
+        12524
       ],
       "attackingTeam": "home",
-      "attackDirection": -1,
-      "evidenceStart": 9.3,
-      "evidenceEnd": 13.5,
-      "coreStart": 8.8,
-      "coreEnd": 14.0,
+      "attackDirection": 1,
+      "evidenceStart": 5.2,
+      "evidenceEnd": 7.2,
+      "coreStart": 4.7,
+      "coreEnd": 7.7,
       "corePlayerIds": [
-        3104,
-        6617,
-        8879
+        8886,
+        2199,
+        1684
       ],
       "supportPlayerIds": [
-        11559
+        10271
       ],
       "opponentContextPlayerIds": [
-        5482,
-        6168
+        956,
+        12524
       ],
       "metrics": {
-        "forwardMeters": -1.489,
-        "lateralMeters": 11.756,
-        "startWidthMeters": 7.888,
-        "insideGainMeters": 4.02,
-        "pressureMeters": 4.701,
-        "carryMeters": 2.348,
-        "sequenceSeconds": 4.2,
-        "connectionMeters": 9.805,
+        "forwardMeters": 7.115,
+        "lateralMeters": 7.587,
+        "startWidthMeters": 24.088,
+        "insideGainMeters": -7.587,
+        "pressureMeters": 5.138,
+        "carryMeters": 6.448,
+        "sequenceSeconds": 2.0,
+        "connectionMeters": 6.641,
         "legMeters": [
-          9.805,
-          27.534
+          6.641,
+          14.399
         ]
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
-      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3749",
-      "assetSha256": "7abaf1f6209c39855792c3d0e190bb687d3f600bcfc4c6fca3538391030fa69e"
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
+      "assetSha256": "e2cf97b2de3fb1cc0ade801d4846aac5dd4f7886133d34fa20e2ea742461a283"
+    },
+    {
+      "id": "2841-54279-valverde-combination",
+      "asset": "assets/scan_pass_spatial/scenes/2841-54279-valverde-combination.json",
+      "theme": "combination",
+      "matchId": 2841,
+      "date": "2019-12-18",
+      "home": "FC Barcelona",
+      "away": "Real Madrid",
+      "period": 2,
+      "startFrame": 54093,
+      "endFrame": 54393,
+      "startClock": 4289.2,
+      "duration": 30.0,
+      "focusPlayerId": 12395,
+      "focusPlayerName": "Federico Valverde",
+      "evidenceAnchors": [
+        {
+          "time": 18.6,
+          "role": "departure",
+          "playerId": 12395,
+          "playerName": "Federico Valverde"
+        },
+        {
+          "time": 19.5,
+          "role": "arrival",
+          "playerId": 5720,
+          "playerName": "Karim Benzema"
+        },
+        {
+          "time": 20.2,
+          "role": "arrival",
+          "playerId": 12395,
+          "playerName": "Federico Valverde"
+        }
+      ],
+      "highlightPlayerIds": [
+        12395,
+        5720,
+        10530,
+        12524,
+        4560
+      ],
+      "attackingTeam": "away",
+      "attackDirection": 1,
+      "evidenceStart": 18.6,
+      "evidenceEnd": 20.2,
+      "coreStart": 18.1,
+      "coreEnd": 20.7,
+      "corePlayerIds": [
+        12395,
+        5720
+      ],
+      "supportPlayerIds": [
+        10530
+      ],
+      "opponentContextPlayerIds": [
+        12524,
+        4560
+      ],
+      "metrics": {
+        "forwardMeters": 7.133,
+        "lateralMeters": 6.453,
+        "startWidthMeters": 1.834,
+        "insideGainMeters": -6.453,
+        "pressureMeters": 6.223,
+        "carryMeters": 0.505,
+        "sequenceSeconds": 1.6,
+        "connectionMeters": 6.637,
+        "legMeters": [
+          6.637,
+          5.684
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
+      "assetSha256": "ade83690a35084400bbaf8fe20c94fa373f631dd9281da52d4d16501a95618eb"
+    },
+    {
+      "id": "3442-14487-valverde-combination",
+      "asset": "assets/scan_pass_spatial/scenes/3442-14487-valverde-combination.json",
+      "theme": "combination",
+      "matchId": 3442,
+      "date": "2020-03-01",
+      "home": "Real Madrid",
+      "away": "FC Barcelona",
+      "period": 1,
+      "startFrame": 14339,
+      "endFrame": 14639,
+      "startClock": 1342.4,
+      "duration": 30.0,
+      "focusPlayerId": 12395,
+      "focusPlayerName": "Federico Valverde",
+      "evidenceAnchors": [
+        {
+          "time": 14.8,
+          "role": "departure",
+          "playerId": 12395,
+          "playerName": "Federico Valverde"
+        },
+        {
+          "time": 15.7,
+          "role": "arrival",
+          "playerId": 1684,
+          "playerName": "Casemiro"
+        },
+        {
+          "time": 17.4,
+          "role": "arrival",
+          "playerId": 10530,
+          "playerName": "Toni Kroos"
+        }
+      ],
+      "highlightPlayerIds": [
+        12395,
+        1684,
+        10530,
+        2199,
+        12524,
+        9759
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 14.8,
+      "evidenceEnd": 17.4,
+      "coreStart": 14.3,
+      "coreEnd": 17.9,
+      "corePlayerIds": [
+        12395,
+        1684,
+        10530
+      ],
+      "supportPlayerIds": [
+        2199
+      ],
+      "opponentContextPlayerIds": [
+        12524,
+        9759
+      ],
+      "metrics": {
+        "forwardMeters": 7.023,
+        "lateralMeters": 8.022,
+        "startWidthMeters": 6.074,
+        "insideGainMeters": 4.125,
+        "pressureMeters": 15.825,
+        "carryMeters": 3.929,
+        "sequenceSeconds": 2.6,
+        "connectionMeters": 7.415,
+        "legMeters": [
+          7.415,
+          10.983
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
+      "assetSha256": "112a5fd9142905b8a456a65ec0302f9a4c6544f381a3b25f6dc03a92f7c0db3a"
     },
     {
       "id": "2841-64724-modric-combination",
@@ -1213,6 +4333,632 @@
       "assetSha256": "9fa90956ece1fe432fb81f1cbe496727db9e0e666f0e1700026952ae1108beb0"
     },
     {
+      "id": "3442-41074-umtiti-combination",
+      "asset": "assets/scan_pass_spatial/scenes/3442-41074-umtiti-combination.json",
+      "theme": "combination",
+      "matchId": 3442,
+      "date": "2020-03-01",
+      "home": "Real Madrid",
+      "away": "FC Barcelona",
+      "period": 2,
+      "startFrame": 40981,
+      "endFrame": 41281,
+      "startClock": 2989.1,
+      "duration": 30.0,
+      "focusPlayerId": 9533,
+      "focusPlayerName": "Samuel Umtiti",
+      "evidenceAnchors": [
+        {
+          "time": 9.3,
+          "role": "departure",
+          "playerId": 9533,
+          "playerName": "Samuel Umtiti"
+        },
+        {
+          "time": 9.9,
+          "role": "arrival",
+          "playerId": 12524,
+          "playerName": "Frenkie de Jong"
+        },
+        {
+          "time": 11.0,
+          "role": "arrival",
+          "playerId": 9533,
+          "playerName": "Samuel Umtiti"
+        }
+      ],
+      "highlightPlayerIds": [
+        9533,
+        12524,
+        9759,
+        4497,
+        12395
+      ],
+      "attackingTeam": "away",
+      "attackDirection": 1,
+      "evidenceStart": 9.3,
+      "evidenceEnd": 11.0,
+      "coreStart": 8.8,
+      "coreEnd": 11.5,
+      "corePlayerIds": [
+        9533,
+        12524
+      ],
+      "supportPlayerIds": [
+        9759
+      ],
+      "opponentContextPlayerIds": [
+        4497,
+        12395
+      ],
+      "metrics": {
+        "forwardMeters": 13.754,
+        "lateralMeters": 3.063,
+        "startWidthMeters": 13.208,
+        "insideGainMeters": 3.063,
+        "pressureMeters": 12.479,
+        "carryMeters": 5.08,
+        "sequenceSeconds": 1.7,
+        "connectionMeters": 9.214,
+        "legMeters": [
+          9.214,
+          7.217
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
+      "assetSha256": "87c16336be8b5a8d824f5caa9839e8df6ae30d4a6cf25ebf299d1d310f716a00"
+    },
+    {
+      "id": "3518-7470-cuadrado-combination",
+      "asset": "assets/scan_pass_spatial/scenes/3518-7470-cuadrado-combination.json",
+      "theme": "combination",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 1,
+      "startFrame": 7312,
+      "endFrame": 7612,
+      "startClock": 677.0,
+      "duration": 30.0,
+      "focusPlayerId": 5521,
+      "focusPlayerName": "Juan Cuadrado",
+      "evidenceAnchors": [
+        {
+          "time": 15.8,
+          "role": "departure",
+          "playerId": 5521,
+          "playerName": "Juan Cuadrado"
+        },
+        {
+          "time": 16.5,
+          "role": "arrival",
+          "playerId": 11636,
+          "playerName": "Matthijs de Ligt"
+        },
+        {
+          "time": 18.1,
+          "role": "arrival",
+          "playerId": 5521,
+          "playerName": "Juan Cuadrado"
+        }
+      ],
+      "highlightPlayerIds": [
+        5521,
+        11636,
+        2868,
+        12801,
+        1112
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 15.8,
+      "evidenceEnd": 18.1,
+      "coreStart": 15.3,
+      "coreEnd": 18.6,
+      "corePlayerIds": [
+        5521,
+        11636
+      ],
+      "supportPlayerIds": [
+        2868
+      ],
+      "opponentContextPlayerIds": [
+        12801,
+        1112
+      ],
+      "metrics": {
+        "forwardMeters": -3.371,
+        "lateralMeters": 8.098,
+        "startWidthMeters": 14.354,
+        "insideGainMeters": 8.098,
+        "pressureMeters": 8.528,
+        "carryMeters": 0.405,
+        "sequenceSeconds": 2.3,
+        "connectionMeters": 5.71,
+        "legMeters": [
+          5.71,
+          7.599
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "3505d45cb00057811cbcebc3bd33ae2422a1a488ecffd75c240b69418761084a"
+    },
+    {
+      "id": "3442-48981-ter-stegen-combination",
+      "asset": "assets/scan_pass_spatial/scenes/3442-48981-ter-stegen-combination.json",
+      "theme": "combination",
+      "matchId": 3442,
+      "date": "2020-03-01",
+      "home": "Real Madrid",
+      "away": "FC Barcelona",
+      "period": 2,
+      "startFrame": 48931,
+      "endFrame": 49231,
+      "startClock": 3784.1,
+      "duration": 30.0,
+      "focusPlayerId": 6689,
+      "focusPlayerName": "Marc-Andre ter Stegen",
+      "evidenceAnchors": [
+        {
+          "time": 5.0,
+          "role": "departure",
+          "playerId": 6689,
+          "playerName": "Marc-Andre ter Stegen"
+        },
+        {
+          "time": 5.9,
+          "role": "arrival",
+          "playerId": 12524,
+          "playerName": "Frenkie de Jong"
+        },
+        {
+          "time": 7.1,
+          "role": "arrival",
+          "playerId": 9533,
+          "playerName": "Samuel Umtiti"
+        }
+      ],
+      "highlightPlayerIds": [
+        6689,
+        12524,
+        9533,
+        3862,
+        5720,
+        12397
+      ],
+      "attackingTeam": "away",
+      "attackDirection": 1,
+      "evidenceStart": 5.0,
+      "evidenceEnd": 7.1,
+      "coreStart": 4.5,
+      "coreEnd": 7.6,
+      "corePlayerIds": [
+        6689,
+        12524,
+        9533
+      ],
+      "supportPlayerIds": [
+        3862
+      ],
+      "opponentContextPlayerIds": [
+        5720,
+        12397
+      ],
+      "metrics": {
+        "forwardMeters": 15.318,
+        "lateralMeters": 5.679,
+        "startWidthMeters": 2.152,
+        "insideGainMeters": -1.375,
+        "pressureMeters": 5.781,
+        "carryMeters": 6.876,
+        "sequenceSeconds": 2.1,
+        "connectionMeters": 12.931,
+        "legMeters": [
+          12.931,
+          13.555
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
+      "assetSha256": "66ed2c444443171b96e0aafe1a897b6d4e409f14390dea979cf4a5564c67102b"
+    },
+    {
+      "id": "3518-14668-skriniar-combination",
+      "asset": "assets/scan_pass_spatial/scenes/3518-14668-skriniar-combination.json",
+      "theme": "combination",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 1,
+      "startFrame": 14601,
+      "endFrame": 14901,
+      "startClock": 1405.9,
+      "duration": 30.0,
+      "focusPlayerId": 7648,
+      "focusPlayerName": "Milan Skriniar",
+      "evidenceAnchors": [
+        {
+          "time": 6.7,
+          "role": "departure",
+          "playerId": 7648,
+          "playerName": "Milan Skriniar"
+        },
+        {
+          "time": 7.4,
+          "role": "arrival",
+          "playerId": 7209,
+          "playerName": "Matias Vecino"
+        },
+        {
+          "time": 8.2,
+          "role": "arrival",
+          "playerId": 6717,
+          "playerName": "Marcelo Brozovic"
+        }
+      ],
+      "highlightPlayerIds": [
+        7648,
+        7209,
+        6717,
+        9982,
+        4023,
+        520
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 6.7,
+      "evidenceEnd": 8.2,
+      "coreStart": 6.2,
+      "coreEnd": 8.7,
+      "corePlayerIds": [
+        7648,
+        7209,
+        6717
+      ],
+      "supportPlayerIds": [
+        9982
+      ],
+      "opponentContextPlayerIds": [
+        4023,
+        520
+      ],
+      "metrics": {
+        "forwardMeters": 13.477,
+        "lateralMeters": 0.374,
+        "startWidthMeters": 21.204,
+        "insideGainMeters": 0.374,
+        "pressureMeters": 6.688,
+        "carryMeters": 0.985,
+        "sequenceSeconds": 1.5,
+        "connectionMeters": 8.848,
+        "legMeters": [
+          8.848,
+          6.624
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "1889286644a9e47d6f2cac164fbf6f85fe14f5dfbcdd22943e4a63ccf9043978"
+    },
+    {
+      "id": "3749-64216-can-combination",
+      "asset": "assets/scan_pass_spatial/scenes/3749-64216-can-combination.json",
+      "theme": "combination",
+      "matchId": 3749,
+      "date": "2020-05-26",
+      "home": "Dortmund",
+      "away": "Bayern Munchen",
+      "period": 2,
+      "startFrame": 64123,
+      "endFrame": 64346,
+      "startClock": 5339.5,
+      "duration": 22.3,
+      "focusPlayerId": 3104,
+      "focusPlayerName": "Emre Can",
+      "evidenceAnchors": [
+        {
+          "time": 9.3,
+          "role": "departure",
+          "playerId": 3104,
+          "playerName": "Emre Can"
+        },
+        {
+          "time": 10.0,
+          "role": "arrival",
+          "playerId": 6617,
+          "playerName": "Manuel Akanji"
+        },
+        {
+          "time": 13.5,
+          "role": "arrival",
+          "playerId": 8879,
+          "playerName": "Raphael Guerreiro"
+        }
+      ],
+      "highlightPlayerIds": [
+        3104,
+        6617,
+        8879,
+        11559,
+        5482,
+        6168
+      ],
+      "attackingTeam": "home",
+      "attackDirection": -1,
+      "evidenceStart": 9.3,
+      "evidenceEnd": 13.5,
+      "coreStart": 8.8,
+      "coreEnd": 14.0,
+      "corePlayerIds": [
+        3104,
+        6617,
+        8879
+      ],
+      "supportPlayerIds": [
+        11559
+      ],
+      "opponentContextPlayerIds": [
+        5482,
+        6168
+      ],
+      "metrics": {
+        "forwardMeters": -1.489,
+        "lateralMeters": 11.756,
+        "startWidthMeters": 7.888,
+        "insideGainMeters": 4.02,
+        "pressureMeters": 4.701,
+        "carryMeters": 2.348,
+        "sequenceSeconds": 4.2,
+        "connectionMeters": 9.805,
+        "legMeters": [
+          9.805,
+          27.534
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3749",
+      "assetSha256": "7abaf1f6209c39855792c3d0e190bb687d3f600bcfc4c6fca3538391030fa69e"
+    },
+    {
+      "id": "3518-53914-handanovic-combination",
+      "asset": "assets/scan_pass_spatial/scenes/3518-53914-handanovic-combination.json",
+      "theme": "combination",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 2,
+      "startFrame": 53719,
+      "endFrame": 54019,
+      "startClock": 4353.5,
+      "duration": 30.0,
+      "focusPlayerId": 9504,
+      "focusPlayerName": "Samir Handanovic",
+      "evidenceAnchors": [
+        {
+          "time": 19.5,
+          "role": "departure",
+          "playerId": 9504,
+          "playerName": "Samir Handanovic"
+        },
+        {
+          "time": 20.2,
+          "role": "arrival",
+          "playerId": 7648,
+          "playerName": "Milan Skriniar"
+        },
+        {
+          "time": 22.2,
+          "role": "arrival",
+          "playerId": 7209,
+          "playerName": "Matias Vecino"
+        }
+      ],
+      "highlightPlayerIds": [
+        9504,
+        7648,
+        7209,
+        19244,
+        105,
+        8514
+      ],
+      "attackingTeam": "away",
+      "attackDirection": 1,
+      "evidenceStart": 19.5,
+      "evidenceEnd": 22.2,
+      "coreStart": 19.0,
+      "coreEnd": 22.7,
+      "corePlayerIds": [
+        9504,
+        7648,
+        7209
+      ],
+      "supportPlayerIds": [
+        19244
+      ],
+      "opponentContextPlayerIds": [
+        105,
+        8514
+      ],
+      "metrics": {
+        "forwardMeters": 1.166,
+        "lateralMeters": 10.523,
+        "startWidthMeters": 0.205,
+        "insideGainMeters": -10.113,
+        "pressureMeters": 3.561,
+        "carryMeters": 0.915,
+        "sequenceSeconds": 2.7,
+        "connectionMeters": 8.414,
+        "legMeters": [
+          8.414,
+          11.032
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "5d0a96b4d6a9eee9fa9f79db795ce0297f7782e0f27ab7a63e5650707b99d2a0"
+    },
+    {
+      "id": "4039-738-walker-combination",
+      "asset": "assets/scan_pass_spatial/scenes/4039-738-walker-combination.json",
+      "theme": "combination",
+      "matchId": 4039,
+      "date": "2020-07-02",
+      "home": "Manchester City",
+      "away": "Liverpool",
+      "period": 1,
+      "startFrame": 602,
+      "endFrame": 902,
+      "startClock": 16.0,
+      "duration": 30.0,
+      "focusPlayerId": 6037,
+      "focusPlayerName": "Kyle Walker",
+      "evidenceAnchors": [
+        {
+          "time": 13.6,
+          "role": "departure",
+          "playerId": 6037,
+          "playerName": "Kyle Walker"
+        },
+        {
+          "time": 14.4,
+          "role": "arrival",
+          "playerId": 24015,
+          "playerName": "Eric Garcia"
+        },
+        {
+          "time": 16.4,
+          "role": "arrival",
+          "playerId": 2934,
+          "playerName": "Ederson"
+        }
+      ],
+      "highlightPlayerIds": [
+        6037,
+        24015,
+        2934,
+        4460,
+        3847,
+        9143
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 13.6,
+      "evidenceEnd": 16.4,
+      "coreStart": 13.1,
+      "coreEnd": 16.9,
+      "corePlayerIds": [
+        6037,
+        24015,
+        2934
+      ],
+      "supportPlayerIds": [
+        4460
+      ],
+      "opponentContextPlayerIds": [
+        3847,
+        9143
+      ],
+      "metrics": {
+        "forwardMeters": -13.951,
+        "lateralMeters": 4.898,
+        "startWidthMeters": 32.528,
+        "insideGainMeters": 4.898,
+        "pressureMeters": 3.649,
+        "carryMeters": 0.434,
+        "sequenceSeconds": 2.8,
+        "connectionMeters": 11.855,
+        "legMeters": [
+          11.855,
+          20.369
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/4039",
+      "assetSha256": "24048d58a2b6add6cf566889567423e3d5da81f0b9891c7bbfe203039bbf2c88"
+    },
+    {
+      "id": "3518-54764-dybala-combination",
+      "asset": "assets/scan_pass_spatial/scenes/3518-54764-dybala-combination.json",
+      "theme": "combination",
+      "matchId": 3518,
+      "date": "2020-03-08",
+      "home": "Juventus",
+      "away": "Inter",
+      "period": 2,
+      "startFrame": 54651,
+      "endFrame": 54951,
+      "startClock": 4446.7,
+      "duration": 30.0,
+      "focusPlayerId": 8514,
+      "focusPlayerName": "Paulo Dybala",
+      "evidenceAnchors": [
+        {
+          "time": 11.3,
+          "role": "departure",
+          "playerId": 8514,
+          "playerName": "Paulo Dybala"
+        },
+        {
+          "time": 12.3,
+          "role": "arrival",
+          "playerId": 5521,
+          "playerName": "Juan Cuadrado"
+        },
+        {
+          "time": 13.0,
+          "role": "arrival",
+          "playerId": 8514,
+          "playerName": "Paulo Dybala"
+        }
+      ],
+      "highlightPlayerIds": [
+        8514,
+        5521,
+        105,
+        9144,
+        1112
+      ],
+      "attackingTeam": "home",
+      "attackDirection": -1,
+      "evidenceStart": 11.3,
+      "evidenceEnd": 13.0,
+      "coreStart": 10.8,
+      "coreEnd": 13.5,
+      "corePlayerIds": [
+        8514,
+        5521
+      ],
+      "supportPlayerIds": [
+        105
+      ],
+      "opponentContextPlayerIds": [
+        9144,
+        1112
+      ],
+      "metrics": {
+        "forwardMeters": 8.268,
+        "lateralMeters": 10.641,
+        "startWidthMeters": 20.256,
+        "insideGainMeters": -10.641,
+        "pressureMeters": 4.576,
+        "carryMeters": 2.731,
+        "sequenceSeconds": 1.7,
+        "connectionMeters": 10.093,
+        "legMeters": [
+          10.093,
+          5.713
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
+      "assetSha256": "23f935daa99f8e1ea62aa3964d0e4ae0575f8de0f203b8caafe54c09c102b535"
+    },
+    {
       "id": "4039-3133-laporte-combination",
       "asset": "assets/scan_pass_spatial/scenes/4039-3133-laporte-combination.json",
       "theme": "combination",
@@ -1288,6 +5034,85 @@
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/4039",
       "assetSha256": "dbcb4f42ed273321b1731e8775fa7bdccd9904f63b0aaeebd79071227a3d4e80"
+    },
+    {
+      "id": "4039-11627-gomez-combination",
+      "asset": "assets/scan_pass_spatial/scenes/4039-11627-gomez-combination.json",
+      "theme": "combination",
+      "matchId": 4039,
+      "date": "2020-07-02",
+      "home": "Manchester City",
+      "away": "Liverpool",
+      "period": 1,
+      "startFrame": 11431,
+      "endFrame": 11718,
+      "startClock": 1098.9,
+      "duration": 28.7,
+      "focusPlayerId": 11537,
+      "focusPlayerName": "Joe Gomez",
+      "evidenceAnchors": [
+        {
+          "time": 19.6,
+          "role": "departure",
+          "playerId": 11537,
+          "playerName": "Joe Gomez"
+        },
+        {
+          "time": 20.3,
+          "role": "arrival",
+          "playerId": 5318,
+          "playerName": "Jordan Henderson"
+        },
+        {
+          "time": 21.3,
+          "role": "arrival",
+          "playerId": 3267,
+          "playerName": "Fabinho"
+        }
+      ],
+      "highlightPlayerIds": [
+        11537,
+        5318,
+        3267,
+        9143,
+        5821,
+        4460
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 19.6,
+      "evidenceEnd": 21.3,
+      "coreStart": 19.1,
+      "coreEnd": 21.8,
+      "corePlayerIds": [
+        11537,
+        5318,
+        3267
+      ],
+      "supportPlayerIds": [
+        9143
+      ],
+      "opponentContextPlayerIds": [
+        5821,
+        4460
+      ],
+      "metrics": {
+        "forwardMeters": 6.459,
+        "lateralMeters": 10.989,
+        "startWidthMeters": 16.501,
+        "insideGainMeters": 10.989,
+        "pressureMeters": 6.35,
+        "carryMeters": 1.674,
+        "sequenceSeconds": 1.7,
+        "connectionMeters": 9.087,
+        "legMeters": [
+          9.087,
+          11.592
+        ]
+      },
+      "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
+      "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/4039",
+      "assetSha256": "0d86c41ca7d50d77cd40aabf00743e45deacc6daa1709620c4ac06e530e85fff"
     }
   ]
 }

@@ -84,6 +84,7 @@ class _ScanPassSpatialLibraryScreenState
   RealMatchReplayData? _data;
   SpatialFocusPlan? _focusPlan;
   final Map<String, SpatialFocusPlan> _focusPlans = {};
+  final _libraryFilters = _SpatialLibrarySheetFilters();
   Object? _loadError;
   int _sceneIndex = 0;
   int? _requestedSceneIndex;
@@ -361,6 +362,7 @@ class _ScanPassSpatialLibraryScreenState
       builder: (context) => _SpatialLibrarySheet(
         catalog: catalog,
         selectedIndex: _sceneIndex,
+        filters: _libraryFilters,
       ),
     );
     if (!mounted || selected == null || selected == _sceneIndex) return;
@@ -482,6 +484,7 @@ class _ScanPassSpatialLibraryScreenState
       ));
     }
     return _withReadableSystemUi(Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFF10291F),
       body: SafeArea(
         child: LayoutBuilder(builder: (context, constraints) {
@@ -1204,20 +1207,36 @@ class _ScanPassSpatialLibraryScreenState
   }
 }
 
+class _SpatialLibrarySheetFilters {
+  String query = '';
+  SpatialLearningTheme? theme;
+  String? attackingTeam;
+  String? player;
+}
+
 class _SpatialLibrarySheet extends StatefulWidget {
   final SpatialLibraryCatalog catalog;
   final int selectedIndex;
+  final _SpatialLibrarySheetFilters filters;
 
-  const _SpatialLibrarySheet(
-      {required this.catalog, required this.selectedIndex});
+  const _SpatialLibrarySheet({
+    required this.catalog,
+    required this.selectedIndex,
+    required this.filters,
+  });
 
   @override
   State<_SpatialLibrarySheet> createState() => _SpatialLibrarySheetState();
 }
 
 class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
-  final _searchController = TextEditingController();
-  SpatialLearningTheme? _theme;
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController(text: widget.filters.query);
+  }
 
   @override
   void dispose() {
@@ -1228,143 +1247,348 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final scenes = widget.catalog
-        .filtered(theme: _theme)
+    final scenes = widget.catalog.scenes
         .where(
-          (scene) => _matchesLocalizedSearch(
-            l10n,
+          (scene) =>
+              widget.filters.theme == null ||
+              scene.theme == widget.filters.theme,
+        )
+        .where(
+          (scene) =>
+              widget.filters.attackingTeam == null ||
+              scene.attackingTeam == widget.filters.attackingTeam,
+        )
+        .where(
+          (scene) =>
+              widget.filters.player == null ||
+              scene.involvesPlayer(widget.filters.player!),
+        )
+        .where(
+          (scene) => SpatialLibraryDiscovery.matchesScene(
             scene,
             _searchController.text,
+            themeTerms: <String>[_themeTitle(l10n, scene.theme)],
           ),
         )
         .toList(growable: false);
     final themes = widget.catalog.themes.toList(growable: false)
       ..sort((a, b) => a.index.compareTo(b.index));
-    return FractionallySizedBox(
-      heightFactor: .92,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 8, 8),
-          child: Row(children: [
-            Expanded(
-              child: Text(
-                l10n.spatialLibraryTitle(widget.catalog.scenes.length),
-                style: Theme.of(context).textTheme.titleLarge,
+    final teams = widget.catalog.attackingTeams.toList(growable: false)..sort();
+    final players = widget.catalog
+        .participants(attackingTeam: widget.filters.attackingTeam)
+        .toList(growable: false)
+      ..sort();
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: FractionallySizedBox(
+        heightFactor: .92,
+        child: CustomScrollView(
+          key: const ValueKey<String>('spatial-library-scroll'),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 8, 8),
+                child: Row(children: [
+                  Expanded(
+                    child: Text(
+                      l10n.spatialLibraryTitle(widget.catalog.scenes.length),
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  AppBarActionButton.icon(
+                    key: const ValueKey<String>('spatial-library-close'),
+                    icon: Icons.close,
+                    tooltip:
+                        MaterialLocalizations.of(context).closeButtonTooltip,
+                    onPressed: () => Navigator.pop(context),
+                    compact: true,
+                    margin: EdgeInsets.zero,
+                  ),
+                ]),
               ),
             ),
-            IconButton(
-              tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close),
-            ),
-          ]),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: TextField(
-            key: const ValueKey<String>('spatial-search'),
-            controller: _searchController,
-            onChanged: (_) => setState(() {}),
-            textInputAction: TextInputAction.search,
-            decoration: InputDecoration(
-              isDense: true,
-              prefixIcon: const Icon(Icons.search),
-              hintText: l10n.spatialSearchHint,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 3),
-              child: ChoiceChip(
-                key: const ValueKey<String>('spatial-theme-all'),
-                selected: _theme == null,
-                onSelected: (_) => setState(() => _theme = null),
-                label: Text(l10n.realMatchReplayAllCategories),
-              ),
-            ),
-            for (final theme in themes)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: ChoiceChip(
-                  key: ValueKey<String>('spatial-theme-${theme.name}'),
-                  selected: _theme == theme,
-                  onSelected: (_) => setState(() => _theme = theme),
-                  label: Text(_themeTitle(l10n, theme)),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+              sliver: SliverList.list(children: [
+                TextField(
+                  key: const ValueKey<String>('spatial-search'),
+                  controller: _searchController,
+                  onChanged: (value) {
+                    widget.filters.query = value;
+                    setState(() {});
+                  },
+                  onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchController.text.isEmpty
+                        ? null
+                        : AppBarActionButton.icon(
+                            key: const ValueKey<String>(
+                              'spatial-clear-search',
+                            ),
+                            icon: Icons.clear,
+                            tooltip: l10n.spatialClearSearch,
+                            onPressed: _clearSearch,
+                            compact: true,
+                            margin: EdgeInsets.zero,
+                          ),
+                    hintText: l10n.spatialSearchHint,
+                    border: const OutlineInputBorder(),
+                  ),
                 ),
+                const SizedBox(height: 8),
+                LayoutBuilder(builder: (context, constraints) {
+                  final stack = constraints.maxWidth < 360 ||
+                      MediaQuery.textScalerOf(context).scale(1) > 1.3;
+                  final width = stack
+                      ? constraints.maxWidth
+                      : (constraints.maxWidth - 8) / 2;
+                  return Wrap(spacing: 8, runSpacing: 8, children: [
+                    SizedBox(
+                      width: width,
+                      child: KeyedSubtree(
+                        key: ValueKey<String>(
+                          'spatial-team-value-${widget.filters.attackingTeam ?? 'all'}',
+                        ),
+                        child: DropdownButtonFormField<String?>(
+                          key: const ValueKey<String>('spatial-team-filter'),
+                          initialValue: widget.filters.attackingTeam,
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            isDense: true,
+                            labelText: l10n.spatialAttackingTeamFilter,
+                            border: const OutlineInputBorder(),
+                          ),
+                          items: <DropdownMenuItem<String?>>[
+                            DropdownMenuItem<String?>(
+                              value: null,
+                              child: Text(
+                                l10n.spatialAllAttackingTeams,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            for (final team in teams)
+                              DropdownMenuItem<String?>(
+                                value: team,
+                                child: Text(
+                                  team,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                          ],
+                          onChanged: _selectAttackingTeam,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: width,
+                      child: KeyedSubtree(
+                        key: ValueKey<String>(
+                          'spatial-player-value-${widget.filters.player ?? 'all'}',
+                        ),
+                        child: DropdownButtonFormField<String?>(
+                          key: const ValueKey<String>('spatial-player-filter'),
+                          initialValue: widget.filters.player,
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            isDense: true,
+                            labelText: l10n.spatialPlayerFilter,
+                            border: const OutlineInputBorder(),
+                          ),
+                          items: <DropdownMenuItem<String?>>[
+                            DropdownMenuItem<String?>(
+                              value: null,
+                              child: Text(
+                                l10n.spatialAllPlayers,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            for (final player in players)
+                              DropdownMenuItem<String?>(
+                                value: player,
+                                child: Text(
+                                  player,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                          ],
+                          onChanged: (value) => setState(() {
+                            widget.filters.player = value;
+                          }),
+                        ),
+                      ),
+                    ),
+                  ]);
+                }),
+                const SizedBox(height: 6),
+              ]),
+            ),
+            SliverToBoxAdapter(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: ChoiceChip(
+                      key: const ValueKey<String>('spatial-theme-all'),
+                      selected: widget.filters.theme == null,
+                      onSelected: (_) => setState(() {
+                        widget.filters.theme = null;
+                      }),
+                      label: Text(l10n.realMatchReplayAllCategories),
+                    ),
+                  ),
+                  for (final theme in themes)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: ChoiceChip(
+                        key: ValueKey<String>(
+                          'spatial-theme-${theme.name}',
+                        ),
+                        selected: widget.filters.theme == theme,
+                        onSelected: (_) => setState(() {
+                          widget.filters.theme = theme;
+                        }),
+                        label: Text(_themeTitle(l10n, theme)),
+                      ),
+                    ),
+                ]),
               ),
-          ]),
-        ),
-        const SizedBox(height: 6),
-        Expanded(
-          child: scenes.isEmpty
-              ? Center(child: Text(l10n.spatialNoScenes))
-              : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(10, 2, 10, 20),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 8, 2),
+              sliver: SliverToBoxAdapter(
+                child: Row(children: [
+                  Expanded(
+                    child: Text(
+                      l10n.spatialFilteredResultCount(scenes.length),
+                      key: const ValueKey<String>(
+                        'spatial-result-count',
+                      ),
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                  ),
+                  AppBarActionButton.label(
+                    key: const ValueKey<String>('spatial-reset-filters'),
+                    onPressed: _hasActiveFilters ? _resetFilters : null,
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: l10n.spatialResetFilters,
+                    tooltip: l10n.spatialResetFilters,
+                    compact: true,
+                    margin: EdgeInsets.zero,
+                    maxLabelWidth: 168,
+                  ),
+                ]),
+              ),
+            ),
+            if (scenes.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      l10n.spatialNoScenes,
+                      key: const ValueKey<String>('spatial-empty-results'),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(10, 2, 10, 20),
+                sliver: SliverList.builder(
                   itemCount: scenes.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 4),
                   itemBuilder: (context, row) {
                     final scene = scenes[row];
-                    final index = widget.catalog.scenes.indexOf(scene);
-                    return ListTile(
-                      key: ValueKey<String>('spatial-scene-${scene.id}'),
-                      selected: index == widget.selectedIndex,
-                      onTap: () => Navigator.pop(context, index),
-                      leading: CircleAvatar(child: Text('${index + 1}')),
-                      title: Text(
-                        '${scene.focusPlayerName} · ${_themeTitle(l10n, scene.theme)}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        l10n.spatialSceneIdentityRow(
-                          scene.home,
-                          scene.away,
-                          _catalogClock(scene.startClock),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: Container(
-                        key: ValueKey<String>(
-                          'spatial-duration-${scene.id}',
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          l10n.spatialDurationBadge(
-                            scene.duration.toStringAsFixed(1),
+                    final index = widget.catalog.scenes.indexWhere(
+                      (catalogScene) => catalogScene.id == scene.id,
+                    );
+                    final selected = index == widget.selectedIndex;
+                    final colors = Theme.of(context).colorScheme;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Semantics(
+                        button: true,
+                        selected: selected,
+                        child: Material(
+                          color: selected
+                              ? colors.secondaryContainer
+                              : colors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(12),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            key: ValueKey<String>(
+                              'spatial-scene-${scene.id}',
+                            ),
+                            onTap: () => Navigator.pop(context, index),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              child: _SpatialResultCardBody(
+                                scene: scene,
+                                l10n: l10n,
+                                clock: _catalogClock(scene.startClock),
+                              ),
+                            ),
                           ),
-                          key: ValueKey<String>(
-                            'spatial-duration-text-${scene.id}',
-                          ),
-                          maxLines: 1,
-                          softWrap: false,
-                          style:
-                              Theme.of(context).textTheme.labelMedium?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
                         ),
                       ),
                     );
                   },
                 ),
+              ),
+          ],
         ),
-      ]),
+      ),
     );
+  }
+
+  bool get _hasActiveFilters =>
+      _searchController.text.isNotEmpty ||
+      widget.filters.theme != null ||
+      widget.filters.attackingTeam != null ||
+      widget.filters.player != null;
+
+  void _clearSearch() {
+    _searchController.clear();
+    widget.filters.query = '';
+    setState(() {});
+  }
+
+  void _selectAttackingTeam(String? value) {
+    final compatiblePlayers = widget.catalog.participants(
+      attackingTeam: value,
+    );
+    setState(() {
+      widget.filters.attackingTeam = value;
+      if (widget.filters.player != null &&
+          !compatiblePlayers.contains(widget.filters.player)) {
+        widget.filters.player = null;
+      }
+    });
+  }
+
+  void _resetFilters() {
+    _searchController.clear();
+    widget.filters.query = '';
+    FocusScope.of(context).unfocus();
+    setState(() {
+      widget.filters.theme = null;
+      widget.filters.attackingTeam = null;
+      widget.filters.player = null;
+    });
   }
 
   String _catalogClock(double seconds) {
@@ -1372,6 +1596,124 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
     final second = seconds - minute * 60;
     return '$minute:${second.toStringAsFixed(1).padLeft(4, '0')}';
   }
+}
+
+class _SpatialResultCardBody extends StatelessWidget {
+  final SpatialLibraryScene scene;
+  final AppLocalizations l10n;
+  final String clock;
+
+  const _SpatialResultCardBody({
+    required this.scene,
+    required this.l10n,
+    required this.clock,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final focusPlayer = Text(
+      scene.focusPlayerName,
+      key: ValueKey<String>('spatial-focus-player-${scene.id}'),
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+    );
+    final match = Text(
+      l10n.spatialSceneIdentityRow(scene.home, scene.away, clock),
+      key: ValueKey<String>('spatial-match-${scene.id}'),
+      style: Theme.of(context).textTheme.bodySmall,
+    );
+    final participants = Text(
+      scene.evidenceAnchors
+          .map((anchor) => _spatialShortPlayerName(anchor.playerName))
+          .join(' → '),
+      key: ValueKey<String>('spatial-participants-${scene.id}'),
+      style: Theme.of(context).textTheme.bodySmall,
+    );
+    final metadata = Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        _SpatialResultBadge(
+          child: Text(
+            _themeTitle(l10n, scene.theme),
+            key: ValueKey<String>('spatial-result-theme-${scene.id}'),
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ),
+        _SpatialResultBadge(
+          key: ValueKey<String>('spatial-duration-${scene.id}'),
+          child: Text(
+            l10n.spatialDurationBadge(scene.duration.toStringAsFixed(1)),
+            key: ValueKey<String>('spatial-duration-text-${scene.id}'),
+            maxLines: 1,
+            softWrap: false,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+        ),
+      ],
+    );
+
+    return LayoutBuilder(builder: (context, constraints) {
+      if (constraints.maxWidth >= 500) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  focusPlayer,
+                  const SizedBox(height: 2),
+                  match,
+                  const SizedBox(height: 5),
+                  participants,
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Flexible(flex: 2, child: metadata),
+          ],
+        );
+      }
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          focusPlayer,
+          const SizedBox(height: 2),
+          match,
+          const SizedBox(height: 6),
+          metadata,
+          const SizedBox(height: 5),
+          participants,
+        ],
+      );
+    });
+  }
+}
+
+class _SpatialResultBadge extends StatelessWidget {
+  final Widget child;
+
+  const _SpatialResultBadge({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: child,
+      );
 }
 
 class _SpatialSourceInfoSheet extends StatelessWidget {
@@ -3160,30 +3502,4 @@ String _legacyPhaseCueText(
     return l10n.spatialAfterCue(_situation(l10n, scene));
   }
   return l10n.spatialSubsequentPlayCue;
-}
-
-bool _matchesLocalizedSearch(
-  AppLocalizations l10n,
-  SpatialLibraryScene scene,
-  String query,
-) {
-  final normalized = query.trim().toLowerCase();
-  if (normalized.isEmpty || scene.matchesSearch(normalized)) return true;
-  if (_themeTitle(l10n, scene.theme).toLowerCase().contains(normalized)) {
-    return true;
-  }
-  final aliases = <String, String>{
-    'Lionel Messi': l10n.spatialAliasLionelMessi,
-    'Cristiano Ronaldo': l10n.spatialAliasCristianoRonaldo,
-    'Kylian Mbappe': l10n.spatialAliasKylianMbappe,
-    'Kevin de Bruyne': l10n.spatialAliasKevinDeBruyne,
-    'Erling Haland': l10n.spatialAliasErlingHaland,
-  };
-  final names = <String>{
-    scene.focusPlayerName,
-    ...scene.evidenceAnchors.map((anchor) => anchor.playerName),
-  };
-  return names.any(
-    (name) => aliases[name]?.toLowerCase().contains(normalized) ?? false,
-  );
 }
