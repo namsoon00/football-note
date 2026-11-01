@@ -40495,6 +40495,48 @@ abstract class AppLocalizations {
   /// **'Library and source information'**
   String get spatialSourceInfo;
 
+  /// No description provided for @spatialActionCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry'**
+  String get spatialActionCarry;
+
+  /// No description provided for @spatialActionDirectionChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction change'**
+  String get spatialActionDirectionChange;
+
+  /// No description provided for @spatialActionReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive'**
+  String get spatialActionReceive;
+
+  /// No description provided for @spatialActionHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Header'**
+  String get spatialActionHeader;
+
+  /// No description provided for @spatialActionOneTouchPass.
+  ///
+  /// In en, this message translates to:
+  /// **'One-touch pass'**
+  String get spatialActionOneTouchPass;
+
+  /// No description provided for @spatialActionSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{player}: {action}'**
+  String spatialActionSemantics(String player, String action);
+
+  /// No description provided for @spatialActionEvidenceDisclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'Action labels are cautious. Carry does not mean a defender was beaten. Direction change describes the movement path, not measured body rotation. Receive does not confirm trapping technique. Headers and one-touch passes appear only when recorded in the original action data.'**
+  String get spatialActionEvidenceDisclosure;
+
   /// No description provided for @spatialLegacyViewer.
   ///
   /// In en, this message translates to:

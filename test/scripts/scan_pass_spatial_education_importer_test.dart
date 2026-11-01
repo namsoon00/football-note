@@ -105,4 +105,72 @@ void main() {
       );
     }
   });
+
+  test('dynamic-event actions preserve source flags and conservative proof',
+      () {
+    final catalog = jsonDecode(
+      File('assets/scan_pass_spatial/education-catalog.json')
+          .readAsStringSync(),
+    ) as Map<String, dynamic>;
+    final proof = jsonDecode(
+      File('assets/scan_pass_spatial/education-proof.json').readAsStringSync(),
+    ) as Map<String, dynamic>;
+    expect(catalog['actionProofVersion'], 'spatial-source-actions-v1');
+    expect(proof['counts']['sourceActionEvents'], 375);
+    expect(
+      proof['counts']['sourceActionGeometry'],
+      <String, dynamic>{
+        'carry': 45,
+        'directionChange': 4,
+        'header': 8,
+        'receive': 266,
+        'oneTouchPass': 56,
+      },
+    );
+    expect(
+      proof['counts']['sourceActionDisplayAnchors'],
+      <String, dynamic>{
+        'carry': 45,
+        'directionChange': 4,
+        'header': 6,
+        'receive': 261,
+        'oneTouchPass': 55,
+      },
+    );
+    expect(proof['rules']['carryAction'], contains('at least 2.0 m'));
+    expect(proof['rules']['directionChangeAction'], contains('55 degrees'));
+    expect(proof['rules']['directionChangeAction'], contains('body rotation'));
+
+    final scene = (catalog['scenes'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+          (value) => value['id'] == '1925299-185-560983-thirdPlayer',
+        );
+    final header = (scene['sourceActions'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((value) => value['eventId'] == '8_9');
+    expect(header['actor']['playerId'], 560987);
+    expect(header['actor']['sourcePlayerName'], 'T. Ostler');
+    expect(header['sourceStartFrame'], 281);
+    expect(header['sourceEndFrame'], 281);
+    expect(header['period'], 1);
+    expect(header['flags']['isHeader'], isTrue);
+    expect(header['flags']['oneTouch'], isTrue);
+    expect(header['flags']['carry'], isFalse);
+    expect(
+      header['provenance']['sourcePath'],
+      'data/matches/1925299/1925299_dynamic_events.csv',
+    );
+
+    final incomingScene = (catalog['scenes'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+          (value) => value['id'] == '1925299-21757-51043-thirdPlayer',
+        );
+    final incoming = (incomingScene['sourceActions'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((value) => value['eventId'] == '8_373');
+    expect(incoming['matched']['previousPass'], isTrue);
+    expect(incoming['matched']['passReception'], isFalse);
+  });
 }

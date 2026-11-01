@@ -305,6 +305,342 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test('source actions retain nullable provider evidence and safe coverage',
+      () {
+    final recent = catalog.scenes.where(
+      (scene) =>
+          scene.sourceCommit ==
+          SpatialLibraryCatalog.expectedRecentSourceCommit,
+    );
+    final historical = catalog.scenes.where(
+      (scene) =>
+          scene.sourceCommit !=
+          SpatialLibraryCatalog.expectedRecentSourceCommit,
+    );
+    final actions = recent.expand((scene) => scene.sourceActions).toList();
+
+    expect(catalog.actionProofVersion,
+        SpatialSourceActionEvidence.expectedProofVersion);
+    expect(historical.every((scene) => scene.sourceActions.isEmpty), isTrue);
+    expect(actions, hasLength(375));
+    expect(
+      actions.where((action) => action.geometry.carryOnsetFrame != null),
+      hasLength(45),
+    );
+    expect(
+      actions
+          .where((action) => action.geometry.directionChangeOnsetFrame != null),
+      hasLength(4),
+    );
+    final headers = actions.where(
+      (action) => action.supports(SpatialOnPitchActionKind.header),
+    );
+    expect(headers, hasLength(8));
+    expect(headers.every((action) => action.flags.isHeader == true), isTrue);
+    expect(
+      actions.where((action) => action.flags.oneTouch == false),
+      isNotEmpty,
+      reason: 'false provider flags must never become confident actions',
+    );
+  });
+
+  test('every action kind starts at reached source time and seeking is stable',
+      () {
+    final cases = <(SpatialOnPitchActionKind, String, String, int)>[
+      (
+        SpatialOnPitchActionKind.receive,
+        '1925299-185-560983-thirdPlayer',
+        '8_5',
+        202,
+      ),
+      (
+        SpatialOnPitchActionKind.carry,
+        '1925299-185-560983-thirdPlayer',
+        '8_5',
+        209,
+      ),
+      (
+        SpatialOnPitchActionKind.oneTouchPass,
+        '1925299-185-560983-thirdPlayer',
+        '8_8',
+        265,
+      ),
+      (
+        SpatialOnPitchActionKind.header,
+        '1925299-185-560983-thirdPlayer',
+        '8_9',
+        281,
+      ),
+      (
+        SpatialOnPitchActionKind.directionChange,
+        '1925299-35928-560882-receivingLane',
+        '8_646',
+        36040,
+      ),
+    ];
+    for (final (kind, sceneId, eventId, sourceFrame) in cases) {
+      final scene = catalog.scenes.firstWhere((value) => value.id == sceneId);
+      final data = _replay(scene);
+      final onset = (sourceFrame - scene.startFrame) / data.fps;
+      final before = scene.sourceActionAt(data, onset - 1 / data.fps);
+      final current = scene.sourceActionAt(data, onset);
+      final repeated = scene.sourceActionAt(data, onset);
+
+      expect(
+        (before?.eventId, before?.kind),
+        isNot((eventId, kind)),
+        reason: '$kind must never appear one source frame early',
+      );
+      expect((current?.eventId, current?.kind), (eventId, kind));
+      expect((repeated?.eventId, repeated?.kind), (eventId, kind));
+    }
+  });
+
+  test('header wins over one touch and valid null-owner contact lingers', () {
+    final scene = catalog.scenes.firstWhere(
+      (value) => value.id == '1925299-185-560983-thirdPlayer',
+    );
+    final data = _replay(scene);
+    final atHeader = scene.sourceActionAt(data, 19);
+    final afterHeader = scene.sourceActionAt(data, 20);
+    expect((atHeader?.eventId, atHeader?.kind),
+        ('8_9', SpatialOnPitchActionKind.header));
+    expect((afterHeader?.eventId, afterHeader?.kind),
+        ('8_9', SpatialOnPitchActionKind.header));
+    expect(
+      scene.sourceActions
+          .firstWhere((action) => action.eventId == '8_9')
+          .flags
+          .oneTouch,
+      isTrue,
+      reason: 'the same provider event is one-touch but header has priority',
+    );
+    expect(
+      data.sourcePossessionOwners[190],
+      isNull,
+      reason: 'headers do not require tracking ownership at contact',
+    );
+  });
+
+  test('instant actions require observed actor and ball at source contact', () {
+    final hiddenScene = catalog.scenes.firstWhere(
+      (value) => value.id == '1996435-24085-25534-thirdPlayer',
+    );
+    final hiddenData = _replay(hiddenScene);
+    expect(
+        hiddenScene.sourceActionAt(hiddenData, 1.4)?.eventId, isNot('8_489'));
+    expect(
+      hiddenScene.sourceActionAt(hiddenData, 1.6)?.eventId,
+      isNot('8_489'),
+      reason: 'later actor reappearance cannot repair hidden source contact',
+    );
+
+    final separatedScene = catalog.scenes.firstWhere(
+      (value) => value.id == '1996435-7549-25534-thirdPlayer',
+    );
+    final separatedData = _replay(separatedScene);
+    expect(
+      separatedScene.sourceActionAt(separatedData, 5)?.eventId,
+      isNot('8_172'),
+      reason: 'the source contact is 3.574 m from the observed ball',
+    );
+    expect(
+      separatedScene.sourceActionAt(separatedData, 5.5)?.eventId,
+      isNot('8_172'),
+      reason: 'the label must stay hidden if the actor later gets closer',
+    );
+
+    final validScene = catalog.scenes.firstWhere(
+      (value) => value.id == '1925299-185-560983-thirdPlayer',
+    );
+    final hiddenBallJson = _json(validScene.asset);
+    (hiddenBallJson['ballVisibility'] as List<dynamic>)[190] = 0;
+    final hiddenBallData = RealMatchReplayData.fromJson(hiddenBallJson);
+    expect(
+      validScene.sourceActionAt(hiddenBallData, 19)?.eventId,
+      isNot('8_9'),
+      reason: 'missing ball at the original source contact fails closed',
+    );
+
+    expect(
+      validScene.sourceActionAt(_replay(validScene), 19)?.eventId,
+      '8_9',
+      reason: 'the adjacent valid source frame remains index-safe',
+    );
+  });
+
+  test('known one-touch receptions are not labelled as receives', () {
+    for (final endType in <String>['shot', 'clearance']) {
+      final changed = _copy(source);
+      final sceneJson = (changed['scenes'] as List<dynamic>)
+          .cast<Map<String, dynamic>>()
+          .firstWhere(
+            (value) => value['id'] == '1925299-185-560983-thirdPlayer',
+          );
+      final actionJson = (sceneJson['sourceActions'] as List<dynamic>)
+          .cast<Map<String, dynamic>>()
+          .firstWhere((value) => value['eventId'] == '8_5');
+      (actionJson['flags'] as Map<String, dynamic>)['oneTouch'] = true;
+      actionJson['endType'] = endType;
+      final changedScene =
+          SpatialLibraryCatalog.fromJson(changed).scenes.firstWhere(
+                (value) => value.id == '1925299-185-560983-thirdPlayer',
+              );
+      final action = changedScene.sourceActions
+          .firstWhere((value) => value.eventId == '8_5');
+
+      expect(action.supports(SpatialOnPitchActionKind.receive), isFalse);
+      expect(action.supports(SpatialOnPitchActionKind.oneTouchPass), isFalse);
+      expect(
+        changedScene.sourceActionAt(_replay(changedScene), 11.1)?.eventId,
+        isNot('8_5'),
+        reason: 'a known first-time $endType is not a trapping-like receive',
+      );
+    }
+
+    final nullable = _copy(source);
+    final nullableSceneJson = (nullable['scenes'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+          (value) => value['id'] == '1925299-185-560983-thirdPlayer',
+        );
+    final nullableActionJson =
+        (nullableSceneJson['sourceActions'] as List<dynamic>)
+            .cast<Map<String, dynamic>>()
+            .firstWhere((value) => value['eventId'] == '8_5');
+    (nullableActionJson['flags'] as Map<String, dynamic>)['oneTouch'] = null;
+    nullableActionJson['endType'] = 'shot';
+    final nullableAction = SpatialLibraryCatalog.fromJson(nullable)
+        .scenes
+        .firstWhere(
+          (value) => value.id == '1925299-185-560983-thirdPlayer',
+        )
+        .sourceActions
+        .firstWhere((value) => value.eventId == '8_5');
+    expect(nullableAction.supports(SpatialOnPitchActionKind.receive), isTrue);
+    expect(
+      nullableAction.supports(SpatialOnPitchActionKind.oneTouchPass),
+      isFalse,
+      reason: 'a null provider flag stays unknown, never confident one-touch',
+    );
+  });
+
+  test('receive uses incoming previous-pass match, not outgoing reception', () {
+    final incomingScene = catalog.scenes.firstWhere(
+      (value) => value.id == '1925299-21757-51043-thirdPlayer',
+    );
+    final incoming = incomingScene.sourceActions.firstWhere(
+      (value) => value.eventId == '8_373',
+    );
+    expect(incoming.matched.previousPass, isTrue);
+    expect(incoming.matched.passReception, isFalse);
+    expect(incoming.supports(SpatialOnPitchActionKind.receive), isTrue);
+
+    final changed = _copy(source);
+    final outgoingSceneJson = (changed['scenes'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+          (value) => value['id'] == '1925299-24011-287934-receivingLane',
+        );
+    final outgoingJson = (outgoingSceneJson['sourceActions'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((value) => value['eventId'] == '8_433');
+    (outgoingJson['flags'] as Map<String, dynamic>)['oneTouch'] = false;
+    final outgoing = SpatialLibraryCatalog.fromJson(changed)
+        .scenes
+        .firstWhere(
+          (value) => value.id == '1925299-24011-287934-receivingLane',
+        )
+        .sourceActions
+        .firstWhere((value) => value.eventId == '8_433');
+    expect(outgoing.matched.previousPass, isFalse);
+    expect(outgoing.matched.passReception, isTrue);
+    expect(outgoing.supports(SpatialOnPitchActionKind.receive), isFalse);
+  });
+
+  test('stationary and off-ball carry evidence fail observed validation', () {
+    final scene = catalog.scenes.firstWhere(
+      (value) => value.id == '1925299-12334-11897-thirdPlayer',
+    );
+    final action = scene.sourceActions.firstWhere(
+      (value) => value.eventId == '8_250',
+    );
+    final actorIndex = _playerIndex(_json(scene.asset), action.playerId);
+    final first = action.sourceStartFrame - scene.startFrame;
+    final last = action.sourceEndFrame - scene.startFrame;
+
+    final stationaryJson = _json(scene.asset);
+    final stationaryFrames = stationaryJson['frames'] as List<dynamic>;
+    final startRow = stationaryFrames[first] as List<dynamic>;
+    for (var frame = first + 1; frame <= last; frame++) {
+      final row = stationaryFrames[frame] as List<dynamic>;
+      row[actorIndex * 2] = startRow[actorIndex * 2];
+      row[actorIndex * 2 + 1] = startRow[actorIndex * 2 + 1];
+    }
+    expect(
+      () => scene.validateReplay(RealMatchReplayData.fromJson(stationaryJson)),
+      throwsA(
+        isA<FormatException>().having(
+          (error) => error.message,
+          'message',
+          contains('source action geometry'),
+        ),
+      ),
+    );
+
+    final offBallJson = _json(scene.asset);
+    (offBallJson['sourcePossessionOwners'] as List<dynamic>)[first] = null;
+    expect(
+      () => scene.validateReplay(RealMatchReplayData.fromJson(offBallJson)),
+      throwsA(
+        isA<FormatException>().having(
+          (error) => error.message,
+          'message',
+          contains('source action geometry'),
+        ),
+      ),
+    );
+  });
+
+  test(
+      'malformed flags reject parsing and unsupported header combination hides',
+      () {
+    final malformed = _copy(source);
+    final malformedScene = (malformed['scenes'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+          (value) => value['id'] == '1925299-185-560983-thirdPlayer',
+        );
+    final malformedAction = (malformedScene['sourceActions'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((value) => value['eventId'] == '8_9');
+    (malformedAction['flags'] as Map<String, dynamic>)['isHeader'] = 'True';
+    expect(
+      () => SpatialLibraryCatalog.fromJson(malformed),
+      throwsFormatException,
+    );
+
+    final unsupported = _copy(source);
+    final unsupportedSceneJson = (unsupported['scenes'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+          (value) => value['id'] == '1925299-185-560983-thirdPlayer',
+        );
+    final unsupportedAction =
+        (unsupportedSceneJson['sourceActions'] as List<dynamic>)
+            .cast<Map<String, dynamic>>()
+            .firstWhere((value) => value['eventId'] == '8_9');
+    (unsupportedAction['flags'] as Map<String, dynamic>)['handPass'] = true;
+    final unsupportedCatalog = SpatialLibraryCatalog.fromJson(unsupported);
+    final unsupportedScene = unsupportedCatalog.scenes.firstWhere(
+      (value) => value.id == '1925299-185-560983-thirdPlayer',
+    );
+    expect(
+      unsupportedScene.sourceActionAt(_replay(unsupportedScene), 19)?.eventId,
+      isNot('8_9'),
+    );
+  });
 }
 
 int _playerIndex(Map<String, dynamic> replay, int playerId) =>

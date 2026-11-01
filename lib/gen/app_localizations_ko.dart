@@ -23183,6 +23183,30 @@ class AppLocalizationsKo extends AppLocalizations {
   String get spatialSourceInfo => '라이브러리와 출처 정보';
 
   @override
+  String get spatialActionCarry => '볼 운반';
+
+  @override
+  String get spatialActionDirectionChange => '방향 전환';
+
+  @override
+  String get spatialActionReceive => '볼 받음';
+
+  @override
+  String get spatialActionHeader => '헤딩';
+
+  @override
+  String get spatialActionOneTouchPass => '원터치 패스';
+
+  @override
+  String spatialActionSemantics(String player, String action) {
+    return '$player: $action';
+  }
+
+  @override
+  String get spatialActionEvidenceDisclosure =>
+      '액션 표시는 신중하게 적용합니다. 볼 운반은 수비수를 제쳤다는 뜻이 아닙니다. 방향 전환은 이동 경로의 변화이며 몸의 회전을 측정한 결과가 아닙니다. 볼 받음은 트래핑 기술을 확인한 표현이 아닙니다. 헤딩과 원터치 패스는 원본 액션 기록이 있을 때만 표시합니다.';
+
+  @override
   String get spatialLegacyViewer => '이전 리플레이 참고 화면';
 
   @override

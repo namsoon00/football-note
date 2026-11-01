@@ -7,7 +7,10 @@
     "pressureOutlet": "passer has a continuously observed opponent within 4 m; receiver clearance from the same observed defender increases by at least 1 m; the next directly observed same-team connection occurs without intervening or reversed source ownership",
     "thirdPlayer": "A, B and C are distinct same-team actors in uninterrupted source ownership order; C moves at least 0.6 m before B receives, at least 1 m overall, continues in the outcome direction, and gains either 1.5 m forward or 1 m clearance",
     "switchingSpace": "source-labelled lateral connection spans at least 22 m and receiver clearance from the same continuously observed defender increases by at least 1 m",
-    "tolerance": "catalogue metrics are recomputed from centimetre-quantized exported frames; runtime comparison tolerance is 0.0011 in stored units and threshold allowance never exceeds the 0.01 m two-point quantization bound"
+    "tolerance": "catalogue metrics are recomputed from centimetre-quantized exported frames; runtime comparison tolerance is 0.0011 in stored units and threshold allowance never exceeds the 0.01 m two-point quantization bound",
+    "sourceActions": "player_possession rows only; nullable provider flags remain nullable; receive requires is_previous_pass_matched for its incoming pass and excludes known one-touch/header/hand actions, while is_pass_reception_matched remains distinct outgoing-pass metadata; header requires is_header; one-touch pass requires one_touch plus end_type=pass with header priority; instant labels additionally require actor and ball within 3.5 m at the original contact frame",
+    "carryAction": "provider carry=true plus matched boundaries, uninterrupted directly observed player and ball, matching source owner, player-ball distance at most 3.5 m, and at least 2.0 m observed displacement before onset",
+    "directionChangeAction": "a carry-qualified observed XY trajectory only; both reached legs are at least 1.5 m and bend at least 55 degrees, without claiming body rotation"
   },
   "references": {
     "receivingLane": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/build-and-progress/passing-circuit-receiving-between-the-lines.php",
@@ -31,6 +34,21 @@
     "seasons": {
       "2024/25": 45,
       "2019/20": 25
+    },
+    "sourceActionEvents": 375,
+    "sourceActionGeometry": {
+      "carry": 45,
+      "directionChange": 4,
+      "header": 8,
+      "receive": 266,
+      "oneTouchPass": 56
+    },
+    "sourceActionDisplayAnchors": {
+      "carry": 45,
+      "directionChange": 4,
+      "header": 6,
+      "receive": 261,
+      "oneTouchPass": 55
     }
   },
   "attemptedRecentMatches": [
@@ -1619,6 +1637,7 @@
       "maxPlayerSpeedMetersPerSecond": 8.2201,
       "maxBallSpeedMetersPerSecond": 19.1838,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 9,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -1698,6 +1717,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.9076,
       "maxBallSpeedMetersPerSecond": 23.0593,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 10,
       "learning": {
         "objective": "receivingLane",
         "proofVersion": "spatial-education-evidence-v2",
@@ -1773,6 +1793,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.603,
       "maxBallSpeedMetersPerSecond": 20.8504,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 10,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -1852,6 +1873,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.5166,
       "maxBallSpeedMetersPerSecond": 27.1494,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 9,
       "learning": {
         "objective": "receivingLane",
         "proofVersion": "spatial-education-evidence-v2",
@@ -1927,6 +1949,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.0407,
       "maxBallSpeedMetersPerSecond": 18.5,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 8,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -2006,6 +2029,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.1868,
       "maxBallSpeedMetersPerSecond": 24.0416,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 8,
       "learning": {
         "objective": "switchingSpace",
         "proofVersion": "spatial-education-evidence-v2",
@@ -2081,6 +2105,7 @@
       "maxPlayerSpeedMetersPerSecond": 5.7315,
       "maxBallSpeedMetersPerSecond": 21.095,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 9,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -2160,6 +2185,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.4846,
       "maxBallSpeedMetersPerSecond": 22.7864,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 11,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -2239,6 +2265,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.364,
       "maxBallSpeedMetersPerSecond": 24.2844,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 10,
       "learning": {
         "objective": "receivingLane",
         "proofVersion": "spatial-education-evidence-v2",
@@ -2314,6 +2341,7 @@
       "maxPlayerSpeedMetersPerSecond": 5.2469,
       "maxBallSpeedMetersPerSecond": 22.0495,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 6,
       "learning": {
         "objective": "switchingSpace",
         "proofVersion": "spatial-education-evidence-v2",
@@ -2389,6 +2417,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.1028,
       "maxBallSpeedMetersPerSecond": 24.5231,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 11,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -2468,6 +2497,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.9181,
       "maxBallSpeedMetersPerSecond": 26.8784,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 9,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -2547,6 +2577,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.1589,
       "maxBallSpeedMetersPerSecond": 21.4674,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 9,
       "learning": {
         "objective": "pressureOutlet",
         "proofVersion": "spatial-education-evidence-v2",
@@ -2633,6 +2664,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.0745,
       "maxBallSpeedMetersPerSecond": 16.3196,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 7,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -2712,6 +2744,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.1685,
       "maxBallSpeedMetersPerSecond": 25.1191,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 7,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -2791,6 +2824,7 @@
       "maxPlayerSpeedMetersPerSecond": 8.4758,
       "maxBallSpeedMetersPerSecond": 25.2492,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 7,
       "learning": {
         "objective": "receivingLane",
         "proofVersion": "spatial-education-evidence-v2",
@@ -2866,6 +2900,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.7067,
       "maxBallSpeedMetersPerSecond": 23.8202,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 9,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -2945,6 +2980,7 @@
       "maxPlayerSpeedMetersPerSecond": 9.669,
       "maxBallSpeedMetersPerSecond": 21.9531,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 8,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -3024,6 +3060,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.5286,
       "maxBallSpeedMetersPerSecond": 20.025,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 10,
       "learning": {
         "objective": "pressureOutlet",
         "proofVersion": "spatial-education-evidence-v2",
@@ -3110,6 +3147,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.1784,
       "maxBallSpeedMetersPerSecond": 19.1314,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 8,
       "learning": {
         "objective": "switchingSpace",
         "proofVersion": "spatial-education-evidence-v2",
@@ -3185,6 +3223,7 @@
       "maxPlayerSpeedMetersPerSecond": 5.8258,
       "maxBallSpeedMetersPerSecond": 20.0489,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 8,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -3264,6 +3303,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.9203,
       "maxBallSpeedMetersPerSecond": 18.3698,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 6,
       "learning": {
         "objective": "pressureOutlet",
         "proofVersion": "spatial-education-evidence-v2",
@@ -3350,6 +3390,7 @@
       "maxPlayerSpeedMetersPerSecond": 8.5288,
       "maxBallSpeedMetersPerSecond": 28.6526,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 12,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -3429,6 +3470,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.4351,
       "maxBallSpeedMetersPerSecond": 18.6132,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 10,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -3508,6 +3550,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.6026,
       "maxBallSpeedMetersPerSecond": 27.145,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 6,
       "learning": {
         "objective": "pressureOutlet",
         "proofVersion": "spatial-education-evidence-v2",
@@ -3594,6 +3637,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.4404,
       "maxBallSpeedMetersPerSecond": 25.8507,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 8,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -3673,6 +3717,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.7543,
       "maxBallSpeedMetersPerSecond": 19.6003,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 9,
       "learning": {
         "objective": "receivingLane",
         "proofVersion": "spatial-education-evidence-v2",
@@ -3748,6 +3793,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.9836,
       "maxBallSpeedMetersPerSecond": 22.1712,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 10,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -3827,6 +3873,7 @@
       "maxPlayerSpeedMetersPerSecond": 8.2608,
       "maxBallSpeedMetersPerSecond": 23.5595,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 6,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -3906,6 +3953,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.0036,
       "maxBallSpeedMetersPerSecond": 22.5641,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 8,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -3985,6 +4033,7 @@
       "maxPlayerSpeedMetersPerSecond": 8.5796,
       "maxBallSpeedMetersPerSecond": 25.4244,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 5,
       "learning": {
         "objective": "switchingSpace",
         "proofVersion": "spatial-education-evidence-v2",
@@ -4060,6 +4109,7 @@
       "maxPlayerSpeedMetersPerSecond": 8.2608,
       "maxBallSpeedMetersPerSecond": 21.1021,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 10,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -4139,6 +4189,7 @@
       "maxPlayerSpeedMetersPerSecond": 4.9396,
       "maxBallSpeedMetersPerSecond": 12.4555,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 4,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -4218,6 +4269,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.4061,
       "maxBallSpeedMetersPerSecond": 22.0,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 12,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -4297,6 +4349,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.5376,
       "maxBallSpeedMetersPerSecond": 22.8213,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 8,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -4376,6 +4429,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.1169,
       "maxBallSpeedMetersPerSecond": 22.853,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 12,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -4455,6 +4509,7 @@
       "maxPlayerSpeedMetersPerSecond": 8.1154,
       "maxBallSpeedMetersPerSecond": 21.6342,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 7,
       "learning": {
         "objective": "switchingSpace",
         "proofVersion": "spatial-education-evidence-v2",
@@ -4530,6 +4585,7 @@
       "maxPlayerSpeedMetersPerSecond": 9.6773,
       "maxBallSpeedMetersPerSecond": 23.9985,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 10,
       "learning": {
         "objective": "switchingSpace",
         "proofVersion": "spatial-education-evidence-v2",
@@ -4605,6 +4661,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.6105,
       "maxBallSpeedMetersPerSecond": 25.5766,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 10,
       "learning": {
         "objective": "pressureOutlet",
         "proofVersion": "spatial-education-evidence-v2",
@@ -4691,6 +4748,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.9116,
       "maxBallSpeedMetersPerSecond": 24.8871,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 8,
       "learning": {
         "objective": "pressureOutlet",
         "proofVersion": "spatial-education-evidence-v2",
@@ -4777,6 +4835,7 @@
       "maxPlayerSpeedMetersPerSecond": 6.6038,
       "maxBallSpeedMetersPerSecond": 25.6205,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 6,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -4856,6 +4915,7 @@
       "maxPlayerSpeedMetersPerSecond": 8.0056,
       "maxBallSpeedMetersPerSecond": 19.7699,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 9,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",
@@ -4935,6 +4995,7 @@
       "maxPlayerSpeedMetersPerSecond": 8.7092,
       "maxBallSpeedMetersPerSecond": 25.0018,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 6,
       "learning": {
         "objective": "pressureOutlet",
         "proofVersion": "spatial-education-evidence-v2",
@@ -5021,6 +5082,7 @@
       "maxPlayerSpeedMetersPerSecond": 7.5286,
       "maxBallSpeedMetersPerSecond": 23.1897,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 5,
       "learning": {
         "objective": "pressureOutlet",
         "proofVersion": "spatial-education-evidence-v2",
@@ -5107,6 +5169,7 @@
       "maxPlayerSpeedMetersPerSecond": 5.9203,
       "maxBallSpeedMetersPerSecond": 23.0463,
       "maxQuantizationErrorMeters": 0.0,
+      "sourceActionEvents": 5,
       "learning": {
         "objective": "thirdPlayer",
         "proofVersion": "spatial-education-evidence-v2",

@@ -454,6 +454,175 @@ void main() {
       ]),
     );
   });
+
+  for (final configuration in <({
+    Locale locale,
+    String sceneId,
+    double time,
+    SpatialOnPitchActionKind kind,
+  })>[
+    (
+      locale: const Locale('en'),
+      sceneId: '1925299-185-560983-thirdPlayer',
+      time: 11.8,
+      kind: SpatialOnPitchActionKind.carry,
+    ),
+    (
+      locale: const Locale('ko'),
+      sceneId: '1925299-35928-560882-receivingLane',
+      time: 19.5,
+      kind: SpatialOnPitchActionKind.directionChange,
+    ),
+    (
+      locale: const Locale('ja'),
+      sceneId: '1925299-185-560983-thirdPlayer',
+      time: 19,
+      kind: SpatialOnPitchActionKind.header,
+    ),
+  ]) {
+    testWidgets(
+        'narrow ${configuration.locale.languageCode} action stays attached and clear',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 640));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final scene = catalog.scenes.firstWhere(
+        (value) => value.id == configuration.sceneId,
+      );
+      await tester.pumpWidget(
+        _catalogApp(
+          catalog,
+          initialScene: scene,
+          locale: configuration.locale,
+          textScale: 1.4,
+        ),
+      );
+      await _pumpLoaded(tester);
+      _seek(tester, scene, configuration.time);
+      await tester.pump();
+
+      final painter = _painter(tester);
+      final action = painter.activeAction;
+      expect(action?.kind, configuration.kind);
+      final resolvedAction = action!;
+      final label = painter.playerNameLabels.singleWhere(
+        (value) => value.playerId == resolvedAction.playerId,
+      );
+      expect(label.actionLabel, painter.activeActionLabel);
+      expect(label.displayName, contains(label.actionLabel!));
+      final actor = painter.data.player(resolvedAction.playerId);
+      if (label.attachmentDistance > 18) {
+        expect(actor.number, isNotNull);
+        expect(label.displayName, startsWith('#${actor.number} '));
+      }
+      expect(painter.viewport.view.contains(label.rect.topLeft), isTrue);
+      expect(painter.viewport.view.contains(label.rect.bottomRight), isTrue);
+      expect(label.rect.overlaps(painter.ballSafetyRect), isFalse);
+      expect(painter.reservedOverlayRects.any(label.rect.overlaps), isFalse);
+      expect(painter.playerBadgeSafetyRects.any(label.rect.overlaps), isFalse);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('crowded distant action fallback keeps source jersey identity',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final scene = catalog.scenes.firstWhere(
+      (value) => value.id == '1925299-185-560983-thirdPlayer',
+    );
+    await tester.pumpWidget(
+      _catalogApp(
+        catalog,
+        initialScene: scene,
+        locale: const Locale('ko'),
+        textScale: 1.4,
+      ),
+    );
+    await _pumpLoaded(tester);
+    _seek(tester, scene, 19);
+    await tester.pump();
+
+    final base = _painter(tester);
+    final action = base.activeAction!;
+    final badge = base.badgeGeometryForPlayer(action.playerId)!;
+    final view = base.viewport.view;
+    const stripHeight = 100.0;
+    final stripTop = (badge.center.dy - stripHeight / 2)
+        .clamp(view.top, view.bottom - stripHeight)
+        .toDouble();
+    final crowded = SpatialLibraryPitchPainter(
+      data: base.data,
+      scene: base.scene,
+      focusPlan: base.focusPlan,
+      viewport: base.viewport,
+      time: base.time,
+      brightness: base.brightness,
+      portrait: base.portrait,
+      textDirection: base.textDirection,
+      textScaler: base.textScaler,
+      locale: base.locale,
+      roles: base.roles,
+      activeAction: action,
+      activeActionLabel: base.activeActionLabel,
+      cuePlayerId: base.cuePlayerId,
+      requiredPlayerIds: base.requiredPlayerIds,
+      nameLabelPlayerIds: base.nameLabelPlayerIds,
+      cueRect: base.cueRect,
+      cueTarget: base.cueTarget,
+      reservedOverlayRects: <Rect>[
+        ...base.reservedOverlayRects,
+        Rect.fromLTWH(view.left, stripTop, view.width, stripHeight),
+      ],
+      preferredNameLabelPlacements: base.preferredNameLabelPlacements,
+    );
+    final label = crowded.playerNameLabels.singleWhere(
+      (value) => value.playerId == action.playerId,
+    );
+    final actor = crowded.data.player(action.playerId);
+    final surname = actor.name!.trim().split(' ').last;
+
+    expect(label.attachmentDistance, greaterThan(18));
+    expect(actor.number, isNotNull);
+    expect(label.displayName, startsWith('#${actor.number} '));
+    expect(label.displayName, contains(surname));
+    expect(label.displayName, contains(crowded.activeActionLabel!));
+    expect(crowded.viewport.view.contains(label.rect.topLeft), isTrue);
+    expect(crowded.viewport.view.contains(label.rect.bottomRight), isTrue);
+    expect(label.rect.overlaps(crowded.ballSafetyRect), isFalse);
+    expect(crowded.playerBadgeSafetyRects.any(label.rect.overlaps), isFalse);
+    expect(
+      crowded.playerNameLabels
+          .where((value) => value.actionLabel == null)
+          .every((value) => value.attachmentDistance <= 18),
+      isTrue,
+      reason: 'ordinary player names never use the distant fallback',
+    );
+  });
+
+  testWidgets('pause and backward seek reproduce the same header source label',
+      (tester) async {
+    final scene = catalog.scenes.firstWhere(
+      (value) => value.id == '1925299-185-560983-thirdPlayer',
+    );
+    await tester.pumpWidget(_catalogApp(catalog, initialScene: scene));
+    await _pumpLoaded(tester);
+
+    _seek(tester, scene, 19);
+    await tester.pump();
+    final first = _painter(tester).activeAction;
+    expect((first?.eventId, first?.kind),
+        ('8_9', SpatialOnPitchActionKind.header));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(_painter(tester).time, closeTo(19, .001));
+    expect(_painter(tester).activeAction?.eventId, '8_9');
+
+    _seek(tester, scene, 18.9);
+    await tester.pump();
+    expect(_painter(tester).activeAction?.eventId, isNot('8_9'));
+    _seek(tester, scene, 19);
+    await tester.pump();
+    expect(_painter(tester).activeAction?.eventId, '8_9');
+  });
 }
 
 String _cueLabel(RealMatchReplayData data, int playerId) {

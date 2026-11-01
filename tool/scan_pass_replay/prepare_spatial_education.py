@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import csv
 import hashlib
 import json
 import math
@@ -32,7 +33,12 @@ HISTORICAL_COMMIT = "1ed50b775f93075c2a6d00d0d795f13b7b89709e"
 RECENT_COMMIT = "4340d274572876239c154c90bc507a9b3250a656"
 PROOF_VERSION = "spatial-education-evidence-v2"
 CATALOG_PROOF_VERSION = "spatial-education-catalog-v2"
+ACTION_PROOF_VERSION = "spatial-source-actions-v1"
 QUANTIZATION_METERS = 0.005
+ACTION_CONTROL_MAXIMUM_METERS = 3.5
+ACTION_CARRY_MINIMUM_METERS = 2.0
+ACTION_DIRECTION_LEG_MINIMUM_METERS = 1.5
+ACTION_DIRECTION_MINIMUM_DEGREES = 55.0
 REFERENCES = {
     "receivingLane": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/build-and-progress/passing-circuit-receiving-between-the-lines.php",
     "pressureOutlet": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/build-and-progress/passing-circuit-receiving-between-the-lines.php",
@@ -724,6 +730,345 @@ def full_name(player: dict) -> str:
     return value or player["short_name"]
 
 
+def _source_bool(value: str, label: str) -> bool | None:
+    if value == "":
+        return None
+    if value == "True":
+        return True
+    if value == "False":
+        return False
+    raise ValueError(f"Invalid source boolean for {label}: {value!r}")
+
+
+def load_player_possession_actions(path: Path, match_id: int) -> list[dict]:
+    required = {
+        "event_id", "match_id", "frame_start", "frame_end", "period",
+        "event_type", "player_id", "player_name", "start_type", "end_type",
+        "one_touch", "carry", "is_header", "hand_pass",
+        "is_player_possession_start_matched",
+        "is_player_possession_end_matched", "is_previous_pass_matched",
+        "is_pass_reception_matched",
+        "fully_extrapolated",
+    }
+    values: list[dict] = []
+    event_ids: set[str] = set()
+    with path.open(newline="", encoding="utf-8-sig") as handle:
+        reader = csv.DictReader(handle)
+        if reader.fieldnames is None or not required.issubset(reader.fieldnames):
+            raise ValueError(f"Dynamic-event CSV is missing action fields: {path}")
+        for row in reader:
+            if row["event_type"] != "player_possession":
+                continue
+            event_id = row["event_id"].strip()
+            if not event_id or event_id in event_ids:
+                raise ValueError(f"Invalid or duplicate player-possession event: {event_id!r}")
+            event_ids.add(event_id)
+            try:
+                row_match_id = int(row["match_id"])
+                start = int(row["frame_start"])
+                end = int(row["frame_end"])
+                period = int(row["period"])
+                player_id = int(row["player_id"])
+            except ValueError as error:
+                raise ValueError(f"Malformed player-possession identity: {event_id}") from error
+            if (
+                row_match_id != match_id
+                or start < 0
+                or end < start
+                or period not in (1, 2)
+                or player_id <= 0
+                or not row["player_name"].strip()
+            ):
+                raise ValueError(f"Invalid player-possession boundary: {event_id}")
+            values.append({
+                "eventId": event_id,
+                "period": period,
+                "playerId": player_id,
+                "sourcePlayerName": row["player_name"].strip(),
+                "sourceStartFrame": start,
+                "sourceEndFrame": end,
+                "startType": row["start_type"].strip(),
+                "endType": row["end_type"].strip(),
+                "flags": {
+                    "oneTouch": _source_bool(row["one_touch"], f"{event_id}.one_touch"),
+                    "carry": _source_bool(row["carry"], f"{event_id}.carry"),
+                    "isHeader": _source_bool(row["is_header"], f"{event_id}.is_header"),
+                    "handPass": _source_bool(row["hand_pass"], f"{event_id}.hand_pass"),
+                },
+                "matched": {
+                    "possessionStart": _source_bool(
+                        row["is_player_possession_start_matched"],
+                        f"{event_id}.is_player_possession_start_matched",
+                    ),
+                    "possessionEnd": _source_bool(
+                        row["is_player_possession_end_matched"],
+                        f"{event_id}.is_player_possession_end_matched",
+                    ),
+                    "previousPass": _source_bool(
+                        row["is_previous_pass_matched"],
+                        f"{event_id}.is_previous_pass_matched",
+                    ),
+                    "passReception": _source_bool(
+                        row["is_pass_reception_matched"],
+                        f"{event_id}.is_pass_reception_matched",
+                    ),
+                },
+                "fullyExtrapolated": _source_bool(
+                    row["fully_extrapolated"],
+                    f"{event_id}.fully_extrapolated",
+                ),
+            })
+    return values
+
+
+def _turn_degrees(
+    first: tuple[float, float],
+    pivot: tuple[float, float],
+    last: tuple[float, float],
+) -> float:
+    incoming = pivot[0] - first[0], pivot[1] - first[1]
+    outgoing = last[0] - pivot[0], last[1] - pivot[1]
+    denominator = math.hypot(*incoming) * math.hypot(*outgoing)
+    if denominator <= 1e-9:
+        return 0.0
+    cosine = max(-1.0, min(1.0, (
+        incoming[0] * outgoing[0] + incoming[1] * outgoing[1]
+    ) / denominator))
+    return math.degrees(math.acos(cosine))
+
+
+def source_action_geometry(
+    data: dict,
+    scene_start: int,
+    event: dict,
+) -> dict:
+    empty = {
+        "carryOnsetFrame": None,
+        "carryOnsetDistanceMeters": None,
+        "directionChangeOnsetFrame": None,
+        "directionChangePivotFrame": None,
+        "directionChangeDegrees": None,
+    }
+    if (
+        event["flags"]["carry"] is not True
+        or event["matched"]["possessionStart"] is not True
+        or event["matched"]["possessionEnd"] is not True
+        or event["fullyExtrapolated"] is True
+    ):
+        return empty
+    first = event["sourceStartFrame"] - scene_start
+    last = event["sourceEndFrame"] - scene_start
+    player_id = event["playerId"]
+    if first < 0 or last >= len(data["frames"]):
+        return empty
+    for frame in range(first, last + 1):
+        player_point = point(data, player_id, frame)
+        ball_point = ball(data, frame)
+        if (
+            player_point is None
+            or ball_point is None
+            or owner_at(data, frame) != player_id
+            or distance(player_point, ball_point) > ACTION_CONTROL_MAXIMUM_METERS
+        ):
+            return empty
+    start_point = point(data, player_id, first)
+    carry_onset = next((
+        frame for frame in range(first, last + 1)
+        if distance(start_point, point(data, player_id, frame))
+        >= ACTION_CARRY_MINIMUM_METERS
+    ), None)
+    if carry_onset is None:
+        return empty
+    carry_distance = distance(start_point, point(data, player_id, carry_onset))
+    direction_onset = None
+    direction_pivot = None
+    direction_degrees = None
+    # Three source samples on both legs, 1.5 m per leg, and a 55 degree bend
+    # keep stationary jitter and tiny touches from becoming a direction label.
+    for current in range(first + 6, last + 1):
+        current_point = point(data, player_id, current)
+        if distance(start_point, current_point) < ACTION_CARRY_MINIMUM_METERS:
+            continue
+        best: tuple[float, int] | None = None
+        for pivot in range(first + 3, current - 2):
+            pivot_point = point(data, player_id, pivot)
+            if (
+                distance(start_point, pivot_point)
+                < ACTION_DIRECTION_LEG_MINIMUM_METERS
+                or distance(pivot_point, current_point)
+                < ACTION_DIRECTION_LEG_MINIMUM_METERS
+            ):
+                continue
+            degrees = _turn_degrees(start_point, pivot_point, current_point)
+            if degrees >= ACTION_DIRECTION_MINIMUM_DEGREES and (
+                best is None or degrees > best[0]
+            ):
+                best = degrees, pivot
+        if best is not None:
+            direction_degrees, direction_pivot = best
+            direction_onset = current
+            break
+    return {
+        "carryOnsetFrame": scene_start + carry_onset,
+        "carryOnsetDistanceMeters": round(carry_distance, 3),
+        "directionChangeOnsetFrame": (
+            scene_start + direction_onset if direction_onset is not None else None
+        ),
+        "directionChangePivotFrame": (
+            scene_start + direction_pivot if direction_pivot is not None else None
+        ),
+        "directionChangeDegrees": (
+            round(direction_degrees, 3) if direction_degrees is not None else None
+        ),
+    }
+
+
+def build_scene_source_actions(
+    data: dict,
+    scene: dict,
+    source_events: list[dict],
+) -> list[dict]:
+    players = {item["id"]: item for item in data["players"]}
+    values = []
+    for event in source_events:
+        flags = event["flags"]
+        relevant = (
+            flags["carry"] is True
+            or flags["isHeader"] is True
+            or (flags["oneTouch"] is True and event["endType"] == "pass")
+            or event["startType"] == "pass_reception"
+        )
+        if (
+            not relevant
+            or event["period"] != scene["period"]
+            or event["sourceStartFrame"] < scene["startFrame"]
+            or event["sourceEndFrame"] > scene["endFrame"]
+            or event["playerId"] not in players
+        ):
+            continue
+        value = {
+            "proofVersion": ACTION_PROOF_VERSION,
+            "eventId": event["eventId"],
+            "actor": {
+                "playerId": event["playerId"],
+                "playerName": players[event["playerId"]]["name"],
+                "sourcePlayerName": event["sourcePlayerName"],
+            },
+            "period": event["period"],
+            "sourceStartFrame": event["sourceStartFrame"],
+            "sourceEndFrame": event["sourceEndFrame"],
+            "startType": event["startType"],
+            "endType": event["endType"],
+            "flags": event["flags"],
+            "matched": event["matched"],
+            "fullyExtrapolated": event["fullyExtrapolated"],
+            "observedGeometry": source_action_geometry(
+                data,
+                scene["startFrame"],
+                event,
+            ),
+            "provenance": {
+                "provider": "SkillCorner Open Data",
+                "commit": RECENT_COMMIT,
+                "sourcePath": (
+                    f"data/matches/{scene['matchId']}/"
+                    f"{scene['matchId']}_dynamic_events.csv"
+                ),
+            },
+        }
+        values.append(value)
+    return sorted(
+        values,
+        key=lambda item: (
+            item["sourceStartFrame"], item["sourceEndFrame"], item["eventId"]
+        ),
+    )
+
+
+def supports_source_action(action: dict, kind: str) -> bool:
+    flags = action["flags"]
+    matched = action["matched"]
+    if action["fullyExtrapolated"] is True:
+        return False
+    if kind == "header":
+        return (
+            flags["isHeader"] is True
+            and flags["handPass"] is not True
+            and matched["possessionStart"] is True
+            and matched["possessionEnd"] is True
+        )
+    if kind == "oneTouchPass":
+        return (
+            flags["oneTouch"] is True
+            and flags["isHeader"] is not True
+            and flags["handPass"] is not True
+            and action["endType"] == "pass"
+            and matched["possessionEnd"] is True
+        )
+    if kind == "receive":
+        return (
+            action["startType"] == "pass_reception"
+            and flags["oneTouch"] is not True
+            and flags["isHeader"] is not True
+            and flags["handPass"] is not True
+            and matched["possessionStart"] is True
+            and matched["previousPass"] is True
+        )
+    if kind == "carry":
+        return action["observedGeometry"]["carryOnsetFrame"] is not None
+    if kind == "directionChange":
+        return action["observedGeometry"]["directionChangeOnsetFrame"] is not None
+    raise ValueError(f"Unsupported source action kind: {kind}")
+
+
+def source_action_contact_observed(
+    data: dict,
+    scene: dict,
+    action: dict,
+    kind: str,
+) -> bool:
+    source_frame = (
+        action["sourceEndFrame"] if kind == "oneTouchPass"
+        else action["sourceStartFrame"]
+    )
+    local = source_frame - scene["startFrame"]
+    if local < 0 or local >= len(data["frames"]):
+        return False
+    player_point = point(data, action["actor"]["playerId"], local)
+    ball_point = ball(data, local)
+    return (
+        player_point is not None
+        and ball_point is not None
+        and distance(player_point, ball_point) <= ACTION_CONTROL_MAXIMUM_METERS
+    )
+
+
+def source_action_proof_counts(scenes: list[dict]) -> tuple[dict, dict]:
+    kinds = ("carry", "directionChange", "header", "receive", "oneTouchPass")
+    source_counts = {
+        kind: sum(
+            supports_source_action(action, kind)
+            for scene in scenes
+            for action in scene.get("sourceActions", [])
+        )
+        for kind in kinds
+    }
+    display_counts = {
+        kind: source_counts[kind] for kind in ("carry", "directionChange")
+    }
+    display_counts.update({kind: 0 for kind in ("header", "receive", "oneTouchPass")})
+    for scene in scenes:
+        data = read_json(REPO / scene["asset"])
+        for action in scene.get("sourceActions", []):
+            for kind in ("header", "receive", "oneTouchPass"):
+                if (
+                    supports_source_action(action, kind)
+                    and source_action_contact_observed(data, scene, action, kind)
+                ):
+                    display_counts[kind] += 1
+    return source_counts, display_counts
+
+
 def recent_touches(match: dict, frames: list[dict]) -> list[dict]:
     metadata = {player["id"]: player for player in match["players"]}
     touches: list[dict] = []
@@ -966,7 +1311,12 @@ def clock_seconds(value: str) -> float:
     return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
 
 
-def build_recent_scene(match: dict, frames: list[dict], candidate: dict) -> tuple[dict, dict, dict]:
+def build_recent_scene(
+    match: dict,
+    frames: list[dict],
+    candidate: dict,
+    source_events: list[dict],
+) -> tuple[dict, dict, dict]:
     start, end = candidate["start"], candidate["end"]
     active = candidate["active"]
     active_ids = {item["id"] for item in active}
@@ -1138,6 +1488,7 @@ def build_recent_scene(match: dict, frames: list[dict], candidate: dict) -> tupl
         },
         "sourceCommit": RECENT_COMMIT, "sourceUrl": source_url, "learning": lesson,
     }
+    entry["sourceActions"] = build_scene_source_actions(data, entry, source_events)
     proof = {
         "id": scene_id, "matchId": match["id"], "objective": objective,
         "sourceStartFrame": start, "sourceEndFrame": end, "period": candidate["period"],
@@ -1146,6 +1497,7 @@ def build_recent_scene(match: dict, frames: list[dict], candidate: dict) -> tupl
         "maxPlayerSpeedMetersPerSecond": round(player_speed, 4),
         "maxBallSpeedMetersPerSecond": round(ball_speed, 4),
         "maxQuantizationErrorMeters": round(quantization_error, 8),
+        "sourceActionEvents": len(entry["sourceActions"]),
         "learning": lesson,
     }
     return data, entry, proof
@@ -1247,6 +1599,10 @@ def generate(raw_dir: Path, source_manifest_path: Path) -> None:
     for match_id in ready["matchIds"]:
         match = read_json(raw_dir / f"{match_id}_match.json")
         known_ids = {item["id"] for item in match["players"]}
+        source_events = load_player_possession_actions(
+            raw_dir / f"{match_id}_dynamic_events.csv",
+            match_id,
+        )
         frames, ignored = load_recent_frames(
             raw_dir / f"{match_id}_tracking_extrapolated.jsonl", known_ids,
         )
@@ -1260,7 +1616,12 @@ def generate(raw_dir: Path, source_manifest_path: Path) -> None:
         recent_rejected.extend(overlap_rejected)
         for candidate in selected:
             try:
-                data, entry, proof = build_recent_scene(match, frames, candidate)
+                data, entry, proof = build_recent_scene(
+                    match,
+                    frames,
+                    candidate,
+                    source_events,
+                )
             except ValueError as error:
                 recent_rejected.append({
                     "matchId": match_id, "sourceFrame": candidate["departure"],
@@ -1295,6 +1656,7 @@ def generate(raw_dir: Path, source_manifest_path: Path) -> None:
         "provider": "SkillCorner Open Data",
         "license": "MIT",
         "proofVersion": CATALOG_PROOF_VERSION,
+        "actionProofVersion": ACTION_PROOF_VERSION,
         "sourceCommit": "mixed-pinned-sources-v1",
         "sourceUrl": "https://github.com/SkillCorner/opendata",
         "matchCount": len(all_matches),
@@ -1314,6 +1676,9 @@ def generate(raw_dir: Path, source_manifest_path: Path) -> None:
         ],
         "scenes": scenes,
     }
+    source_action_counts, display_action_counts = source_action_proof_counts(
+        recent_entries,
+    )
     proof = {
         "generator": "tool/scan_pass_replay/prepare_spatial_education.py",
         "proofVersion": CATALOG_PROOF_VERSION,
@@ -1324,6 +1689,9 @@ def generate(raw_dir: Path, source_manifest_path: Path) -> None:
             "thirdPlayer": "A, B and C are distinct same-team actors in uninterrupted source ownership order; C moves at least 0.6 m before B receives, at least 1 m overall, continues in the outcome direction, and gains either 1.5 m forward or 1 m clearance",
             "switchingSpace": "source-labelled lateral connection spans at least 22 m and receiver clearance from the same continuously observed defender increases by at least 1 m",
             "tolerance": "catalogue metrics are recomputed from centimetre-quantized exported frames; runtime comparison tolerance is 0.0011 in stored units and threshold allowance never exceeds the 0.01 m two-point quantization bound",
+            "sourceActions": "player_possession rows only; nullable provider flags remain nullable; receive requires is_previous_pass_matched for its incoming pass and excludes known one-touch/header/hand actions, while is_pass_reception_matched remains distinct outgoing-pass metadata; header requires is_header; one-touch pass requires one_touch plus end_type=pass with header priority; instant labels additionally require actor and ball within 3.5 m at the original contact frame",
+            "carryAction": "provider carry=true plus matched boundaries, uninterrupted directly observed player and ball, matching source owner, player-ball distance at most 3.5 m, and at least 2.0 m observed displacement before onset",
+            "directionChangeAction": "a carry-qualified observed XY trajectory only; both reached legs are at least 1.5 m and bend at least 55 degrees, without claiming body rotation",
         },
         "references": REFERENCES,
         "counts": {
@@ -1335,6 +1703,9 @@ def generate(raw_dir: Path, source_manifest_path: Path) -> None:
             "matches": len(all_matches),
             "objectives": dict(collections.Counter(item["learning"]["objective"] for item in scenes)),
             "seasons": dict(collections.Counter(item["season"] for item in scenes)),
+            "sourceActionEvents": sum(len(item.get("sourceActions", [])) for item in scenes),
+            "sourceActionGeometry": source_action_counts,
+            "sourceActionDisplayAnchors": display_action_counts,
         },
         "attemptedRecentMatches": attempted_matches,
         "archiveAudit": archive_audit,
@@ -1389,7 +1760,94 @@ def recompute_catalog_lesson(scene: dict, data: dict) -> dict:
     return accepted[objective]
 
 
-def verify_assets() -> None:
+def verify_scene_source_actions(scene: dict, data: dict) -> None:
+    actions = scene.get("sourceActions", [])
+    if scene["sourceCommit"] != RECENT_COMMIT:
+        if actions:
+            raise ValueError(f"Historical scene fabricates source actions: {scene['id']}")
+        return
+    if not isinstance(actions, list):
+        raise ValueError(f"Malformed source action list: {scene['id']}")
+    event_ids: set[str] = set()
+    players = {item["id"]: item for item in data["players"]}
+    for action in actions:
+        if not isinstance(action, dict):
+            raise ValueError(f"Malformed source action: {scene['id']}")
+        actor_value = action.get("actor")
+        flags = action.get("flags")
+        matched = action.get("matched")
+        provenance = action.get("provenance")
+        geometry = action.get("observedGeometry")
+        event_id = action.get("eventId")
+        if (
+            action.get("proofVersion") != ACTION_PROOF_VERSION
+            or not isinstance(event_id, str)
+            or not event_id
+            or event_id in event_ids
+            or not isinstance(actor_value, dict)
+            or not isinstance(flags, dict)
+            or not isinstance(matched, dict)
+            or not isinstance(provenance, dict)
+            or not isinstance(geometry, dict)
+        ):
+            raise ValueError(f"Malformed source action identity: {scene['id']}")
+        event_ids.add(event_id)
+        player_id = actor_value.get("playerId")
+        player = players.get(player_id)
+        if (
+            player is None
+            or actor_value.get("playerName") != player["name"]
+            or not isinstance(actor_value.get("sourcePlayerName"), str)
+            or not actor_value["sourcePlayerName"]
+            or action.get("period") != scene["period"]
+            or not isinstance(action.get("sourceStartFrame"), int)
+            or not isinstance(action.get("sourceEndFrame"), int)
+            or action["sourceStartFrame"] < scene["startFrame"]
+            or action["sourceEndFrame"] < action["sourceStartFrame"]
+            or action["sourceEndFrame"] > scene["endFrame"]
+            or not isinstance(action.get("startType"), str)
+            or not isinstance(action.get("endType"), str)
+        ):
+            raise ValueError(f"Source action does not match scene: {scene['id']} {event_id}")
+        nullable_booleans = [
+            *(flags.get(key) for key in ("oneTouch", "carry", "isHeader", "handPass")),
+            *(matched.get(key) for key in (
+                "possessionStart", "possessionEnd", "previousPass", "passReception"
+            )),
+            action.get("fullyExtrapolated"),
+        ]
+        if any(type(value) not in (bool, type(None)) for value in nullable_booleans):
+            raise ValueError(f"Source action flag is not nullable-boolean: {event_id}")
+        if provenance != {
+            "provider": "SkillCorner Open Data",
+            "commit": RECENT_COMMIT,
+            "sourcePath": (
+                f"data/matches/{scene['matchId']}/"
+                f"{scene['matchId']}_dynamic_events.csv"
+            ),
+        }:
+            raise ValueError(f"Source action provenance mismatch: {event_id}")
+        event = {
+            "eventId": event_id,
+            "period": action["period"],
+            "playerId": player_id,
+            "sourcePlayerName": actor_value["sourcePlayerName"],
+            "sourceStartFrame": action["sourceStartFrame"],
+            "sourceEndFrame": action["sourceEndFrame"],
+            "startType": action["startType"],
+            "endType": action["endType"],
+            "flags": flags,
+            "matched": matched,
+            "fullyExtrapolated": action.get("fullyExtrapolated"),
+        }
+        expected_geometry = source_action_geometry(data, scene["startFrame"], event)
+        if geometry != expected_geometry:
+            raise ValueError(f"Stale source action geometry: {scene['id']} {event_id}")
+
+
+def verify_assets(
+    raw_dir: Path = REPO / ".tmp/spatial-education/recent-source",
+) -> None:
     assert_archive_unchanged()
     catalogue = read_json(EDUCATION_CATALOG)
     proof = read_json(EDUCATION_PROOF)
@@ -1402,7 +1860,11 @@ def verify_assets() -> None:
         or preservation.get("metadataSha256") != IMMUTABLE_SPATIAL_METADATA_HASHES
     ):
         raise ValueError("Education manifest has stale archive preservation metadata")
-    if catalogue.get("version") != 2 or catalogue.get("proofVersion") != CATALOG_PROOF_VERSION:
+    if (
+        catalogue.get("version") != 2
+        or catalogue.get("proofVersion") != CATALOG_PROOF_VERSION
+        or catalogue.get("actionProofVersion") != ACTION_PROOF_VERSION
+    ):
         raise ValueError("Invalid education catalogue version")
     if catalogue["matchCount"] != len({item["matchId"] for item in catalogue["scenes"]}):
         raise ValueError("Education matchCount is not derived from actual matches")
@@ -1412,10 +1874,23 @@ def verify_assets() -> None:
     if len(proof["archiveAudit"]) != len(archived["scenes"]) or {item["id"] for item in proof["archiveAudit"]} != {item["id"] for item in archived["scenes"]}:
         raise ValueError("Education proof does not audit every archived scene")
     manifest_files = {item["path"]: item for item in manifest["files"]}
+    source_actions_by_match: dict[int, list[dict]] = {}
     for match_id in (1925299, 1996435):
         expected = f"data/matches/{match_id}/{match_id}_tracking_extrapolated.jsonl"
         if expected not in manifest_files:
             raise ValueError(f"Missing pinned tracking source: {match_id}")
+        csv_source = f"data/matches/{match_id}/{match_id}_dynamic_events.csv"
+        csv_item = manifest_files.get(csv_source)
+        if csv_item is None:
+            raise ValueError(f"Missing pinned dynamic-event source: {match_id}")
+        csv_path = raw_dir / f"{match_id}_dynamic_events.csv"
+        if csv_path.is_file():
+            if csv_path.stat().st_size != csv_item["bytes"] or sha256(csv_path) != csv_item["sha256"]:
+                raise ValueError(f"Dynamic-event source hash mismatch: {match_id}")
+            source_actions_by_match[match_id] = load_player_possession_actions(
+                csv_path,
+                match_id,
+            )
     for scene in catalogue["scenes"]:
         path = REPO / scene["asset"]
         if not path.is_file() or sha256(path) != scene["assetSha256"]:
@@ -1433,12 +1908,34 @@ def verify_assets() -> None:
         else:
             if scene["asset"] not in {item["asset"] for item in archived["scenes"]}:
                 raise ValueError("Education archive entry does not reuse an original scene")
+        verify_scene_source_actions(scene, data)
+        if scene["matchId"] in source_actions_by_match:
+            expected_actions = build_scene_source_actions(
+                data,
+                scene,
+                source_actions_by_match[scene["matchId"]],
+            )
+            if encoded(expected_actions) != encoded(scene.get("sourceActions", [])):
+                raise ValueError(f"Source actions do not match pinned CSV: {scene['id']}")
         recomputed = recompute_catalog_lesson(scene, data)
         if encoded(recomputed) != encoded(scene["learning"]):
             raise ValueError(f"Tampered or stale lesson metrics: {scene['id']}")
     actual_counts = collections.Counter(item["learning"]["objective"] for item in catalogue["scenes"])
     if dict(actual_counts) != proof["counts"]["objectives"]:
         raise ValueError("Education proof counts are stale")
+    recent_scenes = [
+        scene for scene in catalogue["scenes"]
+        if scene["sourceCommit"] == RECENT_COMMIT
+    ]
+    action_counts, display_action_counts = source_action_proof_counts(recent_scenes)
+    if (
+        proof["counts"].get("sourceActionEvents")
+        != sum(len(scene.get("sourceActions", [])) for scene in catalogue["scenes"])
+        or proof["counts"].get("sourceActionGeometry") != action_counts
+        or proof["counts"].get("sourceActionDisplayAnchors")
+        != display_action_counts
+    ):
+        raise ValueError("Education source-action proof counts are stale")
     print(
         f"Verified education catalogue: {len(catalogue['scenes'])} scenes, "
         f"{catalogue['matchCount']} matches, {len(actual_counts)} objectives"
@@ -1457,7 +1954,7 @@ def main() -> None:
     parser.add_argument("--verify-assets", action="store_true")
     args = parser.parse_args()
     if args.verify_assets:
-        verify_assets()
+        verify_assets(args.raw_dir)
     else:
         generate(args.raw_dir, args.source_manifest)
 

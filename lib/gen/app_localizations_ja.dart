@@ -23099,6 +23099,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get spatialSourceInfo => 'ライブラリと出典情報';
 
   @override
+  String get spatialActionCarry => 'ボール運搬';
+
+  @override
+  String get spatialActionDirectionChange => '方向転換';
+
+  @override
+  String get spatialActionReceive => 'ボール受け';
+
+  @override
+  String get spatialActionHeader => 'ヘディング';
+
+  @override
+  String get spatialActionOneTouchPass => 'ワンタッチパス';
+
+  @override
+  String spatialActionSemantics(String player, String action) {
+    return '$player：$action';
+  }
+
+  @override
+  String get spatialActionEvidenceDisclosure =>
+      'アクション表示は慎重に扱います。ボール運搬は守備者を抜いたことを意味しません。方向転換は移動経路の変化で、身体の回転を測定したものではありません。ボール受けはトラップ技術を確認する表現ではありません。ヘディングとワンタッチパスは元のアクション記録がある場合だけ表示します。';
+
+  @override
   String get spatialLegacyViewer => '以前のリプレイ参照画面';
 
   @override
