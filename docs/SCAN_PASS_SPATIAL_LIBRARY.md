@@ -27,10 +27,41 @@ source windows ease the camera between local action envelopes: every frame
 keeps the recorded ball, current source-labelled owner and current relevant
 actors visible, while the guarded teaching sequence also keeps its core,
 support and opponent actors together. The camera never fills gaps or treats an
-unobserved actor as empty space. Numbered circular kit markers have a separate
-ground anchor, and the ball remains a separate visible object. This
-presentation does not claim real body orientation, feet, contact posture or
-scanning direction.
+unobserved actor as empty space. Numbered flat kit symbols have a separate
+ground anchor, and the ball remains a separate visible object. The symbols are
+shirts and shorts, not bodies, and do not claim real orientation, feet,
+contact posture or scanning direction.
+
+## Kit presentation
+
+Outfield markers for the nine pinned fixture IDs use small, presentation-only
+2019/20-inspired kit families: Barcelona checkerboard, Juventus black/white
+halves with a narrow pink centre, Inter blue/black stripes, Paris a navy
+white-red-white centre band, Liverpool deep red pinstripes, Manchester City
+sky blue with purple trim and white shorts, Real Madrid off-white with gold
+trim, Dortmund yellow with black sleeves and shorts, Bayern red tonal panels,
+and Marseille white with sky-blue trim. These restrained flat symbols aid team
+recognition at the actual 26/32 px marker sizes; they have no logos or sponsors
+and are not claims about the exact match-specific garment worn in every clip.
+
+Resolution is deliberately scoped to the exact fixture ID and expected home
+and away names listed below. A future fixture, a team-name mismatch, or any
+goalkeeper uses the scene's plain source shirt and number colours. The source
+has no goalkeeper-kit fields, so an unverified outfield pattern is never
+assigned to a keeper. The minimap uses the same resolved representative main
+colour as the pitch. Original source player numbers remain on the shirt with a
+contrasting halo, while gold confirmed-ownership and blue teaching-focus rings
+retain their existing independent meanings.
+
+The season references used for the simplified visual treatment are the clubs'
+primary material for [Barcelona's checkerboard](https://www.fcbarcelona.com/en/football/first-team/news/1234297/new-fc-barcelona-jersey-expresses-the-clubs-passion-for-the-city/featured),
+[Juventus's halves and pink centre](https://www.juventus.com/en/news/articles/juventus-unveil-2019-20-home-kit),
+[Manchester City's sky-blue/purple palette](https://www.mancity.com/news/club-news/picture-special/2019/july/man-city-puma-2019-20-home-kit-gallery),
+[Liverpool's 2019/20 kit](https://www.liverpoolfc.com/news/announcements/346207-pictures-photos-liverpool-home-kit-2019-20),
+and [Real Madrid's 2019/20 kit](https://static.realmadrid.com/StaticFiles/RealMadridResponsive/especiales/en/shirts-and-kits/liga_34.html).
+The other club families are representative palettes, not source-backed exact
+garment claims. Raw pinned match metadata provides only shirt and number
+colours, includes older catalogue entries, and does not describe patterns.
 
 The compact title contains match identity. A single short teaching cue is
 placed in a currently clear part of the pitch without a connector line.
@@ -162,6 +193,7 @@ repository verifies each scene SHA-256 before parsing.
 
 This remains broadcast-visible XY coverage rather than complete full-pitch
 measurement. Real visibility gaps outside the teaching evidence are preserved,
-ball height is not taught, and absence from the feed is not evidence of open
-space. Those source limits are surfaced rather than repaired by the camera or
-copy.
+ball height is unavailable for all 72 scenes and is not taught, and absence
+from the feed is not evidence of open space. Kit symbols add no body pose or
+orientation inference. Those source limits are surfaced rather than repaired
+by the camera, symbols or copy.
