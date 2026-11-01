@@ -472,7 +472,11 @@ class SpatialKitPainter {
     required double opacity,
   }) {
     if (number.isEmpty) return;
-    final halo = color.computeLuminance() > .35 ? Colors.black : Colors.white;
+    final luminance = color.computeLuminance();
+    // Compare both outlines against the number, including mid-tone gold.
+    final blackContrast = (luminance + .05) / .05;
+    final whiteContrast = 1.05 / (luminance + .05);
+    final halo = blackContrast >= whiteContrast ? Colors.black : Colors.white;
     TextPainter painter(Paint foreground) => TextPainter(
           text: TextSpan(
             text: number,
