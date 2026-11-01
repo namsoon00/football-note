@@ -598,6 +598,10 @@ class _ScanPassSpatialLibraryScreenState
       ).intersect(viewport.view);
       final roles = scene.observedRoles(data, _time);
       final sample = data.renderSample(_time);
+      final activeAction = scene.sourceActionAt(data, _time);
+      final activeActionLabel = activeAction == null
+          ? null
+          : _spatialActionLabel(_l10n, activeAction.kind);
       final cueActorPoint = cue.targetPlayerId == null
           ? null
           : sample.players[data.playerIndex(cue.targetPlayerId!)];
@@ -611,11 +615,17 @@ class _ScanPassSpatialLibraryScreenState
         roles: roles,
         currentOwner: currentOwner,
       );
+      if (activeAction != null) {
+        protectedPlayerIds.add(activeAction.playerId);
+      }
       final occupied = <Rect>[
         Rect.fromCircle(center: viewport.project(sample.ball), radius: 14),
         for (final playerId in protectedPlayerIds)
           if (sample.players[data.playerIndex(playerId)] case final point?)
-            Rect.fromCircle(center: viewport.project(point), radius: 28),
+            Rect.fromCircle(
+              center: viewport.project(point),
+              radius: playerId == activeAction?.playerId ? 64 : 28,
+            ),
       ];
       if (_time >= scene.teachingStart) {
         final traceEnd = math.min(_time, scene.teachingEnd);
@@ -727,6 +737,7 @@ class _ScanPassSpatialLibraryScreenState
       _directionPlacementKey = directionPlacementKey;
       _directionPlacementRect = directionRect;
       final nameLabelPlayerIds = <int>{
+        if (activeAction != null) activeAction.playerId,
         scene.education?.focusActor.playerId ?? scene.focusPlayerId,
         if (currentOwner != null) currentOwner,
         if (cueActorPoint != null) cue.targetPlayerId!,
@@ -741,7 +752,8 @@ class _ScanPassSpatialLibraryScreenState
       final nameLabelPlacementKey = '${scene.id}:$rotated:'
           '${size.width.toStringAsFixed(1)}x${size.height.toStringAsFixed(1)}:'
           '${textScaler.scale(10).toStringAsFixed(1)}:'
-          '${locale.toLanguageTag()}';
+          '${locale.toLanguageTag()}:'
+          '${activeAction?.eventId}:${activeAction?.kind.name}';
       final pitchPainter = SpatialLibraryPitchPainter(
         data: data,
         scene: scene,
@@ -754,6 +766,8 @@ class _ScanPassSpatialLibraryScreenState
         textScaler: textScaler,
         locale: locale,
         roles: roles,
+        activeAction: activeAction,
+        activeActionLabel: activeActionLabel,
         cuePlayerId: cueActorPoint == null ? null : cue.targetPlayerId,
         requiredPlayerIds: protectedPlayerIds,
         nameLabelPlayerIds: nameLabelPlayerIds,
@@ -787,6 +801,12 @@ class _ScanPassSpatialLibraryScreenState
                 _learningTitle(_l10n, scene),
               ),
               value: _sourceTimeLabel(scene),
+              hint: activeAction == null
+                  ? null
+                  : _l10n.spatialActionSemantics(
+                      activeAction.playerName,
+                      activeActionLabel!,
+                    ),
               child: ExcludeSemantics(
                 child: CustomPaint(
                   key: const ValueKey<String>('spatial-pitch'),
@@ -1945,6 +1965,8 @@ class _SpatialSourceInfoSheet extends StatelessWidget {
           const SizedBox(height: 8),
           Text(l10n.spatialInferredDisclosure),
           const SizedBox(height: 8),
+          Text(l10n.spatialActionEvidenceDisclosure),
+          const SizedBox(height: 8),
           Text(
             catalog.version == 2
                 ? l10n.spatialEducationSelectionDisclosure
@@ -2286,6 +2308,7 @@ class SpatialPlayerNameLabelGeometry {
   final int playerId;
   final String sourceName;
   final String displayName;
+  final String? actionLabel;
   final Rect rect;
   final Rect badgeRect;
   final int placementIndex;
@@ -2294,6 +2317,7 @@ class SpatialPlayerNameLabelGeometry {
     required this.playerId,
     required this.sourceName,
     required this.displayName,
+    this.actionLabel,
     required this.rect,
     required this.badgeRect,
     required this.placementIndex,
@@ -2326,6 +2350,8 @@ class SpatialLibraryPitchPainter extends CustomPainter {
   final TextScaler textScaler;
   final Locale locale;
   final SpatialObservedRoles roles;
+  final SpatialOnPitchAction? activeAction;
+  final String? activeActionLabel;
   final int? cuePlayerId;
   final Set<int> requiredPlayerIds;
   final Set<int> nameLabelPlayerIds;
@@ -2352,6 +2378,8 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     required this.textScaler,
     this.locale = const Locale('en'),
     required this.roles,
+    this.activeAction,
+    this.activeActionLabel,
     this.cuePlayerId,
     this.requiredPlayerIds = const <int>{},
     this.nameLabelPlayerIds = const <int>{},
@@ -2359,7 +2387,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     this.cueTarget = Offset.zero,
     this.reservedOverlayRects = const [],
     this.preferredNameLabelPlacements = const <int, int>{},
-  });
+  }) : assert((activeAction == null) == (activeActionLabel == null));
 
   Color get _pitch => brightness == Brightness.dark
       ? const Color(0xFF173E2B)
@@ -2741,6 +2769,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
         int priority(int index) {
           final playerId = data.players[index].id;
           if (playerId == ownerId) return 5;
+          if (playerId == activeAction?.playerId) return 4;
           if (teachingFocusIds.contains(playerId)) return 4;
           if (scene.education != null) {
             return requiredPlayerIds.contains(playerId) ? 3 : 0;
@@ -2769,6 +2798,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
           neutralEducationEmphasisPlayerIds.contains(player.id);
       final involved = (scene.education == null && role != null) ||
           cueActor ||
+          player.id == activeAction?.playerId ||
           confirmedOwner ||
           teachingFocus ||
           neutralEducation;
@@ -2908,6 +2938,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
             final confirmedOwner = playerId == currentConfirmedOwnerId;
             final involved = roleById.containsKey(playerId) ||
                 playerId == cuePlayerId ||
+                playerId == activeAction?.playerId ||
                 confirmedOwner;
             final radius = involved ? 16.2 : 13.2;
             final center =
@@ -2967,6 +2998,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       }
     }
 
+    addPriority(activeAction?.playerId);
     addPriority(currentConfirmedOwnerId);
     addPriority(cuePlayerId);
     addPriority(
@@ -3001,10 +3033,15 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       final player = data.player(playerId);
       final sourceName = player.name?.trim() ?? '';
       if (sourceName.isEmpty) continue;
-      final displayName = _spatialShortPlayerName(sourceName);
-      final painter = TextPainter(
+      final shortName = _spatialShortPlayerName(sourceName);
+      final actionLabel =
+          playerId == activeAction?.playerId ? activeActionLabel : null;
+      final displayName =
+          actionLabel == null ? shortName : '$shortName · $actionLabel';
+      var resolvedDisplayName = displayName;
+      var painter = TextPainter(
         text: TextSpan(
-          text: displayName,
+          text: actionLabel == null ? displayName : '$shortName\n$actionLabel',
           style: const TextStyle(
             color: Colors.white,
             fontSize: 10.5,
@@ -3012,8 +3049,9 @@ class SpatialLibraryPitchPainter extends CustomPainter {
             height: 1,
           ),
         ),
-        maxLines: 1,
+        maxLines: actionLabel == null ? 1 : 2,
         ellipsis: '…',
+        textAlign: TextAlign.center,
         locale: locale,
         textScaler: textScaler,
         textDirection: textDirection,
@@ -3026,6 +3064,24 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       final labelSize = Size(painter.width + 12, painter.height + 8);
       final center = badge.center;
       final rect = badge.rect;
+      double attachmentDistance(Rect candidate) {
+        final dx = math.max(
+          0.0,
+          math.max(
+            rect.left - candidate.right,
+            candidate.left - rect.right,
+          ),
+        );
+        final dy = math.max(
+          0.0,
+          math.max(
+            rect.top - candidate.bottom,
+            candidate.top - rect.bottom,
+          ),
+        );
+        return math.sqrt(dx * dx + dy * dy);
+      }
+
       // Every candidate remains visibly attached to the player's own badge.
       // Directly below wins when safe, followed by close side/adjacent slots.
       final candidates = <Rect>[
@@ -3158,12 +3214,130 @@ class SpatialLibraryPitchPainter extends CustomPainter {
         final candidate = candidates[candidateIndex];
         if (!safeView.contains(candidate.topLeft) ||
             !safeView.contains(candidate.bottomRight) ||
+            attachmentDistance(candidate) > 18 ||
             occupied.any(candidate.overlaps)) {
           continue;
         }
         chosen = candidate;
         placementIndex = candidateIndex;
         break;
+      }
+      if ((chosen == null || placementIndex == null) && actionLabel != null) {
+        // A source action must not disappear merely because the ordinary
+        // two-line name slot is crowded on a narrow phone. Keep the actor's
+        // source jersey number, surname and localized action together in a
+        // smaller in-pitch caption, then search outward without adding a line.
+        final compactDisplayName = player.number == null
+            ? displayName
+            : '#${player.number} $displayName';
+        final compactPainter = TextPainter(
+          text: TextSpan(
+            text: compactDisplayName,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              height: 1,
+            ),
+          ),
+          maxLines: 1,
+          ellipsis: '…',
+          locale: locale,
+          textScaler: textScaler,
+          textDirection: textDirection,
+        )..layout(maxWidth: math.max(48, safeView.width - 12));
+        final compactSize = Size(
+          compactPainter.width + 12,
+          compactPainter.height + 6,
+        );
+        final compactCandidates = <Rect>[
+          for (final shift in <double>[
+            0,
+            12,
+            -12,
+            24,
+            -24,
+            36,
+            -36,
+            48,
+            -48,
+            60,
+            -60,
+          ]) ...<Rect>[
+            Rect.fromLTWH(
+              center.dx - compactSize.width / 2 + shift,
+              rect.bottom + 3,
+              compactSize.width,
+              compactSize.height,
+            ),
+            Rect.fromLTWH(
+              center.dx - compactSize.width / 2 + shift,
+              rect.top - compactSize.height - 3,
+              compactSize.width,
+              compactSize.height,
+            ),
+          ],
+          for (final shift in <double>[0, 12, -12, 24, -24, 36, -36]) ...<Rect>[
+            Rect.fromLTWH(
+              rect.right + 3,
+              center.dy - compactSize.height / 2 + shift,
+              compactSize.width,
+              compactSize.height,
+            ),
+            Rect.fromLTWH(
+              rect.left - compactSize.width - 3,
+              center.dy - compactSize.height / 2 + shift,
+              compactSize.width,
+              compactSize.height,
+            ),
+          ],
+        ];
+        for (var index = 0; index < compactCandidates.length; index++) {
+          final candidate = compactCandidates[index];
+          if (!safeView.contains(candidate.topLeft) ||
+              !safeView.contains(candidate.bottomRight) ||
+              (player.number == null && attachmentDistance(candidate) > 18) ||
+              occupied.any(candidate.overlaps)) {
+            continue;
+          }
+          painter = compactPainter;
+          resolvedDisplayName = compactDisplayName;
+          chosen = candidate;
+          placementIndex = index;
+          break;
+        }
+        if (chosen == null || placementIndex == null) {
+          final safeCandidates = <Rect>[];
+          const step = 6.0;
+          for (var top = safeView.top;
+              top + compactSize.height <= safeView.bottom;
+              top += step) {
+            for (var left = safeView.left;
+                left + compactSize.width <= safeView.right;
+                left += step) {
+              final candidate = Rect.fromLTWH(
+                left,
+                top,
+                compactSize.width,
+                compactSize.height,
+              );
+              if (!occupied.any(candidate.overlaps) &&
+                  (player.number != null ||
+                      attachmentDistance(candidate) <= 18)) {
+                safeCandidates.add(candidate);
+              }
+            }
+          }
+          safeCandidates.sort((first, second) => (first.center - center)
+              .distanceSquared
+              .compareTo((second.center - center).distanceSquared));
+          if (safeCandidates.isNotEmpty) {
+            painter = compactPainter;
+            resolvedDisplayName = compactDisplayName;
+            chosen = safeCandidates.first;
+            placementIndex = compactCandidates.length;
+          }
+        }
       }
       if (chosen == null || placementIndex == null) continue;
       occupied.add(chosen.inflate(2));
@@ -3184,7 +3358,8 @@ class SpatialLibraryPitchPainter extends CustomPainter {
         geometry: SpatialPlayerNameLabelGeometry(
           playerId: playerId,
           sourceName: sourceName,
-          displayName: displayName,
+          displayName: resolvedDisplayName,
+          actionLabel: actionLabel,
           rect: chosen,
           badgeRect: badge.rect,
           placementIndex: placementIndex,
@@ -3287,6 +3462,9 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       oldDelegate.textDirection != textDirection ||
       oldDelegate.locale != locale ||
       oldDelegate.viewport.camera != viewport.camera ||
+      oldDelegate.activeAction?.kind != activeAction?.kind ||
+      oldDelegate.activeAction?.eventId != activeAction?.eventId ||
+      oldDelegate.activeActionLabel != activeActionLabel ||
       oldDelegate.cuePlayerId != cuePlayerId ||
       !setEquals(oldDelegate.nameLabelPlayerIds, nameLabelPlayerIds) ||
       oldDelegate.cueRect != cueRect ||
@@ -3963,6 +4141,19 @@ String _spatialShortPlayerName(String sourceName) {
   }
   return parts.sublist(firstFamilyPart).join(' ');
 }
+
+String _spatialActionLabel(
+  AppLocalizations l10n,
+  SpatialOnPitchActionKind kind,
+) =>
+    switch (kind) {
+      SpatialOnPitchActionKind.carry => l10n.spatialActionCarry,
+      SpatialOnPitchActionKind.directionChange =>
+        l10n.spatialActionDirectionChange,
+      SpatialOnPitchActionKind.receive => l10n.spatialActionReceive,
+      SpatialOnPitchActionKind.header => l10n.spatialActionHeader,
+      SpatialOnPitchActionKind.oneTouchPass => l10n.spatialActionOneTouchPass,
+    };
 
 String _legacyPhaseCueText(
   AppLocalizations l10n,

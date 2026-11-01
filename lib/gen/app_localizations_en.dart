@@ -24083,6 +24083,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spatialSourceInfo => 'Library and source information';
 
   @override
+  String get spatialActionCarry => 'Carry';
+
+  @override
+  String get spatialActionDirectionChange => 'Direction change';
+
+  @override
+  String get spatialActionReceive => 'Receive';
+
+  @override
+  String get spatialActionHeader => 'Header';
+
+  @override
+  String get spatialActionOneTouchPass => 'One-touch pass';
+
+  @override
+  String spatialActionSemantics(String player, String action) {
+    return '$player: $action';
+  }
+
+  @override
+  String get spatialActionEvidenceDisclosure =>
+      'Action labels are cautious. Carry does not mean a defender was beaten. Direction change describes the movement path, not measured body rotation. Receive does not confirm trapping technique. Headers and one-touch passes appear only when recorded in the original action data.';
+
+  @override
   String get spatialLegacyViewer => 'Legacy replay reference';
 
   @override

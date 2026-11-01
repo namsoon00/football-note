@@ -124,7 +124,9 @@ class SpatialFocusPlan {
       final time = frame / data.fps;
       final sample = data.sample(time);
       final activeHome = _activeHomeAt(data, scene, time);
+      final sourceAction = scene.sourceActionAt(data, time);
       final relevant = <int>{
+        if (sourceAction != null) sourceAction.playerId,
         if (scene.education case final lesson?) ...[
           ..._educationVisibleCueActors(lesson, time),
           if (time >= lesson.movementStart &&

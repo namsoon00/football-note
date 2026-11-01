@@ -29,6 +29,141 @@ enum SpatialEducationMeasurement {
   forwardAdvanceMeters,
 }
 
+enum SpatialOnPitchActionKind {
+  carry,
+  directionChange,
+  receive,
+  header,
+  oneTouchPass,
+}
+
+const double spatialActionControlMaximumMeters = 3.5;
+const double spatialActionCarryMinimumMeters = 2.0;
+const double spatialActionDirectionLegMinimumMeters = 1.5;
+const double spatialActionDirectionMinimumDegrees = 55.0;
+
+class SpatialSourceActionFlags {
+  final bool? oneTouch;
+  final bool? carry;
+  final bool? isHeader;
+  final bool? handPass;
+
+  const SpatialSourceActionFlags({
+    required this.oneTouch,
+    required this.carry,
+    required this.isHeader,
+    required this.handPass,
+  });
+}
+
+class SpatialSourceActionMatches {
+  final bool? possessionStart;
+  final bool? possessionEnd;
+  final bool? previousPass;
+  final bool? passReception;
+
+  const SpatialSourceActionMatches({
+    required this.possessionStart,
+    required this.possessionEnd,
+    required this.previousPass,
+    required this.passReception,
+  });
+}
+
+class SpatialSourceActionGeometry {
+  final int? carryOnsetFrame;
+  final double? carryOnsetDistanceMeters;
+  final int? directionChangeOnsetFrame;
+  final int? directionChangePivotFrame;
+  final double? directionChangeDegrees;
+
+  const SpatialSourceActionGeometry({
+    required this.carryOnsetFrame,
+    required this.carryOnsetDistanceMeters,
+    required this.directionChangeOnsetFrame,
+    required this.directionChangePivotFrame,
+    required this.directionChangeDegrees,
+  });
+}
+
+class SpatialSourceActionEvidence {
+  static const expectedProofVersion = 'spatial-source-actions-v1';
+
+  final String proofVersion;
+  final String eventId;
+  final int playerId;
+  final String playerName;
+  final String sourcePlayerName;
+  final int period;
+  final int sourceStartFrame;
+  final int sourceEndFrame;
+  final String startType;
+  final String endType;
+  final SpatialSourceActionFlags flags;
+  final SpatialSourceActionMatches matched;
+  final bool? fullyExtrapolated;
+  final SpatialSourceActionGeometry geometry;
+  final String provider;
+  final String sourceCommit;
+  final String sourcePath;
+
+  const SpatialSourceActionEvidence({
+    required this.proofVersion,
+    required this.eventId,
+    required this.playerId,
+    required this.playerName,
+    required this.sourcePlayerName,
+    required this.period,
+    required this.sourceStartFrame,
+    required this.sourceEndFrame,
+    required this.startType,
+    required this.endType,
+    required this.flags,
+    required this.matched,
+    required this.fullyExtrapolated,
+    required this.geometry,
+    required this.provider,
+    required this.sourceCommit,
+    required this.sourcePath,
+  });
+
+  bool supports(SpatialOnPitchActionKind kind) {
+    if (fullyExtrapolated == true) return false;
+    return switch (kind) {
+      SpatialOnPitchActionKind.header => flags.isHeader == true &&
+          flags.handPass != true &&
+          matched.possessionStart == true &&
+          matched.possessionEnd == true,
+      SpatialOnPitchActionKind.oneTouchPass => flags.oneTouch == true &&
+          flags.isHeader != true &&
+          flags.handPass != true &&
+          endType == 'pass' &&
+          matched.possessionEnd == true,
+      SpatialOnPitchActionKind.receive => startType == 'pass_reception' &&
+          flags.oneTouch != true &&
+          flags.isHeader != true &&
+          flags.handPass != true &&
+          matched.possessionStart == true &&
+          matched.previousPass == true,
+      SpatialOnPitchActionKind.directionChange =>
+        flags.carry == true && geometry.directionChangeOnsetFrame != null,
+      SpatialOnPitchActionKind.carry =>
+        flags.carry == true && geometry.carryOnsetFrame != null,
+    };
+  }
+}
+
+class SpatialOnPitchAction {
+  final SpatialOnPitchActionKind kind;
+  final SpatialSourceActionEvidence evidence;
+
+  const SpatialOnPitchAction({required this.kind, required this.evidence});
+
+  int get playerId => evidence.playerId;
+  String get playerName => evidence.playerName;
+  String get eventId => evidence.eventId;
+}
+
 class SpatialLearningActor {
   final int playerId;
   final String playerName;
@@ -291,6 +426,7 @@ class SpatialLibraryScene {
   final String sourceUrl;
   final String season;
   final SpatialEducationLesson? education;
+  final List<SpatialSourceActionEvidence> sourceActions;
 
   const SpatialLibraryScene({
     required this.id,
@@ -324,6 +460,7 @@ class SpatialLibraryScene {
     required this.sourceUrl,
     this.season = '',
     this.education,
+    this.sourceActions = const <SpatialSourceActionEvidence>[],
   });
 
   String get attackingTeam => attackingHome ? home : away;
@@ -351,6 +488,64 @@ class SpatialLibraryScene {
 
   bool matchesSearch(String query) =>
       SpatialLibraryDiscovery.matchesScene(this, query);
+
+  SpatialOnPitchAction? sourceActionAt(
+    RealMatchReplayData data,
+    double time,
+  ) {
+    if (sourceActions.isEmpty || data.frames.isEmpty) return null;
+    final localFrame = (time.clamp(0.0, data.duration) * data.fps)
+        .floor()
+        .clamp(0, data.frames.length - 1);
+    final sourceFrame = startFrame + localFrame;
+    final sample = data.renderSample(time);
+    final candidates = <({SpatialOnPitchAction action, int displayStart})>[];
+    for (final evidence in sourceActions) {
+      for (final kind in SpatialOnPitchActionKind.values) {
+        if (!evidence.supports(kind)) continue;
+        if ((kind == SpatialOnPitchActionKind.header ||
+                kind == SpatialOnPitchActionKind.receive ||
+                kind == SpatialOnPitchActionKind.oneTouchPass) &&
+            !_hasObservedSpatialActionContact(this, data, evidence, kind)) {
+          continue;
+        }
+        final (first, last) = _spatialActionDisplayFrames(
+          evidence,
+          kind,
+          fps: data.fps,
+          sceneEndFrame: endFrame,
+        );
+        if (sourceFrame < first || sourceFrame > last) continue;
+        final playerIndex = data.players.indexWhere(
+          (player) => player.id == evidence.playerId,
+        );
+        if (playerIndex < 0 || sample.players[playerIndex] == null) continue;
+        if ((kind == SpatialOnPitchActionKind.carry ||
+                kind == SpatialOnPitchActionKind.directionChange) &&
+            sourceFrame <= evidence.sourceEndFrame &&
+            !data.isBallVisibleAtFrame(localFrame)) {
+          continue;
+        }
+        candidates.add((
+          action: SpatialOnPitchAction(kind: kind, evidence: evidence),
+          displayStart: first,
+        ));
+      }
+    }
+    if (candidates.isEmpty) return null;
+    candidates.sort((first, second) {
+      final onset = second.displayStart.compareTo(first.displayStart);
+      if (onset != 0) return onset;
+      final priority = _spatialActionPriority(second.action.kind)
+          .compareTo(_spatialActionPriority(first.action.kind));
+      if (priority != 0) return priority;
+      final start = second.action.evidence.sourceStartFrame
+          .compareTo(first.action.evidence.sourceStartFrame);
+      if (start != 0) return start;
+      return first.action.eventId.compareTo(second.action.eventId);
+    });
+    return candidates.first.action;
+  }
 
   SpatialObservedDefenderGap? observedNearbyDefender(
     RealMatchReplayData data,
@@ -487,8 +682,246 @@ class SpatialLibraryScene {
           'Spatial replay has no visible ownership run.');
     }
     education?.validateReplay(this, data);
+    _validateSourceActions(data);
+  }
+
+  void _validateSourceActions(RealMatchReplayData data) {
+    if (sourceCommit != SpatialLibraryCatalog.expectedRecentSourceCommit) {
+      if (sourceActions.isNotEmpty) {
+        throw const FormatException(
+          'Historical spatial scene cannot claim dynamic source actions.',
+        );
+      }
+      return;
+    }
+    final eventIds = <String>{};
+    final expectedPath = 'data/matches/$matchId/${matchId}_dynamic_events.csv';
+    for (final action in sourceActions) {
+      if (!eventIds.add(action.eventId) ||
+          action.proofVersion !=
+              SpatialSourceActionEvidence.expectedProofVersion ||
+          action.eventId.isEmpty ||
+          action.sourcePlayerName.isEmpty ||
+          action.period != period ||
+          action.sourceStartFrame < startFrame ||
+          action.sourceEndFrame < action.sourceStartFrame ||
+          action.sourceEndFrame > endFrame ||
+          action.provider != 'SkillCorner Open Data' ||
+          action.sourceCommit != sourceCommit ||
+          action.sourcePath != expectedPath) {
+        throw const FormatException('Invalid spatial source action metadata.');
+      }
+      RealMatchReplayPlayer player;
+      try {
+        player = data.player(action.playerId);
+      } on ArgumentError {
+        throw const FormatException(
+          'Spatial source action actor is outside the active roster.',
+        );
+      }
+      if (player.name != action.playerName) {
+        throw const FormatException(
+          'Spatial source action actor identity does not match the replay.',
+        );
+      }
+      final recomputed = _deriveSpatialActionGeometry(this, data, action);
+      final stored = action.geometry;
+      if (stored.carryOnsetFrame != recomputed.carryOnsetFrame ||
+          stored.directionChangeOnsetFrame !=
+              recomputed.directionChangeOnsetFrame ||
+          stored.directionChangePivotFrame !=
+              recomputed.directionChangePivotFrame ||
+          !_sameNullableMeasurement(
+            stored.carryOnsetDistanceMeters,
+            recomputed.carryOnsetDistanceMeters,
+          ) ||
+          !_sameNullableMeasurement(
+            stored.directionChangeDegrees,
+            recomputed.directionChangeDegrees,
+          )) {
+        throw const FormatException(
+          'Spatial source action geometry does not match observed control.',
+        );
+      }
+    }
   }
 }
+
+bool _hasObservedSpatialActionContact(
+  SpatialLibraryScene scene,
+  RealMatchReplayData data,
+  SpatialSourceActionEvidence evidence,
+  SpatialOnPitchActionKind kind,
+) {
+  final sourceFrame = kind == SpatialOnPitchActionKind.oneTouchPass
+      ? evidence.sourceEndFrame
+      : evidence.sourceStartFrame;
+  final localFrame = sourceFrame - scene.startFrame;
+  if (localFrame < 0 || localFrame >= data.frames.length) return false;
+  final playerIndex = data.players.indexWhere(
+    (player) => player.id == evidence.playerId,
+  );
+  if (playerIndex < 0 || !data.isBallVisibleAtFrame(localFrame)) return false;
+  final sample = data.sample(localFrame / data.fps);
+  final actor = sample.players[playerIndex];
+  return actor != null &&
+      _distance(actor, sample.ball) <= spatialActionControlMaximumMeters;
+}
+
+(int, int) _spatialActionDisplayFrames(
+  SpatialSourceActionEvidence evidence,
+  SpatialOnPitchActionKind kind, {
+  required int fps,
+  required int sceneEndFrame,
+}) {
+  final (start, lingerSeconds) = switch (kind) {
+    SpatialOnPitchActionKind.header => (evidence.sourceStartFrame, 1.6),
+    SpatialOnPitchActionKind.oneTouchPass => (evidence.sourceEndFrame, 1.4),
+    SpatialOnPitchActionKind.receive => (evidence.sourceStartFrame, 1.2),
+    SpatialOnPitchActionKind.directionChange => (
+        evidence.geometry.directionChangeOnsetFrame!,
+        1.2
+      ),
+    SpatialOnPitchActionKind.carry => (evidence.geometry.carryOnsetFrame!, 1.2),
+  };
+  final readableEnd = start + (fps * lingerSeconds).round();
+  final end = switch (kind) {
+    SpatialOnPitchActionKind.header ||
+    SpatialOnPitchActionKind.oneTouchPass ||
+    SpatialOnPitchActionKind.receive =>
+      readableEnd,
+    SpatialOnPitchActionKind.directionChange ||
+    SpatialOnPitchActionKind.carry =>
+      math.max(evidence.sourceEndFrame, readableEnd),
+  };
+  return (start, math.min(sceneEndFrame, end));
+}
+
+int _spatialActionPriority(SpatialOnPitchActionKind kind) => switch (kind) {
+      SpatialOnPitchActionKind.header => 5,
+      SpatialOnPitchActionKind.oneTouchPass => 4,
+      SpatialOnPitchActionKind.receive => 3,
+      SpatialOnPitchActionKind.directionChange => 2,
+      SpatialOnPitchActionKind.carry => 1,
+    };
+
+SpatialSourceActionGeometry _deriveSpatialActionGeometry(
+  SpatialLibraryScene scene,
+  RealMatchReplayData data,
+  SpatialSourceActionEvidence evidence,
+) {
+  const empty = SpatialSourceActionGeometry(
+    carryOnsetFrame: null,
+    carryOnsetDistanceMeters: null,
+    directionChangeOnsetFrame: null,
+    directionChangePivotFrame: null,
+    directionChangeDegrees: null,
+  );
+  if (evidence.flags.carry != true ||
+      evidence.matched.possessionStart != true ||
+      evidence.matched.possessionEnd != true ||
+      evidence.fullyExtrapolated == true) {
+    return empty;
+  }
+  final first = evidence.sourceStartFrame - scene.startFrame;
+  final last = evidence.sourceEndFrame - scene.startFrame;
+  if (first < 0 || last >= data.frames.length) return empty;
+  final playerIndex = data.players.indexWhere(
+    (player) => player.id == evidence.playerId,
+  );
+  if (playerIndex < 0) return empty;
+  for (var frame = first; frame <= last; frame++) {
+    final sample = data.sample(frame / data.fps);
+    final player = sample.players[playerIndex];
+    if (player == null ||
+        !data.isBallVisibleAtFrame(frame) ||
+        data.sourcePossessionOwners[frame] != evidence.playerId ||
+        _distance(player, sample.ball) > spatialActionControlMaximumMeters) {
+      return empty;
+    }
+  }
+  final startPoint = data.sample(first / data.fps).players[playerIndex]!;
+  int? carryOnset;
+  double? carryDistance;
+  for (var frame = first; frame <= last; frame++) {
+    final value = data.sample(frame / data.fps).players[playerIndex]!;
+    final meters = _distance(startPoint, value);
+    if (meters >= spatialActionCarryMinimumMeters) {
+      carryOnset = frame;
+      carryDistance = meters;
+      break;
+    }
+  }
+  if (carryOnset == null || carryDistance == null) return empty;
+
+  int? directionOnset;
+  int? directionPivot;
+  double? directionDegrees;
+  for (var current = first + 6; current <= last; current++) {
+    final currentPoint = data.sample(current / data.fps).players[playerIndex]!;
+    if (_distance(startPoint, currentPoint) < spatialActionCarryMinimumMeters) {
+      continue;
+    }
+    double? bestDegrees;
+    int? bestPivot;
+    for (var pivot = first + 3; pivot <= current - 3; pivot++) {
+      final pivotPoint = data.sample(pivot / data.fps).players[playerIndex]!;
+      if (_distance(startPoint, pivotPoint) <
+              spatialActionDirectionLegMinimumMeters ||
+          _distance(pivotPoint, currentPoint) <
+              spatialActionDirectionLegMinimumMeters) {
+        continue;
+      }
+      final degrees = _spatialTurnDegrees(
+        startPoint,
+        pivotPoint,
+        currentPoint,
+      );
+      if (degrees >= spatialActionDirectionMinimumDegrees &&
+          (bestDegrees == null || degrees > bestDegrees)) {
+        bestDegrees = degrees;
+        bestPivot = pivot;
+      }
+    }
+    if (bestDegrees != null && bestPivot != null) {
+      directionOnset = current;
+      directionPivot = bestPivot;
+      directionDegrees = bestDegrees;
+      break;
+    }
+  }
+  return SpatialSourceActionGeometry(
+    carryOnsetFrame: scene.startFrame + carryOnset,
+    carryOnsetDistanceMeters: carryDistance,
+    directionChangeOnsetFrame:
+        directionOnset == null ? null : scene.startFrame + directionOnset,
+    directionChangePivotFrame:
+        directionPivot == null ? null : scene.startFrame + directionPivot,
+    directionChangeDegrees: directionDegrees,
+  );
+}
+
+double _spatialTurnDegrees(
+  RealMatchReplayPoint first,
+  RealMatchReplayPoint pivot,
+  RealMatchReplayPoint last,
+) {
+  final firstX = pivot.x - first.x;
+  final firstY = pivot.y - first.y;
+  final secondX = last.x - pivot.x;
+  final secondY = last.y - pivot.y;
+  final denominator = math.sqrt(firstX * firstX + firstY * firstY) *
+      math.sqrt(secondX * secondX + secondY * secondY);
+  if (denominator <= 1e-9) return 0;
+  final cosine =
+      ((firstX * secondX + firstY * secondY) / denominator).clamp(-1.0, 1.0);
+  return math.acos(cosine) * 180 / math.pi;
+}
+
+bool _sameNullableMeasurement(double? first, double? second) =>
+    first == null || second == null
+        ? first == second
+        : (first - second).abs() <= .0011;
 
 extension SpatialEducationReplayValidation on SpatialEducationLesson {
   void validateReplay(SpatialLibraryScene scene, RealMatchReplayData data) {
@@ -958,6 +1391,7 @@ class SpatialLibraryCatalog {
   static const expectedRecentSourceCommit =
       '4340d274572876239c154c90bc507a9b3250a656';
   static const expectedEducationProofVersion = 'spatial-education-catalog-v2';
+  static const expectedActionProofVersion = 'spatial-source-actions-v1';
 
   final int version;
   final String provider;
@@ -967,6 +1401,7 @@ class SpatialLibraryCatalog {
   final int matchCount;
   final List<SpatialLibraryScene> scenes;
   final String? proofVersion;
+  final String? actionProofVersion;
   final List<SpatialSourcePin> sourcePins;
 
   const SpatialLibraryCatalog({
@@ -978,6 +1413,7 @@ class SpatialLibraryCatalog {
     required this.matchCount,
     required this.scenes,
     this.proofVersion,
+    this.actionProofVersion,
     this.sourcePins = const <SpatialSourcePin>[],
   });
 
@@ -1014,6 +1450,13 @@ class SpatialLibraryCatalog {
       final education = item['learning'] == null
           ? null
           : _educationLesson(_map(item, 'learning'));
+      final sourceActions = item['sourceActions'] == null
+          ? const <SpatialSourceActionEvidence>[]
+          : _list(item, 'sourceActions')
+              .map((value) => _sourceAction(
+                    _mapValue(value, 'spatial source action'),
+                  ))
+              .toList(growable: false);
       return SpatialLibraryScene(
         id: _string(item, 'id'),
         asset: _string(item, 'asset'),
@@ -1063,6 +1506,7 @@ class SpatialLibraryCatalog {
         sourceUrl: _string(item, 'sourceUrl'),
         season: item['season'] == null ? '' : _string(item, 'season'),
         education: education,
+        sourceActions: sourceActions,
       );
     }).toList(growable: false);
     final sourcePins = json['sourcePins'] == null
@@ -1088,6 +1532,9 @@ class SpatialLibraryCatalog {
       scenes: scenes,
       proofVersion:
           json['proofVersion'] == null ? null : _string(json, 'proofVersion'),
+      actionProofVersion: json['actionProofVersion'] == null
+          ? null
+          : _string(json, 'actionProofVersion'),
       sourcePins: sourcePins,
     );
     catalog._validate();
@@ -1212,6 +1659,7 @@ class SpatialLibraryCatalog {
     if (provider != 'SkillCorner Open Data' ||
         license != 'MIT' ||
         proofVersion != expectedEducationProofVersion ||
+        actionProofVersion != expectedActionProofVersion ||
         sourceCommit != 'mixed-pinned-sources-v1' ||
         sourceUrl != 'https://github.com/SkillCorner/opendata' ||
         sourcePins.length != 2 ||
@@ -1280,6 +1728,53 @@ class SpatialLibraryCatalog {
       );
     }
   }
+}
+
+SpatialSourceActionEvidence _sourceAction(Map<String, dynamic> json) {
+  final actor = _map(json, 'actor');
+  final flags = _map(json, 'flags');
+  final matched = _map(json, 'matched');
+  final geometry = _map(json, 'observedGeometry');
+  final provenance = _map(json, 'provenance');
+  return SpatialSourceActionEvidence(
+    proofVersion: _string(json, 'proofVersion'),
+    eventId: _string(json, 'eventId'),
+    playerId: _integer(actor, 'playerId'),
+    playerName: _string(actor, 'playerName'),
+    sourcePlayerName: _string(actor, 'sourcePlayerName'),
+    period: _integer(json, 'period'),
+    sourceStartFrame: _integer(json, 'sourceStartFrame'),
+    sourceEndFrame: _integer(json, 'sourceEndFrame'),
+    startType: _string(json, 'startType'),
+    endType: _string(json, 'endType'),
+    flags: SpatialSourceActionFlags(
+      oneTouch: _nullableBoolean(flags, 'oneTouch'),
+      carry: _nullableBoolean(flags, 'carry'),
+      isHeader: _nullableBoolean(flags, 'isHeader'),
+      handPass: _nullableBoolean(flags, 'handPass'),
+    ),
+    matched: SpatialSourceActionMatches(
+      possessionStart: _nullableBoolean(matched, 'possessionStart'),
+      possessionEnd: _nullableBoolean(matched, 'possessionEnd'),
+      previousPass: _nullableBoolean(matched, 'previousPass'),
+      passReception: _nullableBoolean(matched, 'passReception'),
+    ),
+    fullyExtrapolated: _nullableBoolean(json, 'fullyExtrapolated'),
+    geometry: SpatialSourceActionGeometry(
+      carryOnsetFrame: _nullableInteger(geometry, 'carryOnsetFrame'),
+      carryOnsetDistanceMeters:
+          _nullableNumber(geometry, 'carryOnsetDistanceMeters'),
+      directionChangeOnsetFrame:
+          _nullableInteger(geometry, 'directionChangeOnsetFrame'),
+      directionChangePivotFrame:
+          _nullableInteger(geometry, 'directionChangePivotFrame'),
+      directionChangeDegrees:
+          _nullableNumber(geometry, 'directionChangeDegrees'),
+    ),
+    provider: _string(provenance, 'provider'),
+    sourceCommit: _string(provenance, 'commit'),
+    sourcePath: _string(provenance, 'sourcePath'),
+  );
 }
 
 SpatialEducationLesson _educationLesson(Map<String, dynamic> json) {
@@ -1678,4 +2173,22 @@ double _numberValue(Object? value, String label) {
     throw FormatException('$label must be finite.');
   }
   return value.toDouble();
+}
+
+bool? _nullableBoolean(Map<String, dynamic> map, String key) {
+  final value = map[key];
+  if (value == null || value is bool) return value as bool?;
+  throw FormatException('$key must be a nullable boolean.');
+}
+
+int? _nullableInteger(Map<String, dynamic> map, String key) {
+  final value = map[key];
+  if (value == null || value is int) return value as int?;
+  throw FormatException('$key must be a nullable integer.');
+}
+
+double? _nullableNumber(Map<String, dynamic> map, String key) {
+  final value = map[key];
+  if (value == null) return null;
+  return _numberValue(value, key);
 }

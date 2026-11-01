@@ -74,9 +74,12 @@ only after its source time is reached, the next source-labelled connection.
 Placement rejects overlap with observed actors, the ball and the reached ball
 trace. Gold identifies only a directly observed, nearby source ownership
 record; blue identifies the reviewed learning actor independently, including
-when that actor is off the ball. Player names
-stay beside their own badges and may be suppressed when no safe nearby slot is
-available. Recorded traces never preview a future path and clear after the
+when that actor is off the ball. Player names stay beside their own badges and
+may be suppressed when no safe nearby slot is available; an active action actor
+is reserved first and its compact action caption is added to that same
+collision-safe label. If a narrow crowded view has no ordinary adjacent slot,
+the named compact caption uses the nearest safe in-pitch slot and a short
+connector back to that actor. Recorded traces never preview a future path and clear after the
 evidenced action. Seeking always uses source time and pauses safely. The primary
 play action resumes at the current source time in the selected mode. Guided
 mode runs the remaining setup at 1x, the central evidence window at 0.5x and
@@ -146,6 +149,66 @@ metadata hashes and derives all 115 pre-existing asset hashes from the tracked
 v1 catalogue and preservation manifest. `education-proof.json` records all archive and recent accept/reject
 decisions. Teacher references shape the four lesson definitions; they are not
 provenance for match coordinates and are not described as actual coach review.
+
+## Source-grounded on-pitch actions
+
+Only the 45 recent scenes have Dynamic Events metadata. Their catalogue entries
+preserve each relevant original `player_possession` event ID, actor ID, source
+and display name, period, source start/end frame, start/end type, nullable
+`one_touch`, `carry`, `is_header` and `hand_pass` values, matching flags and the
+pinned CSV path/commit. Incoming `is_previous_pass_matched` and outgoing
+`is_pass_reception_matched` remain separate metadata rather than being treated
+as interchangeable boundaries. The 25 historical XY-only lessons have an
+empty action list; no header or contact metadata is inferred for them.
+
+The current pinned clips contain 375 relevant possession records. After the
+fail-closed source and geometry gates, they provide 45 carry onsets, four
+observed direction-change onsets, eight source headers, 266 matched non-one-touch
+pass receptions and 56 non-header one-touch pass endings. These are source
+evidence counts, not a scene quota. Exact source-contact observation leaves six
+displayable headers, 261 receives and 55 one-touch passes. One header actor is
+not observed at its source instant and another header has a 3.574 m actor-ball
+gap, so neither produces an on-pitch caption. When display windows overlap, the most recently reached
+action wins; `header` wins a same-frame tie with `one-touch pass`. A brief event
+stays readable for 1.2–1.6 seconds after its source instant, but never appears
+before that frame. Pause, forward seek and backward seek resolve the same label
+from source time without changing playback mode.
+
+Vocabulary is deliberately narrower than common coaching shorthand:
+
+- **Carry:** provider `carry=true` plus matched boundaries and uninterrupted
+  observed control. Player and ball stay directly visible, the tracking owner
+  is the same actor, their separation is at most 3.5 m, and observed
+  displacement reaches 2.0 m. This does not claim a defender was dribbled.
+- **Direction change:** only inside a qualified carry, after the already
+  reached XY trajectory has two 1.5 m legs and bends by at least 55 degrees. It
+  describes trajectory, not body rotation, a turn skill, feint or pose. Future
+  samples cannot start it early.
+- **Receive:** `start_type=pass_reception`, matched possession start, and
+  `is_previous_pass_matched=true` for the incoming pass, excluding known
+  one-touch, header and hand actions. The separate
+  `is_pass_reception_matched` field describes reception of this player's own
+  outgoing pass and does not qualify the incoming receive label.
+  A nullable `one_touch` remains unknown rather than becoming a confident
+  one-touch technique claim. This does not claim a foot/chest trap or technique.
+- **Header:** source `is_header=true`; an unsupported hand-pass combination is
+  rejected. No jump, ball height or body contact is rendered.
+- **One-touch pass:** source `one_touch=true`, an actual `end_type=pass`, a
+  matched end and no header/hand-pass conflict.
+
+At runtime a header/receive caption additionally requires the named actor and
+ball to be directly observed within 3.5 m at the original start frame; a
+one-touch pass applies the same gate at the original end frame. Later actor
+reappearance cannot repair missing contact evidence, and ownership is not
+required for these instant actions. Carry/direction evidence requires the
+observed ball throughout the source-controlled interval. The active actor is
+included in camera and name priority, while player numbers, gold confirmed
+ownership and blue teaching
+focus keep their independent meanings. The action label receives no invented
+ring, arc, pose, contact animation or leader line. Ordinary captions remain
+within 18 pixels of the actor badge. If crowding forces the single active-action
+caption farther away, its compact text includes the actor's source jersey
+number and surname and still avoids players, ball and educational cues.
 
 ## Selection and evidence gates
 
@@ -226,7 +289,9 @@ The recent raw directory contains the basenames listed in the committed
 `education-source-manifest.json`. Generation verifies each exact pinned path,
 URL, byte count and SHA-256 from that manifest; `--source-manifest` can select
 an equivalent audited manifest explicitly. Asset-only verification needs no
-raw download and no `.tmp` file, and is part of `scripts/verify.sh` for CI.
+raw download and no `.tmp` file, and is part of `scripts/verify.sh` for CI. If
+the pinned raw Dynamic Events CSVs are present, the same verifier also checks
+their bytes/hashes and reproduces every committed action record from them.
 
 Generation scans the raw files deterministically, records all rejection
 reasons, and emits only the selected source-safe catalogue. The immutable v1
@@ -245,8 +310,9 @@ that all 115 pre-existing catalogue/source/quality/scene/legacy bytes still
 match hashes derived from the immutable tracked manifests. It does not trust
 manifest booleans: it reloads every selected replay,
 recomputes each objective and metric, checks source ownership and direct
-visibility, checks the strict mixed-source allowlist and derives `matchCount`
-from represented matches.
+visibility, recomputes carry/direction geometry, checks typed nullable flags and
+action provenance, checks the strict mixed-source allowlist and derives
+`matchCount` from represented matches.
 
 The historical `--verify-assets` does not trust summary booleans. It reloads each shipped
 source frame and visibility mask, then recomputes duration and context bounds,
@@ -261,7 +327,8 @@ repository verifies each scene SHA-256 before parsing.
 ## Assets and limits
 
 - `education-catalog.json`: default v2 mixed-source index with learning actors,
-  exact source frames, measurements, reference URLs and scene hashes.
+  exact source frames, measurements, reference URLs, scene hashes and typed
+  recent Dynamic Events action evidence.
 - `catalog.json`: byte-identical v1 archive/test fixture; not runtime fallback.
 - `scenes/*.json`: 10 fps source frames, sparse visibility, source ownership
   labels and metadata reused without modification by accepted historical lessons.
