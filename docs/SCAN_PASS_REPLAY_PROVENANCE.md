@@ -7,7 +7,7 @@ MIT-licensed [SkillCorner Open Data](https://github.com/SkillCorner/opendata).
 It keeps the original 20 A-League payloads unchanged and places five historical
 Premier League/LaLiga scenes first in the mixed catalog.
 
-The public default is now the separate 108-scene famous-match spatial library.
+The public default is now the separate 18-scene source-grounded spatial library.
 Its assets, MIT source manifest, deterministic selection proof, and limitations
 are documented in
 [`SCAN_PASS_SPATIAL_LIBRARY.md`](SCAN_PASS_SPATIAL_LIBRARY.md). Nothing in that

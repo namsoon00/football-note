@@ -40295,7 +40295,7 @@ abstract class AppLocalizations {
   /// No description provided for @spatialFocusReplay.
   ///
   /// In en, this message translates to:
-  /// **'Replay the key moment slowly'**
+  /// **'Guided replay: setup, key moment, aftermath'**
   String get spatialFocusReplay;
 
   /// No description provided for @spatialSourceInfo.
@@ -40309,6 +40309,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Legacy replay reference'**
   String get spatialLegacyViewer;
+
+  /// No description provided for @spatialOfficialVideoViewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Official video passages · separate illustrative diagrams'**
+  String get spatialOfficialVideoViewer;
 
   /// No description provided for @spatialPreviousScene.
   ///
@@ -40331,7 +40337,7 @@ abstract class AppLocalizations {
   /// No description provided for @spatialFocusReplayActive.
   ///
   /// In en, this message translates to:
-  /// **'Key moment at 0.5×, then source speed'**
+  /// **'Guided replay · setup 1× · key moment 0.5× · aftermath 1×'**
   String get spatialFocusReplayActive;
 
   /// No description provided for @spatialDirectionUp.
@@ -40391,13 +40397,13 @@ abstract class AppLocalizations {
   /// No description provided for @spatialInferredDisclosure.
   ///
   /// In en, this message translates to:
-  /// **'The default focused view and minimap show only player positions observed at the current time. Missing players are not filled with reconstructed positions.'**
+  /// **'The field shows only player positions observed at the current time. Missing samples remain absent; no reconstructed or carried-forward position is displayed.'**
   String get spatialInferredDisclosure;
 
   /// No description provided for @spatialSelectionDisclosure.
   ///
   /// In en, this message translates to:
-  /// **'Scenes are reproducibly selected from observed possession-owner changes, continuous ball XY, visible evidence anchors, spatial thresholds, balance caps, and non-overlapping intervals.'**
+  /// **'Passages are reproducibly selected from 20–40 second source intervals with at least 4 seconds of setup and aftermath, continuous ball XY, guarded departure and arrival actors, visible core/support/opposition context, and visible source-labelled owners. For teaching clarity, support links move the recorded ball at least 4 m and each combination leg at least 5 m.'**
   String get spatialSelectionDisclosure;
 
   /// No description provided for @spatialThemeLateralSwitch.
@@ -40481,7 +40487,7 @@ abstract class AppLocalizations {
   /// No description provided for @spatialObjectiveCombination.
   ///
   /// In en, this message translates to:
-  /// **'BEFORE · Follow the spacing as the ball reaches three teammates.'**
+  /// **'BEFORE · Watch two consecutive connections, including any return.'**
   String get spatialObjectiveCombination;
 
   /// No description provided for @spatialObjectiveTurnover.
@@ -40499,7 +40505,7 @@ abstract class AppLocalizations {
   /// No description provided for @spatialLibraryTitle.
   ///
   /// In en, this message translates to:
-  /// **'Famous-match library · {count} scenes'**
+  /// **'2D spatial library · {count} passages'**
   String spatialLibraryTitle(int count);
 
   /// No description provided for @spatialPitchSemantics.
@@ -40678,6 +40684,155 @@ abstract class AppLocalizations {
   /// **'NEXT PLAY · Watch how the shape changes around the ball.'**
   String get spatialSubsequentPlayCue;
 
+  /// No description provided for @spatialLateralEarlyContextCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTEXT · Watch the ball and the width of the visible shape.'**
+  String get spatialLateralEarlyContextCue;
+
+  /// No description provided for @spatialLateralContinuationCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE · Watch the far-side shape as play moves on.'**
+  String get spatialLateralContinuationCue;
+
+  /// No description provided for @spatialLateralContextCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTEXT · Compare {first} with far-side {second}.'**
+  String spatialLateralContextCue(String first, String second);
+
+  /// No description provided for @spatialLateralConnectionCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONNECTION · {first} → {second}, moving the ball across.'**
+  String spatialLateralConnectionCue(String first, String second);
+
+  /// No description provided for @spatialLateralAftermathCue.
+  ///
+  /// In en, this message translates to:
+  /// **'AFTER · Watch the space around {second} on the far side.'**
+  String spatialLateralAftermathCue(String second);
+
+  /// No description provided for @spatialLateralReviewCue.
+  ///
+  /// In en, this message translates to:
+  /// **'REPLAY · Compare {first} and {second} from the setup.'**
+  String spatialLateralReviewCue(String first, String second);
+
+  /// No description provided for @spatialPressureEarlyContextCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTEXT · Compare the spacing around the ball.'**
+  String get spatialPressureEarlyContextCue;
+
+  /// No description provided for @spatialPressureContinuationCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE · Watch the support spacing around the ball.'**
+  String get spatialPressureContinuationCue;
+
+  /// No description provided for @spatialPressureContextCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTEXT · Compare {first}–{defender} with support from {support}.'**
+  String spatialPressureContextCue(
+      String first, String defender, String support);
+
+  /// No description provided for @spatialPressureConnectionCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONNECTION · {first} → {second}; watch {support}\'s spacing.'**
+  String spatialPressureConnectionCue(
+      String first, String second, String support);
+
+  /// No description provided for @spatialPressureAftermathCue.
+  ///
+  /// In en, this message translates to:
+  /// **'AFTER · Compare {second} with supporting {support}.'**
+  String spatialPressureAftermathCue(String second, String support);
+
+  /// No description provided for @spatialPressureReviewCue.
+  ///
+  /// In en, this message translates to:
+  /// **'REPLAY · Compare {first}, {second}, and {support} from the setup.'**
+  String spatialPressureReviewCue(String first, String second, String support);
+
+  /// No description provided for @spatialCombinationEarlyContextCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTEXT · Follow the ball until the next link appears.'**
+  String get spatialCombinationEarlyContextCue;
+
+  /// No description provided for @spatialCombinationContinuationCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE · Compare the visible players around the ball.'**
+  String get spatialCombinationContinuationCue;
+
+  /// No description provided for @spatialCombinationContextCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTEXT · Follow {first}, {second}, then {third}.'**
+  String spatialCombinationContextCue(
+      String first, String second, String third);
+
+  /// No description provided for @spatialCombinationConnectionCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONNECTION · {first} → {second} → {third}.'**
+  String spatialCombinationConnectionCue(
+      String first, String second, String third);
+
+  /// No description provided for @spatialCombinationAftermathCue.
+  ///
+  /// In en, this message translates to:
+  /// **'AFTER · Following {first} → {second}, watch the space around {third}.'**
+  String spatialCombinationAftermathCue(
+      String first, String second, String third);
+
+  /// No description provided for @spatialCombinationReviewCue.
+  ///
+  /// In en, this message translates to:
+  /// **'REPLAY · Watch again: {first} → {second} → {third}.'**
+  String spatialCombinationReviewCue(String first, String second, String third);
+
+  /// No description provided for @spatialCombinationReturnContextCue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTEXT · Follow {first} → {second}, then watch {first}\'s next position.'**
+  String spatialCombinationReturnContextCue(String first, String second);
+
+  /// No description provided for @spatialCombinationReturnConnectionCue.
+  ///
+  /// In en, this message translates to:
+  /// **'RETURN · {first} → {second} → {first}.'**
+  String spatialCombinationReturnConnectionCue(String first, String second);
+
+  /// No description provided for @spatialCombinationReturnAftermathCue.
+  ///
+  /// In en, this message translates to:
+  /// **'AFTER · Compare {first}\'s position before and after the return.'**
+  String spatialCombinationReturnAftermathCue(String first);
+
+  /// No description provided for @spatialCombinationReturnReviewCue.
+  ///
+  /// In en, this message translates to:
+  /// **'REPLAY · Watch the return again: {first} → {second} → {first}.'**
+  String spatialCombinationReturnReviewCue(String first, String second);
+
+  /// No description provided for @spatialSceneIdentityRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{home} v {away} · {clock}'**
+  String spatialSceneIdentityRow(String home, String away, String clock);
+
+  /// No description provided for @spatialDurationBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{duration} s'**
+  String spatialDurationBadge(String duration);
+
   /// No description provided for @spatialAliasLionelMessi.
   ///
   /// In en, this message translates to:
@@ -40729,15 +40884,22 @@ abstract class AppLocalizations {
   /// No description provided for @spatialSceneRow.
   ///
   /// In en, this message translates to:
-  /// **'{home} v {away} · {clock}'**
-  String spatialSceneRow(String home, String away, String clock);
+  /// **'{home} v {away} · {clock} · {duration} s'**
+  String spatialSceneRow(
+      String home, String away, String clock, String duration);
 
   /// No description provided for @spatialCoverageSummary.
   ///
   /// In en, this message translates to:
-  /// **'{scenes} distinct scenes across {matches} matches, {players} focal players, and {themes} spatial themes.'**
+  /// **'{scenes} reviewed passages across {matches} matches, {players} focal players, and {themes} source-supported themes.'**
   String spatialCoverageSummary(
       int scenes, int matches, int players, int themes);
+
+  /// No description provided for @spatialDurationRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded passage range: {minimum}–{maximum} seconds; ordinary 1× replay remains available.'**
+  String spatialDurationRange(String minimum, String maximum);
 
   /// No description provided for @spatialCurrentSceneSource.
   ///
@@ -40791,7 +40953,7 @@ abstract class AppLocalizations {
   /// No description provided for @spatialSituationCombinationShort.
   ///
   /// In en, this message translates to:
-  /// **'Three-player connection · {seconds} s'**
+  /// **'Two-link combination · {seconds} s'**
   String spatialSituationCombinationShort(String seconds);
 
   /// No description provided for @spatialDirectionCompact.
@@ -41044,7 +41206,7 @@ abstract class AppLocalizations {
   /// No description provided for @videoLearningLegacyLibraryDetail.
   ///
   /// In en, this message translates to:
-  /// **'108 broadcast-visible XY scenes · no match video'**
+  /// **'Reviewed source-grounded 2D passages · no match video'**
   String get videoLearningLegacyLibraryDetail;
 
   /// No description provided for @videoLearningPersistenceFailed.

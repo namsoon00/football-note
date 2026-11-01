@@ -82,7 +82,7 @@ class ScanPassGameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScanPassVideoLearningScreen(
+    return ScanPassSpatialLibraryScreen(
       optionRepository: optionRepository,
       sourceLauncher: matchMomentSourceLauncher,
     );

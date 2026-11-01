@@ -1019,17 +1019,28 @@ void main() {
     WidgetTester tester,
   ) async {
     final today = DateTime.now();
-    final yesterday = today.subtract(const Duration(days: 1));
+    final savedDiaryDay = DateTime(today.year, today.month, 0);
+    final trainingOnlyDay = savedDiaryDay.subtract(const Duration(days: 1));
     final optionRepository = _FakeOptionRepository()
       ..setRawValue(
         'custom_diary_entries_v3',
-        '{"${CoachLessonScreen.todayViewedDayToken(yesterday)}":{"title":"어제 다이어리","story":"저장된 페이지","sections":[],"moodId":"calm","stickers":[],"updatedAt":"${DateTime(yesterday.year, yesterday.month, yesterday.day, 20).toIso8601String()}"}}',
+        '{"${CoachLessonScreen.todayViewedDayToken(savedDiaryDay)}":{"title":"저장된 다이어리","story":"저장된 페이지","sections":[],"moodId":"calm","stickers":[],"updatedAt":"${DateTime(savedDiaryDay.year, savedDiaryDay.month, savedDiaryDay.day, 20).toIso8601String()}"}}',
       );
     final trainingService = TrainingService(
       _FakeTrainingRepository(<TrainingEntry>[
         TrainingEntry(
-          date: DateTime(today.year, today.month, today.day, 18, 0),
-          createdAt: DateTime(today.year, today.month, today.day, 18, 0),
+          date: DateTime(
+            trainingOnlyDay.year,
+            trainingOnlyDay.month,
+            trainingOnlyDay.day,
+            18,
+          ),
+          createdAt: DateTime(
+            trainingOnlyDay.year,
+            trainingOnlyDay.month,
+            trainingOnlyDay.day,
+            18,
+          ),
           durationMinutes: 40,
           intensity: 3,
           type: '패스',
@@ -1065,18 +1076,27 @@ void main() {
     await tester.tap(find.text('새 다이어리'));
     await tester.pumpAndSettle();
 
-    expect(
-      find.byKey(
-        ValueKey(
-          'diary-calendar-marker-${CoachLessonScreen.todayViewedDayToken(yesterday)}-diary',
-        ),
+    final savedDiaryMarker = find.byKey(
+      ValueKey(
+        'diary-calendar-marker-${CoachLessonScreen.todayViewedDayToken(savedDiaryDay)}-diary',
       ),
-      findsOneWidget,
     );
+    expect(savedDiaryMarker, findsNothing);
+    final calendarSheet = find.byType(BottomSheet);
+    expect(calendarSheet, findsOneWidget);
+    final previousMonthButton = find.descendant(
+      of: calendarSheet,
+      matching: find.byIcon(Icons.chevron_left),
+    );
+    expect(previousMonthButton, findsOneWidget);
+    await tester.tap(previousMonthButton);
+    await tester.pumpAndSettle();
+
+    expect(savedDiaryMarker, findsOneWidget);
     expect(
       find.byKey(
         ValueKey(
-          'diary-calendar-marker-${CoachLessonScreen.todayViewedDayToken(today)}-training',
+          'diary-calendar-marker-${CoachLessonScreen.todayViewedDayToken(trainingOnlyDay)}-diary',
         ),
       ),
       findsNothing,
@@ -1084,7 +1104,15 @@ void main() {
     expect(
       find.byKey(
         ValueKey(
-          'diary-calendar-marker-${CoachLessonScreen.todayViewedDayToken(today)}-match',
+          'diary-calendar-marker-${CoachLessonScreen.todayViewedDayToken(trainingOnlyDay)}-training',
+        ),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.byKey(
+        ValueKey(
+          'diary-calendar-marker-${CoachLessonScreen.todayViewedDayToken(trainingOnlyDay)}-match',
         ),
       ),
       findsNothing,

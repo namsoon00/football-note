@@ -23037,13 +23037,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get spatialChooseScene => '장면 선택';
 
   @override
-  String get spatialFocusReplay => '핵심 순간 느리게 다시 보기';
+  String get spatialFocusReplay => '가이드 다시 보기: 준비·핵심·이후 흐름';
 
   @override
   String get spatialSourceInfo => '라이브러리와 출처 정보';
 
   @override
   String get spatialLegacyViewer => '이전 리플레이 참고 화면';
+
+  @override
+  String get spatialOfficialVideoViewer => '공식 영상 장면 · 별도의 예시 도식';
 
   @override
   String get spatialPreviousScene => '이전 장면';
@@ -23055,7 +23058,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get spatialInferredLegend => '추정 표시 위치';
 
   @override
-  String get spatialFocusReplayActive => '핵심 순간 0.5배속 후 실제 속도';
+  String get spatialFocusReplayActive => '가이드 재생 · 준비 1배속 · 핵심 0.5배속 · 이후 1배속';
 
   @override
   String get spatialDirectionUp => '위쪽 골문 방향';
@@ -23089,11 +23092,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get spatialInferredDisclosure =>
-      '기본 초점 화면과 미니맵에는 현재 시각에 직접 관측된 선수 위치만 표시합니다. 보이지 않는 선수의 위치를 추정해 채우지 않습니다.';
+      '필드에는 현재 시각에 직접 관측된 선수 위치만 표시합니다. 누락 표본은 비워 두며 재구성하거나 이전 위치를 이어 표시하지 않습니다.';
 
   @override
   String get spatialSelectionDisclosure =>
-      '관측된 소유 선수 변화, 연속된 공 XY, 화면에 보이는 근거 지점, 공간 기준, 균형 상한, 겹치지 않는 구간으로 장면을 재현 가능하게 선정했습니다.';
+      '20~40초 원본 구간에서 준비와 이후 흐름을 각각 최소 4초 확보하고, 연속된 공 XY, 출발·도착 선수 보호 구간, 보이는 핵심·지원·상대 맥락, 보이는 출처 표기 소유 선수를 기준으로 재현 가능하게 선정했습니다. 학습 장면이 분명하도록 압박 지원 연결은 기록된 공이 최소 4m, 조합 플레이의 각 연결은 최소 5m 이동한 구간만 사용합니다.';
 
   @override
   String get spatialThemeLateralSwitch => '측면 전환 연결';
@@ -23141,7 +23144,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get spatialObjectiveCombination =>
-      '보기 전 · 공이 세 동료에게 이어질 때 선수 간격을 보세요.';
+      '보기 전 · 되돌려 주는 연결을 포함해 두 번의 연결을 보세요.';
 
   @override
   String get spatialObjectiveTurnover => '보기 전 · 공이 상대 팀에 닿을 때 주변 대형 변화를 보세요.';
@@ -23151,7 +23154,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String spatialLibraryTitle(int count) {
-    return '유명 경기 라이브러리 · $count개 장면';
+    return '2D 공간 라이브러리 · $count개 흐름';
   }
 
   @override
@@ -23291,6 +23294,122 @@ class AppLocalizationsKo extends AppLocalizations {
   String get spatialSubsequentPlayCue => '다음 흐름 · 공 주변 대형이 어떻게 바뀌는지 보세요.';
 
   @override
+  String get spatialLateralEarlyContextCue => '맥락 · 공과 보이는 대형의 폭을 보세요.';
+
+  @override
+  String get spatialLateralContinuationCue => '계속 · 반대편 대형을 보며 다음 흐름을 따라가세요.';
+
+  @override
+  String spatialLateralContextCue(String first, String second) {
+    return '맥락 · $first와 반대편 $second의 위치를 비교하세요.';
+  }
+
+  @override
+  String spatialLateralConnectionCue(String first, String second) {
+    return '연결 · $first → $second, 가로로 공을 옮깁니다.';
+  }
+
+  @override
+  String spatialLateralAftermathCue(String second) {
+    return '이후 · 반대편 $second 주변 공간을 보세요.';
+  }
+
+  @override
+  String spatialLateralReviewCue(String first, String second) {
+    return '다시 보기 · 준비 장면의 $first와 $second를 비교하세요.';
+  }
+
+  @override
+  String get spatialPressureEarlyContextCue => '맥락 · 공 주변 선수 간격을 비교하세요.';
+
+  @override
+  String get spatialPressureContinuationCue => '계속 · 공 주변의 지원 간격을 보세요.';
+
+  @override
+  String spatialPressureContextCue(
+      String first, String defender, String support) {
+    return '맥락 · $first와 $defender의 간격, $support의 지원 위치를 비교하세요.';
+  }
+
+  @override
+  String spatialPressureConnectionCue(
+      String first, String second, String support) {
+    return '연결 · $first → $second. $support의 간격도 보세요.';
+  }
+
+  @override
+  String spatialPressureAftermathCue(String second, String support) {
+    return '이후 · $second와 지원하는 $support의 간격을 보세요.';
+  }
+
+  @override
+  String spatialPressureReviewCue(String first, String second, String support) {
+    return '다시 보기 · 준비 장면의 $first, $second, $support를 비교하세요.';
+  }
+
+  @override
+  String get spatialCombinationEarlyContextCue =>
+      '맥락 · 다음 연결이 나타날 때까지 공을 따라가세요.';
+
+  @override
+  String get spatialCombinationContinuationCue =>
+      '계속 · 공 주변에 보이는 선수 위치를 비교하세요.';
+
+  @override
+  String spatialCombinationContextCue(
+      String first, String second, String third) {
+    return '맥락 · $first, $second, 이어서 $third를 따라가세요.';
+  }
+
+  @override
+  String spatialCombinationConnectionCue(
+      String first, String second, String third) {
+    return '연결 · $first → $second → $third.';
+  }
+
+  @override
+  String spatialCombinationAftermathCue(
+      String first, String second, String third) {
+    return '이후 · $first → $second 뒤 $third 주변 공간을 보세요.';
+  }
+
+  @override
+  String spatialCombinationReviewCue(
+      String first, String second, String third) {
+    return '다시 보기 · $first → $second → $third를 다시 보세요.';
+  }
+
+  @override
+  String spatialCombinationReturnContextCue(String first, String second) {
+    return '맥락 · $first → $second 뒤 $first의 다음 위치를 보세요.';
+  }
+
+  @override
+  String spatialCombinationReturnConnectionCue(String first, String second) {
+    return '주고받기 · $first → $second → $first.';
+  }
+
+  @override
+  String spatialCombinationReturnAftermathCue(String first) {
+    return '이후 · 주고받기 전후 $first의 위치를 비교하세요.';
+  }
+
+  @override
+  String spatialCombinationReturnReviewCue(String first, String second) {
+    return '다시 보기 · $first → $second → $first를 다시 보세요.';
+  }
+
+  @override
+  String spatialSceneIdentityRow(String home, String away, String clock) {
+    return '$home 대 $away · $clock';
+  }
+
+  @override
+  String spatialDurationBadge(String duration) {
+    return '$duration초';
+  }
+
+  @override
   String get spatialAliasLionelMessi => '메시';
 
   @override
@@ -23321,14 +23440,20 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String spatialSceneRow(String home, String away, String clock) {
-    return '$home 대 $away · $clock';
+  String spatialSceneRow(
+      String home, String away, String clock, String duration) {
+    return '$home 대 $away · $clock · $duration초';
   }
 
   @override
   String spatialCoverageSummary(
       int scenes, int matches, int players, int themes) {
-    return '$matches경기, 서로 다른 장면 $scenes개, 초점 선수 $players명, 공간 주제 $themes개를 담았습니다.';
+    return '$matches경기에서 검토한 흐름 $scenes개, 초점 선수 $players명, 출처로 뒷받침된 주제 $themes개를 담았습니다.';
+  }
+
+  @override
+  String spatialDurationRange(String minimum, String maximum) {
+    return '기록된 흐름 길이: $minimum~$maximum초. 일반 1배속 재생도 사용할 수 있습니다.';
   }
 
   @override
@@ -23375,7 +23500,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String spatialSituationCombinationShort(String seconds) {
-    return '세 선수 연결 · $seconds초';
+    return '두 번 연결 · $seconds초';
   }
 
   @override
@@ -23522,7 +23647,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get videoLearningLegacyLibrary => '측정 2D 공간 라이브러리';
 
   @override
-  String get videoLearningLegacyLibraryDetail => '중계에 보인 XY 장면 108개 · 경기 영상 없음';
+  String get videoLearningLegacyLibraryDetail => '검토된 출처 기반 2D 흐름 · 경기 영상 없음';
 
   @override
   String get videoLearningPersistenceFailed => '이 기기에 진행 상황을 저장하지 못했어요.';

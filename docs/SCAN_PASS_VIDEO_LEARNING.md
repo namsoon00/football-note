@@ -1,9 +1,10 @@
 # Scan Pass video learning
 
-The primary Scan Pass entry is a video-first viewer for twelve reviewed,
-goal-ending passages from nine publicly available videos published by official
-competition or club channels. The app embeds the official YouTube player; it
-does not contain, download, proxy, or rehost broadcast video or thumbnails.
+The optional official-video viewer contains twelve reviewed, goal-ending
+passages from nine publicly available videos published by official competition
+or club channels. It is reached through one secondary route in the primary 2D
+spatial viewer. The app embeds the official YouTube player; it does not contain,
+download, proxy, or rehost broadcast video or thumbnails.
 
 ## Sources and reviewed boundaries
 
@@ -58,10 +59,9 @@ trajectories, or a claim of exact synchronization. They describe what to
 observe without claiming player intent, expert approval, or one globally best
 action.
 
-The secondary **Measured 2D spatial library** remains available from the
-bottom settings sheet. Its 108 passages use broadcast-visible XY source data
-and retain their original footprints, visibility gaps, camera safety, and
-source limitations, as documented in
+The primary **Measured 2D spatial library** has 18 reviewed 20.8–30.0 second
+passages from nine pinned matches. It uses broadcast-visible XY source data and
+retains real timing, visibility gaps and source limitations, as documented in
 [`SCAN_PASS_SPATIAL_LIBRARY.md`](SCAN_PASS_SPATIAL_LIBRARY.md). The two systems
 must not be presented as equivalent evidence.
 

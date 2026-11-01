@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/scan_pass/real_match_replay.dart';
-import 'package:football_note/domain/scan_pass/scan_pass_spatial_focus.dart';
 import 'package:football_note/domain/scan_pass/scan_pass_spatial_library.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
@@ -15,75 +13,61 @@ import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late SpatialLibraryCatalog fullCatalog;
   late SpatialLibraryCatalog catalog;
-  late Map<String, RealMatchReplayData> data;
+  late SpatialLibraryScene firstScene;
+  late RealMatchReplayData firstData;
 
   setUpAll(() {
-    fullCatalog = SpatialLibraryCatalog.fromJsonString(
+    final loaded = SpatialLibraryCatalog.fromJsonString(
       File('assets/scan_pass_spatial/catalog.json').readAsStringSync(),
     );
-    catalog = _catalogWith(fullCatalog, fullCatalog.scenes.take(4).toList());
-    data = {
-      for (final scene in catalog.scenes)
-        scene.id: RealMatchReplayData.fromJsonString(
-          File(scene.asset).readAsStringSync(),
-        ),
-    };
+    firstScene = loaded.scenes.firstWhere(
+      (scene) => scene.theme == SpatialLearningTheme.lateralSwitch,
+    );
+    catalog = _catalogStartingWith(loaded, firstScene);
+    firstData = _replay(firstScene);
   });
 
-  testWidgets('public entry opens video first and keeps 108 scenes secondary',
+  testWidgets('public root is 2D and official video is one secondary route',
       (tester) async {
+    final options = _Options();
     await tester.pumpWidget(_app(
-      home: ScanPassGameScreen(optionRepository: _Options()),
+      home: ScanPassGameScreen(optionRepository: options),
     ));
-    await tester.pump();
+    await _pumpLoaded(tester);
 
-    expect(find.byType(ScanPassVideoLearningScreen), findsOneWidget);
-    expect(find.byType(ScanPassSpatialLibraryScreen), findsNothing);
-    expect(find.byType(ScanPassRealMatchReplayScreen), findsNothing);
-
-    const readinessTimeout = Duration(seconds: 5);
-    final readinessWait = Stopwatch()..start();
-    while (readinessWait.elapsed < readinessTimeout &&
-        find
-            .byKey(const ValueKey<String>('video-learning-play'))
-            .evaluate()
-            .isEmpty) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
-    }
-    expect(find.byKey(const ValueKey<String>('video-learning-play')),
-        findsOneWidget,
-        reason: 'Video learning entry did not become ready within '
-            '$readinessTimeout.');
-    expect(find.byKey(const ValueKey<String>('video-learning-scenes')),
-        findsOneWidget);
-    await tester.ensureVisible(
-      find.byKey(const ValueKey<String>('video-learning-settings')),
+    expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
+    expect(find.byType(ScanPassVideoLearningScreen), findsNothing);
+    await _openMenu(tester);
+    expect(
+      find.byKey(const ValueKey<String>('spatial-official-video')),
+      findsOneWidget,
     );
+    expect(
+      find.byKey(const ValueKey<String>('spatial-legacy-viewer')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('spatial-authored-sample')),
+      findsNothing,
+    );
+
     await tester.tap(
-      find.byKey(const ValueKey<String>('video-learning-settings')),
+      find.byKey(const ValueKey<String>('spatial-official-video')),
     );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(ScanPassVideoLearningScreen), findsOneWidget);
+    tester.state<NavigatorState>(find.byType(Navigator).first).pop();
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey<String>('video-open-spatial-library')),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
-    expect(find.byKey(const ValueKey<String>('video-open-spatial-library')),
-        findsOneWidget);
-    expect(find.textContaining('108'), findsOneWidget);
+    expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('whole passage plays at source speed and pauses with lifecycle',
+  testWidgets('ordinary replay stays 1x and lifecycle, seek, next are safe',
       (tester) async {
-    await tester.pumpWidget(_catalogApp(catalog, data));
+    await tester.pumpWidget(_catalogApp(catalog));
     await _pumpLoaded(tester);
-    expect(_sourceTime(tester), 0);
 
     await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
     await tester.pump();
@@ -93,936 +77,562 @@ void main() {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
     await tester.pump();
     final paused = _sourceTime(tester);
-    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 900));
     expect(_sourceTime(tester), closeTo(paused, .01));
-
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+
+    final slider = tester.widget<Slider>(
+      find.byKey(const ValueKey<String>('spatial-progress')),
+    );
+    slider.onChanged!(.5);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 700));
-    expect(_sourceTime(tester), greaterThan(paused + .5));
+    expect(_sourceTime(tester), closeTo(firstScene.duration / 2, .05));
+
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-next')));
+    await _pumpScene(tester, catalog.scenes[1].id);
+    expect(_sourceTime(tester), 0);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('play control has names for play, pause, and replay states',
+  testWidgets('guided replay covers setup, 0.5x core, and 1x aftermath',
       (tester) async {
-    await tester.pumpWidget(_catalogApp(catalog, data));
+    await tester.pumpWidget(_catalogApp(catalog));
     await _pumpLoaded(tester);
-    final play = find.byKey(const ValueKey<String>('spatial-play'));
-    final l10n = AppLocalizations.of(tester.element(play))!;
-
-    expect(tester.getSemantics(play).label, contains(l10n.realMatchReplayPlay));
-    await tester.tap(play);
-    await tester.pump();
-    expect(tester.getSemantics(play).label,
-        contains(l10n.realMatchReplayPauseAction));
-
-    await tester.pump(
-      Duration(
-        milliseconds: (catalog.scenes.first.duration * 1000).round() + 1000,
-      ),
+    await _openMenu(tester);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-focus-replay')),
     );
     await tester.pump();
-    expect(tester.getSemantics(play).label,
-        contains(l10n.realMatchReplayReplayAction));
-    expect(tester.takeException(), isNull);
-  });
+    expect(_sourceTime(tester), 0);
 
-  testWidgets('focused replay is half speed only for the evidenced moment',
-      (tester) async {
-    await tester.pumpWidget(_catalogApp(catalog, data));
-    await _pumpLoaded(tester);
-    final scene = catalog.scenes.first;
-
-    await _openMenu(tester);
-    await tester
-        .tap(find.byKey(const ValueKey<String>('spatial-focus-replay')));
-    await tester.pump();
-    expect(_sourceTime(tester), closeTo(scene.evidenceStart, .05));
-    expect(find.text('Key moment at 0.5×, then source speed'), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
-    expect(_sourceTime(tester), closeTo(scene.evidenceStart + .5, .12));
+    expect(_sourceTime(tester), closeTo(1, .12));
+    await tester.pump(
+      Duration(milliseconds: ((firstScene.evidenceStart - 1) * 1000).round()),
+    );
+    await tester.pump();
+    expect(_sourceTime(tester), closeTo(firstScene.evidenceStart, .12));
+
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 900));
+    expect(
+      _sourceTime(tester),
+      closeTo(firstScene.evidenceStart + .5, .14),
+    );
+    final criticalWallMilliseconds =
+        ((firstScene.evidenceEnd - firstScene.evidenceStart) * 2000).round();
+    await tester.pump(
+      Duration(milliseconds: criticalWallMilliseconds - 1000),
+    );
+    await tester.pump();
+    expect(_sourceTime(tester), closeTo(firstScene.evidenceEnd, .15));
+
+    for (var i = 0;
+        i < 30 && _sourceTime(tester) <= firstScene.evidenceEnd;
+        i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final aftermathStart = _sourceTime(tester);
+    expect(aftermathStart, greaterThan(firstScene.evidenceEnd));
+    await tester.pump(const Duration(seconds: 1));
+    expect(_sourceTime(tester), closeTo(aftermathStart + 1, .15));
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('rapid scene requests ignore a stale asynchronous load',
+  testWidgets('picker shows real duration, match, player, and reviewed themes',
       (tester) async {
-    final slow = Completer<RealMatchReplayData>();
+    await tester.pumpWidget(_catalogApp(catalog));
+    await _pumpLoaded(tester);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-scene-selector')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('${catalog.scenes.length}'),
+      findsWidgets,
+    );
+    expect(find.textContaining(firstScene.focusPlayerName), findsWidgets);
+    expect(find.textContaining(firstScene.home), findsWidgets);
+    expect(
+      find.textContaining(firstScene.duration.toStringAsFixed(1)),
+      findsWidgets,
+    );
+    expect(
+      find.byKey(
+        ValueKey<String>('spatial-duration-${firstScene.id}'),
+      ),
+      findsOneWidget,
+    );
+    _expectTextFits(tester, 'spatial-duration-text-${firstScene.id}');
+    for (final theme in catalog.themes) {
+      expect(
+        find.byKey(ValueKey<String>('spatial-theme-${theme.name}')),
+        findsOneWidget,
+      );
+    }
+    expect(
+      find.byKey(const ValueKey<String>('spatial-theme-turnover')),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('source sheet reports actual counts and duration range',
+      (tester) async {
+    await tester.pumpWidget(_catalogApp(catalog));
+    await _pumpLoaded(tester);
+    await _openMenu(tester);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-source-info')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('${catalog.scenes.length}'), findsWidgets);
+    final l10n = AppLocalizations.of(
+      tester.element(
+        find.byKey(const ValueKey<String>('spatial-info-scroll')),
+      ),
+    )!;
+    final minimum = catalog.scenes
+        .map((scene) => scene.duration)
+        .reduce((left, right) => left < right ? left : right);
+    final maximum = catalog.scenes
+        .map((scene) => scene.duration)
+        .reduce((left, right) => left > right ? left : right);
+    expect(
+      find.text(l10n.spatialDurationRange(
+        minimum.toStringAsFixed(1),
+        maximum.toStringAsFixed(1),
+      )),
+      findsOneWidget,
+    );
+    expect(find.textContaining('SkillCorner'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('spatial-open-source')),
+      findsOneWidget,
+    );
+  });
+
+  for (final configuration in <({
+    Size size,
+    double scale,
+    Locale locale,
+  })>[
+    (size: const Size(320, 640), scale: 1.4, locale: const Locale('en')),
+    (size: const Size(390, 844), scale: 1, locale: const Locale('ko')),
+    (size: const Size(667, 320), scale: 1.4, locale: const Locale('ja')),
+    (size: const Size(1280, 900), scale: 1, locale: const Locale('en')),
+  ]) {
+    testWidgets(
+        'cue and source actors avoid overlap at ${configuration.size} '
+        '${configuration.locale.languageCode}', (tester) async {
+      await tester.binding.setSurfaceSize(configuration.size);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(_catalogApp(
+        catalog,
+        locale: configuration.locale,
+        textScale: configuration.scale,
+      ));
+      await _pumpLoaded(tester);
+      _seekTo(
+          firstScene, (firstScene.coreStart + firstScene.coreEnd) / 2, tester);
+      await tester.pump();
+
+      final painter = _painter(tester);
+      final cue = painter.cueRect;
+      expect(painter.viewport.view.contains(cue.topLeft), isTrue);
+      expect(painter.viewport.view.contains(cue.bottomRight), isTrue);
+      expect(cue.overlaps(painter.ballSafetyRect), isFalse);
+      expect(
+        find.byKey(const ValueKey<String>('spatial-attack-direction')),
+        findsOneWidget,
+      );
+      final l10n = lookupAppLocalizations(configuration.locale);
+      final attackingTeamName =
+          firstScene.attackingHome ? firstScene.home : firstScene.away;
+      final direction = painter.portrait
+          ? (firstScene.attackDirection > 0
+              ? l10n.spatialDirectionUp
+              : l10n.spatialDirectionDown)
+          : (firstScene.attackDirection > 0
+              ? l10n.spatialDirectionRight
+              : l10n.spatialDirectionLeft);
+      final directionSemantics = tester.getSemantics(
+        find.byKey(const ValueKey<String>('spatial-attack-direction')),
+      );
+      expect(
+        directionSemantics.label,
+        startsWith(l10n.spatialAttackDirection(attackingTeamName, direction)),
+      );
+      final directionRect = painter.reservedOverlayRects[1];
+      expect(cue.overlaps(directionRect), isFalse);
+      expect(directionRect.overlaps(painter.ballSafetyRect), isFalse);
+      for (final actorRect in painter.keyPlayerSafetyRects) {
+        expect(directionRect.overlaps(actorRect), isFalse);
+      }
+      final sample = firstData.sample(painter.time);
+      for (final id in firstScene.highlightPlayerIds) {
+        final point = sample.players[firstData.playerIndex(id)];
+        expect(point, isNotNull);
+        final projected = painter.viewport.project(point!);
+        expect(painter.viewport.view.deflate(20).contains(projected), isTrue);
+        expect(
+          cue.overlaps(Rect.fromCircle(center: projected, radius: 24)),
+          isFalse,
+          reason: '${firstScene.id} actor $id cue=$cue point=$projected',
+        );
+      }
+      _expectTextFits(tester, 'spatial-cue-line');
+      expect(
+        find.byKey(const ValueKey<String>('spatial-minimap')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('spatial-controls')).hitTestable(),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('cue flow never previews a future ball path', (tester) async {
+    await tester.pumpWidget(_catalogApp(catalog));
+    await _pumpLoaded(tester);
+    expect(_painter(tester).recordedBallTrace, isEmpty);
+
+    final middle = (firstScene.evidenceStart + firstScene.evidenceEnd) / 2;
+    _seekTo(firstScene, middle, tester);
+    await tester.pump();
+    final trace = _painter(tester).recordedBallTrace;
+    expect(trace, isNotEmpty);
+    final maximumExpectedPoints =
+        ((middle - firstScene.evidenceStart) * firstData.fps).floor() + 2;
+    expect(trace.length, lessThanOrEqualTo(maximumExpectedPoints));
+
+    _seekTo(firstScene, firstScene.evidenceEnd + 2, tester);
+    await tester.pump();
+    expect(_painter(tester).recordedBallTrace, isEmpty);
+    expect(
+      _textValue(tester, 'spatial-cue-line'),
+      AppLocalizations.of(
+        tester.element(find.byKey(const ValueKey<String>('spatial-cue-line'))),
+      )!
+          .spatialLateralContinuationCue,
+    );
+  });
+
+  testWidgets('approved themes use stable source-named phase cues',
+      (tester) async {
+    for (final theme in <SpatialLearningTheme>[
+      SpatialLearningTheme.lateralSwitch,
+      SpatialLearningTheme.pressureSupport,
+      SpatialLearningTheme.combination,
+    ]) {
+      final scene = catalog.scenes.firstWhere((value) => value.theme == theme);
+      final data = _replay(scene);
+      final ordered = _catalogStartingWith(catalog, scene);
+      await tester.pumpWidget(_catalogApp(
+        ordered,
+        key: ValueKey<String>('phase-${theme.name}'),
+      ));
+      await _pumpLoaded(tester);
+
+      final values = <String>[];
+      for (final time in <double>[
+        scene.evidenceStart - .1,
+        scene.evidenceStart + .1,
+        scene.evidenceEnd + .4,
+        scene.duration - .5,
+        scene.duration,
+      ]) {
+        _seekTo(scene, time, tester);
+        await tester.pump();
+        values.add(_textValue(tester, 'spatial-cue-line'));
+      }
+      expect(values.toSet(), hasLength(5), reason: theme.name);
+      expect(values[0], startsWith('CONTEXT'), reason: theme.name);
+      final returnsToFirst = scene.evidenceAnchors.first.playerId ==
+          scene.evidenceAnchors.last.playerId;
+      expect(
+        values[1],
+        startsWith(
+          theme == SpatialLearningTheme.combination && returnsToFirst
+              ? 'RETURN'
+              : 'CONNECTION',
+        ),
+        reason: theme.name,
+      );
+      expect(values[2], startsWith('AFTER'), reason: theme.name);
+      expect(values[3], startsWith('CONTINUE'), reason: theme.name);
+      expect(values[4], startsWith('REPLAY'), reason: theme.name);
+      expect(values.join(' '), isNot(matches(RegExp(r'\d+[.,]\d+\s*m'))));
+      for (final anchor in scene.evidenceAnchors) {
+        expect(
+          values[1],
+          contains(_cueLabel(data, anchor.playerId)),
+          reason: theme.name,
+        );
+      }
+
+      _seekTo(scene, scene.evidenceStart + .1, tester);
+      await tester.pump();
+      expect(
+        _painter(tester).cuePlayerId,
+        scene.evidenceAnchors.first.playerId,
+        reason: theme.name,
+      );
+      _seekTo(scene, scene.evidenceEnd + .4, tester);
+      await tester.pump();
+      expect(
+        _painter(tester).cuePlayerId,
+        scene.evidenceAnchors.last.playerId,
+        reason: theme.name,
+      );
+    }
+  });
+
+  testWidgets('return combinations and three-player links use honest copy',
+      (tester) async {
+    final returnScene = catalog.scenes.firstWhere(
+      (scene) =>
+          scene.theme == SpatialLearningTheme.combination &&
+          scene.evidenceAnchors.first.playerId ==
+              scene.evidenceAnchors.last.playerId,
+    );
+    final distinctScene = catalog.scenes.firstWhere(
+      (scene) =>
+          scene.theme == SpatialLearningTheme.combination &&
+          scene.evidenceAnchors.first.playerId !=
+              scene.evidenceAnchors.last.playerId,
+    );
+    for (final scene in <SpatialLibraryScene>[returnScene, distinctScene]) {
+      await tester.pumpWidget(_catalogApp(
+        _catalogStartingWith(catalog, scene),
+        key: ValueKey<String>('combination-${scene.id}'),
+      ));
+      await _pumpLoaded(tester);
+      _seekTo(scene, scene.evidenceStart + .1, tester);
+      await tester.pump();
+      final text = _textValue(tester, 'spatial-cue-line');
+      if (scene.id == returnScene.id) {
+        expect(text, startsWith('RETURN'));
+        expect(
+          RegExp(RegExp.escape(_cueLabel(
+                  _replay(scene), scene.evidenceAnchors.first.playerId)))
+              .allMatches(text),
+          hasLength(2),
+        );
+      } else {
+        expect(text, startsWith('CONNECTION'));
+        expect(scene.evidenceAnchors.map((anchor) => anchor.playerId).toSet(),
+            hasLength(3));
+      }
+    }
+  });
+
+  testWidgets('long context does not name actors before they are visible',
+      (tester) async {
+    final hiddenAtStart = catalog.scenes
+        .where((scene) {
+          final data = _replay(scene);
+          return data.sample(0).players[
+                  data.playerIndex(scene.evidenceAnchors.first.playerId)] ==
+              null;
+        })
+        .take(2)
+        .toList(growable: false);
+    expect(hiddenAtStart, hasLength(2));
+    for (final scene in hiddenAtStart) {
+      final data = _replay(scene);
+      expect(
+        data
+            .sample(0)
+            .players[data.playerIndex(scene.evidenceAnchors.first.playerId)],
+        isNull,
+      );
+      await tester.pumpWidget(_catalogApp(
+        _catalogStartingWith(catalog, scene),
+        key: ValueKey<String>('hidden-${scene.id}'),
+      ));
+      await _pumpLoaded(tester);
+      final painter = _painter(tester);
+      expect(painter.cuePlayerId, isNull);
+      expect(
+        _textValue(tester, 'spatial-cue-line'),
+        isNot(contains(scene.evidenceAnchors.first.playerName.split(' ').last)),
+      );
+      expect(
+        painter.cueTarget,
+        painter.viewport.project(data.sample(0).ball),
+      );
+
+      _seekTo(scene, scene.evidenceStart - .1, tester);
+      await tester.pump();
+      expect(
+        _painter(tester).cuePlayerId,
+        scene.evidenceAnchors.first.playerId,
+      );
+    }
+  });
+
+  test('cue placement retains a clear phase position and moves when blocked',
+      () {
+    const bounds = Rect.fromLTWH(0, 0, 320, 220);
+    const size = Size(150, 48);
+    const firstTarget = Offset(150, 120);
+    final occupied = <Rect>[
+      Rect.fromCircle(center: firstTarget, radius: 14),
+      const Rect.fromLTWH(24, 100, 35, 35),
+    ];
+    final first = SpatialCuePlacement.place(
+      bounds: bounds,
+      size: size,
+      target: firstTarget,
+      occupied: occupied,
+    );
+    const movedTarget = Offset(154, 122);
+    final retained = SpatialCuePlacement.place(
+      bounds: bounds,
+      size: size,
+      target: movedTarget,
+      occupied: <Rect>[
+        Rect.fromCircle(center: movedTarget, radius: 14),
+        occupied.last,
+      ],
+      preferred: first,
+    );
+    expect(retained, first);
+
+    final connectorBlocker = Rect.fromCircle(
+      center: Offset.lerp(
+        SpatialCuePlacement.connectorStart(first, movedTarget),
+        movedTarget,
+        .5,
+      )!,
+      radius: 8,
+    );
+    final retainedAcrossConnector = SpatialCuePlacement.place(
+      bounds: bounds,
+      size: size,
+      target: movedTarget,
+      occupied: <Rect>[
+        Rect.fromCircle(center: movedTarget, radius: 14),
+        connectorBlocker,
+      ],
+      preferred: first,
+    );
+    expect(retainedAcrossConnector, first);
+
+    final blocked = <Rect>[
+      Rect.fromCircle(center: movedTarget, radius: 14),
+      occupied.last,
+      first.deflate(4),
+    ];
+    final relocated = SpatialCuePlacement.place(
+      bounds: bounds,
+      size: size,
+      target: movedTarget,
+      occupied: blocked,
+      preferred: first,
+    );
+    expect(relocated, isNot(first));
+    expect(
+      SpatialCuePlacement.isClear(
+        rect: relocated,
+        target: movedTarget,
+        occupied: blocked,
+      ),
+      isTrue,
+    );
+
+    const fullViewport = Rect.fromLTWH(0, 0, 320, 220);
+    const pannedPitch = Rect.fromLTWH(-80, 20, 210, 180);
+    const stationaryFreeBox = Rect.fromLTWH(162, 12, 150, 48);
+    final retainedWhilePitchPans = SpatialCuePlacement.place(
+      bounds: pannedPitch,
+      fallbackBounds: fullViewport,
+      size: size,
+      target: movedTarget,
+      occupied: <Rect>[
+        Rect.fromCircle(center: movedTarget, radius: 25),
+      ],
+      preferred: stationaryFreeBox,
+    );
+    expect(retainedWhilePitchPans, stationaryFreeBox);
+
+    const filledPitch = Rect.fromLTWH(0, 20, 160, 180);
+    final viewportFallback = SpatialCuePlacement.place(
+      bounds: filledPitch,
+      fallbackBounds: fullViewport,
+      size: size,
+      target: const Offset(80, 110),
+      occupied: <Rect>[filledPitch],
+    );
+    expect(viewportFallback.overlaps(filledPitch), isFalse);
+    expect(fullViewport.contains(viewportFallback.topLeft), isTrue);
+    expect(fullViewport.contains(viewportFallback.bottomRight), isTrue);
+  });
+
+  testWidgets(
+      'Griezmann pressure aftermath keeps every required actor cue-clear in landscape',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(667, 320));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final scene = catalog.scenes.firstWhere(
+      (value) => value.id == '3442-17463-griezmann-pressureSupport',
+    );
+    final ordered = _catalogStartingWith(catalog, scene);
+    await tester.pumpWidget(_catalogApp(
+      ordered,
+      locale: const Locale('ko'),
+    ));
+    await _pumpLoaded(tester);
+    _seekTo(scene, 14.5, tester);
+    await tester.pump();
+
+    final painter = _painter(tester);
+    expect(painter.scene.id, scene.id);
+    expect(painter.time, closeTo(14.5, .01));
+    expect(painter.keyPlayerSafetyRects, isNotEmpty);
+    for (final actorRect in painter.keyPlayerSafetyRects) {
+      expect(
+        painter.cueRect.overlaps(actorRect),
+        isFalse,
+        reason: '${scene.id} cue=${painter.cueRect} actor=$actorRect',
+      );
+    }
+    expect(painter.cueRect.overlaps(painter.ballSafetyRect), isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('rapid requests and dispose ignore stale asynchronous loads',
+      (tester) async {
+    final delayed = Completer<RealMatchReplayData>();
     await tester.pumpWidget(_app(
       home: ScanPassSpatialLibraryScreen(
         catalogLoader: () async => catalog,
         sceneLoader: (scene) {
-          if (scene.id == catalog.scenes[1].id) return slow.future;
-          return Future.value(data[scene.id]!);
+          if (scene.id == catalog.scenes[1].id) return delayed.future;
+          return Future.value(_replay(scene));
         },
       ),
     ));
     await _pumpLoaded(tester);
-
-    final next = find.byKey(const ValueKey<String>('spatial-next'));
-    await tester.tap(next);
-    await tester.tap(next);
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-next')));
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-next')));
     await tester.pump();
-    await _pumpLoaded(tester);
-    expect(_painter(tester).scene.id, catalog.scenes[2].id);
-
-    slow.complete(data[catalog.scenes[1].id]!);
+    await _pumpScene(tester, catalog.scenes[2].id);
+    delayed.complete(_replay(catalog.scenes[1]));
     await tester.pump();
     expect(_painter(tester).scene.id, catalog.scenes[2].id);
-    expect(tester.takeException(), isNull);
-  });
 
-  testWidgets('previous wraps and bottom title opens the picker',
-      (tester) async {
-    await tester.pumpWidget(_catalogApp(catalog, data));
-    await _pumpLoaded(tester);
-    final previous = find.byKey(const ValueKey<String>('spatial-previous'));
-    final l10n = AppLocalizations.of(tester.element(previous))!;
-    expect(tester.getSemantics(previous).label,
-        contains(l10n.spatialPreviousScene));
-
-    await tester.tap(previous);
-    await _pumpScene(tester, catalog.scenes.last.id);
-    expect(_painter(tester).scene.id, catalog.scenes.last.id);
-
-    await tester
-        .tap(find.byKey(const ValueKey<String>('spatial-scene-selector')));
-    await tester.pumpAndSettle();
-    expect(
-        find.byKey(const ValueKey<String>('spatial-search')), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('scene picker searches players and filters one theme',
-      (tester) async {
-    await tester.pumpWidget(_catalogApp(fullCatalog, data));
-    await _pumpLoaded(tester);
-    final target = fullCatalog.scenes
-        .firstWhere((scene) => scene.focusPlayerName.contains('Messi'));
-
-    await tester
-        .tap(find.byKey(const ValueKey<String>('spatial-scene-selector')));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('Famous-match library · 108 scenes'),
-        findsOneWidget);
-
-    await tester.enterText(
-      find.byKey(const ValueKey<String>('spatial-search')),
-      'Messi',
-    );
-    await tester.pump();
-    expect(find.byKey(ValueKey<String>('spatial-scene-${target.id}')),
-        findsOneWidget);
-    expect(find.textContaining('Salah'), findsNothing);
-
-    await tester.tap(
-      find.byKey(ValueKey<String>('spatial-theme-${target.theme.name}')),
-    );
-    await tester.pump();
-    expect(find.byKey(ValueKey<String>('spatial-scene-${target.id}')),
-        findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('scene picker matches localized themes and star aliases',
-      (tester) async {
-    await tester.pumpWidget(_catalogApp(
-      fullCatalog,
-      data,
-      locale: const Locale('ko'),
-    ));
-    await _pumpLoaded(tester);
-    final forward = fullCatalog.scenes.firstWhere(
-      (scene) => scene.theme == SpatialLearningTheme.forwardConnection,
-    );
-    final messi = fullCatalog.scenes.firstWhere(
-      (scene) => scene.focusPlayerName == 'Lionel Messi',
-    );
-
-    await tester
-        .tap(find.byKey(const ValueKey<String>('spatial-scene-selector')));
-    await tester.pumpAndSettle();
-    final search = find.byKey(const ValueKey<String>('spatial-search'));
-    await tester.enterText(search, '전진');
-    await tester.pump();
-    expect(find.byKey(ValueKey<String>('spatial-scene-${forward.id}')),
-        findsOneWidget);
-
-    await tester.enterText(search, '메시');
-    await tester.pump();
-    expect(find.byKey(ValueKey<String>('spatial-scene-${messi.id}')),
-        findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('nearby-defender scene shows a localized factual gap cue',
-      (tester) async {
-    final scene = fullCatalog.scenes.firstWhere(
-      (value) => value.theme == SpatialLearningTheme.pressureSupport,
-    );
-    final single = _catalogWith(fullCatalog, [scene]);
-    final replay = RealMatchReplayData.fromJsonString(
-      File(scene.asset).readAsStringSync(),
-    );
-    await tester.pumpWidget(_catalogApp(
-      single,
-      {scene.id: replay},
-      locale: const Locale('ko'),
-    ));
-    await _pumpLoaded(tester);
-    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
-    await tester.pump();
-    await tester.pump(
-      Duration(milliseconds: ((scene.evidenceStart + .1) * 1000).round()),
-    );
-
-    final gap = _painter(tester).currentDefenderGap!;
-    expect(_textValue(tester, 'spatial-cue-line'), contains(gap.defenderName));
-    expect(_textValue(tester, 'spatial-cue-line'), contains(gap.actorName));
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('all eight themes use reached, scene-specific phase cues',
-      (tester) async {
-    for (final theme in SpatialLearningTheme.values) {
-      await tester.pumpWidget(const SizedBox.shrink());
-      await tester.pump();
-      final scene = fullCatalog.scenes.firstWhere(
-        (candidate) => candidate.theme == theme,
-      );
-      final replay = RealMatchReplayData.fromJsonString(
-        File(scene.asset).readAsStringSync(),
-      );
-      await tester.pumpWidget(_catalogApp(
-        _catalogWith(fullCatalog, [scene]),
-        {scene.id: replay},
-      ));
-      await _pumpLoaded(tester);
-      expect(_textValue(tester, 'spatial-cue-line'), startsWith('BEFORE'));
-
-      _seekToSceneTime(tester, scene, scene.evidenceStart + .1);
-      await tester.pump();
-      final movement = _textValue(tester, 'spatial-cue-line');
-      expect(movement, isNot(contains('Track')), reason: theme.name);
-      expect(movement, isNot(contains('follow')), reason: theme.name);
-
-      _seekToSceneTime(tester, scene, scene.evidenceEnd + .1);
-      await tester.pump();
-      final result = _textValue(tester, 'spatial-cue-line');
-      expect(result, startsWith('AFTER'), reason: theme.name);
-      if (theme == SpatialLearningTheme.combination) {
-        expect(
-          result,
-          contains(scene.metrics.sequenceSeconds.toStringAsFixed(1)),
-          reason: theme.name,
-        );
-      } else {
-        expect(result, contains(scene.evidenceAnchors.last.playerName),
-            reason: theme.name);
-      }
-      expect(tester.takeException(), isNull);
-    }
-  });
-
-  testWidgets(
-      'single More menu exposes source, legacy, and authored references',
-      (tester) async {
-    await tester.pumpWidget(_catalogApp(catalog, data));
-    await _pumpLoaded(tester);
-    expect(find.byType(TabBar), findsNothing);
-
-    await _openMenu(tester);
-    expect(find.byKey(const ValueKey<String>('spatial-source-info')),
-        findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('spatial-legacy-viewer')),
-        findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('spatial-authored-sample')),
-        findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey<String>('spatial-source-info')));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('SkillCorner Open Data'), findsOneWidget);
-    expect(find.textContaining('MIT License'), findsOneWidget);
-    expect(find.textContaining('geometric interpretations'), findsOneWidget);
-    expect(find.textContaining('pitch plane (XY)'), findsAtLeastNWidgets(1));
-    expect(
-        find.textContaining('only player positions observed'), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('spatial-open-source')),
-        findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('pitch stays metric and usable at compact portrait and landscape',
-      (tester) async {
-    for (final configuration in <({Size size, Locale locale, bool dark})>[
-      (size: const Size(320, 700), locale: const Locale('ja'), dark: false),
-      (size: const Size(667, 320), locale: const Locale('ko'), dark: true),
-    ]) {
-      tester.view.devicePixelRatio = 1;
-      tester.view.physicalSize = configuration.size;
-      await tester.pumpWidget(_catalogApp(
-        catalog,
-        data,
-        locale: configuration.locale,
-        textScale: 1.4,
-        dark: configuration.dark,
-      ));
-      await _pumpLoaded(tester);
-      final paint = find.byKey(const ValueKey<String>('spatial-pitch'));
-      final size = tester.getSize(paint);
-      final painter = _painter(tester);
-      final bounds = painter.pitchBounds(size);
-      final expected = painter.portrait
-          ? data[catalog.scenes.first.id]!.pitchWidth /
-              data[catalog.scenes.first.id]!.pitchLength
-          : data[catalog.scenes.first.id]!.pitchLength /
-              data[catalog.scenes.first.id]!.pitchWidth;
-      expect(bounds.width / bounds.height, closeTo(expected, .001));
-      for (final overlay in painter.reservedOverlayRects) {
-        expect(painter.viewport.view.overlaps(overlay), isFalse);
-        expect(painter.ballSafetyRect.overlaps(overlay), isFalse);
-        expect(
-          painter.keyPlayerSafetyRects.any((shirt) => shirt.overlaps(overlay)),
-          isFalse,
-        );
-      }
-      final canvasRect = tester.getRect(paint);
-      final contextRect = tester.getRect(
-        find.byKey(const ValueKey<String>('spatial-context')),
-      );
-      final controlsRect = tester.getRect(
-        find.byKey(const ValueKey<String>('spatial-controls')),
-      );
-      expect(canvasRect.contains(contextRect.topLeft), isTrue);
-      expect(canvasRect.contains(contextRect.bottomRight), isTrue);
-      expect(canvasRect.overlaps(controlsRect), isFalse);
-      for (final key in <String>[
-        'spatial-match-line',
-        'spatial-scene-line',
-        'spatial-cue-line',
-        'spatial-clock',
-        'spatial-direction',
-      ]) {
-        _expectTextFits(tester, key);
-      }
-      expect(find.byKey(const ValueKey<String>('spatial-play')).hitTestable(),
-          findsOneWidget);
-      expect(
-          find.byKey(const ValueKey<String>('spatial-previous')).hitTestable(),
-          findsOneWidget);
-      expect(find.byKey(const ValueKey<String>('spatial-next')).hitTestable(),
-          findsOneWidget);
-      expect(find.byKey(const ValueKey<String>('spatial-more')).hitTestable(),
-          findsOneWidget);
-      final next = find.byKey(const ValueKey<String>('spatial-next'));
-      final l10n = AppLocalizations.of(tester.element(next))!;
-      expect(tester.getSemantics(next).label, contains(l10n.spatialNextScene));
-      expect(tester.takeException(), isNull);
-    }
-    addTearDown(() {
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-  });
-
-  testWidgets('real mobile context wraps long match and phase cues',
-      (tester) async {
-    final pressure = fullCatalog.scenes.firstWhere(
-      (scene) => scene.id == '2417-16459-müller-pressureSupport',
-    );
-    final combination = fullCatalog.scenes.firstWhere(
-      (scene) => scene.id == '2417-13350-goretzka-combination',
-    );
-    final replays = <String, RealMatchReplayData>{
-      for (final scene in <SpatialLibraryScene>[pressure, combination])
-        scene.id: RealMatchReplayData.fromJsonString(
-          File(scene.asset).readAsStringSync(),
-        ),
-    };
-    final configurations = <({
-      Size size,
-      Locale locale,
-      SpatialLibraryScene scene,
-      double time,
-    })>[
-      (
-        size: const Size(390, 844),
-        locale: const Locale('en'),
-        scene: pressure,
-        time: pressure.evidenceStart + .1,
-      ),
-      (
-        size: const Size(412, 915),
-        locale: const Locale('ko'),
-        scene: combination,
-        time: combination.evidenceEnd + .1,
-      ),
-      (
-        size: const Size(390, 844),
-        locale: const Locale('ja'),
-        scene: combination,
-        time: combination.evidenceEnd + .1,
-      ),
-    ];
-
-    tester.view.devicePixelRatio = 1;
-    addTearDown(() {
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-    for (final configuration in configurations) {
-      tester.view.physicalSize = configuration.size;
-      await tester.pumpWidget(const SizedBox.shrink());
-      final scene = configuration.scene;
-      final replay = replays[scene.id]!;
-      final reordered = _catalogWith(fullCatalog, [
-        scene,
-        ...fullCatalog.scenes.where((candidate) => candidate.id != scene.id),
-      ]);
-      await tester.pumpWidget(_catalogApp(
-        reordered,
-        {scene.id: replay},
-        locale: configuration.locale,
-        textScale: 1.4,
-      ));
-      await _pumpLoaded(tester);
-      _seekToSceneTime(tester, scene, configuration.time);
-      await tester.pump();
-
-      final match = _textValue(tester, 'spatial-match-line');
-      final clock = _textValue(tester, 'spatial-clock');
-      final sceneHeader = _textValue(tester, 'spatial-scene-line');
-      final cue = _textValue(tester, 'spatial-cue-line');
-      expect(match, contains(scene.home));
-      expect(match, contains(scene.away));
-      expect(clock, contains(scene.date));
-      expect(sceneHeader, contains(scene.focusPlayerName));
-      if (scene.theme == SpatialLearningTheme.pressureSupport) {
-        final gap = scene.observedNearbyDefender(replay, configuration.time)!;
-        expect(cue, contains(gap.defenderName));
-        expect(cue, contains(gap.actorName));
-      } else {
-        if (scene.theme == SpatialLearningTheme.combination) {
-          expect(
-            cue,
-            contains(scene.metrics.sequenceSeconds.toStringAsFixed(1)),
-          );
-        } else {
-          expect(
-            scene.evidenceAnchors.any(
-              (anchor) => cue.contains(anchor.playerName),
-            ),
-            isTrue,
-          );
-        }
-      }
-      for (final key in <String>[
-        'spatial-match-line',
-        'spatial-scene-line',
-        'spatial-cue-line',
-        'spatial-clock',
-        'spatial-direction',
-      ]) {
-        _expectTextFits(tester, key);
-      }
-      _expectRectWithin(tester, 'spatial-cue-line', 'spatial-context');
-      _expectRectWithin(tester, 'spatial-scene-line', 'spatial-controls');
-      final pitchRect = tester.getRect(
-        find.byKey(const ValueKey<String>('spatial-pitch')),
-      );
-      final directionRect = tester.getRect(
-        find.byKey(const ValueKey<String>('spatial-direction')),
-      );
-      expect(pitchRect.contains(directionRect.topLeft), isTrue);
-      expect(pitchRect.contains(directionRect.bottomRight), isTrue);
-      expect(find.byKey(const ValueKey<String>('spatial-play')).hitTestable(),
-          findsOneWidget);
-      expect(find.byKey(const ValueKey<String>('spatial-next')).hitTestable(),
-          findsOneWidget);
-      expect(find.byKey(const ValueKey<String>('spatial-more')).hitTestable(),
-          findsOneWidget);
-      expect(tester.takeException(), isNull);
-    }
-  });
-
-  testWidgets('short landscape keeps teaching inside pitch and controls pinned',
-      (tester) async {
-    final scene = fullCatalog.scenes.firstWhere(
-      (candidate) => candidate.id == '2417-13350-goretzka-combination',
-    );
-    final replay = RealMatchReplayData.fromJsonString(
-      File(scene.asset).readAsStringSync(),
-    );
-    final reordered = _catalogWith(fullCatalog, [
-      scene,
-      ...fullCatalog.scenes.where((candidate) => candidate.id != scene.id),
-    ]);
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(667, 320);
-    addTearDown(() {
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-    await tester.pumpWidget(_catalogApp(
-      reordered,
-      {scene.id: replay},
-      locale: const Locale('ja'),
-      textScale: 1.4,
-      dark: true,
-    ));
-    await _pumpLoaded(tester);
-    _seekToSceneTime(tester, scene, scene.evidenceStart + .5);
-    await tester.pump();
-    _expectTextFits(tester, 'spatial-cue-line');
-
-    _seekToSceneTime(tester, scene, scene.evidenceEnd + .1);
-    await tester.pump();
-
-    final cue = _textValue(tester, 'spatial-cue-line');
-    expect(cue, contains(scene.metrics.sequenceSeconds.toStringAsFixed(1)));
-    for (final key in <String>[
-      'spatial-match-line',
-      'spatial-scene-line',
-      'spatial-cue-line',
-      'spatial-clock',
-      'spatial-direction',
-    ]) {
-      _expectTextFits(tester, key);
-    }
-    final controlsBefore = tester.getRect(
-      find.byKey(const ValueKey<String>('spatial-controls')),
-    );
-    _expectRectWithin(tester, 'spatial-cue-line', 'spatial-context');
-    final pitchRect = tester.getRect(
-      find.byKey(const ValueKey<String>('spatial-pitch')),
-    );
-    final contextRect = tester.getRect(
-      find.byKey(const ValueKey<String>('spatial-context')),
-    );
-    expect(pitchRect.contains(contextRect.topLeft), isTrue);
-    expect(pitchRect.contains(contextRect.bottomRight), isTrue);
-    expect(
-      tester.getRect(find.byKey(const ValueKey<String>('spatial-controls'))),
-      controlsBefore,
-    );
-    expect(find.byKey(const ValueKey<String>('spatial-play')).hitTestable(),
-        findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('spatial-next')).hitTestable(),
-        findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('spatial-more')).hitTestable(),
-        findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('tall landscape keeps critical context full width and legible',
-      (tester) async {
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(1280, 900);
-    addTearDown(() {
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-    await tester.pumpWidget(_catalogApp(
-      catalog,
-      data,
-      locale: const Locale('ko'),
-      textScale: 1.4,
-      dark: true,
-    ));
-    await _pumpLoaded(tester);
-
-    expect(
-        find.byKey(const ValueKey<String>('spatial-side-panel')), findsNothing);
-    final pitch = tester.getRect(
-      find.byKey(const ValueKey<String>('spatial-pitch')),
-    );
-    expect(
-      pitch.overlaps(tester.getRect(
-        find.byKey(const ValueKey<String>('spatial-context')),
-      )),
-      isTrue,
-    );
-    expect(
-      pitch.overlaps(tester.getRect(
-        find.byKey(const ValueKey<String>('spatial-controls')),
-      )),
-      isFalse,
-    );
-    for (final key in <String>[
-      'spatial-match-line',
-      'spatial-scene-line',
-      'spatial-cue-line',
-      'spatial-clock',
-      'spatial-direction',
-    ]) {
-      _expectTextFits(tester, key);
-    }
-    expect(tester.takeException(), isNull);
-  });
-
-  test('draw participants are observed and roles are current, not cumulative',
-      () {
-    final opening = fullCatalog.scenes.first;
-    final openingData = RealMatchReplayData.fromJsonString(
-      File(opening.asset).readAsStringSync(),
-    );
-    final before = _directPainter(
-      opening,
-      openingData,
-      opening.evidenceStart - .1,
-      portrait: true,
-    );
-    expect(before.showsRecordedTrace, isFalse);
-    expect(before.showsEndpointRegion, isFalse);
-    expect(
-      before.observedPlayerIds,
-      [
-        for (var index = 0; index < openingData.players.length; index++)
-          if (openingData
-                  .renderSample(opening.evidenceStart - .1)
-                  .players[index] !=
-              null)
-            openingData.players[index].id,
-      ],
-    );
-    final minimap = SpatialLibraryMinimapPainter(
-      data: openingData,
-      time: opening.evidenceStart - .1,
-      viewportCamera: before.viewport.camera,
-      portrait: true,
-    );
-    expect(minimap.observedPlayerIds, before.observedPlayerIds);
-    expect(
-        minimap.observedPlayerIds.length, lessThan(openingData.players.length));
-    expect(
-      before.currentHighlightPlayerIds,
-      everyElement(isIn(before.observedPlayerIds)),
-    );
-
-    final duringTime = (opening.evidenceStart + opening.evidenceEnd) / 2;
-    final during = _directPainter(
-      opening,
-      openingData,
-      duringTime,
-      portrait: true,
-    );
-    expect(during.showsRecordedTrace, isTrue);
-    expect(during.showsEndpointRegion, isFalse);
-    expect(during.recordedBallTrace, isNotEmpty);
-    expect(
-      during.recordedBallTrace.last.x,
-      closeTo(openingData.sample(duringTime).ball.x, .1),
-    );
-    final later = _directPainter(
-      opening,
-      openingData,
-      math.min(openingData.duration, opening.evidenceEnd + 2),
-      portrait: true,
-    );
-    expect(later.showsRecordedTrace, isFalse);
-    expect(later.recordedBallTrace, isEmpty);
-
-    final recovery = fullCatalog.scenes.firstWhere(
-      (scene) => scene.theme == SpatialLearningTheme.recovery,
-    );
-    final recoveryData = RealMatchReplayData.fromJsonString(
-      File(recovery.asset).readAsStringSync(),
-    );
-    final recoveryBefore = _directPainter(recovery, recoveryData, 0);
-    expect(recoveryBefore.currentHighlightPlayerIds,
-        isNot(contains(recovery.evidenceAnchors.last.playerId)));
-
-    final recoveryAfter = _directPainter(
-      recovery,
-      recoveryData,
-      recovery.evidenceEnd,
-    );
-    expect(recoveryAfter.showsEndpointRegion, isTrue);
-    expect(
-      recoveryAfter.currentHighlightPlayerIds,
-      everyElement(isIn(recoveryAfter.observedPlayerIds)),
-    );
-    expect(
-      recoveryAfter.roles
-          .role(SpatialObservedRoleKind.ballSidePlayer)
-          ?.playerId,
-      recovery.evidenceAnchors.last.playerId,
-    );
-  });
-
-  test('all real scenes keep ball and relevant observed players in metric view',
-      () {
-    for (final scene in fullCatalog.scenes) {
-      final replay = RealMatchReplayData.fromJsonString(
-        File(scene.asset).readAsStringSync(),
-      );
-      final plan = SpatialFocusPlan.build(replay, scene);
-      expect(plan.keyframes, isNotEmpty, reason: scene.id);
-      for (var frame = 0; frame < replay.frames.length; frame++) {
-        final time = frame / replay.fps;
-        final sample = replay.renderSample(time);
-        for (final configuration in <({Size size, bool portrait})>[
-          (size: const Size(390, 520), portrait: true),
-          (size: const Size(667, 210), portrait: false),
-          (size: const Size(1100, 690), portrait: false),
-        ]) {
-          final viewport = SpatialPitchViewport.fit(
-            plan.cameraAt(time),
-            configuration.size,
-            portrait: configuration.portrait,
-            fieldLength: replay.pitchLength,
-            fieldWidth: replay.pitchWidth,
-          );
-          expect(
-            viewport.metricScaleX,
-            closeTo(viewport.metricScaleY, 1e-9),
-            reason: '${scene.id} frame $frame',
-          );
-          expect(
-            viewport.contains(sample.ball, safetyPixels: 5),
-            isTrue,
-            reason: '${scene.id} ball frame $frame',
-          );
-          for (final id in plan.relevantPlayerIdsAt(time)) {
-            final point = sample.players[replay.playerIndex(id)];
-            if (point == null) continue;
-            expect(
-              viewport.contains(point, safetyPixels: 14),
-              isTrue,
-              reason:
-                  '${scene.id} player $id frame $frame point (${point.x}, ${point.y}) camera (${viewport.camera.minX}, ${viewport.camera.maxX}, ${viewport.camera.minY}, ${viewport.camera.maxY}) projected ${viewport.project(point)} view ${viewport.view}',
-            );
-          }
-          for (final role in scene.observedRoles(replay, time).values) {
-            expect(
-              viewport.contains(role.point, safetyPixels: 20),
-              isTrue,
-              reason: '${scene.id} ${role.kind.name} frame $frame',
-            );
-          }
-        }
-      }
-      for (final keyframe in plan.keyframes) {
-        final left = plan.cameraAt(math.max(0, keyframe.time - .001));
-        final right = plan.cameraAt(
-          math.min(replay.duration, keyframe.time + .001),
-        );
-        expect((left.minX - right.minX).abs(), lessThan(.2), reason: scene.id);
-        expect((left.maxY - right.maxY).abs(), lessThan(.2), reason: scene.id);
-      }
-    }
-  });
-
-  testWidgets('wide view uses spare framing room for the pitch at a touchline',
-      (tester) async {
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(1280, 900);
-    addTearDown(() {
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-    await tester.pumpWidget(_catalogApp(catalog, data));
-    await _pumpLoaded(tester);
-    final painter = _painter(tester);
-    final canvasSize = tester.getSize(find.byKey(
-      const ValueKey<String>('spatial-pitch'),
-    ));
-    final view = painter.viewport.view;
-    final pitch = painter.pitchBounds(canvasSize).intersect(view);
-    expect(pitch.width * pitch.height / (view.width * view.height),
-        greaterThan(.7));
-    expect(
-        painter.viewport.contains(data[catalog.scenes.first.id]!.sample(0).ball,
-            safetyPixels: 20),
-        isTrue);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('teaching phase changes do not resize or rotate the held view',
-      (tester) async {
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(390, 844);
-    addTearDown(() {
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-    await tester.pumpWidget(
-      _catalogApp(catalog, data, locale: const Locale('ko')),
-    );
-    await _pumpLoaded(tester);
-    final scene = catalog.scenes.first;
-    SpatialLibraryPitchPainter? previous;
-    for (final time in [
-      scene.evidenceStart - .1,
-      scene.evidenceStart + .1,
-      scene.evidenceEnd + .1,
-    ]) {
-      _seekToSceneTime(tester, scene, time);
-      await tester.pump();
-      final current = _painter(tester);
-      if (previous != null) {
-        expect(current.viewport.view, previous.viewport.view);
-        expect(current.portrait, previous.portrait);
-        expect(current.viewport.camera.minX,
-            closeTo(previous.viewport.camera.minX, .001));
-        expect(current.viewport.camera.maxY,
-            closeTo(previous.viewport.camera.maxY, .001));
-      }
-      previous = current;
-    }
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('crowded phone keeps role rings without floating labels',
-      (tester) async {
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(390, 844);
-    addTearDown(() {
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-    await tester
-        .pumpWidget(_catalogApp(catalog, data, locale: const Locale('ko')));
-    await _pumpLoaded(tester);
-    final scene = catalog.scenes.first;
-    _seekToSceneTime(tester, scene, scene.evidenceStart + .5);
-    await tester.pump();
-
-    final painter = _painter(tester);
-    expect(painter.roles.values.length, greaterThanOrEqualTo(2));
-    expect(painter.calloutRects, isEmpty);
-    expect(tester.takeException(), isNull);
-  });
-
-  test('minimap preserves metric scale and matches the main view orientation',
-      () {
-    final scene = catalog.scenes.first;
-    final replay = data[scene.id]!;
-    const size = Size(142, 92);
-    for (final rotated in [false, true]) {
-      final minimap = SpatialLibraryMinimapPainter(
-        data: replay,
-        time: scene.evidenceStart,
-        viewportCamera: SpatialFocusPlan.build(replay, scene).teachingCamera,
-        portrait: rotated,
-      );
-      final field = minimap.fieldBounds(size);
-      expect(
-          field.width / field.height,
-          closeTo(
-              rotated
-                  ? replay.pitchWidth / replay.pitchLength
-                  : replay.pitchLength / replay.pitchWidth,
-              1e-9));
-      final center =
-          minimap.projectPoint(size, const RealMatchReplayPoint(0, 0));
-      final x = minimap.projectPoint(size, const RealMatchReplayPoint(1, 0));
-      final y = minimap.projectPoint(size, const RealMatchReplayPoint(0, 1));
-      expect((x - center).distance, closeTo((y - center).distance, 1e-9));
-      if (rotated) {
-        expect(x.dy, lessThan(center.dy));
-        expect(y.dx, greaterThan(center.dx));
-      } else {
-        expect(x.dx, greaterThan(center.dx));
-        expect(y.dy, greaterThan(center.dy));
-      }
-    }
-  });
-
-  test('role callouts stay removed across representative viewports', () {
-    final scenes = <SpatialLibraryScene>[
-      fullCatalog.scenes.firstWhere(
-        (scene) => scene.id == '2417-16459-müller-pressureSupport',
-      ),
-      fullCatalog.scenes.firstWhere(
-        (scene) => scene.theme == SpatialLearningTheme.lateralSwitch,
-      ),
-      fullCatalog.scenes.firstWhere(
-        (scene) => scene.theme == SpatialLearningTheme.combination,
-      ),
-    ];
-    for (final scene in scenes) {
-      final replay = RealMatchReplayData.fromJsonString(
-        File(scene.asset).readAsStringSync(),
-      );
-      final time = (scene.evidenceStart + .5).clamp(0.0, replay.duration);
-      for (final configuration in <({Size size, bool rotated})>[
-        (size: const Size(390, 500), rotated: true),
-        (size: const Size(667, 210), rotated: false),
-      ]) {
-        final painter = _directPainter(
-          scene,
-          replay,
-          time,
-          portrait: configuration.rotated,
-          size: configuration.size,
-        );
-        expect(painter.calloutRects, isEmpty, reason: scene.id);
-        expect(painter.roles.values, isNotEmpty, reason: scene.id);
-      }
-    }
-  });
-
-  test('scene orientation favors the long lateral teaching route on phone', () {
-    final scene = fullCatalog.scenes.firstWhere(
-      (scene) => scene.id == '3442-50134-messi-lateralSwitch',
-    );
-    final replay = RealMatchReplayData.fromJsonString(
-      File(scene.asset).readAsStringSync(),
-    );
-    final plan = SpatialFocusPlan.build(replay, scene);
-    expect(
-      SpatialPitchViewport.bestRotation(
-        plan.teachingCamera,
-        const Size(390, 500),
-      ),
-      isFalse,
-    );
-  });
-
-  test('observed tails split at a real source visibility gap', () {
-    SpatialLibraryScene? gapScene;
-    RealMatchReplayData? gapReplay;
-    int? gapPlayerId;
-    double? gapTime;
-    for (final scene in fullCatalog.scenes) {
-      final replay = RealMatchReplayData.fromJsonString(
-        File(scene.asset).readAsStringSync(),
-      );
-      for (var player = 0; player < replay.players.length; player++) {
-        for (var end = 9; end < replay.frames.length; end++) {
-          final values = <bool>[
-            for (var frame = end - 9; frame <= end; frame++)
-              replay.isVisibleAtFrame(frame, player),
-          ];
-          final firstMissing = values.indexOf(false);
-          if (firstMissing < 2) continue;
-          final resumed = values.indexOf(true, firstMissing + 1);
-          if (resumed < 0 || values.length - resumed < 2) continue;
-          gapScene = scene;
-          gapReplay = replay;
-          gapPlayerId = replay.players[player].id;
-          gapTime = end / replay.fps;
-          break;
-        }
-        if (gapScene != null) break;
-      }
-      if (gapScene != null) break;
-    }
-
-    expect(gapScene, isNotNull);
-    final painter = _directPainter(gapScene!, gapReplay!, gapTime!);
-    final segments = painter.observedTailSegments(gapPlayerId!);
-    expect(segments.length, greaterThanOrEqualTo(2));
-    expect(segments, everyElement(hasLength(greaterThanOrEqualTo(2))));
-  });
-
-  testWidgets('dispose cancels an unfinished initial load', (tester) async {
     final pending = Completer<SpatialLibraryCatalog>();
     await tester.pumpWidget(_app(
       home: ScanPassSpatialLibraryScreen(catalogLoader: () => pending.future),
     ));
     await tester.pump();
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
     pending.complete(catalog);
     await tester.pump();
@@ -1030,38 +640,19 @@ void main() {
   });
 }
 
-SpatialLibraryCatalog _catalogWith(
-  SpatialLibraryCatalog source,
-  List<SpatialLibraryScene> scenes,
-) =>
-    SpatialLibraryCatalog(
-      version: source.version,
-      provider: source.provider,
-      license: source.license,
-      sourceCommit: source.sourceCommit,
-      sourceUrl: source.sourceUrl,
-      matchCount: source.matchCount,
-      scenes: scenes,
-    );
-
 Widget _catalogApp(
-  SpatialLibraryCatalog catalog,
-  Map<String, RealMatchReplayData> data, {
+  SpatialLibraryCatalog catalog, {
+  Key? key,
   Locale locale = const Locale('en'),
   double textScale = 1,
-  bool dark = false,
 }) =>
     _app(
       locale: locale,
       textScale: textScale,
-      dark: dark,
       home: ScanPassSpatialLibraryScreen(
+        key: key,
         catalogLoader: () async => catalog,
-        sceneLoader: (scene) async =>
-            data[scene.id] ??
-            RealMatchReplayData.fromJsonString(
-              File(scene.asset).readAsStringSync(),
-            ),
+        sceneLoader: (scene) async => _replay(scene),
       ),
     );
 
@@ -1069,25 +660,50 @@ Widget _app({
   required Widget home,
   Locale locale = const Locale('en'),
   double textScale = 1,
-  bool dark = false,
 }) =>
     MaterialApp(
       locale: locale,
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
-      themeMode: dark ? ThemeMode.dark : ThemeMode.light,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context)
-            .copyWith(textScaler: TextScaler.linear(textScale)),
+        data: MediaQuery.of(context).copyWith(
+          textScaler: TextScaler.linear(textScale),
+        ),
         child: child!,
       ),
       home: home,
     );
 
+RealMatchReplayData _replay(SpatialLibraryScene scene) =>
+    RealMatchReplayData.fromJsonString(File(scene.asset).readAsStringSync());
+
+String _cueLabel(RealMatchReplayData data, int id) {
+  final player = data.player(id);
+  final shortName = player.name!.trim().split(' ').last;
+  return player.number == null ? shortName : '#${player.number} $shortName';
+}
+
+SpatialLibraryCatalog _catalogStartingWith(
+  SpatialLibraryCatalog catalog,
+  SpatialLibraryScene scene,
+) =>
+    SpatialLibraryCatalog(
+      version: catalog.version,
+      provider: catalog.provider,
+      license: catalog.license,
+      sourceCommit: catalog.sourceCommit,
+      sourceUrl: catalog.sourceUrl,
+      matchCount: catalog.matchCount,
+      scenes: <SpatialLibraryScene>[
+        scene,
+        ...catalog.scenes.where((value) => value.id != scene.id),
+      ],
+    );
+
 Future<void> _pumpLoaded(WidgetTester tester) async {
-  for (var attempt = 0; attempt < 60; attempt++) {
+  for (var attempt = 0; attempt < 80; attempt++) {
     await tester.pump();
     if (find
         .byKey(const ValueKey<String>('spatial-pitch'))
@@ -1096,14 +712,14 @@ Future<void> _pumpLoaded(WidgetTester tester) async {
       return;
     }
     await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 15)),
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
     );
   }
   fail('Spatial library did not load.');
 }
 
 Future<void> _pumpScene(WidgetTester tester, String sceneId) async {
-  for (var attempt = 0; attempt < 60; attempt++) {
+  for (var attempt = 0; attempt < 80; attempt++) {
     await tester.pump();
     if (find
             .byKey(const ValueKey<String>('spatial-pitch'))
@@ -1113,7 +729,7 @@ Future<void> _pumpScene(WidgetTester tester, String sceneId) async {
       return;
     }
     await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 15)),
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
     );
   }
   fail('Spatial scene $sceneId did not load.');
@@ -1130,48 +746,17 @@ SpatialLibraryPitchPainter _painter(WidgetTester tester) => tester
     )
     .painter! as SpatialLibraryPitchPainter;
 
-SpatialLibraryPitchPainter _directPainter(
-  SpatialLibraryScene scene,
-  RealMatchReplayData data,
-  double time, {
-  bool portrait = false,
-  Size size = const Size(390, 500),
-}) {
-  final plan = SpatialFocusPlan.build(data, scene);
-  return SpatialLibraryPitchPainter(
-    data: data,
-    scene: scene,
-    focusPlan: plan,
-    viewport: SpatialPitchViewport.fit(
-      plan.cameraAt(time),
-      size,
-      portrait: portrait,
-    ),
-    time: time,
-    brightness: Brightness.light,
-    portrait: portrait,
-    textDirection: TextDirection.ltr,
-    textScaler: TextScaler.noScaling,
-    roles: scene.observedRoles(data, time),
-    roleLabels: const {
-      SpatialObservedRoleKind.ballSidePlayer: 'Near ball',
-      SpatialObservedRoleKind.connectedTeammate: 'Previous link',
-      SpatialObservedRoleKind.nearbyDefender: 'Nearby defender',
-    },
-  );
-}
-
 double _sourceTime(WidgetTester tester) => _painter(tester).time;
 
-void _seekToSceneTime(
-  WidgetTester tester,
+void _seekTo(
   SpatialLibraryScene scene,
   double time,
+  WidgetTester tester,
 ) {
-  final progress = tester.widget<Slider>(
+  final slider = tester.widget<Slider>(
     find.byKey(const ValueKey<String>('spatial-progress')),
   );
-  progress.onChanged!(time / scene.duration);
+  slider.onChanged!(time / scene.duration);
 }
 
 String _textValue(WidgetTester tester, String key) =>
@@ -1186,16 +771,6 @@ void _expectTextFits(WidgetTester tester, String key) {
     isFalse,
     reason: '$key "${paragraph.text.toPlainText()}" ${paragraph.size}',
   );
-}
-
-void _expectRectWithin(WidgetTester tester, String key, String containerKey) {
-  final rect = tester.getRect(find.byKey(ValueKey<String>(key)));
-  final container = tester.getRect(
-    find.byKey(ValueKey<String>(containerKey)),
-  );
-  expect(container.contains(rect.topLeft), isTrue, reason: '$key top-left');
-  expect(container.contains(rect.bottomRight), isTrue,
-      reason: '$key bottom-right');
 }
 
 class _Options implements OptionRepository {

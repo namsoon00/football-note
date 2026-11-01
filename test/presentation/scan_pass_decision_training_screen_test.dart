@@ -11,7 +11,7 @@ import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('default entry opens the video learning viewer', (tester) async {
+  testWidgets('default entry opens the spatial lesson library', (tester) async {
     await tester.pumpWidget(_app(
       home: ScanPassGameScreen(
         optionRepository: _Options(),
@@ -20,7 +20,7 @@ void main() {
       ),
     ));
     await tester.pump(const Duration(milliseconds: 50));
-    expect(find.byType(ScanPassVideoLearningScreen), findsOneWidget);
+    expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
     expect(find.byKey(const ValueKey('pressure-pitch')), findsNothing);
     expect(find.byKey(const ValueKey('match-moment-pitch')), findsNothing);
     expect(find.byKey(const ValueKey('practice-catalog')), findsNothing);
