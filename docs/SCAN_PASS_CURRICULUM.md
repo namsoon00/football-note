@@ -2,8 +2,11 @@
 
 ## Scope and validation status
 
-`ScanPassGameScreen` now opens the 72-passage source-grounded
-`ScanPassSpatialLibraryScreen`; see
+`ScanPassGameScreen` now opens the evidence-led, mixed-source
+`ScanPassSpatialLibraryScreen`. Its current v2 catalogue contains 70 reviewed
+passages: 25 accepted from the archived 72-scene 2019/20 set and 45 from both
+pinned 2024/25 A-League matches. It teaches receiving lanes, pressure outlets,
+distinct-third-player combinations and opposite-side space; see
 [`SCAN_PASS_SPATIAL_LIBRARY.md`](SCAN_PASS_SPATIAL_LIBRARY.md). The separate
 official-video viewer is an optional menu route described in
 [`SCAN_PASS_VIDEO_LEARNING.md`](SCAN_PASS_VIDEO_LEARNING.md). The viewer below

@@ -25,9 +25,12 @@ class _InjectedSpatialLibraryRepository
 
 enum _SpatialMenuAction {
   guidedReplay,
+  sourceSpeed,
   sourceInfo,
   officialVideo,
 }
+
+enum _SpatialPlaybackMode { guided, source }
 
 enum _SpatialCuePhase { context, connection, aftermath, continuation, review }
 
@@ -93,6 +96,7 @@ class _ScanPassSpatialLibraryScreenState
   int _playGeneration = 0;
   bool _playing = false;
   bool _focusedReplay = false;
+  _SpatialPlaybackMode _playbackMode = _SpatialPlaybackMode.guided;
   String? _cuePlacementKey;
   Rect? _cuePlacementRect;
   String? _directionPlacementKey;
@@ -210,6 +214,7 @@ class _ScanPassSpatialLibraryScreenState
       _loadError = null;
       _playing = false;
       _focusedReplay = false;
+      _playbackMode = _SpatialPlaybackMode.guided;
     });
   }
 
@@ -268,8 +273,13 @@ class _ScanPassSpatialLibraryScreenState
       _stopPlayback();
       return;
     }
-    if (_finished) _controller.value = 0;
-    _playAtSourceSpeed();
+    if (_scene?.education != null &&
+        _playbackMode == _SpatialPlaybackMode.guided) {
+      _playFocusReplay(restart: _finished);
+    } else {
+      if (_finished) _controller.value = 0;
+      _playAtSourceSpeed();
+    }
   }
 
   void _playAtSourceSpeed() {
@@ -291,50 +301,40 @@ class _ScanPassSpatialLibraryScreenState
     }());
   }
 
-  void _playFocusReplay() {
+  void _playFocusReplay({bool restart = false}) {
     final data = _data;
     final scene = _scene;
     if (data == null || scene == null) return;
     _stopPlayback(update: false);
-    _controller.value = 0;
+    if (restart) _controller.value = 0;
     final generation = ++_playGeneration;
     setState(() {
       _playing = true;
       _focusedReplay = true;
+      _playbackMode = _SpatialPlaybackMode.guided;
     });
     unawaited(() async {
+      Future<void> playTo(double sourceTime, double rate) async {
+        final remainingSourceTime = sourceTime - _time;
+        if (remainingSourceTime <= 0) return;
+        await _controller
+            .animateTo(
+              sourceTime / data.duration,
+              duration: Duration(
+                milliseconds:
+                    math.max(1, (remainingSourceTime / rate * 1000).round()),
+              ),
+              curve: Curves.linear,
+            )
+            .orCancel;
+      }
+
       try {
-        await _controller
-            .animateTo(
-              scene.evidenceStart / data.duration,
-              duration: Duration(
-                milliseconds: (scene.evidenceStart * 1000).round(),
-              ),
-              curve: Curves.linear,
-            )
-            .orCancel;
+        await playTo(scene.teachingStart, 1);
         if (!mounted || generation != _playGeneration) return;
-        await _controller
-            .animateTo(
-              scene.evidenceEnd / data.duration,
-              duration: Duration(
-                milliseconds:
-                    ((scene.evidenceEnd - scene.evidenceStart) * 2000).round(),
-              ),
-              curve: Curves.linear,
-            )
-            .orCancel;
+        await playTo(scene.teachingEnd, .5);
         if (!mounted || generation != _playGeneration) return;
-        await _controller
-            .animateTo(
-              1,
-              duration: Duration(
-                milliseconds:
-                    ((data.duration - scene.evidenceEnd) * 1000).round(),
-              ),
-              curve: Curves.linear,
-            )
-            .orCancel;
+        await playTo(data.duration, 1);
       } on TickerCanceled {
         return;
       }
@@ -409,7 +409,13 @@ class _ScanPassSpatialLibraryScreenState
   Future<void> _handleMenu(_SpatialMenuAction action) async {
     switch (action) {
       case _SpatialMenuAction.guidedReplay:
-        _playFocusReplay();
+        _playFocusReplay(restart: true);
+        break;
+      case _SpatialMenuAction.sourceSpeed:
+        _stopPlayback(update: false);
+        _controller.value = 0;
+        setState(() => _playbackMode = _SpatialPlaybackMode.source);
+        _playAtSourceSpeed();
         break;
       case _SpatialMenuAction.sourceInfo:
         await _openInfo();
@@ -549,10 +555,19 @@ class _ScanPassSpatialLibraryScreenState
       final cardWidth = math.min(
         size.width - 16,
         portrait
-            ? (size.width * .78).clamp(210.0, 360.0)
-            : (size.width * .38).clamp(240.0, 300.0),
+            ? scene.education == null
+                ? (size.width * .78).clamp(210.0, 360.0)
+                : (size.width * .68).clamp(210.0, 330.0)
+            : scene.education == null
+                ? (size.width * .38).clamp(240.0, 300.0)
+                : (size.width * .32).clamp(210.0, 270.0),
       );
+      final objectiveTitle =
+          scene.education == null ? '' : _learningTitle(_l10n, scene);
+      final playbackRate = _educationPlaybackRate(scene);
+      final objectiveSemantics = _educationObjectiveSemantics(scene);
       final cardHeight = _teachingCardHeight(
+        objectiveTitle,
         cue.text,
         cardWidth,
         compact: compact,
@@ -602,13 +617,20 @@ class _ScanPassSpatialLibraryScreenState
           if (sample.players[data.playerIndex(playerId)] case final point?)
             Rect.fromCircle(center: viewport.project(point), radius: 28),
       ];
-      if (_time >= scene.evidenceStart) {
-        final traceEnd = math.min(_time, scene.evidenceEnd);
+      if (_time >= scene.teachingStart) {
+        final traceEnd = math.min(_time, scene.teachingEnd);
+        final teachingPlayerIndex = scene.education == null
+            ? null
+            : data.playerIndex(scene.education!.focusActor.playerId);
         final tracePoints = <Offset>[
-          for (var frame = (scene.evidenceStart * data.fps).ceil();
+          for (var frame = (scene.teachingStart * data.fps).ceil();
               frame <= (traceEnd * data.fps).floor();
               frame++)
-            viewport.project(data.sample(frame / data.fps).ball),
+            if (teachingPlayerIndex == null)
+              viewport.project(data.sample(frame / data.fps).ball)
+            else if (data.sample(frame / data.fps).players[teachingPlayerIndex]
+                case final point?)
+              viewport.project(point),
         ];
         if (tracePoints.isNotEmpty) {
           occupied.add(
@@ -705,15 +727,15 @@ class _ScanPassSpatialLibraryScreenState
       _directionPlacementKey = directionPlacementKey;
       _directionPlacementRect = directionRect;
       final nameLabelPlayerIds = <int>{
-        scene.focusPlayerId,
+        scene.education?.focusActor.playerId ?? scene.focusPlayerId,
         if (currentOwner != null) currentOwner,
         if (cueActorPoint != null) cue.targetPlayerId!,
-        for (final role in roles.values)
-          if (role.kind != SpatialObservedRoleKind.nearbyDefender)
-            role.playerId,
-        if (_time < scene.evidenceEnd)
-          for (final player in data.players)
-            if (cue.text.contains(_cuePlayerLabel(data, player.id))) player.id,
+        if (scene.education == null)
+          for (final role in roles.values)
+            if (role.kind != SpatialObservedRoleKind.nearbyDefender)
+              role.playerId,
+        for (final player in data.players)
+          if (cue.text.contains(_cuePlayerLabel(data, player.id))) player.id,
       };
       final locale = Localizations.localeOf(context);
       final nameLabelPlacementKey = '${scene.id}:$rotated:'
@@ -761,8 +783,8 @@ class _ScanPassSpatialLibraryScreenState
               label: _l10n.spatialPitchSemantics(
                 scene.home,
                 scene.away,
-                scene.focusPlayerName,
-                _themeTitle(_l10n, scene.theme),
+                scene.education?.focusActor.playerName ?? scene.focusPlayerName,
+                _learningTitle(_l10n, scene),
               ),
               value: _sourceTimeLabel(scene),
               child: ExcludeSemantics(
@@ -775,7 +797,13 @@ class _ScanPassSpatialLibraryScreenState
           ),
           Positioned.fromRect(
             rect: cardRect,
-            child: _buildTeachingCard(cue.text, compact),
+            child: _buildTeachingCard(
+              objectiveTitle,
+              playbackRate,
+              objectiveSemantics,
+              cue.text,
+              compact,
+            ),
           ),
           Positioned.fromRect(
             rect: directionRect,
@@ -797,6 +825,27 @@ class _ScanPassSpatialLibraryScreenState
     });
   }
 
+  bool _usesHalfPlaybackRate(SpatialLibraryScene scene) =>
+      scene.education != null &&
+      _playbackMode == _SpatialPlaybackMode.guided &&
+      _time >= scene.teachingStart &&
+      _time < scene.teachingEnd;
+
+  String _educationPlaybackRate(SpatialLibraryScene scene) {
+    if (scene.education == null) return '';
+    return _usesHalfPlaybackRate(scene)
+        ? _l10n.spatialEducationPlaybackRateHalf
+        : _l10n.spatialEducationPlaybackRateNormal;
+  }
+
+  String _educationObjectiveSemantics(SpatialLibraryScene scene) {
+    if (scene.education == null) return '';
+    final objective = _learningTitle(_l10n, scene);
+    return _usesHalfPlaybackRate(scene)
+        ? _l10n.spatialEducationObjectiveRateHalf(objective)
+        : _l10n.spatialEducationObjectiveRateNormal(objective);
+  }
+
   List<Rect> _phaseOccupiedRects({
     required RealMatchReplayData data,
     required SpatialLibraryScene scene,
@@ -807,14 +856,14 @@ class _ScanPassSpatialLibraryScreenState
     required bool rotated,
   }) {
     final (start, end) = switch (phase) {
-      _SpatialCuePhase.context => (0.0, scene.evidenceStart),
-      _SpatialCuePhase.connection => (scene.evidenceStart, scene.evidenceEnd),
+      _SpatialCuePhase.context => (0.0, scene.teachingStart),
+      _SpatialCuePhase.connection => (scene.teachingStart, scene.teachingEnd),
       _SpatialCuePhase.aftermath => (
-          scene.evidenceEnd,
-          math.min(data.duration, scene.evidenceEnd + 1.6),
+          scene.teachingEnd,
+          math.min(data.duration, scene.teachingEnd + 1.6),
         ),
       _SpatialCuePhase.continuation => (
-          math.min(data.duration, scene.evidenceEnd + 1.6),
+          math.min(data.duration, scene.teachingEnd + 1.6),
           math.max(0.0, data.duration - 1 / data.fps),
         ),
       _SpatialCuePhase.review => (
@@ -952,6 +1001,7 @@ class _ScanPassSpatialLibraryScreenState
   }
 
   double _teachingCardHeight(
+    String title,
     String cue,
     double width, {
     required bool compact,
@@ -972,11 +1022,17 @@ class _ScanPassSpatialLibraryScreenState
     }
 
     final cueStyle = _teachingCueStyle();
+    final titleStyle = _teachingTitleStyle();
     // Keep the pitch geometry steady when the brief teaching cue changes phase.
-    return vertical * 2 + heightFor(cue, cueStyle, 6);
+    return vertical * 2 +
+        (title.isEmpty ? 0 : heightFor(title, titleStyle, 1) + 3) +
+        heightFor(cue, cueStyle, title.isEmpty ? 6 : 5);
   }
 
   Widget _buildTeachingCard(
+    String title,
+    String playbackRate,
+    String titleSemantics,
     String cue,
     bool compact,
   ) {
@@ -1000,10 +1056,36 @@ class _ScanPassSpatialLibraryScreenState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (title.isNotEmpty) ...[
+                Semantics(
+                  label: titleSemantics,
+                  excludeSemantics: true,
+                  child: Row(children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        key: const ValueKey<String>('spatial-objective-line'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: _teachingTitleStyle(),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      playbackRate,
+                      key: const ValueKey<String>('spatial-playback-rate'),
+                      maxLines: 1,
+                      softWrap: false,
+                      style: _teachingTitleStyle(),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: 3),
+              ],
               Text(
                 cue,
                 key: const ValueKey<String>('spatial-cue-line'),
-                maxLines: 6,
+                maxLines: title.isEmpty ? 6 : 5,
                 overflow: TextOverflow.ellipsis,
                 style: _teachingCueStyle(),
               ),
@@ -1021,6 +1103,13 @@ class _ScanPassSpatialLibraryScreenState
             fontWeight: FontWeight.w600,
           );
 
+  TextStyle? _teachingTitleStyle() =>
+      Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: const Color(0xFF9EDCFF),
+            height: 1,
+            fontWeight: FontWeight.w900,
+          );
+
   Widget _buildMoreMenu() => AppBarActionMenuButton<_SpatialMenuAction>(
         key: const ValueKey<String>('spatial-more'),
         tooltip: _l10n.flowMore,
@@ -1034,6 +1123,12 @@ class _ScanPassSpatialLibraryScreenState
             value: _SpatialMenuAction.guidedReplay,
             child: Text(_l10n.spatialFocusReplay),
           ),
+          if (_scene?.education != null)
+            PopupMenuItem(
+              key: const ValueKey<String>('spatial-source-speed'),
+              value: _SpatialMenuAction.sourceSpeed,
+              child: Text(_l10n.spatialEducationSourceSpeed),
+            ),
           PopupMenuItem(
             key: const ValueKey<String>('spatial-source-info'),
             value: _SpatialMenuAction.sourceInfo,
@@ -1166,7 +1261,8 @@ class _ScanPassSpatialLibraryScreenState
                         _l10n.spatialSceneHeader(
                           _sceneIndex + 1,
                           catalog.scenes.length,
-                          scene.focusPlayerName,
+                          scene.education?.focusActor.playerName ??
+                              scene.focusPlayerName,
                         ),
                         key: const ValueKey<String>('spatial-scene-line'),
                         maxLines: 1,
@@ -1210,6 +1306,7 @@ class _ScanPassSpatialLibraryScreenState
 class _SpatialLibrarySheetFilters {
   String query = '';
   SpatialLearningTheme? theme;
+  SpatialLearningObjective? objective;
   String? attackingTeam;
   String? player;
 }
@@ -1250,6 +1347,11 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
     final scenes = widget.catalog.scenes
         .where(
           (scene) =>
+              widget.filters.objective == null ||
+              scene.education?.objective == widget.filters.objective,
+        )
+        .where(
+          (scene) =>
               widget.filters.theme == null ||
               scene.theme == widget.filters.theme,
         )
@@ -1267,11 +1369,21 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
           (scene) => SpatialLibraryDiscovery.matchesScene(
             scene,
             _searchController.text,
-            themeTerms: <String>[_themeTitle(l10n, scene.theme)],
+            themeTerms: <String>[
+              _learningTitle(l10n, scene),
+              if (scene.education != null)
+                _educationQuestion(l10n, scene, scene.education!),
+            ],
           ),
         )
         .toList(growable: false);
     final themes = widget.catalog.themes.toList(growable: false)
+      ..sort((a, b) => a.index.compareTo(b.index));
+    final objectives = widget.catalog.scenes
+        .map((scene) => scene.education?.objective)
+        .whereType<SpatialLearningObjective>()
+        .toSet()
+        .toList(growable: false)
       ..sort((a, b) => a.index.compareTo(b.index));
     final teams = widget.catalog.attackingTeams.toList(growable: false)..sort();
     final players = widget.catalog
@@ -1335,7 +1447,9 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                             compact: true,
                             margin: EdgeInsets.zero,
                           ),
-                    hintText: l10n.spatialSearchHint,
+                    hintText: widget.catalog.version == 2
+                        ? l10n.spatialEducationSearchHint
+                        : l10n.spatialSearchHint,
                     border: const OutlineInputBorder(),
                   ),
                 ),
@@ -1439,27 +1553,48 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                     padding: const EdgeInsets.symmetric(horizontal: 3),
                     child: ChoiceChip(
                       key: const ValueKey<String>('spatial-theme-all'),
-                      selected: widget.filters.theme == null,
+                      selected: widget.filters.theme == null &&
+                          widget.filters.objective == null,
                       onSelected: (_) => setState(() {
                         widget.filters.theme = null;
+                        widget.filters.objective = null;
                       }),
                       label: Text(l10n.realMatchReplayAllCategories),
                     ),
                   ),
-                  for (final theme in themes)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: ChoiceChip(
-                        key: ValueKey<String>(
-                          'spatial-theme-${theme.name}',
+                  if (widget.catalog.version == 1)
+                    for (final theme in themes)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 3),
+                        child: ChoiceChip(
+                          key: ValueKey<String>(
+                            'spatial-theme-${theme.name}',
+                          ),
+                          selected: widget.filters.theme == theme,
+                          onSelected: (_) => setState(() {
+                            widget.filters.theme = theme;
+                            widget.filters.objective = null;
+                          }),
+                          label: Text(_themeTitle(l10n, theme)),
                         ),
-                        selected: widget.filters.theme == theme,
-                        onSelected: (_) => setState(() {
-                          widget.filters.theme = theme;
-                        }),
-                        label: Text(_themeTitle(l10n, theme)),
                       ),
-                    ),
+                  if (widget.catalog.version == 2)
+                    for (final objective in objectives)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 3),
+                        child: ChoiceChip(
+                          key: ValueKey<String>(
+                            'spatial-objective-${objective.name}',
+                          ),
+                          selected: widget.filters.objective == objective,
+                          onSelected: (_) => setState(() {
+                            widget.filters.objective = objective;
+                            widget.filters.theme = null;
+                          }),
+                          label:
+                              Text(_educationObjectiveTitle(l10n, objective)),
+                        ),
+                      ),
                 ]),
               ),
             ),
@@ -1558,6 +1693,7 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
   bool get _hasActiveFilters =>
       _searchController.text.isNotEmpty ||
       widget.filters.theme != null ||
+      widget.filters.objective != null ||
       widget.filters.attackingTeam != null ||
       widget.filters.player != null;
 
@@ -1586,6 +1722,7 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
     FocusScope.of(context).unfocus();
     setState(() {
       widget.filters.theme = null;
+      widget.filters.objective = null;
       widget.filters.attackingTeam = null;
       widget.filters.player = null;
     });
@@ -1612,21 +1749,31 @@ class _SpatialResultCardBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final focusPlayer = Text(
-      scene.focusPlayerName,
+      scene.education?.focusActor.playerName ?? scene.focusPlayerName,
       key: ValueKey<String>('spatial-focus-player-${scene.id}'),
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w800,
           ),
     );
     final match = Text(
-      l10n.spatialSceneIdentityRow(scene.home, scene.away, clock),
+      scene.education == null
+          ? l10n.spatialSceneIdentityRow(scene.home, scene.away, clock)
+          : l10n.spatialEducationSceneIdentityRow(
+              scene.home,
+              scene.away,
+              scene.season,
+              scene.date,
+              clock,
+            ),
       key: ValueKey<String>('spatial-match-${scene.id}'),
       style: Theme.of(context).textTheme.bodySmall,
     );
     final participants = Text(
-      scene.evidenceAnchors
-          .map((anchor) => _spatialShortPlayerName(anchor.playerName))
-          .join(' → '),
+      scene.education == null
+          ? scene.evidenceAnchors
+              .map((anchor) => _spatialShortPlayerName(anchor.playerName))
+              .join(' → ')
+          : _educationQuestion(l10n, scene, scene.education!),
       key: ValueKey<String>('spatial-participants-${scene.id}'),
       style: Theme.of(context).textTheme.bodySmall,
     );
@@ -1637,7 +1784,7 @@ class _SpatialResultCardBody extends StatelessWidget {
       children: [
         _SpatialResultBadge(
           child: Text(
-            _themeTitle(l10n, scene.theme),
+            _learningTitle(l10n, scene),
             key: ValueKey<String>('spatial-result-theme-${scene.id}'),
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   fontWeight: FontWeight.w700,
@@ -1743,19 +1890,34 @@ class _SpatialSourceInfoSheet extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
-            IconButton(
+            AppBarActionButton.icon(
               tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
               onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close),
+              icon: Icons.close,
+              compact: true,
+              margin: EdgeInsets.zero,
             ),
           ]),
           Text(
-            l10n.spatialCoverageSummary(
-              catalog.scenes.length,
-              catalog.matchIds.length,
-              catalog.focalPlayers.length,
-              catalog.themes.length,
-            ),
+            catalog.version == 2
+                ? l10n.spatialEducationCoverageSummary(
+                    catalog.scenes.length,
+                    catalog.matchIds.length,
+                    catalog.scenes
+                        .map((value) => value.education!.focusActor.playerName)
+                        .toSet()
+                        .length,
+                    catalog.scenes
+                        .map((value) => value.education!.objective)
+                        .toSet()
+                        .length,
+                  )
+                : l10n.spatialCoverageSummary(
+                    catalog.scenes.length,
+                    catalog.matchIds.length,
+                    catalog.focalPlayers.length,
+                    catalog.themes.length,
+                  ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -1771,7 +1933,11 @@ class _SpatialSourceInfoSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Text(l10n.spatialMitAttribution),
+          Text(
+            catalog.version == 2
+                ? l10n.spatialEducationAttribution
+                : l10n.spatialMitAttribution,
+          ),
           const SizedBox(height: 8),
           Text(l10n.spatialInterpretationLimitation),
           const SizedBox(height: 8),
@@ -1779,10 +1945,15 @@ class _SpatialSourceInfoSheet extends StatelessWidget {
           const SizedBox(height: 8),
           Text(l10n.spatialInferredDisclosure),
           const SizedBox(height: 8),
-          Text(l10n.spatialSelectionDisclosure),
+          Text(
+            catalog.version == 2
+                ? l10n.spatialEducationSelectionDisclosure
+                : l10n.spatialSelectionDisclosure,
+          ),
           const SizedBox(height: 12),
           SelectableText(
-              l10n.realMatchReplaySourceCommit(catalog.sourceCommit)),
+            l10n.realMatchReplaySourceCommit(scene.sourceCommit),
+          ),
           const SizedBox(height: 8),
           Text(
             l10n.spatialCurrentSceneSource(
@@ -1796,11 +1967,14 @@ class _SpatialSourceInfoSheet extends StatelessWidget {
           const SizedBox(height: 12),
           Align(
             alignment: AlignmentDirectional.centerEnd,
-            child: TextButton.icon(
+            child: AppBarActionButton.label(
               key: const ValueKey<String>('spatial-open-source'),
               onPressed: onOpenSource,
               icon: const Icon(Icons.open_in_new),
-              label: Text(l10n.realMatchReplaySource),
+              label: l10n.realMatchReplaySource,
+              tooltip: l10n.realMatchReplaySource,
+              compact: true,
+              margin: EdgeInsets.zero,
             ),
           ),
         ]),
@@ -2204,9 +2378,11 @@ class SpatialLibraryPitchPainter extends CustomPainter {
   Color get teachingFocusCueColor => _teachingFocus;
 
   bool get showsRecordedTrace =>
-      time >= scene.evidenceStart && time <= scene.evidenceEnd + 1.6;
-  bool get showsEndpointRegion => time >= scene.evidenceEnd;
-  List<int> get currentHighlightPlayerIds => roles.playerIds;
+      time >= scene.teachingStart && time <= scene.teachingEnd + 1.6;
+  bool get showsEndpointRegion => time >= scene.teachingEnd;
+  List<int> get currentHighlightPlayerIds => scene.education == null
+      ? roles.playerIds
+      : <int>[scene.education!.focusActor.playerId];
 
   int? get currentConfirmedOwnerId => data.confirmedPossessionOwnerIdAt(time);
 
@@ -2216,11 +2392,35 @@ class SpatialLibraryPitchPainter extends CustomPainter {
 
   Set<int> get blueTeachingFocusPlayerIds {
     final sample = data.renderSample(time);
+    final lesson = scene.education;
+    if (lesson != null) {
+      final id = lesson.focusActor.playerId;
+      return <int>{
+        if (sample.players[data.playerIndex(id)] != null) id,
+      };
+    }
     return <int>{
       if (cuePlayerId case final cuePlayer?)
         if (sample.players[data.playerIndex(cuePlayer)] != null) cuePlayer,
       for (final role in roles.values)
         if (role.kind == SpatialObservedRoleKind.ballSidePlayer) role.playerId,
+    };
+  }
+
+  Set<int> get legacyRoleRingPlayerIds => scene.education == null
+      ? <int>{...roles.values.map((role) => role.playerId)}
+      : const <int>{};
+
+  Set<int> get neutralEducationEmphasisPlayerIds {
+    final lesson = scene.education;
+    if (lesson == null) return const <int>{};
+    final visible = observedPlayerIds.toSet();
+    return <int>{
+      for (final id in requiredPlayerIds)
+        if (id != lesson.focusActor.playerId &&
+            id != currentConfirmedOwnerId &&
+            visible.contains(id))
+          id,
     };
   }
 
@@ -2347,6 +2547,11 @@ class SpatialLibraryPitchPainter extends CustomPainter {
 
   void _drawEvidence(Canvas canvas, Rect pitch) {
     if (!showsRecordedTrace) return;
+    final lesson = scene.education;
+    if (lesson != null) {
+      _drawEducationEvidence(canvas, pitch, lesson);
+      return;
+    }
     final tone = scene.theme == SpatialLearningTheme.turnover ||
             scene.theme == SpatialLearningTheme.recovery
         ? _turnover
@@ -2402,6 +2607,70 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     }
   }
 
+  void _drawEducationEvidence(
+    Canvas canvas,
+    Rect pitch,
+    SpatialEducationLesson lesson,
+  ) {
+    final playerIndex = data.playerIndex(lesson.focusActor.playerId);
+    final firstFrame = (lesson.movementStart * data.fps).ceil();
+    final lastFrame = (math.min(time, lesson.outcome) * data.fps).floor();
+    var segment = <RealMatchReplayPoint>[];
+    void paintSegment() {
+      if (segment.length < 2) {
+        segment = <RealMatchReplayPoint>[];
+        return;
+      }
+      final path = Path();
+      for (var index = 0; index < segment.length; index++) {
+        final projected = _project(pitch, segment[index]);
+        index == 0
+            ? path.moveTo(projected.dx, projected.dy)
+            : path.lineTo(projected.dx, projected.dy);
+      }
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = _teachingFocus.withValues(alpha: .82)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round,
+      );
+      segment = <RealMatchReplayPoint>[];
+    }
+
+    for (var frame = firstFrame; frame <= lastFrame; frame++) {
+      final value = data.sample(frame / data.fps).players[playerIndex];
+      if (value == null) {
+        paintSegment();
+      } else {
+        segment.add(value);
+      }
+    }
+    paintSegment();
+    if (showsEndpointRegion) {
+      final reached = data.sample(lesson.outcome).players[playerIndex];
+      if (reached != null) {
+        canvas.drawCircle(
+          _project(pitch, reached),
+          10,
+          Paint()
+            ..color = _teachingFocus.withValues(alpha: .2)
+            ..style = PaintingStyle.fill,
+        );
+        canvas.drawCircle(
+          _project(pitch, reached),
+          10,
+          Paint()
+            ..color = _teachingFocus.withValues(alpha: .65)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.2,
+        );
+      }
+    }
+  }
+
   List<RealMatchReplayPoint> get recordedBallTrace {
     if (!showsRecordedTrace) return const [];
     final traceEnd = math.min(time, scene.evidenceEnd);
@@ -2434,6 +2703,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
   }
 
   void _drawTails(Canvas canvas, Rect pitch) {
+    if (scene.education != null) return;
     for (final id in currentHighlightPlayerIds) {
       final role = roles.values.firstWhere((value) => value.playerId == id);
       for (final points in observedTailSegments(id)) {
@@ -2470,7 +2740,11 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       ..sort((a, b) {
         int priority(int index) {
           final playerId = data.players[index].id;
-          if (playerId == ownerId) return 4;
+          if (playerId == ownerId) return 5;
+          if (teachingFocusIds.contains(playerId)) return 4;
+          if (scene.education != null) {
+            return requiredPlayerIds.contains(playerId) ? 3 : 0;
+          }
           final role = roleById[playerId];
           return switch (role?.kind) {
             null => 0,
@@ -2491,7 +2765,13 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       final cueActor = player.id == cuePlayerId;
       final confirmedOwner = player.id == ownerId;
       final teachingFocus = teachingFocusIds.contains(player.id);
-      final involved = role != null || cueActor || confirmedOwner;
+      final neutralEducation =
+          neutralEducationEmphasisPlayerIds.contains(player.id);
+      final involved = (scene.education == null && role != null) ||
+          cueActor ||
+          confirmedOwner ||
+          teachingFocus ||
+          neutralEducation;
       final marker = involved ? 16.2 : 13.2;
       final badgeCenter = center - Offset(0, marker * .38);
       final kit = kitForPlayer(player);
@@ -2515,7 +2795,9 @@ class SpatialLibraryPitchPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = .9,
       );
-      if (role != null && !teachingFocus) {
+      if (role != null &&
+          legacyRoleRingPlayerIds.contains(player.id) &&
+          !teachingFocus) {
         canvas.drawCircle(
           badgeCenter,
           marker + 2.6,
@@ -2523,6 +2805,16 @@ class SpatialLibraryPitchPainter extends CustomPainter {
             ..color = _roleColor(role.kind).withValues(alpha: .88)
             ..style = PaintingStyle.stroke
             ..strokeWidth = 1.8,
+        );
+      }
+      if (neutralEducation) {
+        canvas.drawCircle(
+          badgeCenter,
+          marker + 2.2,
+          Paint()
+            ..color = Colors.white.withValues(alpha: .42)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1,
         );
       }
       if (teachingFocus) {
@@ -2677,15 +2969,19 @@ class SpatialLibraryPitchPainter extends CustomPainter {
 
     addPriority(currentConfirmedOwnerId);
     addPriority(cuePlayerId);
-    addPriority(scene.focusPlayerId);
-    for (final role in roles.values) {
-      if (role.kind == SpatialObservedRoleKind.connectedTeammate) {
-        addPriority(role.playerId);
+    addPriority(
+      scene.education?.focusActor.playerId ?? scene.focusPlayerId,
+    );
+    if (scene.education == null) {
+      for (final role in roles.values) {
+        if (role.kind == SpatialObservedRoleKind.connectedTeammate) {
+          addPriority(role.playerId);
+        }
       }
-    }
-    for (final role in roles.values) {
-      if (role.kind == SpatialObservedRoleKind.ballSidePlayer) {
-        addPriority(role.playerId);
+      for (final role in roles.values) {
+        if (role.kind == SpatialObservedRoleKind.ballSidePlayer) {
+          addPriority(role.playerId);
+        }
       }
     }
     for (final playerId in nameLabelPlayerIds) {
@@ -2875,12 +3171,15 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       final tone = playerId == currentConfirmedOwnerId
           ? _ownership
           : teachingFocusIds.contains(playerId) ||
-                  playerId == scene.focusPlayerId ||
-                  playerId == cuePlayerId
+                  playerId ==
+                      (scene.education?.focusActor.playerId ??
+                          scene.focusPlayerId)
               ? _teachingFocus
-              : role?.kind == SpatialObservedRoleKind.nearbyDefender
-                  ? _turnover
-                  : _connection;
+              : scene.education != null
+                  ? Colors.white70
+                  : role?.kind == SpatialObservedRoleKind.nearbyDefender
+                      ? _turnover
+                      : _connection;
       layouts.add((
         geometry: SpatialPlayerNameLabelGeometry(
           playerId: playerId,
@@ -3144,6 +3443,174 @@ String _themeTitle(AppLocalizations l10n, SpatialLearningTheme theme) =>
       SpatialLearningTheme.recovery => l10n.spatialThemeRecovery,
     };
 
+String _educationObjectiveTitle(
+  AppLocalizations l10n,
+  SpatialLearningObjective objective,
+) =>
+    switch (objective) {
+      SpatialLearningObjective.receivingLane =>
+        l10n.spatialEducationObjectiveReceivingLane,
+      SpatialLearningObjective.pressureOutlet =>
+        l10n.spatialEducationObjectivePressureOutlet,
+      SpatialLearningObjective.thirdPlayer =>
+        l10n.spatialEducationObjectiveThirdPlayer,
+      SpatialLearningObjective.switchingSpace =>
+        l10n.spatialEducationObjectiveSwitchingSpace,
+    };
+
+String _learningTitle(AppLocalizations l10n, SpatialLibraryScene scene) =>
+    scene.education == null
+        ? _themeTitle(l10n, scene.theme)
+        : _educationObjectiveTitle(l10n, scene.education!.objective);
+
+String _educationQuestion(
+  AppLocalizations l10n,
+  SpatialLibraryScene scene,
+  SpatialEducationLesson lesson,
+) {
+  final focus = lesson.focusActor.playerName;
+  return switch (lesson.objective) {
+    SpatialLearningObjective.receivingLane =>
+      l10n.spatialEducationReceivingLaneQuestion(
+        focus,
+        lesson.supportActors.first.playerName,
+      ),
+    SpatialLearningObjective.pressureOutlet =>
+      l10n.spatialEducationPressureOutletQuestion(
+        focus,
+        lesson.opponentActors.last.playerName,
+      ),
+    SpatialLearningObjective.thirdPlayer =>
+      l10n.spatialEducationThirdPlayerQuestion(
+        focus,
+        lesson.supportActors[1].playerName,
+      ),
+    SpatialLearningObjective.switchingSpace =>
+      l10n.spatialEducationSwitchingSpaceQuestion(
+        focus,
+        lesson.supportActors.first.playerName,
+      ),
+  };
+}
+
+String _educationReplayQuestion(
+  AppLocalizations l10n,
+  RealMatchReplayData data,
+  SpatialEducationLesson lesson,
+) {
+  final focus = _cuePlayerLabel(data, lesson.focusActor.playerId);
+  return switch (lesson.objective) {
+    SpatialLearningObjective.receivingLane =>
+      l10n.spatialEducationReceivingLaneQuestion(
+        focus,
+        _cuePlayerLabel(data, lesson.supportActors.first.playerId),
+      ),
+    SpatialLearningObjective.pressureOutlet =>
+      l10n.spatialEducationPressureOutletQuestion(
+        focus,
+        _cuePlayerLabel(data, lesson.opponentActors.last.playerId),
+      ),
+    SpatialLearningObjective.thirdPlayer =>
+      l10n.spatialEducationThirdPlayerQuestion(
+        focus,
+        _cuePlayerLabel(data, lesson.supportActors[1].playerId),
+      ),
+    SpatialLearningObjective.switchingSpace =>
+      l10n.spatialEducationSwitchingSpaceQuestion(
+        focus,
+        _cuePlayerLabel(data, lesson.supportActors.first.playerId),
+      ),
+  };
+}
+
+String _educationAction(
+  AppLocalizations l10n,
+  RealMatchReplayData data,
+  SpatialEducationLesson lesson,
+) {
+  final focus = _cuePlayerLabel(data, lesson.focusActor.playerId);
+  final passer = _cuePlayerLabel(data, lesson.supportActors.first.playerId);
+  final movement = lesson.movementMeters.toStringAsFixed(1);
+  return switch (lesson.objective) {
+    SpatialLearningObjective.receivingLane =>
+      l10n.spatialEducationReceivingLaneAction(focus, movement, passer),
+    SpatialLearningObjective.pressureOutlet =>
+      l10n.spatialEducationPressureOutletAction(
+        _cuePlayerLabel(data, lesson.opponentActors.first.playerId),
+        (lesson.pressureMeters ?? 0).toStringAsFixed(1),
+        passer,
+        focus,
+      ),
+    SpatialLearningObjective.thirdPlayer =>
+      l10n.spatialEducationThirdPlayerAction(
+        focus,
+        movement,
+        _cuePlayerLabel(data, lesson.supportActors[1].playerId),
+      ),
+    SpatialLearningObjective.switchingSpace =>
+      l10n.spatialEducationSwitchingSpaceAction(
+        passer,
+        focus,
+        (lesson.lateralMeters ?? 0).toStringAsFixed(1),
+      ),
+  };
+}
+
+String _educationResult(
+  AppLocalizations l10n,
+  RealMatchReplayData data,
+  SpatialEducationLesson lesson,
+  double time,
+) {
+  final focus = _cuePlayerLabel(data, lesson.focusActor.playerId);
+  final before = lesson.beforeValue.toStringAsFixed(1);
+  final after = lesson.afterValue.toStringAsFixed(1);
+  return switch (lesson.objective) {
+    SpatialLearningObjective.receivingLane =>
+      l10n.spatialEducationReceivingLaneResult(
+        _cuePlayerLabel(data, lesson.supportActors.first.playerId),
+        focus,
+        _cuePlayerLabel(data, lesson.opponentActors.single.playerId),
+        before,
+        after,
+      ),
+    SpatialLearningObjective.pressureOutlet =>
+      lesson.nextConnection != null && time >= lesson.nextConnection!
+          ? l10n.spatialEducationPressureOutletConnectionResult(
+              focus,
+              _cuePlayerLabel(data, lesson.opponentActors.last.playerId),
+              before,
+              after,
+              _cuePlayerLabel(data, lesson.nextActor!.playerId),
+            )
+          : l10n.spatialEducationPressureOutletResult(
+              focus,
+              _cuePlayerLabel(data, lesson.opponentActors.last.playerId),
+              before,
+              after,
+            ),
+    SpatialLearningObjective.thirdPlayer =>
+      lesson.measurement == SpatialEducationMeasurement.forwardAdvanceMeters
+          ? l10n.spatialEducationThirdPlayerAdvanceResult(
+              focus,
+              lesson.improvement.toStringAsFixed(1),
+            )
+          : l10n.spatialEducationThirdPlayerClearanceResult(
+              focus,
+              _cuePlayerLabel(data, lesson.opponentActors.single.playerId),
+              before,
+              after,
+            ),
+    SpatialLearningObjective.switchingSpace =>
+      l10n.spatialEducationSwitchingSpaceResult(
+        focus,
+        _cuePlayerLabel(data, lesson.opponentActors.single.playerId),
+        before,
+        after,
+      ),
+  };
+}
+
 String _objective(AppLocalizations l10n, SpatialLearningTheme theme) =>
     switch (theme) {
       SpatialLearningTheme.lateralSwitch => l10n.spatialObjectiveLateralSwitch,
@@ -3217,26 +3684,38 @@ Set<int> _requiredCueActorIds({
   required int? currentOwner,
 }) {
   final ids = <int>{
-    ...roles.playerIds,
+    if (scene.education == null) ...roles.playerIds,
     if (cue.targetPlayerId != null) cue.targetPlayerId!,
     if (currentOwner != null) currentOwner,
   };
-  if (time >= scene.coreStart - .0001 && time <= scene.coreEnd + .0001) {
-    ids.addAll(scene.highlightPlayerIds);
+  if (data.sourcePossessionOwners.isNotEmpty) {
+    final frame = (time * data.fps)
+        .floor()
+        .clamp(0, data.sourcePossessionOwners.length - 1);
+    final sourceOwner = data.sourcePossessionOwners[frame];
+    if (sourceOwner != null) ids.add(sourceOwner);
   }
-  // Before the recorded connection completes, every player explicitly named
-  // by the current cue must remain readable even when that player is not the
-  // owner or the cue target at this exact source frame.
-  if (time < scene.evidenceEnd) {
-    for (final player in data.players) {
-      if (cue.text.contains(_cuePlayerLabel(data, player.id))) {
-        ids.add(player.id);
-      }
+  if (scene.education == null &&
+      time >= scene.teachingCoreStart - .0001 &&
+      time <= scene.teachingCoreEnd + .0001) {
+    ids.addAll(scene.teachingActorIds);
+  }
+  if (scene.education case final lesson?) {
+    if (time >= lesson.movementStart - .0001 &&
+        time <= (lesson.nextConnection ?? lesson.outcome) + 1.6) {
+      ids.addAll(lesson.actorIds);
+    }
+  }
+  // Every source-visible player named by the current cue remains readable.
+  for (final player in data.players) {
+    if (cue.text.contains(_cuePlayerLabel(data, player.id))) {
+      ids.add(player.id);
     }
   }
   // The pressure-support aftermath explicitly compares the receiver with the
   // observed support. Keep both clear for the complete comparison window.
-  if (scene.theme == SpatialLearningTheme.pressureSupport &&
+  if (scene.education == null &&
+      scene.theme == SpatialLearningTheme.pressureSupport &&
       time >= scene.evidenceEnd &&
       time <= scene.evidenceEnd + 1.6) {
     ids
@@ -3252,6 +3731,10 @@ _SpatialPhaseCue _phaseCue(
   RealMatchReplayData data,
   double time,
 ) {
+  final lesson = scene.education;
+  if (lesson != null) {
+    return _educationPhaseCue(l10n, scene, data, lesson, time);
+  }
   final finished = time >= data.duration - 1 / data.fps;
   final phase = finished
       ? _SpatialCuePhase.review
@@ -3409,6 +3892,39 @@ _SpatialPhaseCue _phaseCue(
       _SpatialCuePhase.continuation => null,
       _SpatialCuePhase.review => null,
     },
+  );
+}
+
+_SpatialPhaseCue _educationPhaseCue(
+  AppLocalizations l10n,
+  SpatialLibraryScene scene,
+  RealMatchReplayData data,
+  SpatialEducationLesson lesson,
+  double time,
+) {
+  final finished = time >= data.duration - 1 / data.fps;
+  final phase = finished
+      ? _SpatialCuePhase.review
+      : time < lesson.slowStart
+          ? _SpatialCuePhase.context
+          : time < lesson.outcome
+              ? _SpatialCuePhase.connection
+              : time <= lesson.outcome + 1.6
+                  ? _SpatialCuePhase.aftermath
+                  : _SpatialCuePhase.continuation;
+  final focusIndex = data.playerIndex(lesson.focusActor.playerId);
+  final focusVisible = data.sample(time).players[focusIndex] != null;
+  return _SpatialPhaseCue(
+    phase: phase,
+    text: switch (phase) {
+      _SpatialCuePhase.context => _educationReplayQuestion(l10n, data, lesson),
+      _SpatialCuePhase.connection => _educationAction(l10n, data, lesson),
+      _SpatialCuePhase.aftermath ||
+      _SpatialCuePhase.continuation ||
+      _SpatialCuePhase.review =>
+        _educationResult(l10n, data, lesson, time),
+    },
+    targetPlayerId: focusVisible ? lesson.focusActor.playerId : null,
   );
 }
 

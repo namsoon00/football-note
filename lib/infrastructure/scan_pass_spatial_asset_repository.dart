@@ -11,7 +11,7 @@ typedef ScanPassSpatialAssetLoader = Future<String> Function(String asset);
 
 class ScanPassSpatialAssetRepository
     implements ScanPassSpatialLibraryRepository {
-  static const catalogAsset = 'assets/scan_pass_spatial/catalog.json';
+  static const catalogAsset = 'assets/scan_pass_spatial/education-catalog.json';
 
   final ScanPassSpatialAssetLoader _loadAsset;
 

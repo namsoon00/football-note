@@ -23931,6 +23931,141 @@ class AppLocalizationsEn extends AppLocalizations {
       'Loading the famous-match spatial library';
 
   @override
+  String get spatialEducationObjectiveReceivingLane => 'Find a receiving lane';
+
+  @override
+  String get spatialEducationObjectivePressureOutlet => 'Escape pressure';
+
+  @override
+  String get spatialEducationObjectiveThirdPlayer => 'Use the third player';
+
+  @override
+  String get spatialEducationObjectiveSwitchingSpace =>
+      'Find opposite-side space';
+
+  @override
+  String spatialEducationObjectiveRateNormal(String objective) {
+    return '$objective · 1×';
+  }
+
+  @override
+  String spatialEducationObjectiveRateHalf(String objective) {
+    return '$objective · 0.5×';
+  }
+
+  @override
+  String get spatialEducationPlaybackRateNormal => '· 1×';
+
+  @override
+  String get spatialEducationPlaybackRateHalf => '· 0.5×';
+
+  @override
+  String get spatialEducationSourceSpeed => 'Play at source speed (1×)';
+
+  @override
+  String get spatialEducationSearchHint =>
+      'Search goals, seasons, players or teams';
+
+  @override
+  String get spatialEducationAttribution =>
+      'Provider: SkillCorner Open Data (MIT). Player positions, source ownership and ball availability come from the selected pinned match source; lesson objectives and measurements are derived by this app.';
+
+  @override
+  String get spatialEducationSelectionDisclosure =>
+      'Every reviewed passage keeps at least four seconds of setup and aftermath. Named teaching actors and relevant opponents must remain directly observed; 2024/25 extrapolated player coordinates are excluded. Measurements are recomputed from centimetre-quantized XY frames. No body, foot, scan, intent, goal or best-choice claim is made.';
+
+  @override
+  String spatialEducationCoverageSummary(
+      int scenes, int matches, int players, int objectives) {
+    return '$scenes evidence-reviewed passages across $matches matches, $players teaching actors, and $objectives learning objectives.';
+  }
+
+  @override
+  String spatialEducationSceneIdentityRow(
+      String home, String away, String season, String date, String clock) {
+    return '$home v $away · $season · $date · $clock';
+  }
+
+  @override
+  String spatialEducationReceivingLaneQuestion(String focus, String passer) {
+    return 'Where does $focus move before $passer releases?';
+  }
+
+  @override
+  String spatialEducationPressureOutletQuestion(String focus, String defender) {
+    return 'Can $focus receive farther from $defender and connect again?';
+  }
+
+  @override
+  String spatialEducationThirdPlayerQuestion(String focus, String middle) {
+    return 'When does $focus start moving before $middle receives?';
+  }
+
+  @override
+  String spatialEducationSwitchingSpaceQuestion(String focus, String passer) {
+    return 'What changes around $focus when $passer moves play across?';
+  }
+
+  @override
+  String spatialEducationReceivingLaneAction(
+      String focus, String meters, String passer) {
+    return '$focus moves $meters m before $passer\'s connection.';
+  }
+
+  @override
+  String spatialEducationPressureOutletAction(
+      String defender, String meters, String passer, String focus) {
+    return '$defender is $meters m from $passer; watch $focus.';
+  }
+
+  @override
+  String spatialEducationThirdPlayerAction(
+      String focus, String meters, String middle) {
+    return '$focus moves $meters m before $middle receives.';
+  }
+
+  @override
+  String spatialEducationSwitchingSpaceAction(
+      String passer, String focus, String meters) {
+    return '$passer → $focus: $meters m across.';
+  }
+
+  @override
+  String spatialEducationReceivingLaneResult(String passer, String focus,
+      String defender, String before, String after) {
+    return 'At $passer, the angle between $focus and $defender: $before° → $after°.';
+  }
+
+  @override
+  String spatialEducationPressureOutletResult(
+      String focus, String defender, String before, String after) {
+    return '$focus\'s clearance from $defender: $before m → $after m.';
+  }
+
+  @override
+  String spatialEducationPressureOutletConnectionResult(
+      String focus, String defender, String before, String after, String next) {
+    return '$focus\'s clearance from $defender: $before m → $after m; then $next receives.';
+  }
+
+  @override
+  String spatialEducationThirdPlayerAdvanceResult(String focus, String meters) {
+    return '$focus receives after gaining $meters m forward.';
+  }
+
+  @override
+  String spatialEducationThirdPlayerClearanceResult(
+      String focus, String defender, String before, String after) {
+    return '$focus\'s clearance from $defender: $before m → $after m.';
+  }
+
+  @override
+  String spatialEducationSwitchingSpaceResult(
+      String focus, String defender, String before, String after) {
+    return '$focus\'s clearance from $defender: $before m → $after m.';
+  }
+
+  @override
   String get spatialChooseScene => 'Choose a scene';
 
   @override

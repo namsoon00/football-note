@@ -9,24 +9,26 @@ see [`SCAN_PASS_VIDEO_LEARNING.md`](SCAN_PASS_VIDEO_LEARNING.md).
 
 ## Shipped catalogue
 
-The reviewed catalogue contains 72 passages from all nine pinned 2019/20
-matches, with 62 focal players. Durations are 20.7–30.0 seconds. The three
-source-backed themes are:
+`education-catalog.json` is the only default runtime entry. It contains 70
+evidence-reviewed passages from 10 matches: 25 accepted scenes from eight of
+the nine pinned 2019/20 matches and 45 newly exported scenes from both requested
+2024/25 A-League matches. The importer audited all 72 scenes in the original
+catalogue and rejected 47 that did not demonstrate a supported before/after
+learning outcome. The original `catalog.json`, every original scene and the
+original source/quality/preservation files remain byte-identical as archive
+and test fixtures; they are not a second menu or a fallback.
 
-- 24 spatial switches (`lateralSwitch`);
-- 24 support-under-pressure passages (`pressureSupport`); and
-- 24 observed combinations (`combination`).
-
-These counts result from the stronger evidence gates; they are not per-match or
-per-player quotas. The previous 108-scene catalogue was reassessed and is not
-exposed as a supposedly safe fallback.
+There is no scene-count, fame, team or player quota. The current evidence
+produces 9 receiving-lane, 11 pressure-outlet, 34 distinct-third-player and 16
+opposite-side-space lessons. A later source revision can change those counts
+only by passing the same deterministic measurements.
 
 `ScanPassSpatialLibraryScreen` opens directly on one top-down metric pitch.
 Orientation stays fixed for the passage. Precomputed overlapping four-second
 source windows ease the camera between local action envelopes: every frame
-keeps the recorded ball, current source-labelled owner and current relevant
-actors visible, while the guarded teaching sequence also keeps its core,
-support and opponent actors together. The camera never fills gaps or treats an
+keeps the recorded ball, current source-labelled owner, blue teaching focus and
+actors named by the current question/observation visible. The camera never
+fills gaps or treats an
 unobserved actor as empty space. Numbered flat kit symbols have a separate
 ground anchor, and the ball remains a separate visible object. The symbols are
 shirts and shorts, not bodies, and do not claim real orientation, feet,
@@ -63,31 +65,44 @@ The other club families are representative palettes, not source-backed exact
 garment claims. Raw pinned match metadata provides only shirt and number
 colours, includes older catalogue entries, and does not describe patterns.
 
-The compact title contains match identity. A single short teaching cue is
+The compact title contains match identity. A single short teaching card is
 placed in a currently clear part of the pitch without a connector line.
+It has one learning-objective title and one contextual question or observation.
+Before the action it asks what to watch; during the action it names the
+observed actor and movement; after it reports the measured consequence and,
+only after its source time is reached, the next source-labelled connection.
 Placement rejects overlap with observed actors, the ball and the reached ball
 trace. Gold identifies only a directly observed, nearby source ownership
-record; blue identifies the current teaching focus independently. Player names
+record; blue identifies the reviewed learning actor independently, including
+when that actor is off the ball. Player names
 stay beside their own badges and may be suppressed when no safe nearby slot is
 available. Recorded traces never preview a future path and clear after the
-evidenced action. Normal play and seeking remain at source time and 1x. Guided
-replay starts with the complete setup at 1x, uses 0.5x only across the central
-evidence window, then returns to 1x for the aftermath. Previous, play/pause,
-scene list and next remain in the bottom controls.
+evidenced action. Seeking always uses source time and pauses safely. The primary
+play action resumes at the current source time in the selected mode. Guided
+mode runs the remaining setup at 1x, the central evidence window at 0.5x and
+the remaining aftermath at 1x; wall-clock duration is the remaining source-time
+span divided by that rate, so one source second takes two wall-clock seconds at
+0.5x. The source-speed More action restarts at zero and keeps 1x selected across
+later pause, seek and resume actions. The guided-replay action restarts at zero
+and restores guided mode, while each newly loaded scene defaults to guided
+mode. Replaying after the true end restarts at zero in the selected mode.
+Previous, play/pause, scene list and next remain in the bottom controls.
 
-The scene list reports the actual clip duration, match, focal player and theme.
-One search field matches Korean and English player/team aliases as well as
+The scene list reports the learning goal, actual clip duration, match, teaching
+actor, date and 2019/20 or 2024/25 season. One search field matches Korean and
+English player/team aliases, the four learning terms and season/year as well as
 accent, case and spacing variants. Its attacking/play-team and player selectors
-combine with search and theme filters; the player selector contains only focal
-players and directly evidenced connection participants, never an entire match
-roster. The filtered count, clear-search action and one-step reset remain in the
-same scrollable bottom sheet.
+combine with search and the four objective chips; the player selector contains
+only named lesson participants, never an entire match roster. The filtered
+count, clear-search action and one-step reset remain in the same scrollable
+bottom sheet.
 Source information and guided replay are discreet More-menu actions. There are
 no tabs, scores, joystick controls, mandatory quiz or separate start screen.
 
 ## Source and license
 
-The only positional source is MIT-licensed SkillCorner Open Data at commit
+The only positional provider is MIT-licensed SkillCorner Open Data. Historical
+scenes stay pinned to commit
 `1ed50b775f93075c2a6d00d0d795f13b7b89709e`:
 
 - Manchester City v Liverpool (4039)
@@ -100,10 +115,37 @@ The only positional source is MIT-licensed SkillCorner Open Data at commit
 - Paris v Marseille (2269)
 - Inter v Juventus (2068)
 
+The Bayern–Dortmund match remains in the byte-identical 72-scene archive and
+the complete audit, but no scene from it passes the stricter v2 education
+rules. The v2 mixed-source `matchCount` therefore derives to ten represented
+matches rather than counting that audit-only source.
+
+Recent scenes are pinned independently to commit
+`4340d274572876239c154c90bc507a9b3250a656`:
+
+- Brisbane Roar FC v Perth Glory Football Club, 2024-12-21 (1925299)
+- Sydney Football Club v Adelaide United Football Club, 2025-02-01 (1996435)
+
+For those matches the importer reads the full original
+`tracking_extrapolated.jsonl`, but only a player record with
+`is_detected == true` is an observation. Extrapolated and carry-forward player
+coordinates never enter visibility, teaching evidence or rendering. Ball XY is
+available only when the source ball flag is detected; every exported recent
+clip has a continuous detected-ball interval. Source period, timestamp, active
+roster and original shirt numbers are preserved. Export is XY-only.
+
 `assets/scan_pass_spatial/source-manifest.json` pins every raw URL, size,
 SHA-256 and Git blob. The raw files are not bundled.
 `assets/scan_pass_spatial/LICENSE` is the exact upstream MIT license. The
 library includes no video and does not use StatsBomb data.
+
+`education-source-manifest.json` pins URL, bytes and SHA-256 for both complete
+tracking files and their match/event/phase companions, including the Git LFS
+media URLs. Its archive-preservation section also records the immutable
+metadata hashes and derives all 115 pre-existing asset hashes from the tracked
+v1 catalogue and preservation manifest. `education-proof.json` records all archive and recent accept/reject
+decisions. Teacher references shape the four lesson definitions; they are not
+provenance for match coordinates and are not described as actual coach review.
 
 ## Selection and evidence gates
 
@@ -134,16 +176,33 @@ missing coordinate is replaced with `(0,0)`, carry-forward or interpolation.
 The spatial assets contain no display reconstruction. Hidden actors do not
 become evidence, and an unobserved area is never described as empty space.
 
-The three theme claims are deliberately narrow:
+The four education claims are deliberately narrow and use the same named,
+continuously observed opponent for each before/after comparison:
 
-- a spatial switch has at least 22 m of observed lateral ball change;
-- support under pressure has a directly observed opponent within 6 m at the
-  ownership anchor, at least 4 m of recorded ball travel, and less than 10 m
-  of forward connection; and
-- an observed combination has three directly observed same-team ownership
-  segments within eight seconds, with at least 5 m of recorded ball travel on
-  each leg. The first and third may be the same player in a return link. The
-  shipped 24 contain nine A→B→A returns and 15 A→B→C links.
+- **Receiving lane:** the receiver moves at least 0.75 m during the second
+  before release. The same defender must project onto the finite
+  passer-to-receiver segment both before and at release. Visible angular
+  separation must start at no more than 25 degrees and the defender must start
+  within 3 m of the pass line. Angular separation must increase by at least 3
+  degrees and perpendicular line clearance by at least 0.5 m. Receiver movement
+  alone must contribute at least 1 degree and 0.25 m when the final passer and
+  defender are held fixed. Stationary, far-lateral, beyond-receiver,
+  passer/defender-only or post-release-only movement fails.
+- **Pressure outlet:** an observed defender is within 4 m of the passer; the
+  receiver gains at least 1 m of clearance; and a later directly observed,
+  source-labelled same-team connection exists without intervening opposing or
+  reversed ownership.
+- **Third player:** A, B and C are distinct. C moves at least 0.6 m before B
+  receives, moves at least 1 m overall in a continuing direction, and gains
+  at least 1.5 m forward or 1 m of defender clearance. A→B→C ownership must be
+  uninterrupted; A→B→A and an opponent touch followed by recovery are rejected.
+- **Opposite-side space:** the lateral connection spans at least 22 m and the
+  receiving player gains at least 1 m of visible defender clearance. Distance
+  by itself is insufficient.
+
+Coordinates are stored to centimetres (maximum point error 0.005 m). Runtime
+measurement comparisons use a 0.0011 stored-unit tolerance; threshold checks
+allow at most the 0.01 m two-point quantization bound, not a broad pass margin.
 
 They do not assert intent, a globally best play, a goal, a precise foot/body
 action, expert validation or learning transfer.
@@ -158,23 +217,42 @@ python3 tool/scan_pass_replay/prepare_spatial_library.py \
   .tmp/spatial-lessons/source \
   --audit .tmp/spatial-lessons/source-audit.json
 python3 tool/scan_pass_replay/prepare_spatial_library.py --verify-assets
+python3 tool/scan_pass_replay/prepare_spatial_education.py \
+  --raw-dir .tmp/spatial-education/recent-source
+python3 tool/scan_pass_replay/prepare_spatial_education.py --verify-assets
 ```
 
+The recent raw directory contains the basenames listed in the committed
+`education-source-manifest.json`. Generation verifies each exact pinned path,
+URL, byte count and SHA-256 from that manifest; `--source-manifest` can select
+an equivalent audited manifest explicitly. Asset-only verification needs no
+raw download and no `.tmp` file, and is part of `scripts/verify.sh` for CI.
+
 Generation scans the raw files deterministically, records all rejection
-reasons, and emits only the selected source-safe catalogue. The shipped proof
-currently records 198 source-safe candidates before non-overlap and catalogue
+reasons, and emits only the selected source-safe catalogue. The immutable v1
+archive proof records 198 source-safe candidates before non-overlap and archive
 curation: 56 switches, 73 support-under-pressure candidates and 69
-combinations. It ships 72 selected scenes and records 10,715 rejected or
-ranked-out candidates.
+combinations. That archive proof selected 72 scenes and records 10,715 rejected
+or ranked-out candidates. Those 198/72 figures describe only the preserved
+archive proof; the current default v2 education catalogue contains 70 scenes
+(25 accepted archive passages plus 45 recent passages).
 Rejections include short/discontinuous context, absent guard/core/ownership
 actors, missing opponent or support context, post-filter actor loss and
 implausible ball continuity.
 
-`--verify-assets` does not trust summary booleans. It reloads each shipped
+Both `--verify-assets` commands must pass. The education verifier first checks
+that all 115 pre-existing catalogue/source/quality/scene/legacy bytes still
+match hashes derived from the immutable tracked manifests. It does not trust
+manifest booleans: it reloads every selected replay,
+recomputes each objective and metric, checks source ownership and direct
+visibility, checks the strict mixed-source allowlist and derives `matchCount`
+from represented matches.
+
+The historical `--verify-assets` does not trust summary booleans. It reloads each shipped
 source frame and visibility mask, then recomputes duration and context bounds,
 guard coverage, continuous core/support/opponent coverage, owned-ball actor
-visibility, ball continuity, speeds, hashes, match identity and the three
-representative theme guarantees.
+visibility, ball continuity, speeds, hashes, match identity and the archived
+source-safety guarantees.
 
 The runtime keeps domain geometry and validation independent of Flutter. The
 application service validates catalogue-to-scene identity, and the asset
@@ -182,10 +260,15 @@ repository verifies each scene SHA-256 before parsing.
 
 ## Assets and limits
 
-- `catalog.json`: lazy-load index with clocks, frames, match/player/theme data,
-  evidence bounds, actor roles, metrics and scene hashes.
+- `education-catalog.json`: default v2 mixed-source index with learning actors,
+  exact source frames, measurements, reference URLs and scene hashes.
+- `catalog.json`: byte-identical v1 archive/test fixture; not runtime fallback.
 - `scenes/*.json`: 10 fps source frames, sparse visibility, source ownership
-  labels and metadata; no reconstructed display layer.
+  labels and metadata reused without modification by accepted historical lessons.
+- `education_scenes/*.json`: 10 fps 2024/25 direct-detection-only XY clips;
+  no pose, carry-forward, extrapolated actor or reconstructed display layer.
+- `education-proof.json` and `education-source-manifest.json`: all decisions,
+  thresholds, measurements and pinned recent input hashes.
 - `quality-proof.json`: thresholds, precise guard/core windows, actor coverage,
   speed/continuity results and every candidate rejection.
 - `legacy-asset-preservation.json`: byte hashes for the retained official-video,
@@ -193,7 +276,7 @@ repository verifies each scene SHA-256 before parsing.
 
 This remains broadcast-visible XY coverage rather than complete full-pitch
 measurement. Real visibility gaps outside the teaching evidence are preserved,
-ball height is unavailable for all 72 scenes and is not taught, and absence
+ball height is unavailable for every education scene and is not taught, and absence
 from the feed is not evidence of open space. Kit symbols add no body pose or
 orientation inference. Those source limits are surfaced rather than repaired
 by the camera, symbols or copy.

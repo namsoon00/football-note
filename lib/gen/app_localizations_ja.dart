@@ -22950,6 +22950,139 @@ class AppLocalizationsJa extends AppLocalizations {
   String get spatialLibraryLoading => '有名試合のスペース学習ライブラリを読み込み中';
 
   @override
+  String get spatialEducationObjectiveReceivingLane => '受けるレーンを作る';
+
+  @override
+  String get spatialEducationObjectivePressureOutlet => 'プレッシャーから抜ける';
+
+  @override
+  String get spatialEducationObjectiveThirdPlayer => '3人目を使う';
+
+  @override
+  String get spatialEducationObjectiveSwitchingSpace => '逆サイドのスペースを探す';
+
+  @override
+  String spatialEducationObjectiveRateNormal(String objective) {
+    return '$objective · 1×';
+  }
+
+  @override
+  String spatialEducationObjectiveRateHalf(String objective) {
+    return '$objective · 0.5×';
+  }
+
+  @override
+  String get spatialEducationPlaybackRateNormal => '· 1×';
+
+  @override
+  String get spatialEducationPlaybackRateHalf => '· 0.5×';
+
+  @override
+  String get spatialEducationSourceSpeed => '原速度（1倍）で再生';
+
+  @override
+  String get spatialEducationSearchHint => '学習目標、シーズン、選手、チームを検索';
+
+  @override
+  String get spatialEducationAttribution =>
+      '提供元：SkillCorner Open Data（MIT）。選手位置、出典の保持者、ボールの可用性は選択中の固定試合ソースに基づき、学習目標と測定値はアプリが派生します。';
+
+  @override
+  String get spatialEducationSelectionDisclosure =>
+      '全ての審査済み区間は準備とその後を各4秒以上含みます。名前付きの学習選手と関連する相手は継続して直接観測され、2024/25の外挿選手座標は除外されます。測定値はセンチメートル量子化XYフレームから再計算します。身体、足、スキャン、意図、得点、最善の選択は主張しません。';
+
+  @override
+  String spatialEducationCoverageSummary(
+      int scenes, int matches, int players, int objectives) {
+    return '$matches試合の根拠審査済み区間$scenes件、学習選手$players人、学習目標$objectives件。';
+  }
+
+  @override
+  String spatialEducationSceneIdentityRow(
+      String home, String away, String season, String date, String clock) {
+    return '$home 対 $away · $season · $date · $clock';
+  }
+
+  @override
+  String spatialEducationReceivingLaneQuestion(String focus, String passer) {
+    return '$passerがつなぐ前に、$focusはどこへ動くでしょう？';
+  }
+
+  @override
+  String spatialEducationPressureOutletQuestion(String focus, String defender) {
+    return '$focusは$defenderから離れて受け、もう一度つなげるでしょうか？';
+  }
+
+  @override
+  String spatialEducationThirdPlayerQuestion(String focus, String middle) {
+    return '$middleが受ける前に、$focusはいつ動き始めるでしょう？';
+  }
+
+  @override
+  String spatialEducationSwitchingSpaceQuestion(String focus, String passer) {
+    return '$passerが逆へ動かすと、$focusの周囲はどう変わるでしょう？';
+  }
+
+  @override
+  String spatialEducationReceivingLaneAction(
+      String focus, String meters, String passer) {
+    return '$focusは$passerのつなぎの前に${meters}m動きます。';
+  }
+
+  @override
+  String spatialEducationPressureOutletAction(
+      String defender, String meters, String passer, String focus) {
+    return '$defenderは$passerから${meters}m。$focusを見ましょう。';
+  }
+
+  @override
+  String spatialEducationThirdPlayerAction(
+      String focus, String meters, String middle) {
+    return '$focusは$middleが受ける前に${meters}m動きます。';
+  }
+
+  @override
+  String spatialEducationSwitchingSpaceAction(
+      String passer, String focus, String meters) {
+    return '$passer → $focus：横へ${meters}m。';
+  }
+
+  @override
+  String spatialEducationReceivingLaneResult(String passer, String focus,
+      String defender, String before, String after) {
+    return '$passerから見た$focusと$defenderの角度：$before° → $after°。';
+  }
+
+  @override
+  String spatialEducationPressureOutletResult(
+      String focus, String defender, String before, String after) {
+    return '$focusと$defenderの間隔：${before}m → ${after}m。';
+  }
+
+  @override
+  String spatialEducationPressureOutletConnectionResult(
+      String focus, String defender, String before, String after, String next) {
+    return '$focusと$defenderの間隔：${before}m → ${after}m。続いて$nextが受けます。';
+  }
+
+  @override
+  String spatialEducationThirdPlayerAdvanceResult(String focus, String meters) {
+    return '$focusは前方へ${meters}m進んだ位置で受けます。';
+  }
+
+  @override
+  String spatialEducationThirdPlayerClearanceResult(
+      String focus, String defender, String before, String after) {
+    return '$focusと$defenderの間隔：${before}m → ${after}m。';
+  }
+
+  @override
+  String spatialEducationSwitchingSpaceResult(
+      String focus, String defender, String before, String after) {
+    return '$focusと$defenderの間隔：${before}m → ${after}m。';
+  }
+
+  @override
   String get spatialChooseScene => 'シーンを選ぶ';
 
   @override

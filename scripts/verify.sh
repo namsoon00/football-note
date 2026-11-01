@@ -51,6 +51,9 @@ flutter analyze
 echo "==> design consistency guardrails"
 ./scripts/check_design_consistency.sh
 
+echo "==> spatial education asset verification"
+python3 tool/scan_pass_replay/prepare_spatial_education.py --verify-assets
+
 echo "==> quiz quality harness"
 ./scripts/quiz_quality_harness.sh
 
