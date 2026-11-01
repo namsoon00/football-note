@@ -14,13 +14,17 @@ enum SpatialLearningTheme {
   recovery,
 }
 
+enum SpatialEvidenceRole { departure, arrival }
+
 class SpatialEvidenceAnchor {
   final double time;
+  final SpatialEvidenceRole role;
   final int playerId;
   final String playerName;
 
   const SpatialEvidenceAnchor({
     required this.time,
+    required this.role,
     required this.playerId,
     required this.playerName,
   });
@@ -88,6 +92,11 @@ class SpatialLibraryScene {
   final int attackDirection;
   final double evidenceStart;
   final double evidenceEnd;
+  final double coreStart;
+  final double coreEnd;
+  final List<int> corePlayerIds;
+  final List<int> supportPlayerIds;
+  final List<int> opponentContextPlayerIds;
   final SpatialEvidenceMetrics metrics;
   final String sourceCommit;
   final String sourceUrl;
@@ -114,6 +123,11 @@ class SpatialLibraryScene {
     required this.attackDirection,
     required this.evidenceStart,
     required this.evidenceEnd,
+    required this.coreStart,
+    required this.coreEnd,
+    required this.corePlayerIds,
+    required this.supportPlayerIds,
+    required this.opponentContextPlayerIds,
     required this.metrics,
     required this.sourceCommit,
     required this.sourceUrl,
@@ -187,10 +201,26 @@ class SpatialLibraryScene {
         'Spatial replay scene does not match its catalog evidence.',
       );
     }
+    if (data.hasDisplayReconstruction ||
+        data.missingPlayerCoordinate == null ||
+        data.sourcePossessionOwners.length != data.frames.length) {
+      throw const FormatException(
+        'Spatial replay must preserve source visibility without reconstruction.',
+      );
+    }
+    final guardFrames = (data.fps * .5).round();
     for (final anchor in evidenceAnchors) {
       final index = data.playerIndex(anchor.playerId);
       final frame = (anchor.time * data.fps).round();
-      if (!data.isVisibleAtFrame(frame, index)) {
+      final guardStart = frame - guardFrames;
+      final guardEnd = frame + guardFrames;
+      if (guardStart < 0 ||
+          guardEnd >= data.frames.length ||
+          data.sourcePossessionOwners[frame] != anchor.playerId ||
+          !List<int>.generate(
+            guardEnd - guardStart + 1,
+            (offset) => guardStart + offset,
+          ).every((value) => data.isVisibleAtFrame(value, index))) {
         throw const FormatException('Spatial evidence anchor is not observed.');
       }
       final sample = data.sample(anchor.time);
@@ -201,6 +231,55 @@ class SpatialLibraryScene {
           'Spatial evidence owner is too far from the recorded ball.',
         );
       }
+    }
+    final coreStartFrame = (coreStart * data.fps).round();
+    final coreEndFrame = (coreEnd * data.fps).round();
+    for (final id in <int>{
+      ...corePlayerIds,
+      ...supportPlayerIds,
+      ...opponentContextPlayerIds,
+    }) {
+      final index = data.playerIndex(id);
+      for (var frame = coreStartFrame; frame <= coreEndFrame; frame++) {
+        if (!data.isVisibleAtFrame(frame, index)) {
+          throw const FormatException(
+            'Spatial core or context actor has a visibility gap.',
+          );
+        }
+      }
+    }
+    var checkedOwnedFrames = 0;
+    var cursor = 0;
+    while (cursor < data.sourcePossessionOwners.length) {
+      final owner = data.sourcePossessionOwners[cursor];
+      var end = cursor;
+      while (end + 1 < data.sourcePossessionOwners.length &&
+          data.sourcePossessionOwners[end + 1] == owner) {
+        end++;
+      }
+      if (owner != null && end - cursor + 1 >= 3) {
+        int ownerIndex;
+        try {
+          ownerIndex = data.playerIndex(owner);
+        } on ArgumentError {
+          throw const FormatException(
+            'Spatial owned-ball actor is outside the active roster.',
+          );
+        }
+        for (var frame = cursor; frame <= end; frame++) {
+          checkedOwnedFrames++;
+          if (!data.isVisibleAtFrame(frame, ownerIndex)) {
+            throw const FormatException(
+              'Spatial owned-ball actor has a visibility gap.',
+            );
+          }
+        }
+      }
+      cursor = end + 1;
+    }
+    if (checkedOwnedFrames == 0) {
+      throw const FormatException(
+          'Spatial replay has no visible ownership run.');
     }
   }
 }
@@ -244,6 +323,11 @@ class SpatialLibraryCatalog {
         final anchor = _mapValue(value, 'evidence anchor');
         return SpatialEvidenceAnchor(
           time: _number(anchor, 'time'),
+          role: _enumValue(
+            SpatialEvidenceRole.values,
+            _string(anchor, 'role'),
+            'spatial evidence role',
+          ),
           playerId: _integer(anchor, 'playerId'),
           playerName: _string(anchor, 'playerName'),
         );
@@ -277,6 +361,14 @@ class SpatialLibraryCatalog {
         attackDirection: _integer(item, 'attackDirection'),
         evidenceStart: _number(item, 'evidenceStart'),
         evidenceEnd: _number(item, 'evidenceEnd'),
+        coreStart: _number(item, 'coreStart'),
+        coreEnd: _number(item, 'coreEnd'),
+        corePlayerIds: _integerList(item, 'corePlayerIds'),
+        supportPlayerIds: _integerList(item, 'supportPlayerIds'),
+        opponentContextPlayerIds: _integerList(
+          item,
+          'opponentContextPlayerIds',
+        ),
         metrics: SpatialEvidenceMetrics(
           forwardMeters: _number(metrics, 'forwardMeters'),
           lateralMeters: _number(metrics, 'lateralMeters'),
@@ -344,25 +436,35 @@ class SpatialLibraryCatalog {
           scene.startFrame < 0 ||
           scene.endFrame <= scene.startFrame ||
           scene.startClock < 0 ||
-          scene.duration < 10 ||
-          scene.duration > 30 ||
+          scene.duration < 20 ||
+          scene.duration > 40 ||
           scene.focusPlayerName.isEmpty ||
           scene.evidenceAnchors.length < 2 ||
           scene.evidenceAnchors.length > 3 ||
-          scene.highlightPlayerIds.length < 2 ||
-          scene.highlightPlayerIds.length > 4 ||
+          scene.highlightPlayerIds.length < 4 ||
+          scene.highlightPlayerIds.length > 6 ||
           scene.highlightPlayerIds.toSet().length !=
               scene.highlightPlayerIds.length ||
           !scene.highlightPlayerIds.contains(scene.focusPlayerId) ||
+          scene.corePlayerIds.length < 2 ||
+          scene.supportPlayerIds.isEmpty ||
+          scene.opponentContextPlayerIds.isEmpty ||
+          <int>{
+            ...scene.corePlayerIds,
+            ...scene.supportPlayerIds,
+            ...scene.opponentContextPlayerIds,
+          }.any((id) => !scene.highlightPlayerIds.contains(id)) ||
           scene.evidenceAnchors.any(
             (anchor) =>
                 anchor.playerName.isEmpty ||
                 !scene.highlightPlayerIds.contains(anchor.playerId),
           ) ||
           scene.attackDirection.abs() != 1 ||
-          scene.evidenceStart <= 0 ||
+          scene.evidenceStart < 4 ||
           scene.evidenceEnd <= scene.evidenceStart ||
-          scene.evidenceEnd >= scene.duration ||
+          scene.duration - scene.evidenceEnd < 4 ||
+          (scene.coreStart - (scene.evidenceStart - .5)).abs() > .001 ||
+          (scene.coreEnd - (scene.evidenceEnd + .5)).abs() > .001 ||
           scene.sourceCommit != sourceCommit ||
           !scene.sourceUrl.startsWith('$sourceUrl/data/matches/')) {
         throw const FormatException('Invalid spatial catalog scene.');
@@ -414,6 +516,10 @@ List<dynamic> _list(Map<String, dynamic> map, String key) {
   }
   return value;
 }
+
+List<int> _integerList(Map<String, dynamic> map, String key) => _list(map, key)
+    .map((value) => _integerValue(value, key))
+    .toList(growable: false);
 
 String _string(Map<String, dynamic> map, String key) =>
     _stringValue(map[key], key);

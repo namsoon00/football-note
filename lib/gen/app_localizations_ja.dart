@@ -22953,13 +22953,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get spatialChooseScene => 'シーンを選ぶ';
 
   @override
-  String get spatialFocusReplay => '重要な瞬間をスロー再生';
+  String get spatialFocusReplay => 'ガイド再生：準備・重要場面・その後';
 
   @override
   String get spatialSourceInfo => 'ライブラリと出典情報';
 
   @override
   String get spatialLegacyViewer => '以前のリプレイ参照画面';
+
+  @override
+  String get spatialOfficialVideoViewer => '公式映像パッセージ · 別資料の例示図';
 
   @override
   String get spatialPreviousScene => '前のシーン';
@@ -22971,7 +22974,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get spatialInferredLegend => '推定表示位置';
 
   @override
-  String get spatialFocusReplayActive => '重要な瞬間を0.5倍速、その後は実速度';
+  String get spatialFocusReplayActive => 'ガイド再生 · 準備1倍速 · 重要場面0.5倍速 · その後1倍速';
 
   @override
   String get spatialDirectionUp => '上側のゴール方向';
@@ -23005,11 +23008,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get spatialInferredDisclosure =>
-      '標準のフォーカス画面とミニマップには、現在時刻に直接観測された選手位置だけを表示します。見えない選手の位置は補完しません。';
+      'フィールドには現在時刻に直接観測された選手位置だけを表示します。欠測は空白のままとし、再構成や前位置の持ち越しは表示しません。';
 
   @override
   String get spatialSelectionDisclosure =>
-      '観測された保持者の変化、連続したボールXY、可視の根拠点、空間基準、偏り上限、重複しない区間から再現可能に選定しています。';
+      '20〜40秒の原資料区間から、前後各4秒以上の文脈、連続したボールXY、出発・到着選手の保護窓、可視の中心・支援・相手文脈、可視の出典ラベル保持者を条件に再現可能に選定しています。学習画面を明確にするため、プレッシャー下のサポートは記録ボールが4 m以上、コンビネーションの各リンクは5 m以上移動した区間のみ使用します。';
 
   @override
   String get spatialThemeLateralSwitch => '横方向の展開';
@@ -23055,7 +23058,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '見る前 · ボールがタッチライン側から内側のレーンへ動く過程を見ましょう。';
 
   @override
-  String get spatialObjectiveCombination => '見る前 · ボールが3人の味方へつながる間隔を追いましょう。';
+  String get spatialObjectiveCombination => '見る前 · リターンを含む2回のつながりを見ましょう。';
 
   @override
   String get spatialObjectiveTurnover => '見る前 · ボールが相手チームへ渡るときの周囲の形を見ましょう。';
@@ -23065,7 +23068,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String spatialLibraryTitle(int count) {
-    return '有名試合ライブラリ · $countシーン';
+    return '2D空間ライブラリ · $countパッセージ';
   }
 
   @override
@@ -23205,6 +23208,120 @@ class AppLocalizationsJa extends AppLocalizations {
   String get spatialSubsequentPlayCue => '次の流れ · ボール周辺の形の変化を見ましょう。';
 
   @override
+  String get spatialLateralEarlyContextCue => '状況 · ボールと見えている陣形の幅を見ます。';
+
+  @override
+  String get spatialLateralContinuationCue => '続き · 逆サイドの陣形を見ながらプレーを追います。';
+
+  @override
+  String spatialLateralContextCue(String first, String second) {
+    return '状況 · $firstと逆サイドの$secondの位置を比べます。';
+  }
+
+  @override
+  String spatialLateralConnectionCue(String first, String second) {
+    return '接続 · $first → $second、横へボールを動かします。';
+  }
+
+  @override
+  String spatialLateralAftermathCue(String second) {
+    return 'その後 · 逆サイドの$second周辺のスペースを見ます。';
+  }
+
+  @override
+  String spatialLateralReviewCue(String first, String second) {
+    return '再生 · セットアップの$firstと$secondを比べます。';
+  }
+
+  @override
+  String get spatialPressureEarlyContextCue => '状況 · ボール周辺の選手間隔を比べます。';
+
+  @override
+  String get spatialPressureContinuationCue => '続き · ボール周辺のサポート間隔を見ます。';
+
+  @override
+  String spatialPressureContextCue(
+      String first, String defender, String support) {
+    return '状況 · $firstと$defenderの間隔、$supportのサポート位置を比べます。';
+  }
+
+  @override
+  String spatialPressureConnectionCue(
+      String first, String second, String support) {
+    return '接続 · $first → $second。$supportの間隔も見ます。';
+  }
+
+  @override
+  String spatialPressureAftermathCue(String second, String support) {
+    return 'その後 · $secondとサポートする$supportの間隔を見ます。';
+  }
+
+  @override
+  String spatialPressureReviewCue(String first, String second, String support) {
+    return '再生 · セットアップの$first、$second、$supportを比べます。';
+  }
+
+  @override
+  String get spatialCombinationEarlyContextCue => '状況 · 次のつながりが現れるまでボールを追います。';
+
+  @override
+  String get spatialCombinationContinuationCue => '続き · ボール周辺に見える選手の位置を比べます。';
+
+  @override
+  String spatialCombinationContextCue(
+      String first, String second, String third) {
+    return '状況 · $first、$second、続いて$thirdを追います。';
+  }
+
+  @override
+  String spatialCombinationConnectionCue(
+      String first, String second, String third) {
+    return '接続 · $first → $second → $third。';
+  }
+
+  @override
+  String spatialCombinationAftermathCue(
+      String first, String second, String third) {
+    return 'その後 · $first → $secondの後、$third周辺のスペースを見ます。';
+  }
+
+  @override
+  String spatialCombinationReviewCue(
+      String first, String second, String third) {
+    return '再生 · もう一度：$first → $second → $third。';
+  }
+
+  @override
+  String spatialCombinationReturnContextCue(String first, String second) {
+    return '状況 · $first → $secondの後、$firstの次の位置を見ます。';
+  }
+
+  @override
+  String spatialCombinationReturnConnectionCue(String first, String second) {
+    return 'リターン · $first → $second → $first。';
+  }
+
+  @override
+  String spatialCombinationReturnAftermathCue(String first) {
+    return 'その後 · リターン前後の$firstの位置を比べます。';
+  }
+
+  @override
+  String spatialCombinationReturnReviewCue(String first, String second) {
+    return '再生 · $first → $second → $firstをもう一度見ます。';
+  }
+
+  @override
+  String spatialSceneIdentityRow(String home, String away, String clock) {
+    return '$home対$away · $clock';
+  }
+
+  @override
+  String spatialDurationBadge(String duration) {
+    return '$duration秒';
+  }
+
+  @override
   String get spatialAliasLionelMessi => 'メッシ';
 
   @override
@@ -23235,14 +23352,20 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String spatialSceneRow(String home, String away, String clock) {
-    return '$home対$away · $clock';
+  String spatialSceneRow(
+      String home, String away, String clock, String duration) {
+    return '$home対$away · $clock · $duration秒';
   }
 
   @override
   String spatialCoverageSummary(
       int scenes, int matches, int players, int themes) {
-    return '$matches試合、重複しない$scenesシーン、注目選手$players人、空間テーマ$themes種を収録しています。';
+    return '$matches試合からレビュー済み$scenesパッセージ、注目選手$players人、出典で裏付けられた$themesテーマを収録しています。';
+  }
+
+  @override
+  String spatialDurationRange(String minimum, String maximum) {
+    return '記録パッセージの長さ：$minimum〜$maximum秒。通常の1倍速再生も利用できます。';
   }
 
   @override
@@ -23289,7 +23412,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String spatialSituationCombinationShort(String seconds) {
-    return '3人の連係 · $seconds秒';
+    return '2回の連係 · $seconds秒';
   }
 
   @override
@@ -23435,7 +23558,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get videoLearningLegacyLibrary => '計測2D空間ライブラリ';
 
   @override
-  String get videoLearningLegacyLibraryDetail => '放送画面内のXYシーン108件 · 試合映像なし';
+  String get videoLearningLegacyLibraryDetail => 'レビュー済みの出典準拠2Dパッセージ · 試合映像なし';
 
   @override
   String get videoLearningPersistenceFailed => 'この端末に進捗を保存できませんでした。';

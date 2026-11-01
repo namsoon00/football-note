@@ -406,6 +406,8 @@ class RealMatchReplayData {
   final List<Uint8List> visibility;
   final List<Int32List> displayFrames;
   final List<Uint8List> displayProvenance;
+  final int? missingPlayerCoordinate;
+  final List<int?> sourcePossessionOwners;
   final List<List<Int16List?>> poses;
   final List<RealMatchReplayEvent> events;
   final String sourceCommit;
@@ -436,6 +438,8 @@ class RealMatchReplayData {
     required this.visibility,
     required this.displayFrames,
     required this.displayProvenance,
+    required this.missingPlayerCoordinate,
+    required this.sourcePossessionOwners,
     required this.poses,
     required this.events,
     required this.sourceCommit,
@@ -549,6 +553,17 @@ class RealMatchReplayData {
               return flag;
             }).toList(growable: false));
           }).toList(growable: false);
+    final missingPlayerCoordinate = json['missingPlayerCoordinate'] == null
+        ? null
+        : _integer(json, 'missingPlayerCoordinate');
+    final sourcePossessionOwnersValue = json['sourcePossessionOwners'];
+    final sourcePossessionOwners = sourcePossessionOwnersValue == null
+        ? const <int?>[]
+        : _asList(sourcePossessionOwnersValue, 'sourcePossessionOwners')
+            .map<int?>((value) => value == null
+                ? null
+                : _asInteger(value, 'source possession owner'))
+            .toList(growable: false);
     final poseWidth = joints.length * 3;
     final poses = poseJson.map((value) {
       final row = _asList(value, 'pose frame');
@@ -616,6 +631,8 @@ class RealMatchReplayData {
       visibility: visibility,
       displayFrames: displayFrames,
       displayProvenance: displayProvenance,
+      missingPlayerCoordinate: missingPlayerCoordinate,
+      sourcePossessionOwners: sourcePossessionOwners,
       poses: poses,
       events: events,
       sourceCommit: _string(json, 'sourceCommit'),
@@ -909,6 +926,8 @@ class RealMatchReplayData {
         sourceCommit.isEmpty ||
         !_validWebUrl(sourceUrl) ||
         visibility.length != frames.length ||
+        (sourcePossessionOwners.isNotEmpty &&
+            sourcePossessionOwners.length != frames.length) ||
         (displayFrames.isEmpty != displayProvenance.isEmpty) ||
         (displayFrames.isNotEmpty &&
             (displayFrames.length != frames.length ||
@@ -947,7 +966,8 @@ class RealMatchReplayData {
       }
       for (var index = 0; index < players.length * 2; index++) {
         final playerIndex = index ~/ 2;
-        if (visible[playerIndex] == 0 && frame[index] != 0) {
+        final missingCoordinate = missingPlayerCoordinate ?? 0;
+        if (visible[playerIndex] == 0 && frame[index] != missingCoordinate) {
           throw const FormatException(
             'Hidden replay player coordinates must be empty.',
           );

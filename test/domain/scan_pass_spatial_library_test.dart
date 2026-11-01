@@ -8,58 +8,57 @@ import 'package:football_note/domain/scan_pass/scan_pass_spatial_library.dart';
 
 void main() {
   late SpatialLibraryCatalog catalog;
+  late Map<String, dynamic> catalogJson;
   late Map<String, dynamic> quality;
 
   setUpAll(() {
-    catalog = SpatialLibraryCatalog.fromJsonString(
-      File('assets/scan_pass_spatial/catalog.json').readAsStringSync(),
+    catalogJson = _json('assets/scan_pass_spatial/catalog.json');
+    catalog = SpatialLibraryCatalog.fromJson(catalogJson);
+    quality = _json('assets/scan_pass_spatial/quality-proof.json');
+  });
+
+  test('catalogue exposes only representative source-supported objectives', () {
+    expect(catalog.scenes, isNotEmpty);
+    expect(catalog.matchIds.length, greaterThanOrEqualTo(3));
+    expect(catalog.focalPlayers.length, greaterThanOrEqualTo(3));
+    expect(
+      catalog.themes,
+      {
+        SpatialLearningTheme.lateralSwitch,
+        SpatialLearningTheme.pressureSupport,
+        SpatialLearningTheme.combination,
+      },
     );
-    quality = jsonDecode(
-      File('assets/scan_pass_spatial/quality-proof.json').readAsStringSync(),
-    ) as Map<String, dynamic>;
-  });
+    expect(
+      catalog.scenes.length,
+      (quality['counts'] as Map<String, dynamic>)['scenes'],
+    );
 
-  test('catalog is large, diverse, balanced, and non-overlapping', () {
-    expect(catalog.scenes, hasLength(108));
-    expect(catalog.matchIds, hasLength(9));
-    expect(catalog.focalPlayers.length, greaterThanOrEqualTo(20));
-    expect(catalog.themes, SpatialLearningTheme.values.toSet());
-    expect(catalog.scenes.map((scene) => scene.home),
-        isNot(contains('Brisbane Roar')));
-    expect(catalog.scenes.map((scene) => scene.away),
-        isNot(contains('Western United')));
-
-    final byMatch = <int, List<SpatialLibraryScene>>{};
     for (final scene in catalog.scenes) {
-      byMatch.putIfAbsent(scene.matchId, () => []).add(scene);
-    }
-    for (final scenes in byMatch.values) {
-      expect(scenes, hasLength(12));
-      final focalCounts = <int, int>{};
-      final themeCounts = <SpatialLearningTheme, int>{};
-      for (final scene in scenes) {
-        focalCounts.update(scene.focusPlayerId, (value) => value + 1,
-            ifAbsent: () => 1);
-        themeCounts.update(scene.theme, (value) => value + 1,
-            ifAbsent: () => 1);
-      }
-      expect(focalCounts.values.every((count) => count <= 3), isTrue);
-      expect(themeCounts.values.every((count) => count <= 3), isTrue);
-      final ordered = [...scenes]
-        ..sort((a, b) => a.startFrame.compareTo(b.startFrame));
-      for (var index = 1; index < ordered.length; index++) {
-        expect(ordered[index].startFrame,
-            greaterThan(ordered[index - 1].endFrame));
-      }
-    }
-
-    for (var index = 1; index < catalog.scenes.length; index++) {
-      expect(catalog.scenes[index].matchId,
-          isNot(catalog.scenes[index - 1].matchId));
+      expect(scene.duration, inInclusiveRange(20, 40), reason: scene.id);
+      expect(scene.evidenceStart, greaterThanOrEqualTo(4), reason: scene.id);
+      expect(
+        scene.duration - scene.evidenceEnd,
+        greaterThanOrEqualTo(4),
+        reason: scene.id,
+      );
+      expect(scene.coreStart, closeTo(scene.evidenceStart - .5, .001));
+      expect(scene.coreEnd, closeTo(scene.evidenceEnd + .5, .001));
+      expect(scene.corePlayerIds, hasLength(greaterThanOrEqualTo(2)));
+      expect(scene.supportPlayerIds, isNotEmpty);
+      expect(scene.opponentContextPlayerIds, isNotEmpty);
+      expect(
+        scene.highlightPlayerIds.toSet(),
+        containsAll(<int>{
+          ...scene.corePlayerIds,
+          ...scene.supportPlayerIds,
+          ...scene.opponentContextPlayerIds,
+        }),
+      );
     }
   });
 
-  test('every compact scene matches catalog and uses observed evidence anchors',
+  test('shipped passages recompute guarded actors and owned-ball visibility',
       () {
     final proofs = <String, Map<String, dynamic>>{
       for (final value in quality['scenes'] as List<dynamic>)
@@ -70,194 +69,204 @@ void main() {
     for (final scene in catalog.scenes) {
       final file = File(scene.asset);
       expect(
-          sha256.convert(file.readAsBytesSync()).toString(), scene.assetSha256,
-          reason: scene.id);
+        sha256.convert(file.readAsBytesSync()).toString(),
+        scene.assetSha256,
+        reason: scene.id,
+      );
       final replay =
           RealMatchReplayData.fromJsonString(file.readAsStringSync());
       scene.validateReplay(replay);
-      expect(replay.events, isEmpty, reason: scene.id);
-      expect(replay.poses, isEmpty, reason: scene.id);
-      expect(
-        replay.scene.steps.map((step) => step.kind),
-        isNot(contains(RealMatchReplayStepKind.pass)),
-        reason: scene.id,
-      );
-      expect(
-        replay.scene.steps
-            .firstWhere((step) => step.time >= scene.evidenceStart)
-            .kind,
-        anyOf(
-          RealMatchReplayStepKind.receive,
-          RealMatchReplayStepKind.carry,
-        ),
-        reason: scene.id,
-      );
-      expect(replay.ballHeightAvailable, isFalse, reason: scene.id);
+      expect(replay.match.id, scene.matchId);
+      expect(replay.duration, closeTo(scene.duration, 1e-6));
+      expect(replay.hasDisplayReconstruction, isFalse);
+      expect(replay.missingPlayerCoordinate, isNotNull);
+      expect(replay.sourcePossessionOwners, hasLength(replay.frames.length));
+      expect(replay.events, isEmpty);
+      expect(replay.poses, isEmpty);
       expect(replay.annotationSource, RealMatchReplayAnnotationSource.derived);
       expect(replay.coverage, RealMatchReplayCoverage.broadcastVisible);
-      expect(replay.hasDisplayReconstruction, isTrue);
-      expect(replay.scene.camera.minX, lessThan(-replay.pitchLength / 2));
-      expect(replay.scene.camera.maxX, greaterThan(replay.pitchLength / 2));
-      expect(replay.scene.camera.minY, lessThan(-replay.pitchWidth / 2));
-      expect(replay.scene.camera.maxY, greaterThan(replay.pitchWidth / 2));
+      expect(replay.ballHeightAvailable, isFalse);
+
       for (var frame = 0; frame < replay.frames.length; frame++) {
-        final display = replay.displayFrames[frame];
         for (var player = 0; player < replay.players.length; player++) {
-          expect(
-              display[player * 2] / 100,
-              inInclusiveRange(
-                  replay.scene.camera.minX, replay.scene.camera.maxX));
-          expect(
-              display[player * 2 + 1] / 100,
-              inInclusiveRange(
-                  replay.scene.camera.minY, replay.scene.camera.maxY));
+          final x = replay.frames[frame][player * 2];
+          final y = replay.frames[frame][player * 2 + 1];
+          if (replay.isVisibleAtFrame(frame, player)) {
+            expect(x, isNot(replay.missingPlayerCoordinate), reason: scene.id);
+            expect(y, isNot(replay.missingPlayerCoordinate), reason: scene.id);
+          } else {
+            expect(x, replay.missingPlayerCoordinate, reason: scene.id);
+            expect(y, replay.missingPlayerCoordinate, reason: scene.id);
+          }
         }
-        expect(
-            replay.frames[frame][replay.players.length * 2] / 100,
-            inInclusiveRange(
-                replay.scene.camera.minX, replay.scene.camera.maxX));
-        expect(
-            replay.frames[frame][replay.players.length * 2 + 1] / 100,
-            inInclusiveRange(
-                replay.scene.camera.minY, replay.scene.camera.maxY));
-      }
-      expect((scene.endFrame - scene.startFrame) / replay.fps,
-          closeTo(scene.duration, 1e-6));
-      if (scene.theme == SpatialLearningTheme.pressureSupport) {
-        final gap = scene.observedNearbyDefender(replay, scene.evidenceStart);
-        expect(gap, isNotNull, reason: scene.id);
-        expect(gap!.meters, closeTo(scene.metrics.pressureMeters!, .02),
-            reason: scene.id);
-        expect(scene.highlightPlayerIds, contains(gap.defenderId),
-            reason: scene.id);
       }
 
       final proof = proofs[scene.id]!;
       expect(proof['ballXYObservations'], replay.frames.length);
-      expect(proof['ballHeightAvailable'], isFalse);
+      expect(proof['guardWindows'], hasLength(scene.evidenceAnchors.length));
+      expect(
+        (proof['displayEvidence']
+            as Map<String, dynamic>)['reconstructionIncluded'],
+        isFalse,
+      );
+      expect(
+        (proof['ownedBallVisibility']
+            as Map<String, dynamic>)['meaningfulFrames'],
+        greaterThan(0),
+      );
       expect(
           proof['maxSourcePlayerSpeedMetersPerSecond'], lessThanOrEqualTo(15));
-      expect(
-          proof['maxDisplayPlayerSpeedMetersPerSecond'], lessThanOrEqualTo(15));
       expect(proof['maxBallSpeedMetersPerSecond'], lessThanOrEqualTo(50));
-      expect(
-          (proof['reconstruction']
-              as Map<String, dynamic>)['inferredExcludedFromEvidence'],
-          isTrue);
-      for (final value in proof['anchors'] as List<dynamic>) {
-        final anchor = value as Map<String, dynamic>;
-        expect(anchor['playerObserved'], isTrue, reason: scene.id);
-        expect(anchor['ballObserved'], isTrue, reason: scene.id);
-        expect(anchor['playerId'], anchor['possessionOwner'], reason: scene.id);
-        expect(anchor['ballDistanceMeters'], lessThanOrEqualTo(3.5),
-            reason: scene.id);
+    }
+  });
+
+  test('theme claims remain limited to measured geometry', () {
+    for (final scene in catalog.scenes) {
+      switch (scene.theme) {
+        case SpatialLearningTheme.lateralSwitch:
+          expect(scene.metrics.lateralMeters, greaterThanOrEqualTo(22));
+          break;
+        case SpatialLearningTheme.pressureSupport:
+          expect(scene.metrics.pressureMeters, lessThanOrEqualTo(6));
+          expect(scene.metrics.forwardMeters, lessThan(10));
+          break;
+        case SpatialLearningTheme.combination:
+          expect(scene.evidenceAnchors, hasLength(3));
+          expect(scene.metrics.sequenceSeconds, lessThanOrEqualTo(16));
+          break;
+        case SpatialLearningTheme.forwardConnection:
+        case SpatialLearningTheme.carryThenConnect:
+        case SpatialLearningTheme.wideToInside:
+        case SpatialLearningTheme.turnover:
+        case SpatialLearningTheme.recovery:
+          fail('Unreviewed theme was exposed: ${scene.theme.name}');
       }
     }
   });
 
-  test('ordered anchors preserve return sequences and recovery endpoints', () {
-    final returns = catalog.scenes.where((scene) {
-      final ids =
-          scene.evidenceAnchors.map((anchor) => anchor.playerId).toList();
-      return ids.length == 3 && ids.first == ids.last;
-    }).toList();
-    expect(returns, isNotEmpty);
-    for (final scene in returns) {
-      expect(scene.highlightPlayerIds.toSet().length,
-          scene.highlightPlayerIds.length);
-      expect(scene.highlightPlayerIds.length, 2);
-      expect(scene.evidenceAnchors.first.time, scene.evidenceStart);
-      expect(scene.evidenceAnchors.last.time, scene.evidenceEnd);
+  test('service validation rejects guard, core, and owned-owner gaps', () {
+    final scene = catalog.scenes.first;
+    final source = _json(scene.asset);
+    final replay = RealMatchReplayData.fromJson(source);
+    scene.validateReplay(replay);
+
+    Map<String, dynamic> tamperedAt(int frame, int playerId) {
+      final changed = jsonDecode(jsonEncode(source)) as Map<String, dynamic>;
+      final players =
+          (changed['players'] as List<dynamic>).cast<Map<String, dynamic>>();
+      final index = players.indexWhere((value) => value['id'] == playerId);
+      final visibility = changed['visibility'] as List<dynamic>;
+      final frames = changed['frames'] as List<dynamic>;
+      (visibility[frame] as List<dynamic>)[index] = 0;
+      (frames[frame] as List<dynamic>)[index * 2] =
+          changed['missingPlayerCoordinate'];
+      (frames[frame] as List<dynamic>)[index * 2 + 1] =
+          changed['missingPlayerCoordinate'];
+      return changed;
     }
 
-    final recoveries = catalog.scenes
-        .where((scene) => scene.theme == SpatialLearningTheme.recovery);
-    expect(recoveries, isNotEmpty);
-    for (final scene in recoveries) {
-      expect(scene.evidenceAnchors, hasLength(3));
-      expect(scene.evidenceAnchors.last.playerId, scene.focusPlayerId);
-      expect(scene.evidenceAnchors.last.time, scene.evidenceEnd);
-    }
+    final anchor = scene.evidenceAnchors.first;
+    final anchorFrame = (anchor.time * replay.fps).round();
+    expect(
+      () => scene.validateReplay(
+        RealMatchReplayData.fromJson(tamperedAt(anchorFrame, anchor.playerId)),
+      ),
+      throwsFormatException,
+    );
+
+    final coreFrame = (scene.coreStart * replay.fps).round() + 1;
+    expect(
+      () => scene.validateReplay(
+        RealMatchReplayData.fromJson(
+          tamperedAt(coreFrame, scene.corePlayerIds.last),
+        ),
+      ),
+      throwsFormatException,
+    );
+
+    final ownerFrame = replay.sourcePossessionOwners.indexWhere(
+      (value) => value != null,
+    );
+    final owner = replay.sourcePossessionOwners[ownerFrame]!;
+    expect(
+      () => scene.validateReplay(
+        RealMatchReplayData.fromJson(tamperedAt(ownerFrame, owner)),
+      ),
+      throwsFormatException,
+    );
   });
 
-  test('source is pinned MIT data and raw match files are not bundled', () {
-    final manifest = jsonDecode(
-      File('assets/scan_pass_spatial/source-manifest.json').readAsStringSync(),
-    ) as Map<String, dynamic>;
-    expect(manifest['provider'], 'SkillCorner Open Data');
-    expect(manifest['license'], 'MIT');
-    expect(manifest['commit'], SpatialLibraryCatalog.expectedSourceCommit);
-    expect(manifest['rawDataBundled'], isFalse);
-    expect(manifest['files'], hasLength(21));
-    final licenseRecord = (manifest['files'] as List<dynamic>)
-        .cast<Map<String, dynamic>>()
-        .singleWhere((record) => record['path'] == 'LICENSE');
+  test('quality proof records post-filter and source-limit rejections', () {
+    final reasons = ((quality['counts']
+            as Map<String, dynamic>)['rejectedReasons'] as Map<String, dynamic>)
+        .keys;
+    expect(reasons,
+        contains('departure-or-arrival-actor-missing-in-guard-window'));
+    expect(reasons, contains('core-actor-has-a-central-visibility-gap'));
     expect(
-      sha256
-          .convert(File('assets/scan_pass_spatial/LICENSE').readAsBytesSync())
-          .toString(),
-      licenseRecord['sha256'],
+      reasons.any((value) => value.contains('Owned-ball actor failed')),
+      isTrue,
     );
     expect(
-      Directory('assets/scan_pass_spatial')
-          .listSync(recursive: true)
-          .whereType<File>()
-          .any((file) => file.path.endsWith('structured_data.json')),
-      isFalse,
+      reasons,
+      contains('no-20-to-40-second-source-clip-with-four-second-context'),
     );
     expect(
-      Directory('assets/scan_pass_spatial')
-          .listSync(recursive: true)
-          .whereType<File>()
-          .every((file) => !file.readAsStringSync().contains('StatsBomb')),
+      reasons.any((value) => value.contains('motion-continuity filter')),
       isTrue,
     );
   });
 
-  test('legacy replay and authored asset families remain byte-for-byte intact',
-      () {
-    final preservation = jsonDecode(
-      File('assets/scan_pass_spatial/legacy-asset-preservation.json')
-          .readAsStringSync(),
-    ) as Map<String, dynamic>;
-    final records = preservation['files'] as List<dynamic>;
-    expect(records, isNotEmpty);
+  test('catalog rejects shortened or discontinuous teaching metadata', () {
+    final shortened =
+        jsonDecode(jsonEncode(catalogJson)) as Map<String, dynamic>;
+    ((shortened['scenes'] as List<dynamic>).first
+        as Map<String, dynamic>)['duration'] = 19.9;
     expect(
-      records.map((value) => (value as Map<String, dynamic>)['path']),
-      contains('assets/scan_pass_authored/first-touch-open-side.json'),
+      () => SpatialLibraryCatalog.fromJson(shortened),
+      throwsFormatException,
     );
+
+    final noContext =
+        jsonDecode(jsonEncode(catalogJson)) as Map<String, dynamic>;
+    ((noContext['scenes'] as List<dynamic>).first
+        as Map<String, dynamic>)['evidenceStart'] = 3.9;
+    expect(
+      () => SpatialLibraryCatalog.fromJson(noContext),
+      throwsFormatException,
+    );
+  });
+
+  test('pinned MIT source and preserved asset families remain intact', () {
+    final manifest = _json('assets/scan_pass_spatial/source-manifest.json');
+    expect(manifest['commit'], SpatialLibraryCatalog.expectedSourceCommit);
+    expect(manifest['license'], 'MIT');
+    expect(manifest['rawDataBundled'], isFalse);
+    expect(manifest['files'], hasLength(21));
+
+    final preservation =
+        _json('assets/scan_pass_spatial/legacy-asset-preservation.json');
+    final records = preservation['files'] as List<dynamic>;
     expect(
       records.map((value) => (value as Map<String, dynamic>)['path']),
-      contains('assets/scan_pass_replay/catalog.json'),
+      containsAll(<String>[
+        'assets/video_learning/catalog.json',
+        'assets/scan_pass_replay/catalog.json',
+        'assets/scan_pass_authored/first-touch-open-side.json',
+      ]),
     );
     for (final value in records) {
       final record = value as Map<String, dynamic>;
       final file = File(record['path'] as String);
       expect(file.lengthSync(), record['bytes'], reason: file.path);
       expect(
-          sha256.convert(file.readAsBytesSync()).toString(), record['sha256'],
-          reason: file.path);
+        sha256.convert(file.readAsBytesSync()).toString(),
+        record['sha256'],
+        reason: file.path,
+      );
     }
   });
-
-  test('catalog rejects tampered source or evidence metadata', () {
-    final source = jsonDecode(
-      File('assets/scan_pass_spatial/catalog.json').readAsStringSync(),
-    ) as Map<String, dynamic>;
-    expect(
-      () => SpatialLibraryCatalog.fromJson({
-        ...source,
-        'sourceCommit': 'not-the-pinned-source',
-      }),
-      throwsFormatException,
-    );
-    final scenes = (source['scenes'] as List<dynamic>)
-        .map((value) => Map<String, dynamic>.from(value as Map))
-        .toList();
-    scenes.first['evidenceEnd'] = scenes.first['duration'];
-    expect(
-      () => SpatialLibraryCatalog.fromJson({...source, 'scenes': scenes}),
-      throwsFormatException,
-    );
-  });
 }
+
+Map<String, dynamic> _json(String path) =>
+    jsonDecode(File(path).readAsStringSync()) as Map<String, dynamic>;

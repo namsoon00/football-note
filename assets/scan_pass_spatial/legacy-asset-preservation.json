@@ -2,6 +2,16 @@
   "purpose": "Independent byte-for-byte guard for the replay and authored asset families that predate the spatial library",
   "files": [
     {
+      "path": "assets/video_learning/README.md",
+      "bytes": 1819,
+      "sha256": "f128a0d77335608e4b254d5c9b7410f8076bca4fc3754850a39c02cf0fa7a4b1"
+    },
+    {
+      "path": "assets/video_learning/catalog.json",
+      "bytes": 87234,
+      "sha256": "916657c7ce80523024d00881fed2475645f13946776da0377b7e1cdecc42980e"
+    },
+    {
       "path": "assets/scan_pass_replay/LICENSE",
       "bytes": 1097,
       "sha256": "3384cc66ffd008209759af5e6328677eabded72756fb1f56f4f82e68e9b3c6eb"

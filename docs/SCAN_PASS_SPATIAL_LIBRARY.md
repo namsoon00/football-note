@@ -1,74 +1,54 @@
-# Scan Pass famous-match spatial library
+# Scan Pass source-grounded spatial library
 
-This measured 108-scene viewer is now the secondary entry from the bottom menu
-of the video-first viewer. See
-[`SCAN_PASS_VIDEO_LEARNING.md`](SCAN_PASS_VIDEO_LEARNING.md) for the separate
-official-video catalogue and the evidence distinction between its authored
-qualitative diagrams and this library's broadcast-visible XY data.
+The measured 2D spatial library is the primary Scan Pass experience. It is a
+pitch-first viewer of broadcast-visible SkillCorner tracking, not a diagram
+invented from video. The separate 12-passage official-video viewer remains
+available through one More-menu route and keeps its existing history and
+progress storage. Its authored qualitative diagrams are not measured replays;
+see [`SCAN_PASS_VIDEO_LEARNING.md`](SCAN_PASS_VIDEO_LEARNING.md).
 
-## Public experience
+## Shipped catalogue
 
-`ScanPassSpatialLibraryScreen` is one pitch-first
-viewer with 108 distinct passages from nine familiar European matches in the
-SkillCorner 2019/20 historical sample. Each match contributes 12 non-overlapping
-passages. The catalog currently covers 53 focal players and eight measured
-themes: lateral switch, forward connection, nearby-defender support, carry then
-connect, wide to inside, multi-player combination, turnover, and recovery.
+The reviewed catalogue contains 18 passages from all nine pinned 2019/20
+matches, with 17 focal players. Durations are 20.8–30.0 seconds. The three
+source-backed themes are:
 
-The main pitch uses a deterministic metric focus plan computed once when a
-scene loads. It frames the recorded ball path, directly observed involved
-players, and nearby directly observed opponents, stays fixed through the main
-teaching moment, and uses short smooth camera transitions when the action
-travels. Each viewport chooses one fixed field orientation that gives the
-recorded teaching geometry the most readable metric scale; it does not rotate
-again during playback. The same uniform metric scale is applied to field lines,
-paths, players, and the ball. Measured in-frame teaching and context bands keep
-their cards clear of the live action, including a side band in short landscape.
-A small full-pitch minimap shows the focused camera area in the same orientation
-and with uniform metric scale. Field-edge alignment retains source bounds and
-jersey safety space so it cannot crop a recorded ball or an emphasized player.
+- 6 spatial switches (`lateralSwitch`);
+- 6 support-under-pressure passages (`pressureSupport`); and
+- 6 observed combinations (`combination`).
 
-The default main pitch and minimap render only positions returned by the sparse
-source `renderSample(time)`. A player who is not directly observed at that
-instant is absent; reconstructed `displaySample` positions are never drawn in
-this experience. Player tails stop at every source-observation gap and never
-bridge it. The recorded ball trace and its direction arrow end at the current
-source time, so a future connection is not previewed. Role rings, jersey
-numbers, and the factual cue remain, but generic ball-side/nearby-defender
-floating labels are intentionally omitted so they do not cover source evidence.
-Outfield shirts use match-specific 2019/20 colors and known patterns (including
-stripes, halves, centre stripes, and Barcelona's check pattern); source keeper
-colors remain untouched rather than being replaced with an outfield kit.
-Roles are recomputed from current observed geometry and reached anchors rather
-than accumulated across the clip. The teaching trace clears shortly after the
-evidenced moment; the
-continuous source passage then uses a current-play cue instead of leaving the
-old connection over unrelated action. Normal playback is source time at 1x.
-The optional focused replay uses 0.5x only between the evidence anchors, then
-returns to source speed.
+These counts result from the stronger evidence gates; they are not per-match or
+per-player quotas. The previous 108-scene catalogue was reassessed and is not
+exposed as a supposedly safe fallback.
 
-The bottom control row contains previous scene, play/pause, the current scene
-title and count with a visible expand indicator, and next scene. Selecting it
-opens the searchable player/team/theme picker. Seeking stays directly above
-these controls. The
-single More menu contains focused 0.5x replay, source information, the retained
-25-scene replay reference, and the separately authored first-touch sample.
-Neither older A-League matches nor the fictional sample appears in the default
-catalog.
+`ScanPassSpatialLibraryScreen` opens directly on one top-down metric pitch.
+Orientation stays fixed for the passage. Precomputed overlapping four-second
+source windows ease the camera between local action envelopes: every frame
+keeps the recorded ball, current source-labelled owner and current relevant
+actors visible, while the guarded teaching sequence also keeps its core,
+support and opponent actors together. The camera never fills gaps or treats an
+unobserved actor as empty space. Numbered circular kit markers have a separate
+ground anchor, and the ball remains a separate visible object. This
+presentation does not claim real body orientation, feet, contact posture or
+scanning direction.
 
-Theme search uses the current EN/KO/JA labels, and the principal star aliases
-(including 메시, 호날두, 음바페, メッシ, and ロナウド) are localized search terms;
-official source names remain unchanged in catalog and provenance data. In the
-nearby-defender theme, a warm ring, short source-only tail, and gap line identify
-the currently observed nearest opponent only while a directly observed player
-is near the recorded ball. The text states the current distance and never turns
-static proximity into an approach-speed claim. Teaching copy sits inside the
-pitch and describes only movement already reached in the recording.
+The compact title contains match identity. A single short teaching cue is
+placed in a currently clear part of the pitch and connected to the relevant
+source actor or ball. Placement rejects overlap with observed actors, the ball
+and the reached ball trace. The trace never previews the future path and clears
+after the evidenced action. Normal play and seeking remain at source time and
+1x. Guided replay starts with the complete setup at 1x, uses 0.5x only across
+the central evidence window, then returns to 1x for the aftermath. Previous,
+play/pause, scene list and next remain in the bottom controls.
+
+The scene list reports the actual clip duration, match, focal player and theme.
+Source information and guided replay are discreet More-menu actions. There are
+no tabs, scores, joystick controls, mandatory quiz or separate start screen.
 
 ## Source and license
 
-The only data source for this library is MIT-licensed SkillCorner Open Data at
-commit `1ed50b775f93075c2a6d00d0d795f13b7b89709e`. The included matches are:
+The only positional source is MIT-licensed SkillCorner Open Data at commit
+`1ed50b775f93075c2a6d00d0d795f13b7b89709e`:
 
 - Manchester City v Liverpool (4039)
 - Dortmund v Bayern München (3749)
@@ -80,66 +60,99 @@ commit `1ed50b775f93075c2a6d00d0d795f13b7b89709e`. The included matches are:
 - Paris v Marseille (2269)
 - Inter v Juventus (2068)
 
-`assets/scan_pass_spatial/source-manifest.json` records the upstream raw URL,
-byte size, SHA-256, and Git blob SHA for every input. The raw match files are not
-bundled. `assets/scan_pass_spatial/LICENSE` is the exact upstream MIT license.
-The new library neither includes nor proxies StatsBomb data.
+`assets/scan_pass_spatial/source-manifest.json` pins every raw URL, size,
+SHA-256 and Git blob. The raw files are not bundled.
+`assets/scan_pass_spatial/LICENSE` is the exact upstream MIT license. The
+library includes no video and does not use StatsBomb data.
 
-## Reproducible selection
+## Selection and evidence gates
 
-Generation scans each raw match once to precompute possession, identity, and
-direct-observation indices. A connection is a change between two distinct,
-directly observed possession owners with continuous recorded ball XY. A
-same-team connection is retained only when the source possession-team label is
-consistent. This does not promote the transition to a provider-labelled pass.
-Every claimed ownership anchor also requires the observed player to be within
-3.5 m of the observed ball. Raw ball motion above 50 m/s is rejected rather
-than repaired or replaced with synthetic movement.
+The importer prefers a 30-second source interval and permits only 20–40
+seconds. It requires at least four seconds of real setup before the central
+connection and four seconds of aftermath after it. It never pads a clip,
+fabricates a trajectory or slows the stored timeline to meet a duration.
 
-Candidates must provide 10–20 seconds of continuous ball XY around the action,
-an unchanged active 22-player roster, visible evidence anchors, a familiar focal
-player, and a theme-specific spatial threshold. Selection then applies a
-three-scenes-per-player and three-scenes-per-theme per-match cap, prevents clip
-overlap, and interleaves matches deterministically after a context-rich Lionel
-Messi opener. The generator records every rejection reason. Starting-goalkeeper
-period medians establish attack direction.
+A candidate connection starts from a source-labelled ownership change between
+distinct same-team actors. That label is only a search lead; it is not promoted
+to an authoritative provider pass event. Every claimed departure and arrival
+actor must be directly observed with a 0.5-second guard on both sides of the
+anchor and within 3.5 m of the recorded ball at the anchor. Core actors must
+remain directly observed across the whole teaching sequence. At least one
+off-ball support actor and relevant opposing context must also remain directly
+observed. Pressure copy is allowed only when this observed opposing context is
+present.
 
-Run from the repository root:
+All source-labelled ownership runs across the full clip are inspected. A
+meaningful controlled/touch run is rejected when its named owner is absent.
+The checks are repeated after impossible-speed filtering, so filtering cannot
+silently remove a previously visible core, guard, owner or context actor. The
+same gates also retain the period, active roster, source timing, ball
+continuity, metadata jersey numbers and match kit metadata.
+
+Missing players keep `visibility=0` and a non-pitch sentinel coordinate. No
+missing coordinate is replaced with `(0,0)`, carry-forward or interpolation.
+The spatial assets contain no display reconstruction. Hidden actors do not
+become evidence, and an unobserved area is never described as empty space.
+
+The three theme claims are deliberately narrow:
+
+- a spatial switch has at least 22 m of observed lateral ball change;
+- support under pressure has a directly observed opponent within 6 m at the
+  ownership anchor, at least 4 m of recorded ball travel, and less than 10 m
+  of forward connection; and
+- an observed combination has three directly observed same-team ownership
+  segments within eight seconds, with at least 5 m of recorded ball travel on
+  each leg. The first and third may be the same player in a return link. The
+  shipped six contain three A→B→A returns and three A→B→C links.
+
+They do not assert intent, a globally best play, a goal, a precise foot/body
+action, expert validation or learning transfer.
+
+## Reproducible build and verification
+
+From the repository root, after placing the pinned files at the audited source
+path:
 
 ```sh
 python3 tool/scan_pass_replay/prepare_spatial_library.py \
-  .tmp/spatial-library/source \
-  --audit .tmp/spatial-library/source-audit.json
+  .tmp/spatial-lessons/source \
+  --audit .tmp/spatial-lessons/source-audit.json
 python3 tool/scan_pass_replay/prepare_spatial_library.py --verify-assets
 ```
 
-The generator reuses the established historical importer's source checks and
-display reconstruction. Metadata identity and kit fields come from match
-metadata; `trackable_object` is the tracking join key, not the metadata player
-ID. Adjacent impossible identity jumps are removed from usable motion evidence
-and counted in the proof. Selected source and reconstructed display speeds must
-both remain at or below 15 m/s. Ordered evidence anchors retain valid return
-sequences such as A→B→A, while the separate highlighted-player set is distinct.
+Generation scans the raw files deterministically, records all rejection
+reasons, and emits only the selected source-safe catalogue. The shipped proof
+currently records 198 source-safe candidates before non-overlap and catalogue
+curation: 56 switches, 73 support-under-pressure candidates and 69
+combinations. It ships 18 selected scenes and records 10,769 rejected or
+ranked-out candidates.
+Rejections include short/discontinuous context, absent guard/core/ownership
+actors, missing opponent or support context, post-filter actor loss and
+implausible ball continuity.
 
-Runtime loading follows the app's domain boundaries: a domain repository
-contract defines catalog/scene access, the application service validates every
-catalog-to-scene pairing, and the infrastructure asset repository checks each
-scene SHA-256 before parsing. Flutter asset APIs do not enter the domain layer.
+`--verify-assets` does not trust summary booleans. It reloads each shipped
+source frame and visibility mask, then recomputes duration and context bounds,
+guard coverage, continuous core/support/opponent coverage, owned-ball actor
+visibility, ball continuity, speeds, hashes, match identity and the three
+representative theme guarantees.
 
-## Assets and proof
+The runtime keeps domain geometry and validation independent of Flutter. The
+application service validates catalogue-to-scene identity, and the asset
+repository verifies each scene SHA-256 before parsing.
 
-- `catalog.json`: lazy-load index, source clocks/frames, player and theme fields,
-  ordered evidence anchors, distinct highlights, metrics, and asset hashes.
-- `scenes/*.json`: compact 10 fps source/display clips using the existing honest
-  sparse-source and provenance-marked display schema.
-- `quality-proof.json`: selection definition and thresholds, scene clocks,
-  direction proof, visible cue anchors, speed/quantization checks,
-  reconstruction coverage, and rejected candidates.
-- `legacy-asset-preservation.json`: byte-for-byte hashes for every pre-existing
-  `scan_pass_replay` and `scan_pass_authored` asset.
+## Assets and limits
 
-Educational annotations are geometric interpretations of recorded tracking.
-They do not establish intent, a globally best play, coach approval, or learning
-transfer. This library intentionally renders only the pitch plane (XY), even
-where historical raw observations contain height. No ball-height claim, exact
-body/foot contact, or scan behavior is invented.
+- `catalog.json`: lazy-load index with clocks, frames, match/player/theme data,
+  evidence bounds, actor roles, metrics and scene hashes.
+- `scenes/*.json`: 10 fps source frames, sparse visibility, source ownership
+  labels and metadata; no reconstructed display layer.
+- `quality-proof.json`: thresholds, precise guard/core windows, actor coverage,
+  speed/continuity results and every candidate rejection.
+- `legacy-asset-preservation.json`: byte hashes for the retained official-video,
+  25-scene replay and authored-sample assets.
+
+This remains broadcast-visible XY coverage rather than complete full-pitch
+measurement. Real visibility gaps outside the teaching evidence are preserved,
+ball height is not taught, and absence from the feed is not evidence of open
+space. Those source limits are surfaced rather than repaired by the camera or
+copy.

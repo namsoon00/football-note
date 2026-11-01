@@ -54,9 +54,6 @@ class SpatialFocusKeyframe {
 /// between this small list of deliberate keyframes and reads the cached set of
 /// relevant observed players for the current source frame.
 class SpatialFocusPlan {
-  static const double _transitionSeconds = .6;
-  static const double _teachingPaddingSeconds = .8;
-
   final int fps;
   final double duration;
   final RealMatchReplayCamera teachingCamera;
@@ -78,9 +75,18 @@ class SpatialFocusPlan {
     final relevantByFrame = <List<int>>[];
     for (var frame = 0; frame < data.frames.length; frame++) {
       final time = frame / data.fps;
-      final sample = data.renderSample(time);
+      final sample = data.sample(time);
       final activeHome = _activeHomeAt(data, scene, time);
-      final relevant = <int>{};
+      final namesLessonActors =
+          (time >= scene.coreStart && time <= scene.evidenceEnd + 1.6) ||
+              time >= data.duration - 1 / data.fps;
+      final relevant = <int>{
+        if (namesLessonActors) ...scene.highlightPlayerIds,
+      };
+      if (data.sourcePossessionOwners.isNotEmpty) {
+        final owner = data.sourcePossessionOwners[frame];
+        if (owner != null) relevant.add(owner);
+      }
       final nearbyAttackers = <({int id, double meters})>[];
       final nearbyDefenders = <({int id, double meters})>[];
       for (var index = 0; index < data.players.length; index++) {
@@ -124,7 +130,7 @@ class SpatialFocusPlan {
       }
 
       for (var frame = first; frame <= last; frame++) {
-        final sample = data.renderSample(frame / data.fps);
+        final sample = data.sample(frame / data.fps);
         include(sample.ball);
         for (final id in relevantByFrame[frame]) {
           final point = sample.players[data.playerIndex(id)];
@@ -135,10 +141,10 @@ class SpatialFocusPlan {
         return data.scene.camera;
       }
 
-      minX -= 3;
-      maxX += 3;
-      minY -= 3;
-      maxY += 3;
+      minX -= 4;
+      maxX += 4;
+      minY -= 4;
+      maxY += 4;
       if (scene.attackDirection > 0) {
         maxX += 3.5;
       } else {
@@ -166,93 +172,35 @@ class SpatialFocusPlan {
       );
     }
 
-    final mainStart = math
-        .max(
-          0.0,
-          scene.evidenceStart - _teachingPaddingSeconds,
-        )
-        .toDouble();
-    final mainEnd = math
-        .min(
-          data.duration,
-          scene.evidenceEnd + _teachingPaddingSeconds,
-        )
-        .toDouble();
-    final mainCamera = cameraFor(
-      math.max(0, mainStart - _transitionSeconds),
-      math.min(data.duration, mainEnd + _transitionSeconds),
-    );
+    // Two-second overlapping source windows keep the situation readable
+    // without ever framing the union of an entire 20-40 second passage. A
+    // point required at an interpolated time belongs to both neighbouring
+    // four-second windows, so interpolating their bounds preserves its
+    // containment while producing a gentle pan/zoom with fixed orientation.
+    const keyframeSeconds = 2.0;
+    const windowRadiusSeconds = 2.0;
     final keyframes = <SpatialFocusKeyframe>[];
-    void add(double time, RealMatchReplayCamera camera) {
-      if (keyframes.isNotEmpty && (keyframes.last.time - time).abs() < .0001) {
-        keyframes[keyframes.length - 1] =
-            SpatialFocusKeyframe(time: time, camera: camera);
-        return;
-      }
-      keyframes.add(SpatialFocusKeyframe(time: time, camera: camera));
-    }
-
-    void addLocalRun(
-      double start,
-      double end, {
-      bool preserveStart = false,
-    }) {
-      if (end < start) return;
-      const spacing = 2.0;
-      var time = preserveStart ? start + spacing : start;
-      while (time < end - .001) {
-        add(
-          time,
-          cameraFor(
-            math.max(start, time - spacing),
-            math.min(end, time + spacing),
-          ),
-        );
-        time += spacing;
-      }
-      add(
-        end,
-        cameraFor(
-          math.max(start, end - spacing),
-          end,
+    for (var time = 0.0; time < data.duration; time += keyframeSeconds) {
+      keyframes.add(SpatialFocusKeyframe(
+        time: time,
+        camera: cameraFor(
+          math.max(0, time - windowRadiusSeconds),
+          math.min(data.duration, time + windowRadiusSeconds),
         ),
-      );
+      ));
     }
-
-    final transitionIn = math.max(0.0, mainStart - _transitionSeconds);
-    if (transitionIn > 0) {
-      addLocalRun(0, transitionIn);
-      add(
-        transitionIn,
-        cameraFor(
-          math.max(0, transitionIn - 2),
-          mainStart,
-        ),
-      );
-    }
-    add(mainStart, mainCamera);
-    add(mainEnd, mainCamera);
-    final transitionOut = math.min(
-      data.duration,
-      mainEnd + _transitionSeconds,
-    );
-    if (transitionOut > mainEnd) {
-      add(
-        transitionOut,
-        cameraFor(mainEnd, math.min(data.duration, transitionOut + 2)),
-      );
-    }
-    if (data.duration > transitionOut) {
-      addLocalRun(
-        transitionOut,
+    keyframes.add(SpatialFocusKeyframe(
+      time: data.duration,
+      camera: cameraFor(
+        math.max(0, data.duration - windowRadiusSeconds),
         data.duration,
-        preserveStart: true,
-      );
-    }
+      ),
+    ));
+    final teachingCamera = cameraFor(scene.coreStart, scene.coreEnd);
     return SpatialFocusPlan._(
       fps: data.fps,
       duration: data.duration,
-      teachingCamera: mainCamera,
+      teachingCamera: teachingCamera,
       keyframes: List.unmodifiable(keyframes),
       relevantPlayerIdsByFrame: List.unmodifiable(relevantByFrame),
     );
@@ -270,7 +218,7 @@ class SpatialFocusPlan {
       return RealMatchReplayCamera.lerp(
         previous.camera,
         next.camera,
-        (clamped - previous.time) / span,
+        _smoothStep((clamped - previous.time) / span),
       );
     }
     return keyframes.last.camera;
@@ -283,6 +231,8 @@ class SpatialFocusPlan {
     return _relevantPlayerIdsByFrame[frame];
   }
 }
+
+double _smoothStep(double value) => value * value * (3 - 2 * value);
 
 extension SpatialLibrarySceneFocus on SpatialLibraryScene {
   SpatialObservedRoles observedRoles(
@@ -300,7 +250,21 @@ extension SpatialLibrarySceneFocus on SpatialLibraryScene {
         : data.players[data.playerIndex(latestReached.playerId)].home;
     ({int index, double meters})? ballSide;
 
-    if (latestReached != null) {
+    if (data.sourcePossessionOwners.isNotEmpty) {
+      final frame = (time.clamp(0.0, data.duration) * data.fps)
+          .floor()
+          .clamp(0, data.sourcePossessionOwners.length - 1);
+      final ownerId = data.sourcePossessionOwners[frame];
+      if (ownerId != null) {
+        final index = data.playerIndex(ownerId);
+        final point = sample.players[index];
+        if (point != null) {
+          final meters = _pointDistance(point, sample.ball);
+          if (meters <= 3.5) ballSide = (index: index, meters: meters);
+        }
+      }
+    }
+    if (ballSide == null && latestReached != null) {
       final index = data.playerIndex(latestReached.playerId);
       final point = sample.players[index];
       if (point != null) {

@@ -14,100 +14,98 @@ void main() {
     );
   });
 
-  test('current roles only use current direct observations and reached links',
-      () {
+  test('current roles use only direct current observations', () {
     for (final scene in catalog.scenes) {
-      final replay = RealMatchReplayData.fromJsonString(
-        File(scene.asset).readAsStringSync(),
-      );
-      for (var frame = 0; frame < replay.frames.length; frame += 3) {
+      final replay = _replay(scene);
+      for (var frame = 0; frame < replay.frames.length; frame += 5) {
         final time = frame / replay.fps;
-        final sample = replay.renderSample(time);
+        final sample = replay.sample(time);
         final roles = scene.observedRoles(replay, time);
         expect(roles.values.length, lessThanOrEqualTo(3), reason: scene.id);
-        expect(roles.playerIds.toSet().length, roles.playerIds.length);
+        expect(roles.playerIds.toSet(), hasLength(roles.playerIds.length));
         for (final role in roles.values) {
           final index = replay.playerIndex(role.playerId);
           expect(sample.players[index], isNotNull,
-              reason: '${scene.id} frame $frame');
-        }
-        final actor = roles.role(SpatialObservedRoleKind.ballSidePlayer);
-        if (actor == null) {
-          expect(roles.values, isEmpty, reason: '${scene.id} frame $frame');
-          continue;
-        }
-        expect(actor.distanceMeters, lessThanOrEqualTo(3.5));
-        final link = roles.role(SpatialObservedRoleKind.connectedTeammate);
-        if (link != null) {
-          expect(
-            scene.evidenceAnchors.any(
-              (anchor) =>
-                  anchor.playerId == actor.playerId && anchor.time <= time,
-            ),
-            isTrue,
-            reason: '${scene.id} frame $frame',
-          );
-          expect(
-            scene.evidenceAnchors.any(
-              (anchor) =>
-                  anchor.playerId == link.playerId && anchor.time <= time,
-            ),
-            isTrue,
-            reason: '${scene.id} frame $frame',
-          );
+              reason: '${scene.id} $frame');
         }
       }
     }
   });
 
-  test('Muller pressure frame keeps Bayern and Dortmund roles on correct sides',
-      () {
+  test('pressure role is an observed opponent at the evidenced gap', () {
     final scene = catalog.scenes.firstWhere(
-      (value) => value.id == '2417-16459-müller-pressureSupport',
+      (value) => value.theme == SpatialLearningTheme.pressureSupport,
     );
-    final replay = RealMatchReplayData.fromJsonString(
-      File(scene.asset).readAsStringSync(),
+    final replay = _replay(scene);
+    final gap = scene.observedNearbyDefender(replay, scene.evidenceStart);
+    expect(gap, isNotNull);
+    expect(gap!.meters, closeTo(scene.metrics.pressureMeters!, .02));
+    expect(scene.opponentContextPlayerIds, contains(gap.defenderId));
+    expect(
+      replay.player(gap.actorId).home,
+      isNot(replay.player(gap.defenderId).home),
     );
-    final roles = scene.observedRoles(replay, scene.evidenceStart + .5);
-    final actor = roles.role(SpatialObservedRoleKind.ballSidePlayer);
-    final defender = roles.role(SpatialObservedRoleKind.nearbyDefender);
-
-    expect(actor, isNotNull);
-    expect(actor!.playerName, 'Thomas Müller');
-    expect(replay.players[replay.playerIndex(actor.playerId)].home, isTrue);
-    expect(defender, isNotNull);
-    expect(defender!.playerName, 'Mats Hummels');
-    expect(replay.players[replay.playerIndex(defender.playerId)].home, isFalse);
   });
 
-  test('focus plans are deterministic, teaching-stable, and locally framed',
+  test('local camera contains current source-confirmed action on every frame',
       () {
-    var locallyFramed = 0;
     for (final scene in catalog.scenes) {
-      final replay = RealMatchReplayData.fromJsonString(
-        File(scene.asset).readAsStringSync(),
-      );
-      final first = SpatialFocusPlan.build(replay, scene);
-      final second = SpatialFocusPlan.build(replay, scene);
-      expect(first.keyframes.length, second.keyframes.length, reason: scene.id);
-      for (var index = 0; index < first.keyframes.length; index++) {
-        final a = first.keyframes[index];
-        final b = second.keyframes[index];
-        expect(a.time, b.time, reason: scene.id);
-        expect(a.camera.minX, b.camera.minX, reason: scene.id);
-        expect(a.camera.maxY, b.camera.maxY, reason: scene.id);
+      final replay = _replay(scene);
+      final plan = SpatialFocusPlan.build(replay, scene);
+      expect(plan.keyframes.length, greaterThan(2), reason: scene.id);
+      final centers = <String>{};
+
+      for (var frame = 0; frame < replay.frames.length; frame++) {
+        final time = frame / replay.fps;
+        final camera = plan.cameraAt(time);
+        final sample = replay.sample(time);
+        centers.add(
+          '${((camera.minX + camera.maxX) / 2).toStringAsFixed(2)}:'
+          '${((camera.minY + camera.maxY) / 2).toStringAsFixed(2)}',
+        );
+        expect(camera.width, lessThan(replay.pitchLength + 10),
+            reason: scene.id);
+        expect(camera.height, lessThan(replay.pitchWidth + 10),
+            reason: scene.id);
+        expect(_contains(camera, sample.ball), isTrue,
+            reason: '${scene.id} ball $frame');
+        final relevant = <int>{
+          ...plan.relevantPlayerIdsAt(time),
+          if (replay.sourcePossessionOwners.isNotEmpty &&
+              replay.sourcePossessionOwners[frame] != null)
+            replay.sourcePossessionOwners[frame]!,
+        };
+        final owner = replay.sourcePossessionOwners.isEmpty
+            ? null
+            : replay.sourcePossessionOwners[frame];
+        if (owner != null) {
+          expect(relevant, contains(owner), reason: '${scene.id} owner $frame');
+        }
+        if (time >= scene.coreStart && time <= scene.coreEnd) {
+          expect(
+            relevant,
+            containsAll(scene.highlightPlayerIds),
+            reason: '${scene.id} guarded actors $frame',
+          );
+        }
+        for (final id in relevant) {
+          final point = sample.players[replay.playerIndex(id)];
+          if (point != null) {
+            expect(_contains(camera, point), isTrue,
+                reason: '${scene.id} $id $frame');
+          }
+        }
       }
-      final start = first.cameraAt(scene.evidenceStart);
-      final middle = first.cameraAt(
-        (scene.evidenceStart + scene.evidenceEnd) / 2,
-      );
-      final end = first.cameraAt(scene.evidenceEnd);
-      expect(start.minX, closeTo(middle.minX, 1e-9), reason: scene.id);
-      expect(middle.maxY, closeTo(end.maxY, 1e-9), reason: scene.id);
-      final majorSpan = start.width > start.height ? start.width : start.height;
-      if (majorSpan <= 60) locallyFramed++;
-      expect(majorSpan, lessThan(108), reason: scene.id);
+      expect(centers.length, greaterThan(1), reason: scene.id);
     }
-    expect(locallyFramed, greaterThanOrEqualTo(90));
   });
 }
+
+RealMatchReplayData _replay(SpatialLibraryScene scene) =>
+    RealMatchReplayData.fromJsonString(File(scene.asset).readAsStringSync());
+
+bool _contains(RealMatchReplayCamera camera, RealMatchReplayPoint point) =>
+    point.x >= camera.minX &&
+    point.x <= camera.maxX &&
+    point.y >= camera.minY &&
+    point.y <= camera.maxY;

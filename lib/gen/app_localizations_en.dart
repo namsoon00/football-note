@@ -23934,13 +23934,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spatialChooseScene => 'Choose a scene';
 
   @override
-  String get spatialFocusReplay => 'Replay the key moment slowly';
+  String get spatialFocusReplay =>
+      'Guided replay: setup, key moment, aftermath';
 
   @override
   String get spatialSourceInfo => 'Library and source information';
 
   @override
   String get spatialLegacyViewer => 'Legacy replay reference';
+
+  @override
+  String get spatialOfficialVideoViewer =>
+      'Official video passages · separate illustrative diagrams';
 
   @override
   String get spatialPreviousScene => 'Previous scene';
@@ -23953,7 +23958,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spatialFocusReplayActive =>
-      'Key moment at 0.5×, then source speed';
+      'Guided replay · setup 1× · key moment 0.5× · aftermath 1×';
 
   @override
   String get spatialDirectionUp => 'toward the top goal';
@@ -23987,11 +23992,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spatialInferredDisclosure =>
-      'The default focused view and minimap show only player positions observed at the current time. Missing players are not filled with reconstructed positions.';
+      'The field shows only player positions observed at the current time. Missing samples remain absent; no reconstructed or carried-forward position is displayed.';
 
   @override
   String get spatialSelectionDisclosure =>
-      'Scenes are reproducibly selected from observed possession-owner changes, continuous ball XY, visible evidence anchors, spatial thresholds, balance caps, and non-overlapping intervals.';
+      'Passages are reproducibly selected from 20–40 second source intervals with at least 4 seconds of setup and aftermath, continuous ball XY, guarded departure and arrival actors, visible core/support/opposition context, and visible source-labelled owners. For teaching clarity, support links move the recorded ball at least 4 m and each combination leg at least 5 m.';
 
   @override
   String get spatialThemeLateralSwitch => 'Lateral switch';
@@ -24039,7 +24044,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spatialObjectiveCombination =>
-      'BEFORE · Follow the spacing as the ball reaches three teammates.';
+      'BEFORE · Watch two consecutive connections, including any return.';
 
   @override
   String get spatialObjectiveTurnover =>
@@ -24051,7 +24056,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String spatialLibraryTitle(int count) {
-    return 'Famous-match library · $count scenes';
+    return '2D spatial library · $count passages';
   }
 
   @override
@@ -24194,6 +24199,126 @@ class AppLocalizationsEn extends AppLocalizations {
       'NEXT PLAY · Watch how the shape changes around the ball.';
 
   @override
+  String get spatialLateralEarlyContextCue =>
+      'CONTEXT · Watch the ball and the width of the visible shape.';
+
+  @override
+  String get spatialLateralContinuationCue =>
+      'CONTINUE · Watch the far-side shape as play moves on.';
+
+  @override
+  String spatialLateralContextCue(String first, String second) {
+    return 'CONTEXT · Compare $first with far-side $second.';
+  }
+
+  @override
+  String spatialLateralConnectionCue(String first, String second) {
+    return 'CONNECTION · $first → $second, moving the ball across.';
+  }
+
+  @override
+  String spatialLateralAftermathCue(String second) {
+    return 'AFTER · Watch the space around $second on the far side.';
+  }
+
+  @override
+  String spatialLateralReviewCue(String first, String second) {
+    return 'REPLAY · Compare $first and $second from the setup.';
+  }
+
+  @override
+  String get spatialPressureEarlyContextCue =>
+      'CONTEXT · Compare the spacing around the ball.';
+
+  @override
+  String get spatialPressureContinuationCue =>
+      'CONTINUE · Watch the support spacing around the ball.';
+
+  @override
+  String spatialPressureContextCue(
+      String first, String defender, String support) {
+    return 'CONTEXT · Compare $first–$defender with support from $support.';
+  }
+
+  @override
+  String spatialPressureConnectionCue(
+      String first, String second, String support) {
+    return 'CONNECTION · $first → $second; watch $support\'s spacing.';
+  }
+
+  @override
+  String spatialPressureAftermathCue(String second, String support) {
+    return 'AFTER · Compare $second with supporting $support.';
+  }
+
+  @override
+  String spatialPressureReviewCue(String first, String second, String support) {
+    return 'REPLAY · Compare $first, $second, and $support from the setup.';
+  }
+
+  @override
+  String get spatialCombinationEarlyContextCue =>
+      'CONTEXT · Follow the ball until the next link appears.';
+
+  @override
+  String get spatialCombinationContinuationCue =>
+      'CONTINUE · Compare the visible players around the ball.';
+
+  @override
+  String spatialCombinationContextCue(
+      String first, String second, String third) {
+    return 'CONTEXT · Follow $first, $second, then $third.';
+  }
+
+  @override
+  String spatialCombinationConnectionCue(
+      String first, String second, String third) {
+    return 'CONNECTION · $first → $second → $third.';
+  }
+
+  @override
+  String spatialCombinationAftermathCue(
+      String first, String second, String third) {
+    return 'AFTER · Following $first → $second, watch the space around $third.';
+  }
+
+  @override
+  String spatialCombinationReviewCue(
+      String first, String second, String third) {
+    return 'REPLAY · Watch again: $first → $second → $third.';
+  }
+
+  @override
+  String spatialCombinationReturnContextCue(String first, String second) {
+    return 'CONTEXT · Follow $first → $second, then watch $first\'s next position.';
+  }
+
+  @override
+  String spatialCombinationReturnConnectionCue(String first, String second) {
+    return 'RETURN · $first → $second → $first.';
+  }
+
+  @override
+  String spatialCombinationReturnAftermathCue(String first) {
+    return 'AFTER · Compare $first\'s position before and after the return.';
+  }
+
+  @override
+  String spatialCombinationReturnReviewCue(String first, String second) {
+    return 'REPLAY · Watch the return again: $first → $second → $first.';
+  }
+
+  @override
+  String spatialSceneIdentityRow(String home, String away, String clock) {
+    return '$home v $away · $clock';
+  }
+
+  @override
+  String spatialDurationBadge(String duration) {
+    return '$duration s';
+  }
+
+  @override
   String get spatialAliasLionelMessi => 'Messi';
 
   @override
@@ -24224,14 +24349,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String spatialSceneRow(String home, String away, String clock) {
-    return '$home v $away · $clock';
+  String spatialSceneRow(
+      String home, String away, String clock, String duration) {
+    return '$home v $away · $clock · $duration s';
   }
 
   @override
   String spatialCoverageSummary(
       int scenes, int matches, int players, int themes) {
-    return '$scenes distinct scenes across $matches matches, $players focal players, and $themes spatial themes.';
+    return '$scenes reviewed passages across $matches matches, $players focal players, and $themes source-supported themes.';
+  }
+
+  @override
+  String spatialDurationRange(String minimum, String maximum) {
+    return 'Recorded passage range: $minimum–$maximum seconds; ordinary 1× replay remains available.';
   }
 
   @override
@@ -24278,7 +24409,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String spatialSituationCombinationShort(String seconds) {
-    return 'Three-player connection · $seconds s';
+    return 'Two-link combination · $seconds s';
   }
 
   @override
@@ -24429,7 +24560,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get videoLearningLegacyLibraryDetail =>
-      '108 broadcast-visible XY scenes · no match video';
+      'Reviewed source-grounded 2D passages · no match video';
 
   @override
   String get videoLearningPersistenceFailed =>

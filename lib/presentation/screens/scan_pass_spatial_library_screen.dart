@@ -24,13 +24,27 @@ class _InjectedSpatialLibraryRepository
 }
 
 enum _SpatialMenuAction {
-  focusReplay,
+  guidedReplay,
   sourceInfo,
-  legacyViewer,
-  authoredSample,
+  officialVideo,
+}
+
+enum _SpatialCuePhase { context, connection, aftermath, continuation, review }
+
+class _SpatialPhaseCue {
+  final _SpatialCuePhase phase;
+  final String text;
+  final int? targetPlayerId;
+
+  const _SpatialPhaseCue({
+    required this.phase,
+    required this.text,
+    required this.targetPlayerId,
+  });
 }
 
 class ScanPassSpatialLibraryScreen extends StatefulWidget {
+  final OptionRepository? optionRepository;
   final MatchMomentSourceLauncher? sourceLauncher;
   final ScanPassSpatialCatalogLoader? catalogLoader;
   final ScanPassSpatialSceneLoader? sceneLoader;
@@ -38,6 +52,7 @@ class ScanPassSpatialLibraryScreen extends StatefulWidget {
 
   const ScanPassSpatialLibraryScreen({
     super.key,
+    this.optionRepository,
     this.sourceLauncher,
     this.catalogLoader,
     this.sceneLoader,
@@ -77,6 +92,10 @@ class _ScanPassSpatialLibraryScreenState
   int _playGeneration = 0;
   bool _playing = false;
   bool _focusedReplay = false;
+  String? _cuePlacementKey;
+  Rect? _cuePlacementRect;
+  String? _directionPlacementKey;
+  Rect? _directionPlacementRect;
 
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
   SpatialLibraryScene? get _scene => _catalog?.scenes[_sceneIndex];
@@ -88,6 +107,7 @@ class _ScanPassSpatialLibraryScreenState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    PaintingBinding.instance.systemFonts.addListener(_handleSystemFontsChanged);
     _controller = AnimationController(
       vsync: this,
       animationBehavior: AnimationBehavior.preserve,
@@ -203,12 +223,24 @@ class _ScanPassSpatialLibraryScreenState
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    PaintingBinding.instance.systemFonts
+        .removeListener(_handleSystemFontsChanged);
     _loadGeneration++;
     _playGeneration++;
     _controller
       ..removeListener(_tick)
       ..dispose();
     super.dispose();
+  }
+
+  void _handleSystemFontsChanged() {
+    if (!mounted) return;
+    setState(() {
+      _cuePlacementKey = null;
+      _cuePlacementRect = null;
+      _directionPlacementKey = null;
+      _directionPlacementRect = null;
+    });
   }
 
   void _stopPlayback({bool update = true}) {
@@ -259,7 +291,7 @@ class _ScanPassSpatialLibraryScreenState
     final scene = _scene;
     if (data == null || scene == null) return;
     _stopPlayback(update: false);
-    _controller.value = scene.evidenceStart / data.duration;
+    _controller.value = 0;
     final generation = ++_playGeneration;
     setState(() {
       _playing = true;
@@ -267,6 +299,16 @@ class _ScanPassSpatialLibraryScreenState
     });
     unawaited(() async {
       try {
+        await _controller
+            .animateTo(
+              scene.evidenceStart / data.duration,
+              duration: Duration(
+                milliseconds: (scene.evidenceStart * 1000).round(),
+              ),
+              curve: Curves.linear,
+            )
+            .orCancel;
+        if (!mounted || generation != _playGeneration) return;
         await _controller
             .animateTo(
               scene.evidenceEnd / data.duration,
@@ -278,7 +320,6 @@ class _ScanPassSpatialLibraryScreenState
             )
             .orCancel;
         if (!mounted || generation != _playGeneration) return;
-        setState(() => _focusedReplay = false);
         await _controller
             .animateTo(
               1,
@@ -293,7 +334,10 @@ class _ScanPassSpatialLibraryScreenState
         return;
       }
       if (!mounted || generation != _playGeneration) return;
-      setState(() => _playing = false);
+      setState(() {
+        _playing = false;
+        _focusedReplay = false;
+      });
     }());
   }
 
@@ -358,29 +402,21 @@ class _ScanPassSpatialLibraryScreenState
 
   Future<void> _handleMenu(_SpatialMenuAction action) async {
     switch (action) {
-      case _SpatialMenuAction.focusReplay:
+      case _SpatialMenuAction.guidedReplay:
         _playFocusReplay();
         break;
       case _SpatialMenuAction.sourceInfo:
         await _openInfo();
         break;
-      case _SpatialMenuAction.legacyViewer:
+      case _SpatialMenuAction.officialVideo:
+        final optionRepository = widget.optionRepository;
+        if (optionRepository == null) return;
         _stopPlayback();
         await Navigator.of(context).push<void>(
           MaterialPageRoute<void>(
-            builder: (context) => ScanPassRealMatchReplayScreen(
+            builder: (context) => ScanPassVideoLearningScreen(
+              optionRepository: optionRepository,
               sourceLauncher: widget.sourceLauncher,
-              authoredSampleLoader: widget.authoredSampleLoader,
-            ),
-          ),
-        );
-        break;
-      case _SpatialMenuAction.authoredSample:
-        _stopPlayback();
-        await Navigator.of(context).push<void>(
-          MaterialPageRoute<void>(
-            builder: (context) => ScanPassAuthoredTouchSampleScreen(
-              dataLoader: widget.authoredSampleLoader,
             ),
           ),
         );
@@ -501,73 +537,21 @@ class _ScanPassSpatialLibraryScreenState
   ) {
     return LayoutBuilder(builder: (context, constraints) {
       final size = Size(constraints.maxWidth, constraints.maxHeight);
-      final shortLandscape = !portrait && size.height < 250;
       final textScaler = MediaQuery.textScalerOf(context);
       final cue = _phaseCue(_l10n, scene, data, _time);
-      final cardWidth = shortLandscape
-          ? (size.width * .38).clamp(218.0, 260.0)
-          : math.min(size.width - 16, compact ? 360.0 : 520.0);
+      final cardWidth = math.min(
+        size.width - 16,
+        portrait
+            ? (size.width * .78).clamp(210.0, 360.0)
+            : (size.width * .38).clamp(240.0, 300.0),
+      );
       final cardHeight = _teachingCardHeight(
-        scene,
-        cue,
+        cue.text,
         cardWidth,
         compact: compact,
         textScaler: textScaler,
       );
-      final minimapWidth = shortLandscape
-          ? math.min(84.0, cardWidth * .38)
-          : (size.width * (compact ? .25 : .18)).clamp(84.0, 142.0);
-      final minimapHeight = minimapWidth * data.pitchWidth / data.pitchLength;
-      final Rect cardRect;
-      final Rect minimapRect;
-      final Rect directionRect;
-      final Rect actionRect;
-      if (shortLandscape) {
-        cardRect = Rect.fromLTWH(
-          8,
-          8,
-          cardWidth - 16,
-          math.min(cardHeight, size.height - minimapHeight - 18),
-        );
-        minimapRect = Rect.fromLTWH(
-          8,
-          size.height - minimapHeight - 8,
-          minimapWidth,
-          minimapHeight,
-        );
-        directionRect = Rect.fromLTRB(
-          minimapRect.right + 6,
-          minimapRect.top,
-          cardWidth - 8,
-          size.height - 8,
-        );
-        actionRect = Rect.fromLTRB(
-          cardWidth + 2,
-          2,
-          size.width - 2,
-          size.height - 2,
-        );
-      } else {
-        cardRect = Rect.fromLTWH(8, 8, cardWidth, cardHeight);
-        minimapRect = Rect.fromLTWH(
-          size.width - minimapWidth - 8,
-          size.height - minimapHeight - 8,
-          minimapWidth,
-          minimapHeight,
-        );
-        directionRect = Rect.fromLTRB(
-          8,
-          minimapRect.top,
-          minimapRect.left - 8,
-          size.height - 8,
-        );
-        actionRect = Rect.fromLTRB(
-          2,
-          cardRect.bottom + 7,
-          size.width - 2,
-          math.min(minimapRect.top - 7, size.height - 2),
-        );
-      }
+      final actionRect = Rect.fromLTRB(2, 2, size.width - 2, size.height - 2);
       final rotated = SpatialPitchViewport.bestRotation(
         focusPlan.teachingCamera,
         actionRect.size,
@@ -580,7 +564,144 @@ class _ScanPassSpatialLibraryScreenState
         fieldLength: data.pitchLength,
         fieldWidth: data.pitchWidth,
       );
+      final pitchOverlayBounds = Rect.fromPoints(
+        viewport.project(RealMatchReplayPoint(
+          -data.pitchLength / 2,
+          -data.pitchWidth / 2,
+        )),
+        viewport.project(RealMatchReplayPoint(
+          data.pitchLength / 2,
+          data.pitchWidth / 2,
+        )),
+      ).intersect(viewport.view);
       final roles = scene.observedRoles(data, _time);
+      final sample = data.renderSample(_time);
+      final cueActorPoint = cue.targetPlayerId == null
+          ? null
+          : sample.players[data.playerIndex(cue.targetPlayerId!)];
+      final cueTarget = viewport.project(cueActorPoint ?? sample.ball);
+      final sourceFrame = (_time.clamp(0.0, data.duration) * data.fps)
+          .floor()
+          .clamp(0, data.frames.length - 1);
+      final currentOwner = data.sourcePossessionOwners.isEmpty
+          ? null
+          : data.sourcePossessionOwners[sourceFrame];
+      final protectedPlayerIds = _requiredCueActorIds(
+        scene: scene,
+        data: data,
+        time: _time,
+        cue: cue,
+        roles: roles,
+        currentOwner: currentOwner,
+      );
+      final occupied = <Rect>[
+        Rect.fromCircle(center: viewport.project(sample.ball), radius: 14),
+        for (final playerId in protectedPlayerIds)
+          if (sample.players[data.playerIndex(playerId)] case final point?)
+            Rect.fromCircle(center: viewport.project(point), radius: 28),
+      ];
+      if (_time >= scene.evidenceStart) {
+        final traceEnd = math.min(_time, scene.evidenceEnd);
+        final tracePoints = <Offset>[
+          for (var frame = (scene.evidenceStart * data.fps).ceil();
+              frame <= (traceEnd * data.fps).floor();
+              frame++)
+            viewport.project(data.sample(frame / data.fps).ball),
+        ];
+        if (tracePoints.isNotEmpty) {
+          occupied.add(
+            Rect.fromLTRB(
+              tracePoints.map((point) => point.dx).reduce(math.min),
+              tracePoints.map((point) => point.dy).reduce(math.min),
+              tracePoints.map((point) => point.dx).reduce(math.max),
+              tracePoints.map((point) => point.dy).reduce(math.max),
+            ).inflate(10),
+          );
+        }
+      }
+      final attackingTeamName = scene.attackingHome ? scene.home : scene.away;
+      final directionLabel = _l10n.spatialDirectionCompact(attackingTeamName);
+      final directionTextPainter = TextPainter(
+        text: TextSpan(
+          text: directionLabel,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+        maxLines: 1,
+        locale: Localizations.localeOf(context),
+        textScaler: textScaler,
+        textDirection: Directionality.of(context),
+      )..layout(maxWidth: math.min(130, size.width * .36));
+      final directionSize = Size(
+        (directionTextPainter.width + 36).clamp(
+          68.0,
+          math.min(168.0, size.width * .48),
+        ),
+        compact ? 28 : 31,
+      );
+      final pitchCanFitOverlays = pitchOverlayBounds.width >= cardWidth + 14 &&
+          pitchOverlayBounds.height >= cardHeight + 14 &&
+          (pitchOverlayBounds.height >=
+                  cardHeight + directionSize.height + 35 ||
+              pitchOverlayBounds.width >= cardWidth + directionSize.width + 35);
+      // Prefer the painted pitch itself. On a very short landscape surface the
+      // uniformly scaled pitch can be narrower than the minimum readable cue;
+      // in that case the surrounding pitch viewport is the only honest place
+      // to keep the source actors and full, untruncated cue visible together.
+      final initialOverlayBounds =
+          pitchCanFitOverlays ? pitchOverlayBounds : viewport.view;
+      final placementKey = '${scene.id}:${cue.phase.name}:'
+          '${size.width.toStringAsFixed(1)}x${size.height.toStringAsFixed(1)}:'
+          '${cardWidth.toStringAsFixed(1)}x${cardHeight.toStringAsFixed(1)}:'
+          '${cue.text.hashCode}';
+      final placementOccupied = placementKey == _cuePlacementKey
+          ? occupied
+          : <Rect>[
+              ...occupied,
+              ..._phaseOccupiedRects(
+                data: data,
+                scene: scene,
+                focusPlan: focusPlan,
+                phase: cue.phase,
+                size: size,
+                actionRect: actionRect,
+                rotated: rotated,
+              ),
+            ];
+      var cardRect = SpatialCuePlacement.place(
+        bounds: initialOverlayBounds,
+        fallbackBounds: viewport.view,
+        size: Size(cardWidth, cardHeight),
+        target: cueTarget,
+        occupied: placementOccupied,
+        preferred: placementKey == _cuePlacementKey ? _cuePlacementRect : null,
+      );
+      if (occupied.any(cardRect.overlaps)) {
+        cardRect = SpatialCuePlacement.place(
+          bounds: initialOverlayBounds,
+          fallbackBounds: viewport.view,
+          size: Size(cardWidth, cardHeight),
+          target: cueTarget,
+          occupied: occupied,
+        );
+      }
+      _cuePlacementKey = placementKey;
+      _cuePlacementRect = cardRect;
+      occupied.add(cardRect.inflate(4));
+      final directionPlacementKey = '${scene.id}:$rotated:'
+          '${size.width.toStringAsFixed(1)}x${size.height.toStringAsFixed(1)}:'
+          '${directionSize.width.toStringAsFixed(1)}:$pitchCanFitOverlays';
+      final directionRect = SpatialCuePlacement.placeBadge(
+        bounds: initialOverlayBounds,
+        size: directionSize,
+        occupied: occupied,
+        preferred: directionPlacementKey == _directionPlacementKey
+            ? _directionPlacementRect
+            : null,
+      );
+      _directionPlacementKey = directionPlacementKey;
+      _directionPlacementRect = directionRect;
       final roleLabels = <SpatialObservedRoleKind, String>{
         SpatialObservedRoleKind.connectedTeammate:
             _l10n.spatialRoleRecordedLink,
@@ -613,11 +734,12 @@ class _ScanPassSpatialLibraryScreenState
                     textScaler: textScaler,
                     roles: roles,
                     roleLabels: roleLabels,
-                    reservedOverlayRects: [
-                      cardRect,
-                      minimapRect,
-                      directionRect,
-                    ],
+                    cuePlayerId:
+                        cueActorPoint == null ? null : cue.targetPlayerId,
+                    requiredPlayerIds: protectedPlayerIds,
+                    cueRect: cardRect,
+                    cueTarget: cueTarget,
+                    reservedOverlayRects: [cardRect, directionRect],
                   ),
                 ),
               ),
@@ -625,35 +747,14 @@ class _ScanPassSpatialLibraryScreenState
           ),
           Positioned.fromRect(
             rect: cardRect,
-            child: _buildTeachingCard(scene, cue, compact),
-          ),
-          Positioned.fromRect(
-            rect: minimapRect,
-            child: Semantics(
-              image: true,
-              label: _l10n.spatialMinimapSemantics,
-              child: ExcludeSemantics(
-                child: CustomPaint(
-                  key: const ValueKey<String>('spatial-minimap'),
-                  painter: SpatialLibraryMinimapPainter(
-                    data: data,
-                    time: _time,
-                    viewportCamera: viewport.camera,
-                    portrait: rotated,
-                  ),
-                ),
-              ),
-            ),
+            child: _buildTeachingCard(cue.text, compact),
           ),
           Positioned.fromRect(
             rect: directionRect,
-            child: Align(
-              alignment: AlignmentDirectional.bottomStart,
-              child: _buildDirectionChip(
-                scene,
-                rotated,
-                compactLabel: shortLandscape,
-              ),
+            child: _buildDirectionBadge(
+              scene,
+              rotated: rotated,
+              compact: compact,
             ),
           ),
           if (_requestedSceneIndex != null)
@@ -666,6 +767,66 @@ class _ScanPassSpatialLibraryScreenState
         ]),
       );
     });
+  }
+
+  List<Rect> _phaseOccupiedRects({
+    required RealMatchReplayData data,
+    required SpatialLibraryScene scene,
+    required SpatialFocusPlan focusPlan,
+    required _SpatialCuePhase phase,
+    required Size size,
+    required Rect actionRect,
+    required bool rotated,
+  }) {
+    final (start, end) = switch (phase) {
+      _SpatialCuePhase.context => (0.0, scene.evidenceStart),
+      _SpatialCuePhase.connection => (scene.evidenceStart, scene.evidenceEnd),
+      _SpatialCuePhase.aftermath => (
+          scene.evidenceEnd,
+          math.min(data.duration, scene.evidenceEnd + 1.6),
+        ),
+      _SpatialCuePhase.continuation => (
+          math.min(data.duration, scene.evidenceEnd + 1.6),
+          math.max(0.0, data.duration - 1 / data.fps),
+        ),
+      _SpatialCuePhase.review => (
+          math.max(0.0, data.duration - 1 / data.fps),
+          data.duration,
+        ),
+    };
+    final firstFrame = (start * data.fps).floor();
+    final lastFrame = (end * data.fps).ceil().clamp(0, data.frames.length - 1);
+    final frameStep = math.max(1, (data.fps / 5).round());
+    final values = <Rect>[];
+    for (var frame = firstFrame; frame <= lastFrame; frame += frameStep) {
+      final time = frame / data.fps;
+      final sample = data.renderSample(time);
+      final viewport = SpatialPitchViewport.fit(
+        focusPlan.cameraAt(time),
+        size,
+        portrait: rotated,
+        viewRect: actionRect,
+        fieldLength: data.pitchLength,
+        fieldWidth: data.pitchWidth,
+      );
+      values.add(
+        Rect.fromCircle(center: viewport.project(sample.ball), radius: 14),
+      );
+      final ids = <int>{...focusPlan.relevantPlayerIdsAt(time)};
+      if (data.sourcePossessionOwners.isNotEmpty) {
+        final owner = data.sourcePossessionOwners[frame];
+        if (owner != null) ids.add(owner);
+      }
+      for (final id in ids) {
+        final point = sample.players[data.playerIndex(id)];
+        if (point != null) {
+          values.add(
+            Rect.fromCircle(center: viewport.project(point), radius: 28),
+          );
+        }
+      }
+    }
+    return values;
   }
 
   Widget _buildTopBar(SpatialLibraryScene scene) {
@@ -718,41 +879,78 @@ class _ScanPassSpatialLibraryScreenState
     );
   }
 
+  Widget _buildDirectionBadge(
+    SpatialLibraryScene scene, {
+    required bool rotated,
+    required bool compact,
+  }) {
+    final attackingTeamName = scene.attackingHome ? scene.home : scene.away;
+    final positive = scene.attackDirection > 0;
+    final icon = rotated
+        ? (positive ? Icons.arrow_upward : Icons.arrow_downward)
+        : (positive ? Icons.arrow_forward : Icons.arrow_back);
+    final direction = rotated
+        ? (positive ? _l10n.spatialDirectionUp : _l10n.spatialDirectionDown)
+        : (positive ? _l10n.spatialDirectionRight : _l10n.spatialDirectionLeft);
+    return Semantics(
+      label: _l10n.spatialAttackDirection(attackingTeamName, direction),
+      child: IgnorePointer(
+        child: DecoratedBox(
+          key: const ValueKey<String>('spatial-attack-direction'),
+          decoration: BoxDecoration(
+            color: const Color(0xC710291F),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: Colors.white30),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 7),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(icon, size: compact ? 14 : 16, color: Colors.white),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  _l10n.spatialDirectionCompact(attackingTeamName),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
   double _teachingCardHeight(
-    SpatialLibraryScene scene,
     String cue,
     double width, {
     required bool compact,
     required TextScaler textScaler,
   }) {
     final horizontal = compact ? 8.0 : 10.0;
-    final vertical = compact ? 5.0 : 7.0;
+    final vertical = compact ? 4.0 : 7.0;
     double heightFor(String text, TextStyle? style, int maxLines) {
       final painter = TextPainter(
         text: TextSpan(text: text, style: style),
         maxLines: maxLines,
         ellipsis: '…',
+        locale: Localizations.localeOf(context),
         textDirection: Directionality.of(context),
         textScaler: textScaler,
       )..layout(maxWidth: math.max(1, width - horizontal * 2));
       return painter.height;
     }
 
-    final themeStyle = Theme.of(context).textTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.w900,
-        );
-    final cueStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
-          height: 1.15,
-          fontWeight: FontWeight.w600,
-        );
+    final cueStyle = _teachingCueStyle();
     // Keep the pitch geometry steady when the brief teaching cue changes phase.
-    return vertical * 2 +
-        heightFor(_themeTitle(_l10n, scene.theme), themeStyle, 1) +
-        heightFor(List.filled(3, cue).join('\n'), cueStyle, 3);
+    return vertical * 2 + heightFor(cue, cueStyle, 6);
   }
 
   Widget _buildTeachingCard(
-    SpatialLibraryScene scene,
     String cue,
     bool compact,
   ) {
@@ -770,32 +968,18 @@ class _ScanPassSpatialLibraryScreenState
         child: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: compact ? 8 : 10,
-            vertical: compact ? 5 : 7,
+            vertical: compact ? 4 : 7,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _themeTitle(_l10n, scene.theme),
-                key: const ValueKey<String>('spatial-theme-line'),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: const Color(0xFFE0F59A),
-                      fontWeight: FontWeight.w900,
-                    ),
-              ),
-              Text(
                 cue,
                 key: const ValueKey<String>('spatial-cue-line'),
-                maxLines: 3,
+                maxLines: 6,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white,
-                      height: 1.15,
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: _teachingCueStyle(),
               ),
             ],
           ),
@@ -804,64 +988,12 @@ class _ScanPassSpatialLibraryScreenState
     );
   }
 
-  Widget _buildDirectionChip(
-    SpatialLibraryScene scene,
-    bool portrait, {
-    required bool compactLabel,
-  }) {
-    final label = Text(
-      _focusedReplay
-          ? _l10n.spatialFocusReplayActive
-          : compactLabel
-              ? _l10n.spatialDirectionCompact(scene.attackingTeam)
-              : _l10n.spatialDirectionTeam(scene.attackingTeam),
-      key: const ValueKey<String>('spatial-direction'),
-      maxLines: compactLabel ? 1 : 2,
-      overflow: compactLabel ? TextOverflow.visible : TextOverflow.ellipsis,
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+  TextStyle? _teachingCueStyle() =>
+      Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Colors.white,
-            fontSize: compactLabel
-                ? 9
-                : MediaQuery.sizeOf(context).width <= 380
-                    ? 10
-                    : null,
-            fontWeight: FontWeight.w700,
-          ),
-    );
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xD910291F),
-        borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: Colors.white30),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(
-            portrait
-                ? (scene.attackDirection > 0
-                    ? Icons.arrow_upward
-                    : Icons.arrow_downward)
-                : (scene.attackDirection > 0
-                    ? Icons.arrow_forward
-                    : Icons.arrow_back),
-            size: 15,
-            color: const Color(0xFFE0F59A),
-          ),
-          const SizedBox(width: 4),
-          Flexible(
-            child: compactLabel
-                ? FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: AlignmentDirectional.centerStart,
-                    child: label,
-                  )
-                : label,
-          ),
-        ]),
-      ),
-    );
-  }
+            height: 1.15,
+            fontWeight: FontWeight.w600,
+          );
 
   Widget _buildMoreMenu() => AppBarActionMenuButton<_SpatialMenuAction>(
         key: const ValueKey<String>('spatial-more'),
@@ -873,7 +1005,7 @@ class _ScanPassSpatialLibraryScreenState
         itemBuilder: (context) => [
           PopupMenuItem(
             key: const ValueKey<String>('spatial-focus-replay'),
-            value: _SpatialMenuAction.focusReplay,
+            value: _SpatialMenuAction.guidedReplay,
             child: Text(_l10n.spatialFocusReplay),
           ),
           PopupMenuItem(
@@ -881,16 +1013,12 @@ class _ScanPassSpatialLibraryScreenState
             value: _SpatialMenuAction.sourceInfo,
             child: Text(_l10n.spatialSourceInfo),
           ),
-          PopupMenuItem(
-            key: const ValueKey<String>('spatial-legacy-viewer'),
-            value: _SpatialMenuAction.legacyViewer,
-            child: Text(_l10n.spatialLegacyViewer),
-          ),
-          PopupMenuItem(
-            key: const ValueKey<String>('spatial-authored-sample'),
-            value: _SpatialMenuAction.authoredSample,
-            child: Text(_l10n.authoredTouchMenuEntry),
-          ),
+          if (widget.optionRepository != null)
+            PopupMenuItem(
+              key: const ValueKey<String>('spatial-official-video'),
+              value: _SpatialMenuAction.officialVideo,
+              child: Text(_l10n.spatialOfficialVideoViewer),
+            ),
         ],
       );
 
@@ -1087,6 +1215,8 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
           ),
         )
         .toList(growable: false);
+    final themes = widget.catalog.themes.toList(growable: false)
+      ..sort((a, b) => a.index.compareTo(b.index));
     return FractionallySizedBox(
       heightFactor: .92,
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -1135,7 +1265,7 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                 label: Text(l10n.realMatchReplayAllCategories),
               ),
             ),
-            for (final theme in SpatialLearningTheme.values)
+            for (final theme in themes)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 3),
                 child: ChoiceChip(
@@ -1169,13 +1299,42 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Text(
-                        l10n.spatialSceneRow(
+                        l10n.spatialSceneIdentityRow(
                           scene.home,
                           scene.away,
                           _catalogClock(scene.startClock),
                         ),
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: Container(
+                        key: ValueKey<String>(
+                          'spatial-duration-${scene.id}',
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          l10n.spatialDurationBadge(
+                            scene.duration.toStringAsFixed(1),
+                          ),
+                          key: ValueKey<String>(
+                            'spatial-duration-text-${scene.id}',
+                          ),
+                          maxLines: 1,
+                          softWrap: false,
+                          style:
+                              Theme.of(context).textTheme.labelMedium?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                        ),
                       ),
                     );
                   },
@@ -1233,6 +1392,19 @@ class _SpatialSourceInfoSheet extends StatelessWidget {
               catalog.themes.length,
             ),
           ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.spatialDurationRange(
+              catalog.scenes
+                  .map((value) => value.duration)
+                  .reduce(math.min)
+                  .toStringAsFixed(1),
+              catalog.scenes
+                  .map((value) => value.duration)
+                  .reduce(math.max)
+                  .toStringAsFixed(1),
+            ),
+          ),
           const SizedBox(height: 12),
           Text(l10n.spatialMitAttribution),
           const SizedBox(height: 8),
@@ -1269,6 +1441,213 @@ class _SpatialSourceInfoSheet extends StatelessWidget {
         ]),
       ),
     );
+  }
+}
+
+class SpatialCuePlacement {
+  const SpatialCuePlacement._();
+
+  static Rect placeBadge({
+    required Rect bounds,
+    required Size size,
+    required List<Rect> occupied,
+    Rect? preferred,
+  }) {
+    final safe = bounds.deflate(7);
+    final width = math.min(size.width, safe.width);
+    final height = math.min(size.height, safe.height);
+    bool fits(Rect rect) =>
+        (rect.width - width).abs() < .1 &&
+        (rect.height - height).abs() < .1 &&
+        rect.left >= safe.left &&
+        rect.top >= safe.top &&
+        rect.right <= safe.right &&
+        rect.bottom <= safe.bottom;
+    bool clear(Rect rect) => !occupied.any(rect.overlaps);
+    if (preferred != null && fits(preferred) && clear(preferred)) {
+      return preferred;
+    }
+    final candidates = <Rect>[
+      Rect.fromLTWH(safe.left, safe.top, width, height),
+      Rect.fromLTWH(safe.right - width, safe.top, width, height),
+      Rect.fromLTWH(safe.left, safe.bottom - height, width, height),
+      Rect.fromLTWH(
+        safe.right - width,
+        safe.bottom - height,
+        width,
+        height,
+      ),
+      for (var row = 0; row <= 6; row++)
+        for (final left in <double>[safe.left, safe.right - width])
+          Rect.fromLTWH(
+            left,
+            safe.top + (safe.height - height) * row / 6,
+            width,
+            height,
+          ),
+    ];
+    for (final candidate in candidates) {
+      if (clear(candidate)) return candidate;
+    }
+    candidates.sort((a, b) => occupied
+        .fold<double>(
+          0,
+          (value, rect) => value + _intersectionArea(a.intersect(rect)),
+        )
+        .compareTo(occupied.fold<double>(
+          0,
+          (value, rect) => value + _intersectionArea(b.intersect(rect)),
+        )));
+    return candidates.first;
+  }
+
+  static Rect place({
+    required Rect bounds,
+    Rect? fallbackBounds,
+    required Size size,
+    required Offset target,
+    required List<Rect> occupied,
+    Rect? preferred,
+  }) {
+    // The card has its own rounded border and may use the field edge. Keeping
+    // an extra inset here wastes the only actor-clear strip on short
+    // landscape pitches and forces an avoidable overlap.
+    final fallbackSafe = (fallbackBounds ?? bounds).deflate(.5);
+    final width = math.min(size.width, fallbackSafe.width);
+    final height = math.min(size.height, fallbackSafe.height);
+
+    bool fits(Rect candidate, Rect safe) {
+      return (candidate.width - width).abs() < .1 &&
+          (candidate.height - height).abs() < .1 &&
+          candidate.left >= safe.left &&
+          candidate.top >= safe.top &&
+          candidate.right <= safe.right &&
+          candidate.bottom <= safe.bottom;
+    }
+
+    if (preferred != null &&
+        fits(preferred, fallbackSafe) &&
+        !occupied.any(preferred.overlaps)) {
+      return preferred;
+    }
+
+    List<Rect> candidatesIn(Rect safe) {
+      if (safe.width + .1 < width || safe.height + .1 < height) return const [];
+      final origins = <Offset>[
+        target + Offset(24, -height - 24),
+        target + Offset(-width - 24, -height - 24),
+        target + const Offset(24, 24),
+        target + Offset(-width - 24, 24),
+        Offset(safe.left, safe.top),
+        Offset(safe.right - width, safe.top),
+        Offset(safe.left, safe.bottom - height),
+        Offset(safe.right - width, safe.bottom - height),
+        Offset(safe.center.dx - width / 2, safe.top),
+        Offset(safe.center.dx - width / 2, safe.bottom - height),
+        for (var row = 0; row <= 16; row++)
+          for (var column = 0; column <= 8; column++)
+            Offset(
+              safe.left + (safe.width - width) * column / 8,
+              safe.top + (safe.height - height) * row / 16,
+            ),
+      ];
+      Rect clamp(Offset origin) => Rect.fromLTWH(
+            origin.dx.clamp(safe.left, safe.right - width),
+            origin.dy.clamp(safe.top, safe.bottom - height),
+            width,
+            height,
+          );
+      final values = <Rect>[];
+      for (final origin in origins) {
+        final value = clamp(origin);
+        if (!values.contains(value)) values.add(value);
+      }
+      return values;
+    }
+
+    final primary = candidatesIn(bounds.deflate(.5));
+    final fallback = candidatesIn(fallbackSafe);
+    final candidateGroups = <List<Rect>>[
+      primary,
+      if (fallbackBounds != null && fallbackSafe != bounds.deflate(.5))
+        fallback,
+    ];
+    for (final candidates in candidateGroups) {
+      for (final candidate in candidates) {
+        if (isClear(rect: candidate, target: target, occupied: occupied)) {
+          return candidate;
+        }
+      }
+      final labelClear = candidates
+          .where((candidate) => !occupied.any(candidate.overlaps))
+          .toList(growable: false);
+      if (labelClear.isNotEmpty) {
+        return _minByDistance(
+          labelClear,
+          preferred?.center ?? target,
+        );
+      }
+    }
+    final leastOverlap = fallback.isNotEmpty ? fallback : primary;
+    leastOverlap.sort((a, b) {
+      double score(Rect candidate) =>
+          occupied.fold<double>(
+            0,
+            (value, rect) =>
+                value + _intersectionArea(candidate.intersect(rect)),
+          ) +
+          (candidate.center - target).distance * .01;
+      return score(a).compareTo(score(b));
+    });
+    return leastOverlap.first;
+  }
+
+  static Rect _minByDistance(List<Rect> values, Offset target) {
+    final sorted = List<Rect>.of(values)
+      ..sort((a, b) => (a.center - target)
+          .distanceSquared
+          .compareTo((b.center - target).distanceSquared));
+    return sorted.first;
+  }
+
+  static bool isClear({
+    required Rect rect,
+    required Offset target,
+    required List<Rect> occupied,
+  }) {
+    if (occupied.any(rect.overlaps)) return false;
+    return isConnectorClear(
+      rect: rect,
+      target: target,
+      occupied: occupied,
+    );
+  }
+
+  static bool isConnectorClear({
+    required Rect rect,
+    required Offset target,
+    required List<Rect> occupied,
+  }) {
+    final start = connectorStart(rect, target);
+    return occupied
+        .where((value) => !value.contains(target))
+        .every((value) => !_segmentIntersectsRect(start, target, value));
+  }
+
+  static Offset connectorStart(Rect rect, Offset target) => Offset(
+        target.dx.clamp(rect.left, rect.right),
+        target.dy.clamp(rect.top, rect.bottom),
+      );
+
+  static double _intersectionArea(Rect rect) =>
+      rect.isEmpty ? 0 : rect.width * rect.height;
+
+  static bool _segmentIntersectsRect(Offset a, Offset b, Rect rect) {
+    final steps = math.max(1, ((b - a).distance / 4).ceil());
+    for (var index = 0; index <= steps; index++) {
+      if (rect.contains(Offset.lerp(a, b, index / steps)!)) return true;
+    }
+    return false;
   }
 }
 
@@ -1407,6 +1786,10 @@ class SpatialLibraryPitchPainter extends CustomPainter {
   final TextScaler textScaler;
   final SpatialObservedRoles roles;
   final Map<SpatialObservedRoleKind, String> roleLabels;
+  final int? cuePlayerId;
+  final Set<int> requiredPlayerIds;
+  final Rect cueRect;
+  final Offset cueTarget;
   final List<Rect> reservedOverlayRects;
 
   const SpatialLibraryPitchPainter({
@@ -1421,6 +1804,10 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     required this.textScaler,
     required this.roles,
     required this.roleLabels,
+    this.cuePlayerId,
+    this.requiredPlayerIds = const <int>{},
+    this.cueRect = Rect.zero,
+    this.cueTarget = Offset.zero,
     this.reservedOverlayRects = const [],
   });
 
@@ -1467,6 +1854,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     );
     _drawPitch(canvas, view);
     final sample = data.renderSample(time);
+    _drawCueConnector(canvas);
     _drawEvidence(canvas, view);
     _drawRoleGap(canvas, view);
     _drawTails(canvas, view);
@@ -1488,6 +1876,37 @@ class SpatialLibraryPitchPainter extends CustomPainter {
   }
 
   Rect pitchBounds(Size size) => _pitchRect(viewport.view);
+
+  void _drawCueConnector(Canvas canvas) {
+    final connectorObstacles = <Rect>[
+      ballSafetyRect,
+      ...keyPlayerSafetyRects,
+    ].where((rect) => !rect.contains(cueTarget)).toList(growable: false);
+    if (!SpatialCuePlacement.isConnectorClear(
+      rect: cueRect,
+      target: cueTarget,
+      occupied: connectorObstacles,
+    )) {
+      return;
+    }
+    final start = SpatialCuePlacement.connectorStart(cueRect, cueTarget);
+    canvas.drawLine(
+      start,
+      cueTarget,
+      Paint()
+        ..color = const Color(0xB3E0F59A)
+        ..strokeWidth = 1.5
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawCircle(
+      cueTarget,
+      7.5,
+      Paint()
+        ..color = const Color(0x99E0F59A)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+  }
 
   Offset _project(Rect view, RealMatchReplayPoint point) {
     return viewport.project(point);
@@ -1709,96 +2128,60 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       final player = data.players[index];
       final center = _project(pitch, point);
       final role = roleById[player.id];
-      final involved = role != null;
+      final cueActor = player.id == cuePlayerId;
+      final involved = role != null || cueActor;
       final marker = involved ? 16.2 : 13.2;
+      final badgeCenter = center - Offset(0, marker * .38);
       final jersey = _parseReplayColor(
         player.home ? data.scene.homeColor : data.scene.awayColor,
       );
-      final verifiedKit = player.keeper
-          ? null
-          : _verifiedLegacyKit(
-              data.match.date,
-              player.home ? data.match.home : data.match.away,
-            );
-      final numberColor = verifiedKit == null
-          ? _parseReplayColor(
-              player.home
-                  ? data.scene.homeNumberColor
-                  : data.scene.awayNumberColor,
-            )
-          : _parseVideoColor(verifiedKit.number);
+      final numberColor = _parseReplayColor(
+        player.home ? data.scene.homeNumberColor : data.scene.awayNumberColor,
+      );
+      canvas.drawLine(
+        badgeCenter,
+        center,
+        Paint()
+          ..color = Colors.black.withValues(alpha: .72)
+          ..strokeWidth = 2,
+      );
+      canvas.drawCircle(
+        center,
+        3.2,
+        Paint()..color = const Color(0xFFF4F7E8),
+      );
+      canvas.drawCircle(
+        center,
+        3.2,
+        Paint()
+          ..color = Colors.black87
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = .9,
+      );
       if (involved) {
         canvas.drawCircle(
-          center,
+          badgeCenter,
           marker + 3.2,
           Paint()
-            ..color = _roleColor(role.kind)
+            ..color = cueActor ? _focus : _roleColor(role!.kind)
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2.4,
         );
       }
-      final shirt = Path()
-        ..moveTo(center.dx - marker * .45, center.dy - marker * .72)
-        ..lineTo(center.dx - marker * 1.02, center.dy - marker * .25)
-        ..lineTo(center.dx - marker * .72, center.dy + marker * .18)
-        ..lineTo(center.dx - marker * .5, center.dy + marker * .02)
-        ..lineTo(center.dx - marker * .42, center.dy + marker * .82)
-        ..lineTo(center.dx + marker * .42, center.dy + marker * .82)
-        ..lineTo(center.dx + marker * .5, center.dy + marker * .02)
-        ..lineTo(center.dx + marker * .72, center.dy + marker * .18)
-        ..lineTo(center.dx + marker * 1.02, center.dy - marker * .25)
-        ..lineTo(center.dx + marker * .45, center.dy - marker * .72)
-        ..close();
-      if (verifiedKit == null) {
-        canvas.drawPath(
-          shirt,
-          Paint()
-            ..color = involved ? jersey : jersey.withValues(alpha: .82)
-            ..style = PaintingStyle.fill,
-        );
-      } else {
-        canvas.save();
-        canvas.clipPath(shirt);
-        _paintKitPattern(canvas, shirt.getBounds(), verifiedKit);
-        if (!involved) {
-          canvas.drawRect(
-            shirt.getBounds(),
-            Paint()..color = Colors.black.withValues(alpha: .12),
-          );
-        }
-        canvas.restore();
-      }
-      canvas.drawPath(
-        shirt,
+      canvas.drawCircle(
+        badgeCenter,
+        marker,
+        Paint()..color = involved ? jersey : jersey.withValues(alpha: .84),
+      );
+      canvas.drawCircle(
+        badgeCenter,
+        marker,
         Paint()
           ..color = Colors.black.withValues(alpha: .55)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = .8,
+          ..strokeWidth = 1,
       );
       final number = '${player.number ?? ''}';
-      if (verifiedKit != null && number.isNotEmpty) {
-        final outlineColor =
-            numberColor.computeLuminance() > .5 ? Colors.black87 : Colors.white;
-        final outline = TextPainter(
-          text: TextSpan(
-            text: number,
-            style: TextStyle(
-              foreground: Paint()
-                ..color = outlineColor
-                ..style = PaintingStyle.stroke
-                ..strokeWidth = 2,
-              fontSize: marker * 1.02,
-              fontWeight: FontWeight.w900,
-              height: 1,
-            ),
-          ),
-          textDirection: textDirection,
-        )..layout();
-        outline.paint(
-          canvas,
-          center - Offset(outline.width / 2, outline.height / 2),
-        );
-      }
       final painter = TextPainter(
         text: TextSpan(
           text: number,
@@ -1812,7 +2195,9 @@ class SpatialLibraryPitchPainter extends CustomPainter {
         textDirection: textDirection,
       )..layout();
       painter.paint(
-          canvas, center - Offset(painter.width / 2, painter.height / 2));
+        canvas,
+        badgeCenter - Offset(painter.width / 2, painter.height / 2),
+      );
     }
   }
 
@@ -1893,11 +2278,13 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       );
 
   List<Rect> get keyPlayerSafetyRects => [
-        for (final role in roles.values)
-          Rect.fromCircle(
-            center: _project(viewport.view, role.point),
-            radius: 25,
-          ),
+        for (final playerId in requiredPlayerIds)
+          if (data.renderSample(time).players[data.playerIndex(playerId)]
+              case final point?)
+            Rect.fromCircle(
+              center: _project(viewport.view, point),
+              radius: 25,
+            ),
       ];
 
   List<
@@ -2028,6 +2415,9 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       oldDelegate.portrait != portrait ||
       oldDelegate.textDirection != textDirection ||
       oldDelegate.viewport.camera != viewport.camera ||
+      oldDelegate.cuePlayerId != cuePlayerId ||
+      oldDelegate.cueRect != cueRect ||
+      oldDelegate.cueTarget != cueTarget ||
       oldDelegate.textScaler != textScaler;
 }
 
@@ -2223,7 +2613,219 @@ String _situation(AppLocalizations l10n, SpatialLibraryScene scene) {
   };
 }
 
-String _phaseCue(
+Set<int> _requiredCueActorIds({
+  required SpatialLibraryScene scene,
+  required RealMatchReplayData data,
+  required double time,
+  required _SpatialPhaseCue cue,
+  required SpatialObservedRoles roles,
+  required int? currentOwner,
+}) {
+  final ids = <int>{
+    ...roles.playerIds,
+    if (cue.targetPlayerId != null) cue.targetPlayerId!,
+    if (currentOwner != null) currentOwner,
+  };
+  if (time >= scene.coreStart - .0001 && time <= scene.coreEnd + .0001) {
+    ids.addAll(scene.highlightPlayerIds);
+  }
+  // Before the recorded connection completes, every player explicitly named
+  // by the current cue must remain readable even when that player is not the
+  // owner or the cue target at this exact source frame.
+  if (time < scene.evidenceEnd) {
+    for (final player in data.players) {
+      if (cue.text.contains(_cuePlayerLabel(data, player.id))) {
+        ids.add(player.id);
+      }
+    }
+  }
+  // The pressure-support aftermath explicitly compares the receiver with the
+  // observed support. Keep both clear for the complete comparison window.
+  if (scene.theme == SpatialLearningTheme.pressureSupport &&
+      time >= scene.evidenceEnd &&
+      time <= scene.evidenceEnd + 1.6) {
+    ids
+      ..add(scene.evidenceAnchors.last.playerId)
+      ..addAll(scene.supportPlayerIds);
+  }
+  return ids;
+}
+
+_SpatialPhaseCue _phaseCue(
+  AppLocalizations l10n,
+  SpatialLibraryScene scene,
+  RealMatchReplayData data,
+  double time,
+) {
+  final finished = time >= data.duration - 1 / data.fps;
+  final phase = finished
+      ? _SpatialCuePhase.review
+      : time < scene.evidenceStart
+          ? _SpatialCuePhase.context
+          : time < scene.evidenceEnd
+              ? _SpatialCuePhase.connection
+              : time <= scene.evidenceEnd + 1.6
+                  ? _SpatialCuePhase.aftermath
+                  : _SpatialCuePhase.continuation;
+  final anchors = scene.evidenceAnchors;
+  final first = anchors.first;
+  final second = anchors.length > 1 ? anchors[1] : first;
+  final third = anchors.length > 2 ? anchors[2] : second;
+  final sample = data.sample(time);
+  bool isVisible(int id) => sample.players[data.playerIndex(id)] != null;
+  var currentAnchor = first;
+  for (final anchor in anchors) {
+    if (anchor.time > time) break;
+    currentAnchor = anchor;
+  }
+  final supportId = scene.supportPlayerIds.first;
+  final pressureGap = scene.observedNearbyDefender(data, scene.evidenceStart);
+  final defenderId =
+      pressureGap?.defenderId ?? scene.opponentContextPlayerIds.first;
+  final firstLabel = _cuePlayerLabel(data, first.playerId);
+  final secondLabel = _cuePlayerLabel(data, second.playerId);
+  final thirdLabel = _cuePlayerLabel(data, third.playerId);
+  final supportLabel = _cuePlayerLabel(data, supportId);
+  final defenderLabel = _cuePlayerLabel(data, defenderId);
+  final contextReady = time >= scene.coreStart &&
+      switch (scene.theme) {
+        SpatialLearningTheme.lateralSwitch =>
+          isVisible(first.playerId) && isVisible(second.playerId),
+        SpatialLearningTheme.pressureSupport => isVisible(first.playerId) &&
+            isVisible(defenderId) &&
+            isVisible(supportId),
+        SpatialLearningTheme.combination =>
+          anchors.map((anchor) => anchor.playerId).toSet().every(isVisible),
+        _ => isVisible(first.playerId),
+      };
+  final isReturnCombination = first.playerId == third.playerId;
+
+  String? approvedText;
+  switch (scene.theme) {
+    case SpatialLearningTheme.lateralSwitch:
+      approvedText = switch (phase) {
+        _SpatialCuePhase.context => contextReady
+            ? l10n.spatialLateralContextCue(firstLabel, secondLabel)
+            : l10n.spatialLateralEarlyContextCue,
+        _SpatialCuePhase.connection => l10n.spatialLateralConnectionCue(
+            firstLabel,
+            secondLabel,
+          ),
+        _SpatialCuePhase.aftermath =>
+          l10n.spatialLateralAftermathCue(secondLabel),
+        _SpatialCuePhase.continuation => l10n.spatialLateralContinuationCue,
+        _SpatialCuePhase.review =>
+          l10n.spatialLateralReviewCue(firstLabel, secondLabel),
+      };
+      break;
+    case SpatialLearningTheme.pressureSupport:
+      approvedText = switch (phase) {
+        _SpatialCuePhase.context => contextReady
+            ? l10n.spatialPressureContextCue(
+                firstLabel,
+                defenderLabel,
+                supportLabel,
+              )
+            : l10n.spatialPressureEarlyContextCue,
+        _SpatialCuePhase.connection => l10n.spatialPressureConnectionCue(
+            firstLabel,
+            secondLabel,
+            supportLabel,
+          ),
+        _SpatialCuePhase.aftermath => l10n.spatialPressureAftermathCue(
+            secondLabel,
+            supportLabel,
+          ),
+        _SpatialCuePhase.continuation => l10n.spatialPressureContinuationCue,
+        _SpatialCuePhase.review => l10n.spatialPressureReviewCue(
+            firstLabel,
+            secondLabel,
+            supportLabel,
+          ),
+      };
+      break;
+    case SpatialLearningTheme.combination:
+      approvedText = isReturnCombination
+          ? switch (phase) {
+              _SpatialCuePhase.context => contextReady
+                  ? l10n.spatialCombinationReturnContextCue(
+                      firstLabel,
+                      secondLabel,
+                    )
+                  : l10n.spatialCombinationEarlyContextCue,
+              _SpatialCuePhase.connection =>
+                l10n.spatialCombinationReturnConnectionCue(
+                  firstLabel,
+                  secondLabel,
+                ),
+              _SpatialCuePhase.aftermath =>
+                l10n.spatialCombinationReturnAftermathCue(firstLabel),
+              _SpatialCuePhase.continuation =>
+                l10n.spatialCombinationContinuationCue,
+              _SpatialCuePhase.review => l10n.spatialCombinationReturnReviewCue(
+                  firstLabel,
+                  secondLabel,
+                ),
+            }
+          : switch (phase) {
+              _SpatialCuePhase.context => contextReady
+                  ? l10n.spatialCombinationContextCue(
+                      firstLabel,
+                      secondLabel,
+                      thirdLabel,
+                    )
+                  : l10n.spatialCombinationEarlyContextCue,
+              _SpatialCuePhase.connection =>
+                l10n.spatialCombinationConnectionCue(
+                  firstLabel,
+                  secondLabel,
+                  thirdLabel,
+                ),
+              _SpatialCuePhase.aftermath => l10n.spatialCombinationAftermathCue(
+                  firstLabel,
+                  secondLabel,
+                  thirdLabel,
+                ),
+              _SpatialCuePhase.continuation =>
+                l10n.spatialCombinationContinuationCue,
+              _SpatialCuePhase.review => l10n.spatialCombinationReviewCue(
+                  firstLabel,
+                  secondLabel,
+                  thirdLabel,
+                ),
+            };
+      break;
+    case SpatialLearningTheme.forwardConnection:
+    case SpatialLearningTheme.carryThenConnect:
+    case SpatialLearningTheme.wideToInside:
+    case SpatialLearningTheme.turnover:
+    case SpatialLearningTheme.recovery:
+      break;
+  }
+  return _SpatialPhaseCue(
+    phase: phase,
+    text: approvedText ?? _legacyPhaseCueText(l10n, scene, data, time),
+    targetPlayerId: switch (phase) {
+      _SpatialCuePhase.context => contextReady ? first.playerId : null,
+      _SpatialCuePhase.connection =>
+        isVisible(currentAnchor.playerId) ? currentAnchor.playerId : null,
+      _SpatialCuePhase.aftermath =>
+        isVisible(anchors.last.playerId) ? anchors.last.playerId : null,
+      _SpatialCuePhase.continuation => null,
+      _SpatialCuePhase.review => null,
+    },
+  );
+}
+
+String _cuePlayerLabel(RealMatchReplayData data, int playerId) {
+  final player = data.player(playerId);
+  final fullName = player.name?.trim() ?? '';
+  final shortName =
+      fullName.isEmpty ? playerId.toString() : fullName.split(' ').last;
+  return player.number == null ? shortName : '#${player.number} $shortName';
+}
+
+String _legacyPhaseCueText(
   AppLocalizations l10n,
   SpatialLibraryScene scene,
   RealMatchReplayData data,

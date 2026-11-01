@@ -32,11 +32,9 @@ from prepare_historical import (  # noqa: E402
     digest,
     full_name,
     goalkeeper_direction,
-    max_display_speed,
     max_speed,
     number,
     read_json,
-    reconstruct_display,
     save,
 )
 
@@ -44,37 +42,29 @@ from prepare_historical import (  # noqa: E402
 REPO = Path(__file__).resolve().parents[2]
 ASSETS = REPO / "assets/scan_pass_spatial"
 SCENES = ASSETS / "scenes"
-SCENES_PER_MATCH = 12
 FPS = 10
-CLIP_FRAMES = 200
-MIN_CLIP_FRAMES = 100
-LEAD_FRAMES = 50
-MIN_LEAD_FRAMES = 20
-MIN_FOLLOW_FRAMES = 30
-MIN_ANCHOR_SEPARATION = 210
-MAX_FOCAL_PER_MATCH = 3
-MAX_THEME_PER_MATCH = 3
+PREFERRED_CLIP_FRAMES = 300
+MIN_CLIP_FRAMES = 200
+MAX_CLIP_FRAMES = 400
+MIN_CONTEXT_FRAMES = 40
+ACTOR_GUARD_FRAMES = 5
+MIN_ANCHOR_SEPARATION = 200
+MIN_PRESSURE_CONNECTION_METERS = 4
+MIN_COMBINATION_LEG_METERS = 5
+MAX_CATALOG_SCENES = 18
+MAX_VALIDATED_CANDIDATES_PER_MATCH = 24
+MISSING_COORDINATE = -(2**31)
 
 THEMES = (
     "lateralSwitch",
-    "forwardConnection",
     "pressureSupport",
-    "carryThenConnect",
-    "wideToInside",
     "combination",
-    "turnover",
-    "recovery",
 )
 
 CATEGORY = {
     "lateralSwitch": "switchPlay",
-    "forwardConnection": "penetration",
     "pressureSupport": "pressure",
-    "carryThenConnect": "transition",
-    "wideToInside": "wideAttack",
     "combination": "combination",
-    "turnover": "turnover",
-    "recovery": "turnover",
 }
 
 # Default focal actors are intentionally recognisable.  Other roster members
@@ -281,11 +271,17 @@ def clip_bounds(
     first_anchor: int,
     last_anchor: int,
 ) -> tuple[int, int] | None:
-    """Return a 10-20 s continuous-ball clip with context around the anchors."""
+    """Return the closest feasible 20-40 s clip to 30 s.
+
+    The returned interval is entirely source-backed and keeps at least four
+    seconds before the departure anchor and after the final arrival anchor.
+    Nothing is padded or time-stretched when the continuous source segment is
+    shorter than the preferred duration.
+    """
     segment_start = first_anchor
     while (
         segment_start > 0
-        and first_anchor - segment_start < CLIP_FRAMES
+        and first_anchor - segment_start < MAX_CLIP_FRAMES
         and frames[segment_start - 1]["period"] == period
         and frames[segment_start - 1]["frame"] == segment_start - 1
         and frames[segment_start - 1]["time"] is not None
@@ -295,31 +291,38 @@ def clip_bounds(
     segment_end = last_anchor
     while (
         segment_end + 1 < len(frames)
-        and segment_end - last_anchor < CLIP_FRAMES
+        and segment_end - last_anchor < MAX_CLIP_FRAMES
         and frames[segment_end + 1]["period"] == period
         and frames[segment_end + 1]["frame"] == segment_end + 1
         and frames[segment_end + 1]["time"] is not None
         and ball_at(frames[segment_end + 1], ball_id) is not None
     ):
         segment_end += 1
-    if segment_end - segment_start < MIN_CLIP_FRAMES:
+    anchor_span = last_anchor - first_anchor
+    minimum_length = max(
+        MIN_CLIP_FRAMES,
+        anchor_span + MIN_CONTEXT_FRAMES * 2,
+    )
+    available_length = segment_end - segment_start
+    if minimum_length > MAX_CLIP_FRAMES or available_length < minimum_length:
         return None
-    start = max(segment_start, first_anchor - LEAD_FRAMES)
-    end = min(segment_end, start + CLIP_FRAMES)
-    if end - start < MIN_CLIP_FRAMES:
-        start = max(segment_start, end - MIN_CLIP_FRAMES)
-    # Retain meaningful action after the last evidence anchor where source
-    # continuity permits it; shift earlier context rather than truncating the
-    # clip immediately after one connection.
-    desired_after = min(50, max(25, MIN_CLIP_FRAMES - (last_anchor - start)))
-    if end < last_anchor + desired_after:
-        end = min(segment_end, last_anchor + desired_after)
-        start = max(segment_start, end - CLIP_FRAMES)
-    if (
-        end - start < MIN_CLIP_FRAMES
-        or first_anchor - start < MIN_LEAD_FRAMES
-        or end - last_anchor < MIN_FOLLOW_FRAMES
-        or not (start < first_anchor < last_anchor <= end)
+
+    length = min(
+        MAX_CLIP_FRAMES,
+        max(minimum_length, min(PREFERRED_CLIP_FRAMES, available_length)),
+    )
+    earliest = max(segment_start, last_anchor + MIN_CONTEXT_FRAMES - length)
+    latest = min(first_anchor - MIN_CONTEXT_FRAMES, segment_end - length)
+    if earliest > latest:
+        return None
+    balanced = first_anchor - (length - anchor_span) // 2
+    start = min(max(balanced, earliest), latest)
+    end = start + length
+    if not (
+        MIN_CLIP_FRAMES <= end - start <= MAX_CLIP_FRAMES
+        and first_anchor - start >= MIN_CONTEXT_FRAMES
+        and end - last_anchor >= MIN_CONTEXT_FRAMES
+        and start < first_anchor < last_anchor < end
     ):
         return None
     return start, end
@@ -335,26 +338,111 @@ def group_consistent(
     return not ({"home team", "away team"} - {expected}).intersection(labels)
 
 
-def classify_connection(metrics: dict, has_third: bool) -> str | None:
-    if metrics["carryMeters"] >= 3.5:
-        return "carryThenConnect"
-    if metrics["lateralMeters"] >= 22:
-        return "lateralSwitch"
-    if (
-        metrics["startWidthMeters"] >= 20
-        and metrics["insideGainMeters"] >= 6
+def continuously_observed(
+    frames: list[dict], entity: int, start: int, end: int
+) -> bool:
+    return all(point_at(frames[index], entity) is not None for index in range(start, end + 1))
+
+
+def guarded_anchor(
+    frames: list[dict], entity: int, source_frame: int
+) -> dict | None:
+    start = source_frame - ACTOR_GUARD_FRAMES
+    end = source_frame + ACTOR_GUARD_FRAMES
+    if start < 0 or end >= len(frames) or not continuously_observed(
+        frames, entity, start, end
     ):
-        return "wideToInside"
+        return None
+    return {
+        "playerId": entity,
+        "sourceFrame": source_frame,
+        "sourceStartFrame": start,
+        "sourceEndFrame": end,
+        "observedFrames": end - start + 1,
+        "expectedFrames": end - start + 1,
+    }
+
+
+def ownership_visibility(
+    frames: list[dict], metadata: dict[int, dict], start: int, end: int
+) -> dict | None:
+    """Prove every meaningful source-labelled owner stays directly visible."""
+    segments = []
+    ignored_short_frames = 0
+    cursor = start
+    while cursor <= end:
+        owner = frames[cursor]["possession"].get("trackable_object")
+        if owner not in metadata:
+            cursor += 1
+            continue
+        segment_end = cursor
+        while (
+            segment_end + 1 <= end
+            and frames[segment_end + 1]["possession"].get("trackable_object") == owner
+        ):
+            segment_end += 1
+        length = segment_end - cursor + 1
+        if length < 3:
+            ignored_short_frames += length
+        else:
+            observed = sum(
+                point_at(frames[index], owner) is not None
+                for index in range(cursor, segment_end + 1)
+            )
+            if observed != length:
+                return None
+            segments.append(
+                {
+                    "playerId": owner,
+                    "sourceStartFrame": cursor,
+                    "sourceEndFrame": segment_end,
+                    "observedFrames": observed,
+                    "expectedFrames": length,
+                }
+            )
+        cursor = segment_end + 1
+    if not segments:
+        return None
+    return {
+        "segments": segments,
+        "meaningfulFrames": sum(item["expectedFrames"] for item in segments),
+        "observedFrames": sum(item["observedFrames"] for item in segments),
+        "ignoredShortFrames": ignored_short_frames,
+    }
+
+
+def source_anchor(touch: dict, source_frame: int, role: str) -> dict:
+    return {
+        **touch,
+        "startFrame": source_frame,
+        "endFrame": source_frame,
+        "role": role,
+    }
+
+
+def classified_themes(metrics: dict, has_third: bool) -> list[str]:
+    themes = []
+    if metrics["lateralMeters"] >= 22:
+        themes.append("lateralSwitch")
     if (
         metrics["pressureMeters"] is not None
         and metrics["pressureMeters"] <= 6
         and metrics["forwardMeters"] < 10
     ):
-        return "pressureSupport"
+        themes.append("pressureSupport")
     if has_third:
-        return "combination"
-    if metrics["forwardMeters"] >= 9:
-        return "forwardConnection"
+        themes.append("combination")
+    return themes
+
+
+def teaching_travel_rejection(theme: str, leg_meters: list[float]) -> str | None:
+    if (
+        theme == "pressureSupport"
+        and leg_meters[0] < MIN_PRESSURE_CONNECTION_METERS
+    ):
+        return "pressure-support-connection-under-four-metres"
+    if theme == "combination" and min(leg_meters) < MIN_COMBINATION_LEG_METERS:
+        return "combination-leg-under-five-metres"
     return None
 
 
@@ -363,16 +451,18 @@ def candidate_score(candidate: dict) -> float:
     theme = candidate["theme"]
     score = {
         "lateralSwitch": metrics["lateralMeters"],
-        "forwardConnection": metrics["forwardMeters"],
         "pressureSupport": 12 - (metrics["pressureMeters"] or 12),
-        "carryThenConnect": metrics["carryMeters"],
-        "wideToInside": metrics["insideGainMeters"],
         "combination": 12 - metrics["sequenceSeconds"],
-        "turnover": 12 - metrics["sequenceSeconds"],
-        "recovery": 14 - metrics["sequenceSeconds"],
     }[theme]
-    # Prefer anchors with both players comfortably inside the broadcast view.
-    return round(score + candidate["visibleParticipantCount"] * 0.1, 4)
+    duration = (candidate["endFrame"] - candidate["startFrame"]) / FPS
+    recognisable = 1 if candidate.get("recognisableFocus") else 0
+    return round(
+        score
+        + candidate["visibleParticipantCount"] * 0.1
+        + recognisable * .25
+        - abs(duration - PREFERRED_CLIP_FRAMES / FPS) * .05,
+        4,
+    )
 
 
 def build_candidates(match: dict, frames: list[dict]) -> tuple[list[dict], list[dict]]:
@@ -398,9 +488,6 @@ def build_candidates(match: dict, frames: list[dict]) -> tuple[list[dict], list[
 
     for index, first in enumerate(touches[:-1]):
         actor = metadata[first["owner"]]
-        if not is_famous(actor):
-            reject(first, "focal-player-not-in-recognisable-default-set")
-            continue
         second_index = next(
             (
                 cursor
@@ -418,43 +505,25 @@ def build_candidates(match: dict, frames: list[dict]) -> tuple[list[dict], list[
         if gap < 0 or gap > 8:
             reject(first, "subsequent-owner-outside-eight-seconds")
             continue
-        bounds = final_clip_bounds(match, frames, ball_id, [first, second])
-        if bounds is None:
-            reject(first, "no-ten-second-continuous-ball-clip-around-anchors")
+        if first["team"] != second["team"]:
+            reject(first, "connection-owners-belong-to-different-teams")
             continue
-        start, end = bounds
-        interval = frames[start : end + 1]
-        if any(
-            frame["frame"] != start + offset
-            or frame["period"] != first["period"]
-            or frame["time"] is None
-            for offset, frame in enumerate(interval)
-        ):
-            reject(first, "clip-crosses-period-or-source-gap")
-            continue
-        try:
-            active_players(match, interval)
-        except ValueError:
-            reject(first, "active-roster-changes-inside-clip")
-            continue
-        first_point = point_at(frames[first["startFrame"]], first["owner"])
+
+        departure = source_anchor(first, first["endFrame"], "departure")
+        arrival = source_anchor(second, second["startFrame"], "arrival")
+        first_point = point_at(frames[departure["startFrame"]], first["owner"])
         second_point = point_at(frames[second["startFrame"]], second["owner"])
         if first_point is None or second_point is None:
             reject(first, "possession-anchor-player-not-directly-observed")
             continue
         if not ball_continuous(
-            frames, ball_id, first["startFrame"], second["startFrame"]
+            frames, ball_id, departure["startFrame"], arrival["startFrame"]
         ):
             reject(first, "ball-xy-not-continuous-between-anchors")
             continue
-        first_ball = ball_at(frames[first["startFrame"]], ball_id)
-        second_ball = ball_at(frames[second["startFrame"]], ball_id)
-        if first_ball is None or second_ball is None:
-            reject(first, "ball-anchor-not-observed")
-            continue
         anchor_distances = [
             anchor_ball_distance(frames, ball_id, anchor)
-            for anchor in (first, second)
+            for anchor in (departure, arrival)
         ]
         if any(
             distance is None or distance > 3.5
@@ -463,16 +532,15 @@ def build_candidates(match: dict, frames: list[dict]) -> tuple[list[dict], list[
             reject(first, "possession-anchor-ball-distance-over-3.5m")
             continue
 
-        same_team = first["team"] == second["team"]
-        if same_team and not group_consistent(
-            frames, first["startFrame"], second["startFrame"], first["team"]
+        if not group_consistent(
+            frames, departure["startFrame"], arrival["startFrame"], first["team"]
         ):
             reject(first, "source-possession-team-changes-between-same-team-owners")
             continue
         home_actor = actor["team_id"] == match["home_team"]["id"]
         direction = directions[first["period"]] * (1 if home_actor else -1)
         pressure_evidence = nearest_opponent_distance(
-            match, frames[first["startFrame"]], actor, first_point
+            match, frames[departure["startFrame"]], actor, first_point
         )
         pressure = pressure_evidence[0] if pressure_evidence is not None else None
         pressure_player_id = (
@@ -492,7 +560,14 @@ def build_candidates(match: dict, frames: list[dict]) -> tuple[list[dict], list[
             "insideGainMeters": round(abs(first_point[1]) - abs(second_point[1]), 3),
             "pressureMeters": round(pressure, 3) if pressure is not None else None,
             "carryMeters": round(carry, 3),
-            "sequenceSeconds": round((second["startFrame"] - first["startFrame"]) / FPS, 3),
+            "sequenceSeconds": round((arrival["startFrame"] - departure["startFrame"]) / FPS, 3),
+            "connectionMeters": round(
+                math.dist(
+                    ball_at(frames[departure["startFrame"]], ball_id),
+                    ball_at(frames[arrival["startFrame"]], ball_id),
+                ),
+                3,
+            ),
         }
         third = None
         for cursor in range(second_index + 1, min(second_index + 8, len(touches))):
@@ -511,7 +586,7 @@ def build_candidates(match: dict, frames: list[dict]) -> tuple[list[dict], list[
                     and distance is not None
                     and distance <= 3.5
                     and ball_continuous(
-                    frames, ball_id, second["startFrame"], option["startFrame"]
+                        frames, ball_id, second["startFrame"], option["startFrame"]
                     )
                     and group_consistent(
                         frames,
@@ -520,165 +595,191 @@ def build_candidates(match: dict, frames: list[dict]) -> tuple[list[dict], list[
                         first["team"],
                     )
                 ):
-                    third = option
-            break
+                    third = source_anchor(option, option["startFrame"], "arrival")
+                    break
 
-        if same_team:
-            theme = classify_connection(metrics, third is not None)
-            if theme is None:
-                reject(first, "connection-does-not-pass-a-spatial-theme-threshold")
+        themes = classified_themes(metrics, third is not None)
+        if not themes:
+            reject(first, "connection-does-not-pass-an-approved-theme-threshold")
+            continue
+        for theme in themes:
+            anchors = [departure, arrival]
+            participants = [first["owner"], second["owner"]]
+            theme_metrics = dict(metrics)
+            leg_meters = [theme_metrics["connectionMeters"]]
+            if theme == "combination":
+                if third is None:
+                    continue
+                anchors.append(third)
+                participants.append(third["owner"])
+                second_leg = math.dist(
+                    ball_at(frames[arrival["startFrame"]], ball_id),
+                    ball_at(frames[third["startFrame"]], ball_id),
+                )
+                leg_meters.append(round(second_leg, 3))
+                theme_metrics["legMeters"] = leg_meters
+                theme_metrics["sequenceSeconds"] = round(
+                    (third["startFrame"] - departure["startFrame"]) / FPS, 3
+                )
+            if reason := teaching_travel_rejection(theme, leg_meters):
+                reject(first, reason)
                 continue
-        else:
-            theme = "turnover"
-
-        participants = [first["owner"], second["owner"]]
-        anchors = [first, second]
-        if theme == "combination" and third is not None:
-            participants.append(third["owner"])
-            anchors.append(third)
-            metrics["sequenceSeconds"] = round(
-                (third["startFrame"] - first["startFrame"]) / FPS, 3
-            )
             bounds = final_clip_bounds(match, frames, ball_id, anchors)
             if bounds is None:
-                reject(first, "no-continuous-clip-around-final-combination-anchor")
+                reject(first, "no-20-to-40-second-source-clip-with-four-second-context")
                 continue
             start, end = bounds
-        highlighted = list(dict.fromkeys(participants))
-        if theme == "pressureSupport" and pressure_player_id is not None:
-            highlighted.append(pressure_player_id)
-            highlighted = list(dict.fromkeys(highlighted))
-        candidate = {
-            "matchId": match["id"],
-            "period": first["period"],
-            "startFrame": start,
-            "endFrame": end,
-            "anchorFrame": first["startFrame"],
-            "focusId": first["owner"],
-            "attackingTeam": "home" if home_actor else "away",
-            "attackDirection": direction,
-            "theme": theme,
-            "participants": participants,
-            "highlightPlayerIds": highlighted,
-            "anchors": anchors,
-            "pressurePlayerId": (
-                pressure_player_id if theme == "pressureSupport" else None
-            ),
-            "metrics": metrics,
-            "visibleParticipantCount": len(highlighted),
-        }
-        candidate["score"] = candidate_score(candidate)
-        candidates.append(candidate)
+            ownership = ownership_visibility(frames, metadata, start, end)
+            if ownership is None:
+                reject(first, "meaningful-owned-ball-segment-has-an-unobserved-owner")
+                continue
 
-        # A quick regain is a distinct factual pattern and uses the recovering
-        # player as focal actor when that player belongs to the familiar set.
-        if not same_team:
-            for cursor in range(second_index + 1, min(second_index + 10, len(touches))):
-                third_touch = touches[cursor]
-                if third_touch["period"] != first["period"]:
-                    break
-                seconds = (third_touch["startFrame"] - second["startFrame"]) / FPS
-                if seconds > 10:
-                    break
-                third_player = metadata[third_touch["owner"]]
-                if third_touch["team"] != first["team"] or not is_famous(third_player):
-                    continue
-                third_point = point_at(
-                    frames[third_touch["startFrame"]], third_touch["owner"]
+            core_start = anchors[0]["startFrame"] - ACTOR_GUARD_FRAMES
+            core_end = anchors[-1]["startFrame"] + ACTOR_GUARD_FRAMES
+            guards = [
+                guarded_anchor(frames, anchor["owner"], anchor["startFrame"])
+                for anchor in anchors
+            ]
+            if any(guard is None for guard in guards):
+                reject(first, "departure-or-arrival-actor-missing-in-guard-window")
+                continue
+            core_player_ids = list(dict.fromkeys(participants))
+            if any(
+                not continuously_observed(frames, player_id, core_start, core_end)
+                for player_id in core_player_ids
+            ):
+                reject(first, "core-actor-has-a-central-visibility-gap")
+                continue
+
+            support_ids = [
+                player_id
+                for player_id, player in metadata.items()
+                if player["team_id"] == actor["team_id"]
+                and player_id not in core_player_ids
+                and continuously_observed(frames, player_id, core_start, core_end)
+            ]
+            support_ids.sort(
+                key=lambda player_id: math.dist(
+                    point_at(frames[departure["startFrame"]], player_id),
+                    first_point,
                 )
-                third_distance = anchor_ball_distance(frames, ball_id, third_touch)
-                if (
-                    third_point is None
-                    or third_distance is None
-                    or third_distance > 3.5
-                    or not ball_continuous(
-                    frames, ball_id, second["startFrame"], third_touch["startFrame"]
-                    )
-                ):
-                    continue
-                recovery_anchors = [first, second, third_touch]
-                recovery_bounds = final_clip_bounds(
-                    match, frames, ball_id, recovery_anchors
+            )
+            if not support_ids:
+                reject(first, "no-continuously-observed-off-ball-support-actor")
+                continue
+
+            opponent_ids = [
+                player_id
+                for player_id, player in metadata.items()
+                if player["team_id"] != actor["team_id"]
+                and continuously_observed(frames, player_id, core_start, core_end)
+            ]
+            opponent_ids.sort(
+                key=lambda player_id: math.dist(
+                    point_at(frames[departure["startFrame"]], player_id),
+                    first_point,
                 )
-                if recovery_bounds is None:
-                    continue
-                recovery = dict(candidate)
-                recovery["theme"] = "recovery"
-                recovery["focusId"] = third_touch["owner"]
-                recovery["participants"] = [
-                    first["owner"],
-                    second["owner"],
-                    third_touch["owner"],
-                ]
-                recovery["anchors"] = recovery_anchors
-                recovery["highlightPlayerIds"] = list(
-                    dict.fromkeys(recovery["participants"])
+            )
+            minimum_observed_opponents = min(
+                sum(
+                    point_at(frames[source_frame], player["trackable_object"])
+                    is not None
+                    for player in match["players"]
+                    if player["team_id"] != actor["team_id"]
                 )
-                recovery["pressurePlayerId"] = None
-                recovery["startFrame"], recovery["endFrame"] = recovery_bounds
-                recovery["visibleParticipantCount"] = len(
-                    recovery["highlightPlayerIds"]
-                )
-                recovery["metrics"] = dict(metrics)
-                recovery["metrics"]["sequenceSeconds"] = round(
-                    (third_touch["startFrame"] - first["startFrame"]) / FPS, 3
-                )
-                recovery["score"] = candidate_score(recovery)
-                candidates.append(recovery)
-                break
+                for source_frame in range(core_start, core_end + 1)
+            )
+            if not opponent_ids or minimum_observed_opponents < 2:
+                reject(first, "insufficient-directly-observed-opposing-context")
+                continue
+            if theme == "pressureSupport" and pressure_player_id not in opponent_ids:
+                reject(first, "pressure-context-defender-not-continuously-observed")
+                continue
+
+            relevant_opponents = (
+                [pressure_player_id]
+                if theme == "pressureSupport"
+                else [opponent_ids[0]]
+            )
+            relevant_opponents.extend(
+                player_id
+                for player_id in opponent_ids
+                if player_id not in relevant_opponents
+            )
+            relevant_opponents = relevant_opponents[:2]
+            highlighted = list(
+                dict.fromkeys(core_player_ids + [support_ids[0]] + relevant_opponents)
+            )
+            candidate = {
+                "matchId": match["id"],
+                "period": first["period"],
+                "startFrame": start,
+                "endFrame": end,
+                "anchorFrame": departure["startFrame"],
+                "focusId": first["owner"],
+                "attackingTeam": "home" if home_actor else "away",
+                "attackDirection": direction,
+                "theme": theme,
+                "participants": core_player_ids,
+                "corePlayerIds": core_player_ids,
+                "supportPlayerIds": [support_ids[0]],
+                "opponentContextPlayerIds": relevant_opponents,
+                "highlightPlayerIds": highlighted,
+                "anchors": anchors,
+                "guardWindows": guards,
+                "coreStartFrame": core_start,
+                "coreEndFrame": core_end,
+                "pressurePlayerId": (
+                    pressure_player_id if theme == "pressureSupport" else None
+                ),
+                "ownershipVisibility": ownership,
+                "minimumObservedOpponents": minimum_observed_opponents,
+                "metrics": theme_metrics,
+                "visibleParticipantCount": len(highlighted),
+                "recognisableFocus": is_famous(actor),
+            }
+            candidate["score"] = candidate_score(candidate)
+            candidates.append(candidate)
     return candidates, rejected
 
 
-def choose_candidates(
+def validate_candidates(
     candidates: list[dict],
     match_id: int,
     validator=None,
 ) -> tuple[list[dict], list[dict]]:
-    selected: list[dict] = []
-    focal_counts: collections.Counter[int] = collections.Counter()
-    theme_counts: collections.Counter[str] = collections.Counter()
+    validated: list[dict] = []
     rejected = []
-    ordered = sorted(
-        candidates,
-        key=lambda candidate: (
-            -candidate["score"],
-            THEMES.index(candidate["theme"]),
-            candidate["anchorFrame"],
-            candidate["focusId"],
-        ),
-    )
-    # First establish local theme breadth, then fill by evidence score.
-    passes = [True, False]
-    for diversity_pass in passes:
-        for candidate in ordered:
-            if len(selected) >= SCENES_PER_MATCH:
+    by_theme = {
+        theme: sorted(
+            (candidate for candidate in candidates if candidate["theme"] == theme),
+            key=lambda candidate: (
+                -candidate["score"],
+                candidate["anchorFrame"],
+                candidate["focusId"],
+            ),
+        )
+        for theme in THEMES
+    }
+    cursors = {theme: 0 for theme in THEMES}
+    seen = set()
+    while len(validated) < MAX_VALIDATED_CANDIDATES_PER_MATCH:
+        progressed = False
+        for theme in THEMES:
+            values = by_theme[theme]
+            candidate = None
+            while cursors[theme] < len(values):
+                value = values[cursors[theme]]
+                cursors[theme] += 1
+                key = (value["anchorFrame"], value["focusId"], value["theme"])
+                if key in seen:
+                    continue
+                seen.add(key)
+                candidate = value
                 break
-            if candidate in selected:
+            if candidate is None:
                 continue
-            reason = None
-            if diversity_pass and theme_counts[candidate["theme"]] > 0:
-                continue
-            if focal_counts[candidate["focusId"]] >= MAX_FOCAL_PER_MATCH:
-                reason = "per-match-focal-cap"
-            elif theme_counts[candidate["theme"]] >= MAX_THEME_PER_MATCH:
-                reason = "per-match-theme-cap"
-            elif any(
-                abs(candidate["anchorFrame"] - item["anchorFrame"])
-                < MIN_ANCHOR_SEPARATION
-                for item in selected
-            ):
-                reason = "overlaps-an-already-selected-learning-interval"
-            if reason is not None:
-                if not diversity_pass:
-                    rejected.append(
-                        {
-                            "matchId": match_id,
-                            "sourceFrame": candidate["anchorFrame"],
-                            "owner": candidate["focusId"],
-                            "reason": reason,
-                        }
-                    )
-                continue
+            progressed = True
             if validator is not None:
                 try:
                     validator(candidate)
@@ -692,15 +793,124 @@ def choose_candidates(
                         }
                     )
                     continue
-            selected.append(candidate)
-            focal_counts[candidate["focusId"]] += 1
-            theme_counts[candidate["theme"]] += 1
-    if len(selected) != SCENES_PER_MATCH:
-        raise ValueError(
-            f"Match {match_id} produced {len(selected)} balanced scenes, "
-            f"expected {SCENES_PER_MATCH}; reasons="
-            f"{dict(collections.Counter(item['reason'] for item in rejected))}"
+            validated.append(candidate)
+            if len(validated) >= MAX_VALIDATED_CANDIDATES_PER_MATCH:
+                break
+        if not progressed:
+            break
+    rejected_keys = {
+        (item["sourceFrame"], item["owner"], item["reason"]) for item in rejected
+    }
+    for candidate in candidates:
+        key = (candidate["anchorFrame"], candidate["focusId"], candidate["theme"])
+        rejection_key = (
+            candidate["anchorFrame"],
+            candidate["focusId"],
+            "ranked-below-validated-source-safe-pool",
         )
+        if key in seen or rejection_key in rejected_keys:
+            continue
+        seen.add(key)
+        rejected.append(
+            {
+                "matchId": match_id,
+                "sourceFrame": candidate["anchorFrame"],
+                "owner": candidate["focusId"],
+                "reason": "ranked-below-validated-source-safe-pool",
+            }
+        )
+    return validated, rejected
+
+
+def choose_catalog_candidates(candidates: list[dict]) -> tuple[list[dict], list[dict]]:
+    ordered = sorted(
+        candidates,
+        key=lambda candidate: (
+            -candidate["score"],
+            THEMES.index(candidate["theme"]),
+            candidate["matchId"],
+            candidate["anchorFrame"],
+        ),
+    )
+    selected: list[dict] = []
+    rejected = []
+
+    def overlaps(candidate: dict) -> bool:
+        return any(
+            candidate["matchId"] == item["matchId"]
+            and not (
+                candidate["endFrame"] + MIN_ANCHOR_SEPARATION <= item["startFrame"]
+                or candidate["startFrame"] >= item["endFrame"] + MIN_ANCHOR_SEPARATION
+            )
+            for item in selected
+        )
+
+    def add(candidate: dict) -> bool:
+        if candidate in selected or overlaps(candidate):
+            return False
+        selected.append(candidate)
+        return True
+
+    # Candidate score units are theme-specific, so compare scores only within
+    # a theme. Round-robin curation keeps a high-metre switch score from
+    # crowding out independently safe support or combination lessons. Match
+    # and player diversity are preferences applied after every safety gate.
+    while len(selected) < MAX_CATALOG_SCENES:
+        progressed = False
+        for theme in THEMES:
+            options = [
+                item
+                for item in ordered
+                if item["theme"] == theme
+                and item not in selected
+                and not overlaps(item)
+            ]
+            if not options:
+                continue
+            option = min(
+                options,
+                key=lambda item: (
+                    any(value["matchId"] == item["matchId"] for value in selected),
+                    any(
+                        value["matchId"] == item["matchId"]
+                        and value["focusId"] == item["focusId"]
+                        for value in selected
+                    ),
+                    -item["score"],
+                    item["matchId"],
+                    item["anchorFrame"],
+                ),
+            )
+            if len(selected) >= MAX_CATALOG_SCENES:
+                break
+            progressed = add(option) or progressed
+        if not progressed:
+            break
+    missing_themes = set(THEMES) - {item["theme"] for item in selected}
+    if missing_themes:
+        raise ValueError(
+            "Pinned source has no non-overlapping safe lesson for: "
+            + ", ".join(sorted(missing_themes))
+        )
+    for candidate in ordered:
+        if candidate in selected:
+            continue
+        rejected.append(
+            {
+                "matchId": candidate["matchId"],
+                "sourceFrame": candidate["anchorFrame"],
+                "owner": candidate["focusId"],
+                "reason": (
+                    "overlaps-a-higher-ranked-selected-lesson"
+                    if overlaps(candidate)
+                    else "catalogue-curation-limit"
+                ),
+            }
+        )
+    if len({item["matchId"] for item in selected}) < 3 or len(
+        {(item["matchId"], item["focusId"]) for item in selected}
+    ) < 3:
+        raise ValueError("Safe catalogue lacks representative match/player diversity")
     return selected, rejected
 
 
@@ -785,12 +995,14 @@ def build_scene(
         for player in players:
             point = observed.get(player["id"])
             flags.append(1 if point is not None else 0)
-            for value in point or (0.0, 0.0):
+            for value in point or (None, None):
+                if value is None:
+                    row.append(MISSING_COORDINATE)
+                    continue
                 quantized = round(value * 100)
-                if point is not None:
-                    quantization_error = max(
-                        quantization_error, abs(quantized / 100 - value)
-                    )
+                quantization_error = max(
+                    quantization_error, abs(quantized / 100 - value)
+                )
                 row.append(quantized)
         ball = item_at(source, ball_id)
         if ball is None:
@@ -835,11 +1047,51 @@ def build_scene(
             if visibility[local][player_index]:
                 continuity_exclusions += 1
                 visibility[local][player_index] = 0
-                raw_frames[local][player_index * 2] = 0
-                raw_frames[local][player_index * 2 + 1] = 0
+                raw_frames[local][player_index * 2] = MISSING_COORDINATE
+                raw_frames[local][player_index * 2 + 1] = MISSING_COORDINATE
     identified_counts = [sum(flags) for flags in visibility]
     if min(identified_counts) == 0:
         raise ValueError("Motion-continuity filter left an empty source frame")
+
+    def directly_visible(player_id: int, source_start: int, source_end: int) -> bool:
+        player_index = index_by_id.get(player_id)
+        if player_index is None:
+            return False
+        return all(
+            visibility[source_frame - start][player_index]
+            for source_frame in range(source_start, source_end + 1)
+        )
+
+    for guard in candidate["guardWindows"]:
+        if not directly_visible(
+            guard["playerId"],
+            guard["sourceStartFrame"],
+            guard["sourceEndFrame"],
+        ):
+            raise ValueError("Guarded actor failed the motion-continuity filter")
+    for player_id in candidate["corePlayerIds"]:
+        if not directly_visible(
+            player_id,
+            candidate["coreStartFrame"],
+            candidate["coreEndFrame"],
+        ):
+            raise ValueError("Core actor failed the motion-continuity filter")
+    for player_id in (
+        candidate["supportPlayerIds"] + candidate["opponentContextPlayerIds"]
+    ):
+        if not directly_visible(
+            player_id,
+            candidate["coreStartFrame"],
+            candidate["coreEndFrame"],
+        ):
+            raise ValueError("Context actor failed the motion-continuity filter")
+    for segment in candidate["ownershipVisibility"]["segments"]:
+        if not directly_visible(
+            segment["playerId"],
+            segment["sourceStartFrame"],
+            segment["sourceEndFrame"],
+        ):
+            raise ValueError("Owned-ball actor failed the motion-continuity filter")
 
     for anchor in candidate["anchors"]:
         local = anchor["startFrame"] - start
@@ -888,31 +1140,9 @@ def build_scene(
         )
 
     spec = {"id": "pending", "startFrame": start, "endFrame": end}
-    subset_observations = {}
-    for player in players:
-        excluded_source_frames = {
-            start + local for local in excluded_local_frames[player["id"]]
-        }
-        subset_observations[player["id"]] = {
-            frame: point
-            for frame, point in observations[player["id"]].items()
-            if frame not in excluded_source_frames
-        }
-    display_frames, display_provenance, reconstruction = reconstruct_display(
-        spec,
-        players,
-        raw_frames,
-        visibility,
-        subset_observations,
-        match["pitch_length"],
-        match["pitch_width"],
-    )
     player_speed = max_speed(raw_frames, visibility, len(players))
-    display_speed = max_display_speed(display_frames, len(players))
-    if player_speed > 15 or display_speed > 15:
-        raise ValueError(
-            f"Implausible player continuity ({player_speed:.2f}/{display_speed:.2f} m/s)"
-        )
+    if player_speed > 15:
+        raise ValueError(f"Implausible player continuity ({player_speed:.2f} m/s)")
     ball_speed = validate_ball_speed(raw_frames)
 
     # Preserve exact metric scale while allowing genuine positions just beyond
@@ -920,14 +1150,20 @@ def build_scene(
     # entire scene and includes a small marker/tail safety margin.
     half_length = match["pitch_length"] / 2
     half_width = match["pitch_width"] / 2
-    maximum_x = max(
-        [abs(row[-3] / 100) for row in raw_frames]
-        + [abs(row[index] / 100) for row in display_frames for index in range(0, len(row), 2)]
-    )
-    maximum_y = max(
-        [abs(row[-2] / 100) for row in raw_frames]
-        + [abs(row[index] / 100) for row in display_frames for index in range(1, len(row), 2)]
-    )
+    observed_x = [
+        abs(row[player_index * 2] / 100)
+        for row, flags in zip(raw_frames, visibility)
+        for player_index in range(len(players))
+        if flags[player_index]
+    ]
+    observed_y = [
+        abs(row[player_index * 2 + 1] / 100)
+        for row, flags in zip(raw_frames, visibility)
+        for player_index in range(len(players))
+        if flags[player_index]
+    ]
+    maximum_x = max([abs(row[-3] / 100) for row in raw_frames] + observed_x)
+    maximum_y = max([abs(row[-2] / 100) for row in raw_frames] + observed_y)
     margin_x = max(1.4, maximum_x - half_length + 1.4)
     margin_y = max(1.4, maximum_y - half_width + 1.4)
     focus = metadata[candidate["focusId"]]
@@ -961,8 +1197,15 @@ def build_scene(
         "joints": JOINTS,
         "frames": raw_frames,
         "visibility": visibility,
-        "displayFrames": display_frames,
-        "displayProvenance": display_provenance,
+        "displayFrames": [],
+        "displayProvenance": [],
+        "missingPlayerCoordinate": MISSING_COORDINATE,
+        "sourcePossessionOwners": [
+            source["possession"].get("trackable_object")
+            if source["possession"].get("trackable_object") in metadata
+            else None
+            for source in interval
+        ],
         "poses": [],
         "events": [],
         "sourceCommit": HISTORICAL_COMMIT,
@@ -998,6 +1241,7 @@ def build_scene(
             "sourceFrame": anchor["startFrame"],
             "sourceClock": frames[anchor["startFrame"]]["time"],
             "time": round((anchor["startFrame"] - start) / FPS, 3),
+            "role": anchor["role"],
             "playerId": anchor["owner"],
             "playerName": full_name(metadata[anchor["owner"]]),
             "ballDistanceMeters": round(
@@ -1030,6 +1274,7 @@ def build_scene(
         "evidenceAnchors": [
             {
                 "time": anchor["time"],
+                "role": anchor["role"],
                 "playerId": anchor["playerId"],
                 "playerName": anchor["playerName"],
             }
@@ -1040,6 +1285,11 @@ def build_scene(
         "attackDirection": direction,
         "evidenceStart": evidence_start,
         "evidenceEnd": evidence_end,
+        "coreStart": round((candidate["coreStartFrame"] - start) / FPS, 3),
+        "coreEnd": round((candidate["coreEndFrame"] - start) / FPS, 3),
+        "corePlayerIds": candidate["corePlayerIds"],
+        "supportPlayerIds": candidate["supportPlayerIds"],
+        "opponentContextPlayerIds": candidate["opponentContextPlayerIds"],
         "metrics": candidate["metrics"],
         "sourceCommit": HISTORICAL_COMMIT,
         "sourceUrl": data["sourceUrl"],
@@ -1060,52 +1310,61 @@ def build_scene(
         "minimumObservedPlayers": min(identified_counts),
         "meanObservedPlayers": round(sum(identified_counts) / len(identified_counts), 4),
         "maxSourcePlayerSpeedMetersPerSecond": round(player_speed, 4),
-        "maxDisplayPlayerSpeedMetersPerSecond": round(display_speed, 4),
         "maxBallSpeedMetersPerSecond": round(ball_speed, 4),
         "maxQuantizationErrorMeters": round(quantization_error, 8),
         "motionContinuityExcludedObservations": continuity_exclusions,
         "directionProof": direction_proof,
         "anchors": local_anchors,
+        "guardWindows": [
+            {
+                **guard,
+                "localStart": round((guard["sourceStartFrame"] - start) / FPS, 3),
+                "localEnd": round((guard["sourceEndFrame"] - start) / FPS, 3),
+                "coverage": 1.0,
+            }
+            for guard in candidate["guardWindows"]
+        ],
+        "coreVisibility": {
+            "sourceStartFrame": candidate["coreStartFrame"],
+            "sourceEndFrame": candidate["coreEndFrame"],
+            "expectedFrames": candidate["coreEndFrame"] - candidate["coreStartFrame"] + 1,
+            "playerIds": candidate["corePlayerIds"],
+            "coverageByPlayer": {
+                str(player_id): 1.0 for player_id in candidate["corePlayerIds"]
+            },
+        },
+        "supportContext": {
+            "playerIds": candidate["supportPlayerIds"],
+            "continuousSourceStartFrame": candidate["coreStartFrame"],
+            "continuousSourceEndFrame": candidate["coreEndFrame"],
+        },
+        "opponentContext": {
+            "playerIds": candidate["opponentContextPlayerIds"],
+            "continuousSourceStartFrame": candidate["coreStartFrame"],
+            "continuousSourceEndFrame": candidate["coreEndFrame"],
+            "minimumDirectlyObservedOpponentsPerFrame": candidate["minimumObservedOpponents"],
+        },
+        "ownedBallVisibility": candidate["ownershipVisibility"],
         "metricChecks": metric_checks,
         "metrics": candidate["metrics"],
-        "reconstruction": {
-            "observedProvenance": 0,
-            "inferredProvenance": 1,
-            "inferredExcludedFromEvidence": True,
-            "players": [
-                {
-                    "trackableObject": item["trackableObject"],
-                    "observedFrames": item["observedFrames"],
-                    "inferredFrames": item["inferredFrames"],
-                    "inferredCoverage": item["inferredCoverage"],
-                }
-                for item in reconstruction
-            ],
+        "displayEvidence": {
+            "reconstructionIncluded": False,
+            "missingSamplesRendered": False,
+            "missingCoordinateSentinel": MISSING_COORDINATE,
         },
     }
     return data, {"entry": entry, "proof": proof}
 
 
-def interleave(entries_by_match: dict[int, list[dict]], match_order: list[int]) -> list[dict]:
-    per_match = {
-        match_id: sorted(
-            entries,
-            key=lambda entry: (
-                THEMES.index(entry["theme"]),
-                entry["startFrame"],
-                entry["id"],
-            ),
-        )
-        for match_id, entries in entries_by_match.items()
-    }
-    result = []
-    for row in range(SCENES_PER_MATCH):
-        # Rotate the match order on each row so adjacent scenes do not keep the
-        # same competition ordering either.
-        offset = row % len(match_order)
-        rotated = match_order[offset:] + match_order[:offset]
-        for match_id in rotated:
-            result.append(per_match[match_id][row])
+def interleave(entries: list[dict]) -> list[dict]:
+    remaining = sorted(
+        entries,
+        key=lambda entry: (
+            THEMES.index(entry["theme"]),
+            entry["matchId"],
+            entry["startFrame"],
+        ),
+    )
     opener_priority = {
         name: rank
         for rank, name in enumerate(
@@ -1120,7 +1379,7 @@ def interleave(entries_by_match: dict[int, list[dict]], match_order: list[int]) 
     }
     eligible = [
         entry
-        for entry in result
+        for entry in remaining
         if entry["focusPlayerName"] in opener_priority
         and entry["duration"] >= 15
         and entry["evidenceStart"] >= 4
@@ -1137,7 +1396,7 @@ def interleave(entries_by_match: dict[int, list[dict]], match_order: list[int]) 
             entry["id"],
         ),
     )
-    remaining = [entry for entry in result if entry is not opener]
+    remaining = [entry for entry in remaining if entry is not opener]
     balanced = [opener]
     while remaining:
         next_index = next(
@@ -1149,7 +1408,7 @@ def interleave(entries_by_match: dict[int, list[dict]], match_order: list[int]) 
             None,
         )
         if next_index is None:
-            raise ValueError("Unable to interleave source matches without adjacency")
+            next_index = 0
         balanced.append(remaining.pop(next_index))
     return balanced
 
@@ -1172,40 +1431,166 @@ def verify_audit(raw_dir: Path, audit: dict) -> None:
 def verify_assets() -> None:
     catalog = read_json(ASSETS / "catalog.json")
     proof = read_json(ASSETS / "quality-proof.json")
-    if len(catalog["scenes"]) < 100:
-        raise ValueError("Spatial catalog contains fewer than 100 scenes")
-    if len({item["matchId"] for item in catalog["scenes"]}) != 9:
-        raise ValueError("Spatial catalog does not cover all nine matches")
-    if len({item["focusPlayerName"] for item in catalog["scenes"]}) < 20:
-        raise ValueError("Spatial catalog contains fewer than 20 focal players")
-    if set(item["theme"] for item in catalog["scenes"]) != set(THEMES):
-        raise ValueError("Spatial catalog does not cover all spatial themes")
+    theme_counts = collections.Counter(item["theme"] for item in catalog["scenes"])
+    if set(theme_counts) != set(THEMES):
+        raise ValueError("Spatial catalog does not cover the three approved themes")
+    if max(theme_counts.values()) - min(theme_counts.values()) > 1:
+        raise ValueError("Spatial catalog curation is not balanced across safe themes")
+    if len({item["matchId"] for item in catalog["scenes"]}) < 3:
+        raise ValueError("Spatial catalog lacks representative match diversity")
+    if len({item["focusPlayerName"] for item in catalog["scenes"]}) < 3:
+        raise ValueError("Spatial catalog lacks representative player diversity")
     records = {item["id"]: item for item in proof["scenes"]}
     for scene in catalog["scenes"]:
         path = REPO / scene["asset"]
         record = records[scene["id"]]
         if not path.is_file() or digest(path) != record["assetSha256"]:
             raise ValueError(f"Derived scene hash mismatch: {scene['id']}")
-        if any(
-            not anchor["playerObserved"]
-            or not anchor["ballObserved"]
-            or anchor["playerId"] != anchor["possessionOwner"]
-            for anchor in record["anchors"]
+        data = read_json(path)
+        players = data["players"]
+        player_index = {item["id"]: index for index, item in enumerate(players)}
+        frames = data["frames"]
+        visibility = data["visibility"]
+        owners = data.get("sourcePossessionOwners")
+        if (
+            len(frames) != len(visibility)
+            or not isinstance(owners, list)
+            or len(owners) != len(frames)
+            or data.get("displayFrames")
+            or data.get("displayProvenance")
+            or data.get("missingPlayerCoordinate") != MISSING_COORDINATE
         ):
-            raise ValueError(f"Unobserved evidence anchor: {scene['id']}")
-        if any(
-            anchor["ballDistanceMeters"] > 3.5
-            for anchor in record["anchors"]
+            raise ValueError(f"Invalid shipped visibility model: {scene['id']}")
+        if not MIN_CLIP_FRAMES / FPS <= scene["duration"] <= MAX_CLIP_FRAMES / FPS:
+            raise ValueError(f"Invalid source duration: {scene['id']}")
+        if scene["evidenceStart"] < MIN_CONTEXT_FRAMES / FPS or (
+            scene["duration"] - scene["evidenceEnd"] < MIN_CONTEXT_FRAMES / FPS
         ):
-            raise ValueError(f"Distant ownership anchor: {scene['id']}")
-        if record["maxBallSpeedMetersPerSecond"] > 50:
-            raise ValueError(f"Implausible ball continuity: {scene['id']}")
+            raise ValueError(f"Insufficient source context: {scene['id']}")
+        for frame_index, row in enumerate(frames):
+            for index in range(len(players)):
+                pair = row[index * 2 : index * 2 + 2]
+                if visibility[frame_index][index]:
+                    if MISSING_COORDINATE in pair:
+                        raise ValueError(f"Observed player uses missing sentinel: {scene['id']}")
+                elif pair != [MISSING_COORDINATE, MISSING_COORDINATE]:
+                    raise ValueError(f"Missing player was assigned a position: {scene['id']}")
+
+        anchors = scene.get("evidenceAnchors", [])
+        anchor_ball_points = []
+        for anchor in anchors:
+            local = round(anchor["time"] * FPS)
+            index = player_index.get(anchor["playerId"])
+            if index is None:
+                raise ValueError(f"Unknown evidence actor: {scene['id']}")
+            guard_start = local - ACTOR_GUARD_FRAMES
+            guard_end = local + ACTOR_GUARD_FRAMES
+            if guard_start < 0 or guard_end >= len(frames) or not all(
+                visibility[value][index] for value in range(guard_start, guard_end + 1)
+            ):
+                raise ValueError(f"Unobserved guarded actor: {scene['id']}")
+            player_xy = (frames[local][index * 2] / 100, frames[local][index * 2 + 1] / 100)
+            ball_xy = (frames[local][-3] / 100, frames[local][-2] / 100)
+            anchor_ball_points.append(ball_xy)
+            if math.dist(player_xy, ball_xy) > 3.5:
+                raise ValueError(f"Distant ownership anchor: {scene['id']}")
+            if owners[local] != anchor["playerId"]:
+                raise ValueError(f"Anchor is not the source-labelled owner: {scene['id']}")
+
+        theme = scene["theme"]
+        if theme == "lateralSwitch":
+            if len(anchor_ball_points) < 2 or abs(
+                anchor_ball_points[1][1] - anchor_ball_points[0][1]
+            ) < 22:
+                raise ValueError(f"Unproven lateral-switch geometry: {scene['id']}")
+        elif theme == "pressureSupport":
+            first_anchor = anchors[0]
+            second_anchor = anchors[1]
+            first_local = round(first_anchor["time"] * FPS)
+            second_local = round(second_anchor["time"] * FPS)
+            actor_index = player_index[first_anchor["playerId"]]
+            actor_home = players[actor_index]["home"]
+            actor_point = (
+                frames[first_local][actor_index * 2] / 100,
+                frames[first_local][actor_index * 2 + 1] / 100,
+            )
+            opponent_distances = []
+            for index, player in enumerate(players):
+                if player["home"] == actor_home or not visibility[first_local][index]:
+                    continue
+                opponent_distances.append(
+                    math.dist(
+                        actor_point,
+                        (
+                            frames[first_local][index * 2] / 100,
+                            frames[first_local][index * 2 + 1] / 100,
+                        ),
+                    )
+                )
+            forward = (
+                frames[second_local][-3] - frames[first_local][-3]
+            ) / 100 * scene["attackDirection"]
+            connection_meters = math.dist(
+                anchor_ball_points[0], anchor_ball_points[1]
+            )
+            if (
+                not opponent_distances
+                or min(opponent_distances) > 6
+                or forward >= 10
+                or connection_meters < MIN_PRESSURE_CONNECTION_METERS
+            ):
+                raise ValueError(f"Unproven pressure-support geometry: {scene['id']}")
+        elif theme == "combination":
+            if len(anchors) < 3 or anchors[-1]["time"] - anchors[0]["time"] > 8:
+                raise ValueError(f"Unproven combination sequence: {scene['id']}")
+            if any(
+                math.dist(first, second) < MIN_COMBINATION_LEG_METERS
+                for first, second in zip(anchor_ball_points, anchor_ball_points[1:])
+            ):
+                raise ValueError(f"Combination leg below teaching threshold: {scene['id']}")
+        else:
+            raise ValueError(f"Unapproved spatial theme: {scene['id']}")
+
+        core_start = round(scene["coreStart"] * FPS)
+        core_end = round(scene["coreEnd"] * FPS)
+        for field in ("corePlayerIds", "supportPlayerIds", "opponentContextPlayerIds"):
+            ids = scene.get(field, [])
+            if not ids:
+                raise ValueError(f"Missing {field}: {scene['id']}")
+            for player_id in ids:
+                index = player_index.get(player_id)
+                if index is None or not all(
+                    visibility[value][index] for value in range(core_start, core_end + 1)
+                ):
+                    raise ValueError(f"Unobserved {field}: {scene['id']}")
+
+        checked_owned_frames = 0
+        cursor = 0
+        while cursor < len(owners):
+            owner = owners[cursor]
+            if owner not in player_index:
+                cursor += 1
+                continue
+            segment_end = cursor
+            while segment_end + 1 < len(owners) and owners[segment_end + 1] == owner:
+                segment_end += 1
+            if segment_end - cursor + 1 >= 3:
+                checked_owned_frames += segment_end - cursor + 1
+                index = player_index[owner]
+                if not all(visibility[value][index] for value in range(cursor, segment_end + 1)):
+                    raise ValueError(f"Ghost source-labelled owner: {scene['id']}")
+            cursor = segment_end + 1
+        if checked_owned_frames == 0:
+            raise ValueError(f"No meaningful owned-ball segment: {scene['id']}")
+        if max_speed(frames, visibility, len(players)) > 15:
+            raise ValueError(f"Implausible player continuity: {scene['id']}")
+        validate_ball_speed(frames)
         anchors = scene.get("evidenceAnchors", [])
         highlights = scene.get("highlightPlayerIds", [])
         if (
             len(anchors) < 2
-            or len(highlights) < 2
-            or len(highlights) > 4
+            or len(highlights) < 4
+            or len(highlights) > 6
             or len(highlights) != len(set(highlights))
             or any(anchor["playerId"] not in highlights for anchor in anchors)
         ):
@@ -1241,8 +1626,7 @@ def generate(raw_dir: Path, audit_path: Path) -> None:
         old.unlink()
     shutil.copyfile(raw_dir / "LICENSE", ASSETS / "LICENSE")
 
-    entries_by_match: dict[int, list[dict]] = {}
-    proofs = []
+    safe_built = []
     all_rejected = []
     for match_id in match_order:
         match = read_json(raw_dir / f"data/matches/{match_id}/match_data.json")
@@ -1260,32 +1644,41 @@ def generate(raw_dir: Path, audit_path: Path) -> None:
                 candidate, match, frames, observations
             )
 
-        selected, balance_rejected = choose_candidates(
+        validated, validation_rejected = validate_candidates(
             candidates, match_id, validate_and_build
         )
         all_rejected.extend(rejected)
-        all_rejected.extend(balance_rejected)
-        entries = []
-        for candidate in selected:
+        all_rejected.extend(validation_rejected)
+        for candidate in validated:
             key = (candidate["anchorFrame"], candidate["focusId"], candidate["theme"])
             data, built = built_candidates[key]
-            path = SCENES / f"{data['scene']['id']}.json"
-            save(path, data)
-            built["entry"]["assetSha256"] = digest(path)
-            built["proof"]["asset"] = path.relative_to(REPO).as_posix()
-            built["proof"]["assetBytes"] = path.stat().st_size
-            built["proof"]["assetSha256"] = digest(path)
-            entries.append(built["entry"])
-            proofs.append(built["proof"])
-        entries_by_match[match_id] = entries
+            safe_built.append((candidate, data, built))
         print(
-            f"selected {len(entries)} of {len(candidates)} candidates for "
+            f"validated {len(validated)} of {len(candidates)} candidates for "
             f"{match['home_team']['short_name']} v {match['away_team']['short_name']}",
             flush=True,
         )
         del frames, observations
 
-    scenes = interleave(entries_by_match, match_order)
+    selected, curation_rejected = choose_catalog_candidates(
+        [candidate for candidate, _, _ in safe_built]
+    )
+    all_rejected.extend(curation_rejected)
+    selected_ids = {id(candidate) for candidate in selected}
+    scenes = []
+    proofs = []
+    for candidate, data, built in safe_built:
+        if id(candidate) not in selected_ids:
+            continue
+        path = SCENES / f"{data['scene']['id']}.json"
+        save(path, data)
+        built["entry"]["assetSha256"] = digest(path)
+        built["proof"]["asset"] = path.relative_to(REPO).as_posix()
+        built["proof"]["assetBytes"] = path.stat().st_size
+        built["proof"]["assetSha256"] = digest(path)
+        scenes.append(built["entry"])
+        proofs.append(built["proof"])
+    scenes = interleave(scenes)
     catalog = {
         "version": 1,
         "provider": "SkillCorner Open Data",
@@ -1295,13 +1688,13 @@ def generate(raw_dir: Path, audit_path: Path) -> None:
         "matchCount": 9,
         "selection": {
             "fps": FPS,
-            "preferredClipSeconds": CLIP_FRAMES / FPS,
+            "preferredClipSeconds": PREFERRED_CLIP_FRAMES / FPS,
             "minimumClipSeconds": MIN_CLIP_FRAMES / FPS,
-            "leadSeconds": LEAD_FRAMES / FPS,
+            "maximumClipSeconds": MAX_CLIP_FRAMES / FPS,
+            "minimumContextBeforeAndAfterSeconds": MIN_CONTEXT_FRAMES / FPS,
+            "actorGuardSeconds": ACTOR_GUARD_FRAMES / FPS,
             "minimumAnchorSeparationSeconds": MIN_ANCHOR_SEPARATION / FPS,
-            "scenesPerMatch": SCENES_PER_MATCH,
-            "maximumScenesPerFocalPlayerPerMatch": MAX_FOCAL_PER_MATCH,
-            "maximumScenesPerThemePerMatch": MAX_THEME_PER_MATCH,
+            "catalogueLimit": MAX_CATALOG_SCENES,
             "interleaving": (
                 "recognisable context-rich opener, then deterministic balanced "
                 "source-match interleaving"
@@ -1321,6 +1714,7 @@ def generate(raw_dir: Path, audit_path: Path) -> None:
     save(ASSETS / "source-manifest.json", source_manifest, pretty=True)
     legacy_files = []
     for directory in (
+        REPO / "assets/video_learning",
         REPO / "assets/scan_pass_replay",
         REPO / "assets/scan_pass_authored",
     ):
@@ -1348,8 +1742,9 @@ def generate(raw_dir: Path, audit_path: Path) -> None:
         "generator": "tool/scan_pass_replay/prepare_spatial_library.py",
         "selectionDefinition": {
             "connection": (
-                "successive distinct observed possession owners with continuously "
-                "recorded ball XY; same-team labels are source-consistent"
+                "a tracking-derived change between distinct same-team source-labelled "
+                "owners; every departure/arrival actor is directly observed for a "
+                "0.5 s guard on each side and the ball remains continuously recorded"
             ),
             "claims": (
                 "tracking-derived geometric descriptions only; no pass, goal, "
@@ -1357,20 +1752,33 @@ def generate(raw_dir: Path, audit_path: Path) -> None:
             ),
             "themeThresholds": {
                 "lateralSwitch": "at least 22 m lateral change",
-                "forwardConnection": "at least 9 m in established attack direction",
                 "pressureSupport": (
                     "nearest observed opposing player at the ownership anchor is "
-                    "at most 6 m away and the connection is less than 10 m "
+                    "at most 6 m away, the recorded ball connection is at least "
+                    "4 m, and the connection is less than 10 m "
                     "forward; no approach or closing speed is inferred"
                 ),
-                "carryThenConnect": "possession owner moves at least 3.5 m while continuously tagged",
-                "wideToInside": "starts at least 20 m wide and gains at least 6 m inside",
-                "combination": "three observed same-team owners, each within 8 s",
-                "turnover": "next observed owner belongs to the opposing source-labelled team",
-                "recovery": "original team has a familiar observed owner within 10 s of a turnover",
+                "combination": (
+                    "three directly observed same-team ownership segments within "
+                    "8 s with at least 5 m of recorded ball displacement on each "
+                    "leg; the first and third may be the same player in a return link"
+                ),
             },
+            "visibilityGuarantees": (
+                "core, one off-ball support actor, and relevant opponents stay directly "
+                "observed through the central sequence after impossible-speed filtering; "
+                "meaningful source-labelled owner runs are visible throughout"
+            ),
+            "missingData": (
+                "missing coordinates use a non-pitch sentinel plus visibility=0; no "
+                "(0,0), carry-forward, interpolation, or display reconstruction is shipped"
+            ),
         },
         "counts": {
+            "validatedSafeCandidates": len(safe_built),
+            "validatedSafeThemes": collections.Counter(
+                candidate["theme"] for candidate, _, _ in safe_built
+            ),
             "scenes": len(scenes),
             "matches": len({item["matchId"] for item in scenes}),
             "focalPlayers": len({item["focusPlayerName"] for item in scenes}),

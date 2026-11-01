@@ -417,7 +417,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('default root is video-first and opens retained 2D library',
+  testWidgets('default root is 2D-first and opens retained official videos',
       (tester) async {
     await tester.pumpWidget(MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -426,9 +426,9 @@ void main() {
     ));
     for (var attempt = 0; attempt < 50; attempt++) {
       await tester.pump(const Duration(milliseconds: 20));
-      if (find.byType(ScanPassVideoLearningScreen).evaluate().isNotEmpty &&
+      if (find.byType(ScanPassSpatialLibraryScreen).evaluate().isNotEmpty &&
           find
-              .byKey(const ValueKey<String>('video-learning-settings'))
+              .byKey(const ValueKey<String>('spatial-more'))
               .evaluate()
               .isNotEmpty) {
         break;
@@ -437,22 +437,17 @@ void main() {
         () => Future<void>.delayed(const Duration(milliseconds: 10)),
       );
     }
-    expect(find.byType(ScanPassVideoLearningScreen), findsOneWidget);
+    expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
     await tester.tap(
-      find.byKey(const ValueKey<String>('video-learning-settings')),
+      find.byKey(const ValueKey<String>('spatial-more')),
     );
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey<String>('video-open-spatial-library')),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
     await tester.tap(
-      find.byKey(const ValueKey<String>('video-open-spatial-library')),
+      find.byKey(const ValueKey<String>('spatial-official-video')),
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
-    expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
+    expect(find.byType(ScanPassVideoLearningScreen), findsOneWidget);
   });
 }
 
