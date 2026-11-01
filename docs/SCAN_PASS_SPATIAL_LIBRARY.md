@@ -33,13 +33,16 @@ presentation does not claim real body orientation, feet, contact posture or
 scanning direction.
 
 The compact title contains match identity. A single short teaching cue is
-placed in a currently clear part of the pitch and connected to the relevant
-source actor or ball. Placement rejects overlap with observed actors, the ball
-and the reached ball trace. The trace never previews the future path and clears
-after the evidenced action. Normal play and seeking remain at source time and
-1x. Guided replay starts with the complete setup at 1x, uses 0.5x only across
-the central evidence window, then returns to 1x for the aftermath. Previous,
-play/pause, scene list and next remain in the bottom controls.
+placed in a currently clear part of the pitch without a connector line.
+Placement rejects overlap with observed actors, the ball and the reached ball
+trace. Gold identifies only a directly observed, nearby source ownership
+record; blue identifies the current teaching focus independently. Player names
+stay beside their own badges and may be suppressed when no safe nearby slot is
+available. Recorded traces never preview a future path and clear after the
+evidenced action. Normal play and seeking remain at source time and 1x. Guided
+replay starts with the complete setup at 1x, uses 0.5x only across the central
+evidence window, then returns to 1x for the aftermath. Previous, play/pause,
+scene list and next remain in the bottom controls.
 
 The scene list reports the actual clip duration, match, focal player and theme.
 Source information and guided replay are discreet More-menu actions. There are

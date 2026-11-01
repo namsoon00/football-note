@@ -41,6 +41,53 @@ class SpatialObservedRoles {
       values.map((value) => value.playerId).toList(growable: false);
 }
 
+const double spatialConfirmedPossessionMaximumDistanceMeters = 3.5;
+
+/// Resolves only source-recorded, directly observed possession.
+///
+/// Proximity by itself is deliberately insufficient: a missing source owner
+/// record represents no confirmed owner, including while the ball is in
+/// flight. Missing observations and implausibly distant source labels are also
+/// rejected instead of being replaced by a nearby player.
+int? resolveConfirmedPossessionOwner({
+  required int? sourceOwnerId,
+  required RealMatchReplayPoint? observedOwnerPoint,
+  required RealMatchReplayPoint? observedBall,
+  double maximumDistanceMeters =
+      spatialConfirmedPossessionMaximumDistanceMeters,
+}) {
+  if (sourceOwnerId == null ||
+      observedOwnerPoint == null ||
+      observedBall == null ||
+      maximumDistanceMeters < 0) {
+    return null;
+  }
+  return _pointDistance(observedOwnerPoint, observedBall) <=
+          maximumDistanceMeters
+      ? sourceOwnerId
+      : null;
+}
+
+extension SpatialConfirmedPossession on RealMatchReplayData {
+  int? confirmedPossessionOwnerIdAt(double time) {
+    if (sourcePossessionOwners.isEmpty) return null;
+    final frame = (time.clamp(0.0, duration) * fps)
+        .floor()
+        .clamp(0, sourcePossessionOwners.length - 1);
+    final sourceOwnerId = sourcePossessionOwners[frame];
+    if (sourceOwnerId == null) return null;
+    final ownerIndex =
+        players.indexWhere((player) => player.id == sourceOwnerId);
+    if (ownerIndex < 0) return null;
+    final sample = this.sample(time);
+    return resolveConfirmedPossessionOwner(
+      sourceOwnerId: sourceOwnerId,
+      observedOwnerPoint: sample.players[ownerIndex],
+      observedBall: sample.ball,
+    );
+  }
+}
+
 class SpatialFocusKeyframe {
   final double time;
   final RealMatchReplayCamera camera;
