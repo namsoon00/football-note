@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/scan_pass/real_match_replay.dart';
+import 'package:football_note/domain/scan_pass/scan_pass_spatial_focus.dart';
 import 'package:football_note/domain/scan_pass/scan_pass_spatial_library.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
@@ -287,25 +289,7 @@ void main() {
       _expectNameLabelsAreCollisionFree(painter);
       final labelIds =
           painter.playerNameLabels.map((label) => label.playerId).toSet();
-      final primaryIds = <int>{
-        firstScene.focusPlayerId,
-        if (painter.currentSourceOwnerId case final owner?) owner,
-      };
-      expect(labelIds.intersection(primaryIds), isNotEmpty);
-      if (painter.currentSourceOwnerId case final owner?) {
-        expect(labelIds, contains(owner));
-      }
-      if (painter.cuePlayerId case final cuePlayer?) {
-        expect(labelIds, contains(cuePlayer));
-      }
-      if (labelIds.length > 1) {
-        expect(
-          labelIds.intersection(
-            firstScene.evidenceAnchors.map((anchor) => anchor.playerId).toSet(),
-          ),
-          hasLength(greaterThanOrEqualTo(2)),
-        );
-      }
+      expect(labelIds.difference(painter.nameLabelPlayerIds), isEmpty);
       expect(labelIds.length, lessThanOrEqualTo(4));
       _expectTextFits(tester, 'spatial-cue-line');
       expect(
@@ -323,13 +307,22 @@ void main() {
   testWidgets('cue flow never previews a future ball path', (tester) async {
     await tester.pumpWidget(_catalogApp(catalog));
     await _pumpLoaded(tester);
-    expect(_painter(tester).recordedBallTrace, isEmpty);
+    final setupPainter = _painter(tester);
+    expect(setupPainter.recordedBallTrace, isEmpty);
+    expect(
+      setupPainter.observedTailSegments(firstScene.focusPlayerId),
+      isEmpty,
+    );
 
     final middle = (firstScene.evidenceStart + firstScene.evidenceEnd) / 2;
     _seekTo(firstScene, middle, tester);
     await tester.pump();
     final trace = _painter(tester).recordedBallTrace;
     expect(trace, isNotEmpty);
+    expect(
+      _painter(tester).observedTailSegments(firstScene.focusPlayerId),
+      isNotEmpty,
+    );
     final maximumExpectedPoints =
         ((middle - firstScene.evidenceStart) * firstData.fps).floor() + 2;
     expect(trace.length, lessThanOrEqualTo(maximumExpectedPoints));
@@ -338,11 +331,79 @@ void main() {
     await tester.pump();
     expect(_painter(tester).recordedBallTrace, isEmpty);
     expect(
+      _painter(tester).observedTailSegments(firstScene.focusPlayerId),
+      isEmpty,
+    );
+    expect(
       _textValue(tester, 'spatial-cue-line'),
       AppLocalizations.of(
         tester.element(find.byKey(const ValueKey<String>('spatial-cue-line'))),
       )!
           .spatialLateralContinuationCue,
+    );
+  });
+
+  testWidgets('gold source ownership and blue teaching focus stay independent',
+      (tester) async {
+    ({SpatialLibraryScene scene, double time, int playerId})? confirmed;
+    ({SpatialLibraryScene scene, double time, int playerId})? nearbyOnly;
+    for (final scene in catalog.scenes) {
+      final data = _replay(scene);
+      for (var frame = 0; frame < data.frames.length; frame++) {
+        final time = math.min(data.duration, (frame + .25) / data.fps);
+        final ballSide = scene
+            .observedRoles(data, time)
+            .role(SpatialObservedRoleKind.ballSidePlayer);
+        if (ballSide == null) continue;
+        final owner = data.confirmedPossessionOwnerIdAt(time);
+        if (owner == ballSide.playerId && confirmed == null) {
+          confirmed = (scene: scene, time: time, playerId: owner!);
+        }
+        if (data.sourcePossessionOwners[frame] == null &&
+            owner == null &&
+            nearbyOnly == null) {
+          nearbyOnly = (
+            scene: scene,
+            time: time,
+            playerId: ballSide.playerId,
+          );
+        }
+        if (confirmed != null && nearbyOnly != null) break;
+      }
+      if (confirmed != null && nearbyOnly != null) break;
+    }
+    expect(confirmed, isNotNull);
+    expect(nearbyOnly, isNotNull);
+
+    final owned = confirmed!;
+    await tester.pumpWidget(_catalogApp(
+      _catalogStartingWith(catalog, owned.scene),
+      key: const ValueKey<String>('confirmed-owner-cues'),
+    ));
+    await _pumpLoaded(tester);
+    _seekTo(owned.scene, owned.time, tester);
+    await tester.pump();
+    var painter = _painter(tester);
+    expect(painter.currentConfirmedOwnerId, owned.playerId);
+    expect(painter.goldOwnershipPlayerIds, <int>{owned.playerId});
+    expect(painter.blueTeachingFocusPlayerIds, contains(owned.playerId));
+    expect(painter.ownershipCueColor, const Color(0xFFFFD15C));
+    expect(painter.teachingFocusCueColor, const Color(0xFF73CFFF));
+
+    final nearby = nearbyOnly!;
+    await tester.pumpWidget(_catalogApp(
+      _catalogStartingWith(catalog, nearby.scene),
+      key: const ValueKey<String>('nearby-only-cues'),
+    ));
+    await _pumpLoaded(tester);
+    _seekTo(nearby.scene, nearby.time, tester);
+    await tester.pump();
+    painter = _painter(tester);
+    expect(painter.currentConfirmedOwnerId, isNull);
+    expect(painter.goldOwnershipPlayerIds, isEmpty);
+    expect(
+      painter.blueTeachingFocusPlayerIds,
+      contains(nearby.playerId),
     );
   });
 
@@ -573,25 +634,25 @@ void main() {
     );
     expect(retained, first);
 
-    final connectorBlocker = Rect.fromCircle(
-      center: Offset.lerp(
-        SpatialCuePlacement.connectorStart(first, movedTarget),
-        movedTarget,
-        .5,
-      )!,
-      radius: 8,
+    final nearestCardEdge = Offset(
+      movedTarget.dx.clamp(first.left, first.right),
+      movedTarget.dy.clamp(first.top, first.bottom),
     );
-    final retainedAcrossConnector = SpatialCuePlacement.place(
+    final unrelatedSpaceBetweenCardAndSubject = Rect.fromCircle(
+      center: Offset.lerp(nearestCardEdge, movedTarget, .5)!,
+      radius: 3,
+    );
+    final retainedWithoutConnectorConstraint = SpatialCuePlacement.place(
       bounds: bounds,
       size: size,
       target: movedTarget,
       occupied: <Rect>[
         Rect.fromCircle(center: movedTarget, radius: 14),
-        connectorBlocker,
+        unrelatedSpaceBetweenCardAndSubject,
       ],
       preferred: first,
     );
-    expect(retainedAcrossConnector, first);
+    expect(retainedWithoutConnectorConstraint, first);
 
     final blocked = <Rect>[
       Rect.fromCircle(center: movedTarget, radius: 14),
@@ -609,7 +670,6 @@ void main() {
     expect(
       SpatialCuePlacement.isClear(
         rect: relocated,
-        target: movedTarget,
         occupied: blocked,
       ),
       isTrue,
@@ -643,8 +703,7 @@ void main() {
     expect(fullViewport.contains(viewportFallback.bottomRight), isTrue);
   });
 
-  testWidgets(
-      'dense landscape connections retain a highest-priority player name',
+  testWidgets('dense landscape names stay attached or are safely suppressed',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(667, 320));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -670,30 +729,9 @@ void main() {
         await tester.pump();
 
         final painter = _painter(tester);
-        final sample = painter.data.renderSample(painter.time);
-        final primaryIds = <int>{
-          scene.focusPlayerId,
-          if (painter.currentSourceOwnerId case final owner?) owner,
-          if (painter.cuePlayerId case final cuePlayer?) cuePlayer,
-        };
-        final safelyVisiblePrimaryIds = primaryIds.where((playerId) {
-          final point = sample.players[painter.data.playerIndex(playerId)];
-          return point != null &&
-              painter.viewport.contains(point, safetyPixels: 25);
-        }).toSet();
-        expect(
-          safelyVisiblePrimaryIds,
-          isNotEmpty,
-          reason: '$sceneId at $time',
-        );
-        expect(
-          painter.playerNameLabels
-              .map((label) => label.playerId)
-              .toSet()
-              .intersection(safelyVisiblePrimaryIds),
-          isNotEmpty,
-          reason: '$sceneId at $time',
-        );
+        final labelIds =
+            painter.playerNameLabels.map((label) => label.playerId).toSet();
+        expect(labelIds.difference(painter.nameLabelPlayerIds), isEmpty);
         _expectNameLabelsAreCollisionFree(painter);
         expect(tester.takeException(), isNull);
       }
@@ -814,6 +852,8 @@ void _expectNameLabelsAreCollisionFree(SpatialLibraryPitchPainter painter) {
   for (var index = 0; index < labels.length; index++) {
     final label = labels[index];
     expect(label.sourceName, painter.data.player(label.playerId).name);
+    expect(label.attachmentDistance, lessThanOrEqualTo(18));
+    expect(label.placementIndex, lessThan(40));
     expect(
       sample.players[painter.data.playerIndex(label.playerId)],
       isNotNull,
@@ -830,7 +870,6 @@ void _expectNameLabelsAreCollisionFree(SpatialLibraryPitchPainter painter) {
     for (var other = index + 1; other < labels.length; other++) {
       expect(label.rect.overlaps(labels[other].rect), isFalse);
     }
-    expect(label.hasConnector, label.placementIndex >= 8);
   }
 }
 

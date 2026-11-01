@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/scan_pass/real_match_replay.dart';
@@ -30,6 +31,97 @@ void main() {
         }
       }
     }
+  });
+
+  test('confirmed possession requires source ownership and close observations',
+      () {
+    const owner = 42;
+    const ball = RealMatchReplayPoint(10, 10);
+    const nearby = RealMatchReplayPoint(12, 10);
+
+    expect(
+      resolveConfirmedPossessionOwner(
+        sourceOwnerId: owner,
+        observedOwnerPoint: nearby,
+        observedBall: ball,
+      ),
+      owner,
+    );
+    expect(
+      resolveConfirmedPossessionOwner(
+        sourceOwnerId: null,
+        observedOwnerPoint: nearby,
+        observedBall: ball,
+      ),
+      isNull,
+      reason: 'proximity cannot replace a missing/pass-flight source record',
+    );
+    expect(
+      resolveConfirmedPossessionOwner(
+        sourceOwnerId: owner,
+        observedOwnerPoint: null,
+        observedBall: ball,
+      ),
+      isNull,
+      reason: 'a hidden owner is not observed possession',
+    );
+    expect(
+      resolveConfirmedPossessionOwner(
+        sourceOwnerId: owner,
+        observedOwnerPoint: nearby,
+        observedBall: null,
+      ),
+      isNull,
+      reason: 'a missing ball observation cannot confirm possession',
+    );
+    expect(
+      resolveConfirmedPossessionOwner(
+        sourceOwnerId: owner,
+        observedOwnerPoint: const RealMatchReplayPoint(13.51, 10),
+        observedBall: ball,
+      ),
+      isNull,
+      reason: 'an implausibly distant source label is not possession',
+    );
+  });
+
+  test('real clips never promote nearby fallback or stale source ownership',
+      () {
+    var nearbyWithoutSourceRecord = 0;
+    var rejectedDistantSourceRecords = 0;
+    for (final scene in catalog.scenes) {
+      final replay = _replay(scene);
+      for (var frame = 0; frame < replay.frames.length; frame++) {
+        final time = frame / replay.fps;
+        final sample = replay.sample(time);
+        final sourceOwner = replay.sourcePossessionOwners[frame];
+        final confirmed = replay.confirmedPossessionOwnerIdAt(time);
+        if (sourceOwner == null) {
+          expect(confirmed, isNull, reason: '${scene.id} pass frame $frame');
+          if (scene
+                  .observedRoles(replay, time)
+                  .role(SpatialObservedRoleKind.ballSidePlayer) !=
+              null) {
+            nearbyWithoutSourceRecord++;
+          }
+          continue;
+        }
+        final point = sample.players[replay.playerIndex(sourceOwner)];
+        final distance =
+            point == null ? double.infinity : _distance(point, sample.ball);
+        if (point == null ||
+            distance > spatialConfirmedPossessionMaximumDistanceMeters) {
+          expect(confirmed, isNull,
+              reason: '${scene.id} rejected owner frame $frame');
+          if (point != null) rejectedDistantSourceRecords++;
+        } else {
+          expect(confirmed, sourceOwner,
+              reason: '${scene.id} confirmed owner frame $frame');
+        }
+      }
+    }
+    expect(nearbyWithoutSourceRecord, greaterThan(0));
+    expect(rejectedDistantSourceRecords, greaterThan(0));
   });
 
   test('pressure role is an observed opponent at the evidenced gap', () {
@@ -109,3 +201,9 @@ bool _contains(RealMatchReplayCamera camera, RealMatchReplayPoint point) =>
     point.x <= camera.maxX &&
     point.y >= camera.minY &&
     point.y <= camera.maxY;
+
+double _distance(RealMatchReplayPoint a, RealMatchReplayPoint b) {
+  final dx = a.x - b.x;
+  final dy = a.y - b.y;
+  return math.sqrt(dx * dx + dy * dy);
+}
