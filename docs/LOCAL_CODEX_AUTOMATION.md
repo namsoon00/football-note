@@ -34,6 +34,7 @@ Both run every 30 minutes.
 - `CODEX_MODEL`: default `gpt-5` (latest model). Override if needed.
 - `CODEX_REASONING_EFFORT`: optional; supported values are `minimal`, `low`, `medium`, `high` and invalid values are normalized by the harness
 - `RUN_VERIFY`: default `1`; set `0` to skip the worker-side verify/repair loop
+- `HARNESS_RUN_VERIFY`: local chat/coding flows default to `0` because their outer `verify_commit_push.sh` always verifies; set `1` to opt in to an additional harness-side verify/repair pass
 - `AUTO_MERGE`: default `1` (try merge PR to `main` automatically)
 - `AUTO_MERGE_METHOD`: `squash` (default), `merge`, or `rebase`
 - `FORCE_MAIN_MERGE`: default `1` (merge worker branch directly into `main` and close issue)
@@ -62,6 +63,8 @@ Repository Settings -> General:
 ## 5-1) Shared local/remote harness
 - Local coding flow can call the same harness through `./scripts/cli.sh coding --title ... --body-file ...`
 - Remote issue automation calls the harness inside `scripts/run_issue_worker.sh`
+- Local chat/coding wrappers run one final quick verification before commit/push. Use `--harness-verify`, an explicitly supplied `--harness-verify-command`, or `HARNESS_RUN_VERIFY=1` only when a pre-final repair gate is wanted. `--no-harness-verify` wins when it appears later on the command line.
+- Standalone harness and issue-worker verification settings remain independent of that local wrapper default.
 - Common improvements live in one place:
   - prompt normalization
   - related file hints

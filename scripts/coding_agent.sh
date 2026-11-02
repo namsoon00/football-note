@@ -6,8 +6,8 @@ cd "$(dirname "$0")/.."
 usage() {
   cat <<'EOF'
 Coding agent flow:
-  - optional Codex harness run
-  - verify
+  - optional Codex harness run (harness-side verify/repair is opt-in)
+  - final verification
   - branch commit
   - merge to main
   - push main
@@ -16,6 +16,13 @@ Coding agent flow:
 Usage:
   ./scripts/coding_agent.sh -m "<commit message (#123 or #0)>" [--issue <number>] [-b <branch>]
   ./scripts/coding_agent.sh -m "<commit message (#123 or #0)>" --title "<task>" [--body "<details>" | --body-file task.md]
+
+Harness verification options (processed in command-line order):
+  --harness-verify                Opt in to harness-side verify/repair
+  --no-harness-verify             Opt out of harness-side verify/repair
+  --harness-verify-command <cmd>  Set the command and opt in
+
+The final verification in verify_commit_push.sh always runs.
 EOF
 }
 
@@ -34,7 +41,7 @@ task_body=""
 task_body_file=""
 issue_number=""
 issue_url=""
-harness_run_verify="${HARNESS_RUN_VERIFY:-1}"
+harness_run_verify="${HARNESS_RUN_VERIFY:-0}"
 harness_verify_command="${HARNESS_VERIFY_COMMAND:-./scripts/verify.sh}"
 harness_repair_attempts="${HARNESS_REPAIR_ATTEMPTS:-1}"
 forward_args=()
@@ -65,9 +72,13 @@ while [[ $# -gt 0 ]]; do
     --no-harness-verify)
       harness_run_verify="0"
       ;;
+    --harness-verify)
+      harness_run_verify="1"
+      ;;
     --harness-verify-command)
       shift
       harness_verify_command="${1:-}"
+      harness_run_verify="1"
       ;;
     --repair-attempts)
       shift

@@ -1,6 +1,6 @@
 # 태오의노트 테크 노트
 
-최종 갱신: 2026-07-15
+최종 갱신: 2026-11-02
 
 ## 1) 아키텍처 개요
 - 기본 원칙: DDD 분리
@@ -83,20 +83,18 @@
 - 성장 그래프 일 단위 + 운동 일자 표시
 
 ## 7) 빌드/검증 규칙
-- 정적 분석: `flutter analyze`
-- 통합 검증: `./scripts/verify.sh`
-- 포함 단계:
-- `flutter pub get`
-- `flutter gen-l10n`
-- format check
-- analyze
-- test
-- iOS simulator run check
+- 기본 사전 출시 검증: `./scripts/verify.sh` (`quick`; `VERIFY_SCOPE=minimal`도 같은 호환 별칭)
+- quick 포함 단계: `flutter pub get`, `flutter gen-l10n`, 로컬라이제이션 일관성, `flutter analyze --no-pub`, 디자인 가드, 명시적으로 허용한 3개 파일의 `prelaunch-smoke` 테스트 7개
+- 전체 검증: `VERIFY_SCOPE=full ./scripts/verify.sh`
+- full은 기존 특수 계약/소스 검증과 제한 시간 600초의 전체 `flutter test`를 유지하며 GitHub Actions에서도 축소되지 않는다.
+- 일상 개발은 quick과 변경 기능에 필요한 소수 회귀 테스트만 사용한다. 데이터 보존/손실, 핵심 탐색처럼 중요한 동작에 테스트를 추가하고, 되돌리기 쉬운 변경에 모든 뷰포트/다국어 스크린샷 순회를 새로 만들지 않는다.
+- UI/플랫폼 동작을 바꿨을 때만 관련 iOS/Android/Chrome 실행 검증을 추가한다. full 자체는 시뮬레이터나 Chrome을 자동 실행하지 않는다.
 
 ## 8) 자동화/Git 운용
 - 이슈 기반 자동 작업: `docs/ISSUE_WORKFLOW.md`, `docs/LOCAL_CODEX_AUTOMATION.md`
 - 브랜치/PR 기반 처리 후 main 반영
 - 커밋 메시지 규칙: 이슈 번호 포함 (`(#번호)`)
+- 로컬 chat/coding 외부 흐름은 최종 `./scripts/verify.sh`를 항상 한 번 실행한다. harness 내부 verify/repair는 명시적으로 선택했을 때만 그보다 먼저 실행한다.
 
 ## 9) 알려진 운영 메모
 - Web Google Sign-In은 clientId/메타 설정 누락 시 실패 가능

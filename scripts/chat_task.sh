@@ -9,7 +9,7 @@ Chat task flow:
   - normalize a chat-style request
   - derive harness title and default commit message
   - run coding agent through the shared harness
-  - verify, merge to main, and push
+  - run final verification, merge to main, and push
 
 Usage:
   ./scripts/chat_task.sh --request "<task request>" [-m "<commit message>"] [--issue <number>] [-b <branch>]
@@ -24,8 +24,9 @@ Options:
   --issue-url <url>               GitHub issue URL
   -b, --branch <name>             Work branch name
   --context-path <path>           Extra context path for the shared harness (repeatable)
-  --no-harness-verify             Skip harness-side verify/repair loop
-  --harness-verify-command <cmd>  Harness verification command override
+  --harness-verify                Opt in to harness-side verify/repair
+  --no-harness-verify             Opt out (the default unless HARNESS_RUN_VERIFY=1)
+  --harness-verify-command <cmd>  Set harness command and opt in
   --repair-attempts <count>       Harness repair retries
   --print-only                    Print the derived title/message and exit
   -h, --help                      Show this help
@@ -85,8 +86,9 @@ commit_message=""
 issue_number=""
 issue_url=""
 work_branch=""
-harness_run_verify="${HARNESS_RUN_VERIFY:-1}"
+harness_run_verify="${HARNESS_RUN_VERIFY:-0}"
 harness_verify_command="${HARNESS_VERIFY_COMMAND:-./scripts/verify.sh}"
+harness_verify_command_explicit=0
 harness_repair_attempts="${HARNESS_REPAIR_ATTEMPTS:-1}"
 print_only=0
 context_paths=()
@@ -124,9 +126,14 @@ while [[ $# -gt 0 ]]; do
     --no-harness-verify)
       harness_run_verify="0"
       ;;
+    --harness-verify)
+      harness_run_verify="1"
+      ;;
     --harness-verify-command)
       shift
       harness_verify_command="${1:-}"
+      harness_verify_command_explicit=1
+      harness_run_verify="1"
       ;;
     --repair-attempts)
       shift
@@ -177,11 +184,15 @@ coding_args=(
   -m "${commit_message}"
   --title "${task_title}"
   --body "${request_text}"
-  --harness-verify-command "${harness_verify_command}"
   --repair-attempts "${harness_repair_attempts}"
 )
 
-if [[ "${harness_run_verify}" == "0" ]]; then
+if [[ "${harness_verify_command_explicit}" == "1" ]]; then
+  coding_args+=(--harness-verify-command "${harness_verify_command}")
+fi
+if [[ "${harness_run_verify}" == "1" && "${harness_verify_command_explicit}" == "0" ]]; then
+  coding_args+=(--harness-verify)
+elif [[ "${harness_run_verify}" == "0" ]]; then
   coding_args+=(--no-harness-verify)
 fi
 if [[ -n "${issue_number}" ]]; then

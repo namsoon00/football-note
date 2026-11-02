@@ -6,10 +6,24 @@ A new Flutter project.
 
 ## Verification
 
-Run the standard verification checks:
+Run the quick prelaunch verification profile (the required default for normal
+development):
 
 ```bash
 ./scripts/verify.sh
+```
+
+Quick verification resolves dependencies, generates and checks localization,
+runs `flutter analyze --no-pub` and the design consistency guard, then runs the
+seven tagged `prelaunch-smoke` tests from an explicit three-file allowlist. It
+does not discover or compile the entire test directory.
+
+`VERIFY_SCOPE=minimal` is a compatibility alias for the same quick profile.
+Run all specialized contracts and the full Flutter suite only when explicitly
+needed or for a mobile release:
+
+```bash
+VERIFY_SCOPE=full ./scripts/verify.sh
 ```
 
 Or use the project CLI:
@@ -49,6 +63,10 @@ Chat-style requests can go through the same flow with a single entrypoint:
 ./scripts/cli.sh request \
   --request "Unify the onboarding CTA spacing and add tests for the updated layout."
 ```
+
+Chat/coding flows run the final verification once before commit and push.
+Harness-side verify/repair is opt-in with `--harness-verify`, an explicitly
+supplied `--harness-verify-command`, or `HARNESS_RUN_VERIFY=1`.
 
 ## Issue Workflow
 

@@ -22,17 +22,20 @@ void main() {
     catalog = await assets.loadCatalog();
   });
 
-  test('asset repository hashes, parses, and service-validates a scene',
-      () async {
-    final service = ScanPassSpatialLibraryService(assets);
-    final loadedCatalog = await service.loadCatalog();
-    final scene = loadedCatalog.scenes.first;
-    final data = await service.loadScene(scene);
+  test(
+    'asset repository hashes, parses, and service-validates a scene',
+    () async {
+      final service = ScanPassSpatialLibraryService(assets);
+      final loadedCatalog = await service.loadCatalog();
+      final scene = loadedCatalog.scenes.first;
+      final data = await service.loadScene(scene);
 
-    expect(loadedCatalog.scenes, isNotEmpty);
-    expect(data.scene.id, scene.id);
-    expect(data.match.id, scene.matchId);
-  });
+      expect(loadedCatalog.scenes, isNotEmpty);
+      expect(data.scene.id, scene.id);
+      expect(data.match.id, scene.matchId);
+    },
+    tags: 'prelaunch-smoke',
+  );
 
   test('asset repository rejects corrupt scene bytes before parsing', () async {
     final scene = catalog.scenes.first;
@@ -60,49 +63,52 @@ void main() {
     expect(service.loadScene(first), throwsFormatException);
   });
 
-  test('restores exact source time, mode, filters, and bookmark paused state',
-      () async {
-    final options = _MemoryOptionRepository();
-    final scene = catalog.scenes.first;
-    final service = ScanPassSpatialLibraryService(
-      assets,
-      optionRepository: options,
-    );
-    await service.prepareCatalog(catalog);
-    await service.selectScene(scene, sourceTime: 12.25);
-    await service.setPlaybackMode(SpatialLibraryPlaybackMode.source);
-    await service.setFilters(SpatialLibraryFilters(
-      query: scene.focusPlayerName,
-      attackingTeam: scene.attackingTeam,
-      player: scene.focusPlayerName,
-      watchFilter: SpatialLibraryWatchFilter.inProgress,
-      unfinishedFirst: false,
-    ));
-    await service.toggleBookmark(scene);
+  test(
+    'restores exact source time, mode, filters, and bookmark paused state',
+    () async {
+      final options = _MemoryOptionRepository();
+      final scene = catalog.scenes.first;
+      final service = ScanPassSpatialLibraryService(
+        assets,
+        optionRepository: options,
+      );
+      await service.prepareCatalog(catalog);
+      await service.selectScene(scene, sourceTime: 12.25);
+      await service.setPlaybackMode(SpatialLibraryPlaybackMode.source);
+      await service.setFilters(SpatialLibraryFilters(
+        query: scene.focusPlayerName,
+        attackingTeam: scene.attackingTeam,
+        player: scene.focusPlayerName,
+        watchFilter: SpatialLibraryWatchFilter.inProgress,
+        unfinishedFirst: false,
+      ));
+      await service.toggleBookmark(scene);
 
-    final restored = ScanPassSpatialLibraryService(
-      assets,
-      optionRepository: options,
-    );
-    await restored.prepareCatalog(catalog);
+      final restored = ScanPassSpatialLibraryService(
+        assets,
+        optionRepository: options,
+      );
+      await restored.prepareCatalog(catalog);
 
-    expect(restored.initialScene(catalog).id, scene.id);
-    expect(restored.resumeTime(scene), 12.25);
-    expect(
-      restored.preferences.playbackMode,
-      SpatialLibraryPlaybackMode.source,
-    );
-    expect(restored.preferences.filters.query, scene.focusPlayerName);
-    expect(restored.preferences.filters.attackingTeam, scene.attackingTeam);
-    expect(restored.preferences.filters.player, scene.focusPlayerName);
-    expect(
-      restored.preferences.filters.watchFilter,
-      SpatialLibraryWatchFilter.inProgress,
-    );
-    expect(restored.preferences.filters.unfinishedFirst, isFalse);
-    expect(restored.isBookmarked(scene), isTrue);
-    expect(restored.isWatched(scene), isFalse);
-  });
+      expect(restored.initialScene(catalog).id, scene.id);
+      expect(restored.resumeTime(scene), 12.25);
+      expect(
+        restored.preferences.playbackMode,
+        SpatialLibraryPlaybackMode.source,
+      );
+      expect(restored.preferences.filters.query, scene.focusPlayerName);
+      expect(restored.preferences.filters.attackingTeam, scene.attackingTeam);
+      expect(restored.preferences.filters.player, scene.focusPlayerName);
+      expect(
+        restored.preferences.filters.watchFilter,
+        SpatialLibraryWatchFilter.inProgress,
+      );
+      expect(restored.preferences.filters.unfinishedFirst, isFalse);
+      expect(restored.isBookmarked(scene), isTrue);
+      expect(restored.isWatched(scene), isFalse);
+    },
+    tags: 'prelaunch-smoke',
+  );
 
   test('seek, repeat, and jumps cannot manufacture spatial completion',
       () async {
@@ -240,50 +246,54 @@ void main() {
     );
   });
 
-  test('corrupt and stale source-bound history is discarded safely', () async {
-    final scene = catalog.scenes.first;
-    final options = _MemoryOptionRepository()
-      ..values[ScanPassSpatialLibraryService.storageKey] = jsonEncode(
-        <String, dynamic>{
-          'version': 1,
-          'lastSceneIdentity': '${scene.id}:old-source-hash',
-          'records': <String, dynamic>{
-            '${scene.id}:old-source-hash': <String, dynamic>{
-              'resumeTime': 999,
-              'coverage': <String, dynamic>{
-                'intervals': <Object>[
-                  <double>[0, 999],
-                ],
-                'playedFinalInterval': true,
+  test(
+    'corrupt and stale source-bound history is discarded safely',
+    () async {
+      final scene = catalog.scenes.first;
+      final options = _MemoryOptionRepository()
+        ..values[ScanPassSpatialLibraryService.storageKey] = jsonEncode(
+          <String, dynamic>{
+            'version': 1,
+            'lastSceneIdentity': '${scene.id}:old-source-hash',
+            'records': <String, dynamic>{
+              '${scene.id}:old-source-hash': <String, dynamic>{
+                'resumeTime': 999,
+                'coverage': <String, dynamic>{
+                  'intervals': <Object>[
+                    <double>[0, 999],
+                  ],
+                  'playedFinalInterval': true,
+                },
+                'bookmarked': true,
               },
-              'bookmarked': true,
             },
+            'filters': <String, dynamic>{
+              'attackingTeam': 'Deleted team',
+              'player': 'Deleted player',
+              'watchFilter': 'invalid',
+            },
+            'playbackMode': 'invalid',
+            'autoNext': 'invalid',
           },
-          'filters': <String, dynamic>{
-            'attackingTeam': 'Deleted team',
-            'player': 'Deleted player',
-            'watchFilter': 'invalid',
-          },
-          'playbackMode': 'invalid',
-          'autoNext': 'invalid',
-        },
+        );
+      final service = ScanPassSpatialLibraryService(
+        assets,
+        optionRepository: options,
       );
-    final service = ScanPassSpatialLibraryService(
-      assets,
-      optionRepository: options,
-    );
-    await service.prepareCatalog(catalog);
+      await service.prepareCatalog(catalog);
 
-    expect(service.preferences.records, isEmpty);
-    expect(service.preferences.lastSceneIdentity, isNull);
-    expect(service.preferences.filters.attackingTeam, isNull);
-    expect(service.preferences.filters.player, isNull);
-    expect(
-      service.preferences.filters.watchFilter,
-      SpatialLibraryWatchFilter.all,
-    );
-    expect(service.resumeTime(scene), 0);
-  });
+      expect(service.preferences.records, isEmpty);
+      expect(service.preferences.lastSceneIdentity, isNull);
+      expect(service.preferences.filters.attackingTeam, isNull);
+      expect(service.preferences.filters.player, isNull);
+      expect(
+        service.preferences.filters.watchFilter,
+        SpatialLibraryWatchFilter.all,
+      );
+      expect(service.resumeTime(scene), 0);
+    },
+    tags: 'prelaunch-smoke',
+  );
 
   test('save failure keeps playback state in memory and retry recovers',
       () async {

@@ -379,7 +379,7 @@ URL, byte count and SHA-256 from that manifest; `--source-manifest` can select
 an equivalent audited manifest explicitly. Historical height import separately
 checks every selected `match_data.json` and `structured_data.json` against the
 original source manifest. Asset-only verification needs no raw download and no
-`.tmp` file, and is part of `scripts/verify.sh` for CI: it checks every mask,
+`.tmp` file, and is part of `VERIFY_SCOPE=full ./scripts/verify.sh`: it checks every mask,
 centimetre value, scene hash, proof summary and the hard-pinned complete height
 extract. When pinned raw files are present, the verifier additionally checks
 their full bytes/hashes and compares every selected source-frame z value. If

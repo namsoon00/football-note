@@ -48,37 +48,40 @@ void main() {
     );
   }
 
-  test('empty and one-entry databases use index-compatible CRUD paths',
-      () async {
-    final harness = await openHarness();
-    addTearDown(harness.close);
+  test(
+    'empty and one-entry databases use index-compatible CRUD paths',
+    () async {
+      final harness = await openHarness();
+      addTearDown(harness.close);
 
-    await harness.repository.ensureIndexReady();
-    harness.repository.debugCounters.reset();
+      await harness.repository.ensureIndexReady();
+      harness.repository.debugCounters.reset();
 
-    expect(await harness.repository.getRecent(limit: 5), isEmpty);
-    expect(
-      await harness.repository.getRange(
-        DateTime(2026, 1, 1),
-        DateTime(2026, 2, 1),
-      ),
-      isEmpty,
-    );
-    expect(harness.repository.debugCounters.sourceScanCount, 0);
+      expect(await harness.repository.getRecent(limit: 5), isEmpty);
+      expect(
+        await harness.repository.getRange(
+          DateTime(2026, 1, 1),
+          DateTime(2026, 2, 1),
+        ),
+        isEmpty,
+      );
+      expect(harness.repository.debugCounters.sourceScanCount, 0);
 
-    await harness.repository.add(
-      _entry(
-        date: DateTime(2026, 1, 3),
-        createdAt: DateTime(2026, 1, 3, 18),
-      ),
-    );
-    await _waitForHiveEvents();
+      await harness.repository.add(
+        _entry(
+          date: DateTime(2026, 1, 3),
+          createdAt: DateTime(2026, 1, 3, 18),
+        ),
+      );
+      await _waitForHiveEvents();
 
-    final recent = await harness.repository.getRecent(limit: 1);
-    expect(recent, hasLength(1));
-    expect(recent.single.date, DateTime(2026, 1, 3));
-    expect(harness.repository.debugCounters.sourceScanCount, 0);
-  });
+      final recent = await harness.repository.getRecent(limit: 1);
+      expect(recent, hasLength(1));
+      expect(recent.single.date, DateTime(2026, 1, 3));
+      expect(harness.repository.debugCounters.sourceScanCount, 0);
+    },
+    tags: 'prelaunch-smoke',
+  );
 
   test(
     'indexed benchmark datasets avoid full source scans for 1k 5k 10k and 30k',

@@ -1,12 +1,15 @@
 # Agent Working Rules
 
 ## Verification (Mandatory)
-- After any code change, run `./scripts/verify.sh` from repo root before final response.
+- After any code change, run `./scripts/verify.sh` from repo root before final response. This is the quick prelaunch profile by default.
+- Use `VERIFY_SCOPE=full ./scripts/verify.sh` only for an explicit full request, a real mobile release/tag publication, or a concrete failure whose relevant specialized/full-suite coverage is needed. `VERIFY_SCOPE=minimal` remains a compatibility alias for quick.
+- For routine changes, add or run a few focused regressions only when the changed behavior justifies them. New tests should protect important behavior such as persistence/data loss, core navigation, or similarly costly failures; do not add routine every-viewport or multilingual screenshot sweeps for reversible changes.
+- Repository-specific prelaunch override: broader parent guidance to always run iOS simulator and Chrome checks does not apply to documentation-, test-, script-, or verification-only changes. Run native/Chrome checks when changed UI or platform behavior needs them. Full verification does not automatically launch simulators or Chrome.
 - In the final response, always report:
   - command executed
   - pass/fail status
   - failing step and key error if failed
-- If full verify cannot complete due environment limits (for example simulator unavailable), report the exact blocking step and still include completed steps' results.
+- If requested verification cannot complete due environment limits, report the exact blocking step and still include completed steps' results.
 
 ## Git Workflow (Mandatory)
 - Default workflow is branch-based merge to `main` (no PR by default): create work branch -> commit -> merge to `main` with a merge commit -> push `main`.
@@ -24,7 +27,7 @@
   - Scope: build/release artifacts only (iOS/Android), no code edits and no git writes.
 
 ## Chat Task Flow (Mandatory)
-- For chat-originated implementation requests in this repository, prefer `./scripts/cli.sh request ...` (or `./scripts/chat_task.sh ...`) so the shared harness normalizes the request, injects repo rules, and runs the verify/repair loop before the normal coding agent flow.
+- For chat-originated implementation requests in this repository, prefer `./scripts/cli.sh request ...` (or `./scripts/chat_task.sh ...`) so the shared harness normalizes the request and injects repo rules. By default, the outer coding flow performs one final quick verification; harness-side verify/repair is opt-in.
 
 ## Temp Workspace (Mandatory)
 - Do not stop to ask for confirmation before editing agent-created temporary files or generated task artifacts inside this repository.

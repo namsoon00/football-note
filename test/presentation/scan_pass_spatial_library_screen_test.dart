@@ -34,106 +34,116 @@ void main() {
     firstData = _replay(firstScene);
   });
 
-  testWidgets('public root is 2D and official video is one secondary route',
-      (tester) async {
-    final options = _Options();
-    await tester.pumpWidget(_app(
-      home: ScanPassGameScreen(optionRepository: options),
-    ));
-    await _pumpLoaded(tester);
+  testWidgets(
+    'public root is 2D and official video is one secondary route',
+    (tester) async {
+      final options = _Options();
+      await tester.pumpWidget(_app(
+        home: ScanPassGameScreen(optionRepository: options),
+      ));
+      await _pumpLoaded(tester);
 
-    expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
-    expect(find.byType(ScanPassVideoLearningScreen), findsNothing);
-    await _openMenu(tester);
-    expect(
-      find.byKey(const ValueKey<String>('spatial-official-video')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey<String>('spatial-legacy-viewer')),
-      findsNothing,
-    );
-    expect(
-      find.byKey(const ValueKey<String>('spatial-authored-sample')),
-      findsNothing,
-    );
+      expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
+      expect(find.byType(ScanPassVideoLearningScreen), findsNothing);
+      await _openMenu(tester);
+      expect(
+        find.byKey(const ValueKey<String>('spatial-official-video')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('spatial-legacy-viewer')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('spatial-authored-sample')),
+        findsNothing,
+      );
 
-    await tester.tap(
-      find.byKey(const ValueKey<String>('spatial-official-video')),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
-    expect(find.byType(ScanPassVideoLearningScreen), findsOneWidget);
-    tester.state<NavigatorState>(find.byType(Navigator).first).pop();
-    await tester.pumpAndSettle();
-    expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      await tester.tap(
+        find.byKey(const ValueKey<String>('spatial-official-video')),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(ScanPassVideoLearningScreen), findsOneWidget);
+      tester.state<NavigatorState>(find.byType(Navigator).first).pop();
+      await tester.pumpAndSettle();
+      expect(find.byType(ScanPassSpatialLibraryScreen), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+    tags: 'prelaunch-smoke',
+  );
 
-  testWidgets('ordinary replay stays 1x and lifecycle, seek, next are safe',
-      (tester) async {
-    await tester.pumpWidget(_catalogApp(catalog));
-    await _pumpLoaded(tester);
+  testWidgets(
+    'ordinary replay stays 1x and lifecycle, seek, next are safe',
+    (tester) async {
+      await tester.pumpWidget(_catalogApp(catalog));
+      await _pumpLoaded(tester);
 
-    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 1100));
-    expect(_sourceTime(tester), closeTo(1.1, .15));
+      await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1100));
+      expect(_sourceTime(tester), closeTo(1.1, .15));
 
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-    await tester.pump();
-    final paused = _sourceTime(tester);
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump(const Duration(milliseconds: 900));
-    expect(_sourceTime(tester), closeTo(paused, .01));
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+      final paused = _sourceTime(tester);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 900));
+      expect(_sourceTime(tester), closeTo(paused, .01));
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
 
-    final slider = tester.widget<Slider>(
-      find.byKey(const ValueKey<String>('spatial-progress')),
-    );
-    slider.onChanged!(.5);
-    await tester.pump();
-    expect(_sourceTime(tester), closeTo(firstScene.duration / 2, .05));
+      final slider = tester.widget<Slider>(
+        find.byKey(const ValueKey<String>('spatial-progress')),
+      );
+      slider.onChanged!(.5);
+      await tester.pump();
+      expect(_sourceTime(tester), closeTo(firstScene.duration / 2, .05));
 
-    await tester.tap(find.byKey(const ValueKey<String>('spatial-next')));
-    await _pumpScene(tester, catalog.scenes[1].id);
-    expect(_sourceTime(tester), 0);
-    expect(tester.takeException(), isNull);
-  });
+      await tester.tap(find.byKey(const ValueKey<String>('spatial-next')));
+      await _pumpScene(tester, catalog.scenes[1].id);
+      expect(_sourceTime(tester), 0);
+      expect(tester.takeException(), isNull);
+    },
+    tags: 'prelaunch-smoke',
+  );
 
-  testWidgets('recreation restores exact source time paused', (tester) async {
-    final options = _Options();
-    await tester.pumpWidget(_catalogApp(catalog, options: options));
-    await _pumpLoaded(tester);
+  testWidgets(
+    'recreation restores exact source time paused',
+    (tester) async {
+      final options = _Options();
+      await tester.pumpWidget(_catalogApp(catalog, options: options));
+      await _pumpLoaded(tester);
 
-    final slider = tester.widget<Slider>(
-      find.byKey(const ValueKey<String>('spatial-progress')),
-    );
-    slider.onChanged!(.4);
-    await tester.pump();
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pump();
+      final slider = tester.widget<Slider>(
+        find.byKey(const ValueKey<String>('spatial-progress')),
+      );
+      slider.onChanged!(.4);
+      await tester.pump();
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
 
-    await tester.pumpWidget(_catalogApp(
-      catalog,
-      key: const ValueKey<String>('restored-spatial-viewer'),
-      options: options,
-    ));
-    await _pumpLoaded(tester);
+      await tester.pumpWidget(_catalogApp(
+        catalog,
+        key: const ValueKey<String>('restored-spatial-viewer'),
+        options: options,
+      ));
+      await _pumpLoaded(tester);
 
-    expect(_sourceTime(tester), closeTo(firstScene.duration * .4, .01));
-    final restored = _sourceTime(tester);
-    await tester.pump(const Duration(milliseconds: 600));
-    expect(_sourceTime(tester), closeTo(restored, .01));
-    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 600));
-    expect(
-      _sourceTime(tester),
-      closeTo(restored + .6, .12),
-      reason: 'ordinary playback must continue from the restored source time',
-    );
-  });
+      expect(_sourceTime(tester), closeTo(firstScene.duration * .4, .01));
+      final restored = _sourceTime(tester);
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(_sourceTime(tester), closeTo(restored, .01));
+      await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(
+        _sourceTime(tester),
+        closeTo(restored + .6, .12),
+        reason: 'ordinary playback must continue from the restored source time',
+      );
+    },
+    tags: 'prelaunch-smoke',
+  );
 
   testWidgets('real source playback creates progress and bookmark filtering',
       (tester) async {
