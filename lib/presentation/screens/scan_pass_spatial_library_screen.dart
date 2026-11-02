@@ -103,8 +103,6 @@ class _ScanPassSpatialLibraryScreenState
   double? _lastPlaybackSourceTime;
   SpatialLibraryPlaybackMode _playbackMode = SpatialLibraryPlaybackMode.guided;
   Timer? _checkpointTimer;
-  String? _cuePlacementKey;
-  Rect? _cuePlacementRect;
   String? _directionPlacementKey;
   Rect? _directionPlacementRect;
   String? _nameLabelPlacementKey;
@@ -340,8 +338,6 @@ class _ScanPassSpatialLibraryScreenState
     if (!mounted) return;
     _dismissActionInspection();
     setState(() {
-      _cuePlacementKey = null;
-      _cuePlacementRect = null;
       _directionPlacementKey = null;
       _directionPlacementRect = null;
       _nameLabelPlacementKey = null;
@@ -830,6 +826,15 @@ class _ScanPassSpatialLibraryScreenState
                 compact ? 5 : 8,
                 3,
                 compact ? 5 : 8,
+                0,
+              ),
+              child: _buildTeachingSubtitle(data, scene, compact),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                compact ? 5 : 8,
+                3,
+                compact ? 5 : 8,
                 compact ? 4 : 7,
               ),
               child: _buildControls(scene, catalog, compact),
@@ -857,27 +862,13 @@ class _ScanPassSpatialLibraryScreenState
     return LayoutBuilder(builder: (context, constraints) {
       final size = Size(constraints.maxWidth, constraints.maxHeight);
       final textScaler = MediaQuery.textScalerOf(context);
-      final cue = _phaseCue(_l10n, scene, data, _time);
-      final cardWidth = math.min(
-        size.width - 16,
-        portrait
-            ? scene.education == null
-                ? (size.width * .78).clamp(210.0, 360.0)
-                : (size.width * .68).clamp(210.0, 330.0)
-            : scene.education == null
-                ? (size.width * .38).clamp(240.0, 300.0)
-                : (size.width * .32).clamp(210.0, 270.0),
-      );
-      final objectiveTitle =
-          scene.education == null ? '' : _learningTitle(_l10n, scene);
-      final playbackRate = _educationPlaybackRate(scene);
-      final objectiveSemantics = _educationObjectiveSemantics(scene);
-      final cardHeight = _teachingCardHeight(
-        objectiveTitle,
-        cue.text,
-        cardWidth,
-        compact: compact,
-        textScaler: textScaler,
+      final possessionTransition = _activePossessionTransition(scene, _time);
+      final cue = _phaseCue(
+        _l10n,
+        scene,
+        data,
+        _time,
+        possessionTransition: possessionTransition,
       );
       final actionRect = Rect.fromLTRB(2, 2, size.width - 2, size.height - 2);
       final rotated = SpatialPitchViewport.bestRotation(
@@ -931,6 +922,11 @@ class _ScanPassSpatialLibraryScreenState
       );
       if (activeAction != null) {
         protectedPlayerIds.add(activeAction.playerId);
+      }
+      if (possessionTransition != null) {
+        protectedPlayerIds
+          ..add(possessionTransition.formerOwnerId)
+          ..add(possessionTransition.newOwnerId);
       }
       final occupied = <Rect>[
         ballGeometry.safetyRect,
@@ -988,58 +984,14 @@ class _ScanPassSpatialLibraryScreenState
         ),
         compact ? 28 : 31,
       );
-      final pitchCanFitOverlays = pitchOverlayBounds.width >= cardWidth + 14 &&
-          pitchOverlayBounds.height >= cardHeight + 14 &&
-          (pitchOverlayBounds.height >=
-                  cardHeight + directionSize.height + 35 ||
-              pitchOverlayBounds.width >= cardWidth + directionSize.width + 35);
-      // Prefer the painted pitch itself. On a very short landscape surface the
-      // uniformly scaled pitch can be narrower than the minimum readable cue;
-      // in that case the surrounding pitch viewport is the only honest place
-      // to keep the source actors and full, untruncated cue visible together.
+      final directionFitsPitch =
+          pitchOverlayBounds.width >= directionSize.width + 14 &&
+              pitchOverlayBounds.height >= directionSize.height + 14;
       final initialOverlayBounds =
-          pitchCanFitOverlays ? pitchOverlayBounds : viewport.view;
-      final placementKey = '${scene.id}:${cue.phase.name}:'
-          '${size.width.toStringAsFixed(1)}x${size.height.toStringAsFixed(1)}:'
-          '${cardWidth.toStringAsFixed(1)}x${cardHeight.toStringAsFixed(1)}:'
-          '${cue.text.hashCode}';
-      final placementOccupied = placementKey == _cuePlacementKey
-          ? occupied
-          : <Rect>[
-              ...occupied,
-              ..._phaseOccupiedRects(
-                data: data,
-                scene: scene,
-                focusPlan: focusPlan,
-                phase: cue.phase,
-                size: size,
-                actionRect: actionRect,
-                rotated: rotated,
-              ),
-            ];
-      var cardRect = SpatialCuePlacement.place(
-        bounds: initialOverlayBounds,
-        fallbackBounds: viewport.view,
-        size: Size(cardWidth, cardHeight),
-        target: cueTarget,
-        occupied: placementOccupied,
-        preferred: placementKey == _cuePlacementKey ? _cuePlacementRect : null,
-      );
-      if (occupied.any(cardRect.overlaps)) {
-        cardRect = SpatialCuePlacement.place(
-          bounds: initialOverlayBounds,
-          fallbackBounds: viewport.view,
-          size: Size(cardWidth, cardHeight),
-          target: cueTarget,
-          occupied: occupied,
-        );
-      }
-      _cuePlacementKey = placementKey;
-      _cuePlacementRect = cardRect;
-      occupied.add(cardRect.inflate(4));
+          directionFitsPitch ? pitchOverlayBounds : viewport.view;
       final directionPlacementKey = '${scene.id}:$rotated:'
           '${size.width.toStringAsFixed(1)}x${size.height.toStringAsFixed(1)}:'
-          '${directionSize.width.toStringAsFixed(1)}:$pitchCanFitOverlays';
+          '${directionSize.width.toStringAsFixed(1)}:$directionFitsPitch';
       final directionRect = SpatialCuePlacement.placeBadge(
         bounds: initialOverlayBounds,
         size: directionSize,
@@ -1055,6 +1007,12 @@ class _ScanPassSpatialLibraryScreenState
         scene.education?.focusActor.playerId ?? scene.focusPlayerId,
         if (currentOwner != null) currentOwner,
         if (cueActorPoint != null) cue.targetPlayerId!,
+        if (scene.education case final lesson?)
+          ..._educationKeyActorIds(lesson, _time),
+        if (possessionTransition != null) ...[
+          possessionTransition.formerOwnerId,
+          possessionTransition.newOwnerId,
+        ],
         if (scene.education == null)
           for (final role in roles.values)
             if (role.kind != SpatialObservedRoleKind.nearbyDefender)
@@ -1086,12 +1044,12 @@ class _ScanPassSpatialLibraryScreenState
         locale: locale,
         roles: roles,
         activeAction: activeAction,
+        possessionTransition: possessionTransition,
         cuePlayerId: cueActorPoint == null ? null : cue.targetPlayerId,
         requiredPlayerIds: protectedPlayerIds,
         nameLabelPlayerIds: nameLabelPlayerIds,
-        cueRect: cardRect,
         cueTarget: cueTarget,
-        reservedOverlayRects: [cardRect, directionRect],
+        reservedOverlayRects: [directionRect],
         preferredNameLabelPlacements:
             nameLabelPlacementKey == _nameLabelPlacementKey
                 ? _nameLabelPlacements
@@ -1137,16 +1095,6 @@ class _ScanPassSpatialLibraryScreenState
                   painter: pitchPainter,
                 ),
               ),
-            ),
-          ),
-          Positioned.fromRect(
-            rect: cardRect,
-            child: _buildTeachingCard(
-              objectiveTitle,
-              playbackRate,
-              objectiveSemantics,
-              cue.text,
-              compact,
             ),
           ),
           Positioned.fromRect(
@@ -1211,68 +1159,6 @@ class _ScanPassSpatialLibraryScreenState
     return _usesHalfPlaybackRate(scene)
         ? _l10n.spatialEducationObjectiveRateHalf(objective)
         : _l10n.spatialEducationObjectiveRateNormal(objective);
-  }
-
-  List<Rect> _phaseOccupiedRects({
-    required RealMatchReplayData data,
-    required SpatialLibraryScene scene,
-    required SpatialFocusPlan focusPlan,
-    required _SpatialCuePhase phase,
-    required Size size,
-    required Rect actionRect,
-    required bool rotated,
-  }) {
-    final (start, end) = switch (phase) {
-      _SpatialCuePhase.context => (0.0, scene.teachingStart),
-      _SpatialCuePhase.connection => (scene.teachingStart, scene.teachingEnd),
-      _SpatialCuePhase.aftermath => (
-          scene.teachingEnd,
-          math.min(data.duration, scene.teachingEnd + 1.6),
-        ),
-      _SpatialCuePhase.continuation => (
-          math.min(data.duration, scene.teachingEnd + 1.6),
-          math.max(0.0, data.duration - 1 / data.fps),
-        ),
-      _SpatialCuePhase.review => (
-          math.max(0.0, data.duration - 1 / data.fps),
-          data.duration,
-        ),
-    };
-    final firstFrame = (start * data.fps).floor();
-    final lastFrame = (end * data.fps).ceil().clamp(0, data.frames.length - 1);
-    final frameStep = math.max(1, (data.fps / 5).round());
-    final values = <Rect>[];
-    for (var frame = firstFrame; frame <= lastFrame; frame += frameStep) {
-      final time = frame / data.fps;
-      final sample = data.renderSample(time);
-      final viewport = SpatialPitchViewport.fit(
-        focusPlan.cameraAt(time),
-        size,
-        portrait: rotated,
-        viewRect: actionRect,
-        fieldLength: data.pitchLength,
-        fieldWidth: data.pitchWidth,
-      );
-      values.add(
-        SpatialBallScreenGeometry.forReplay(
-          data: data,
-          time: time,
-          viewport: viewport,
-        ).safetyRect,
-      );
-      final ids = <int>{...focusPlan.relevantPlayerIdsAt(time)};
-      final owner = data.confirmedPossessionOwnerIdAt(time);
-      if (owner != null) ids.add(owner);
-      for (final id in ids) {
-        final point = sample.players[data.playerIndex(id)];
-        if (point != null) {
-          values.add(
-            Rect.fromCircle(center: viewport.project(point), radius: 28),
-          );
-        }
-      }
-    }
-    return values;
   }
 
   Widget _buildTopBar(SpatialLibraryScene scene) {
@@ -1371,45 +1257,44 @@ class _ScanPassSpatialLibraryScreenState
     );
   }
 
-  double _teachingCardHeight(
-    String title,
-    String cue,
-    double width, {
-    required bool compact,
-    required TextScaler textScaler,
-  }) {
-    final horizontal = compact ? 8.0 : 10.0;
-    final vertical = compact ? 4.0 : 7.0;
-    double heightFor(String text, TextStyle? style, int maxLines) {
-      final painter = TextPainter(
-        text: TextSpan(text: text, style: style),
-        maxLines: maxLines,
-        ellipsis: '…',
-        locale: Localizations.localeOf(context),
-        textDirection: Directionality.of(context),
-        textScaler: textScaler,
-      )..layout(maxWidth: math.max(1, width - horizontal * 2));
-      return painter.height;
-    }
-
-    final cueStyle = _teachingCueStyle();
-    final titleStyle = _teachingTitleStyle();
-    // Keep the pitch geometry steady when the brief teaching cue changes phase.
-    return vertical * 2 +
-        (title.isEmpty ? 0 : heightFor(title, titleStyle, 1) + 3) +
-        heightFor(cue, cueStyle, title.isEmpty ? 6 : 5);
-  }
-
-  Widget _buildTeachingCard(
-    String title,
-    String playbackRate,
-    String titleSemantics,
-    String cue,
+  Widget _buildTeachingSubtitle(
+    RealMatchReplayData data,
+    SpatialLibraryScene scene,
     bool compact,
   ) {
+    final cue = _phaseCue(
+      _l10n,
+      scene,
+      data,
+      _time,
+      possessionTransition: _activePossessionTransition(scene, _time),
+    );
+    final title = _learningTitle(_l10n, scene);
+    final playbackRate = _educationPlaybackRate(scene);
+    final titleSemantics =
+        scene.education == null ? title : _educationObjectiveSemantics(scene);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final cueStyle = _teachingCueStyle();
+    final titleStyle = _teachingTitleStyle();
+    double scaledLineHeight(TextStyle? style, double fallbackSize) {
+      final fontSize = style?.fontSize ?? fallbackSize;
+      return textScaler.scale(fontSize) * (style?.height ?? 1);
+    }
+
+    final verticalPadding = compact ? 8.0 : 12.0;
+    final measuredHeight = verticalPadding +
+        scaledLineHeight(titleStyle, 11) +
+        2 +
+        scaledLineHeight(cueStyle, 14) * 2 +
+        2;
+    final subtitleHeight = math.max(
+      compact ? 58.0 : 64.0,
+      measuredHeight.ceilToDouble(),
+    );
     return IgnorePointer(
-      child: DecoratedBox(
+      child: Container(
         key: const ValueKey<String>('spatial-context'),
+        height: subtitleHeight,
         decoration: BoxDecoration(
           color: const Color(0xE810291F),
           borderRadius: BorderRadius.circular(9),
@@ -1418,59 +1303,78 @@ class _ScanPassSpatialLibraryScreenState
             BoxShadow(color: Color(0x55000000), blurRadius: 6),
           ],
         ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: compact ? 8 : 10,
-            vertical: compact ? 4 : 7,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (title.isNotEmpty) ...[
-                Semantics(
-                  label: titleSemantics,
-                  excludeSemantics: true,
-                  child: Row(children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        key: const ValueKey<String>('spatial-objective-line'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: _teachingTitleStyle(),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      playbackRate,
-                      key: const ValueKey<String>('spatial-playback-rate'),
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 8 : 11,
+          vertical: compact ? 4 : 6,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Semantics(
+              label: titleSemantics,
+              excludeSemantics: true,
+              child: Row(children: [
+                Expanded(
+                  child: FittedBox(
+                    alignment: AlignmentDirectional.centerStart,
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      title,
+                      key: const ValueKey<String>('spatial-objective-line'),
                       maxLines: 1,
                       softWrap: false,
                       style: _teachingTitleStyle(),
                     ),
-                  ]),
+                  ),
                 ),
-                const SizedBox(height: 3),
-              ],
-              Text(
-                cue,
-                key: const ValueKey<String>('spatial-cue-line'),
-                maxLines: title.isEmpty ? 6 : 5,
-                overflow: TextOverflow.ellipsis,
-                style: _teachingCueStyle(),
+                if (playbackRate.isNotEmpty) ...[
+                  const SizedBox(width: 5),
+                  Text(
+                    playbackRate,
+                    key: const ValueKey<String>('spatial-playback-rate'),
+                    maxLines: 1,
+                    softWrap: false,
+                    style: _teachingTitleStyle(),
+                  ),
+                ],
+              ]),
+            ),
+            const SizedBox(height: 2),
+            Expanded(
+              child: Center(
+                child: Text(
+                  cue.text,
+                  key: const ValueKey<String>('spatial-cue-line'),
+                  maxLines: 2,
+                  softWrap: true,
+                  textAlign: TextAlign.center,
+                  style: cueStyle,
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
+  SpatialObservedPossessionTransition? _activePossessionTransition(
+    SpatialLibraryScene scene,
+    double time,
+  ) {
+    final value = _focusPlan?.possessionTransitionAt(time);
+    if (value == null) return null;
+    final lesson = scene.education;
+    if (lesson != null && _showsEducationRelationships(lesson, time)) {
+      return null;
+    }
+    return value;
+  }
+
   TextStyle? _teachingCueStyle() =>
-      Theme.of(context).textTheme.bodySmall?.copyWith(
+      Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Colors.white,
-            height: 1.15,
+            height: 1.2,
             fontWeight: FontWeight.w600,
           );
 
@@ -2857,10 +2761,10 @@ class SpatialLibraryPitchPainter extends CustomPainter {
   final Locale locale;
   final SpatialObservedRoles roles;
   final SpatialOnPitchAction? activeAction;
+  final SpatialObservedPossessionTransition? possessionTransition;
   final int? cuePlayerId;
   final Set<int> requiredPlayerIds;
   final Set<int> nameLabelPlayerIds;
-  final Rect cueRect;
   final Offset cueTarget;
   final List<Rect> reservedOverlayRects;
   final Map<int, int> preferredNameLabelPlacements;
@@ -2893,10 +2797,10 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     this.locale = const Locale('en'),
     required this.roles,
     this.activeAction,
+    this.possessionTransition,
     this.cuePlayerId,
     this.requiredPlayerIds = const <int>{},
     this.nameLabelPlayerIds = const <int>{},
-    this.cueRect = Rect.zero,
     this.cueTarget = Offset.zero,
     this.reservedOverlayRects = const [],
     this.preferredNameLabelPlacements = const <int, int>{},
@@ -2919,12 +2823,114 @@ class SpatialLibraryPitchPainter extends CustomPainter {
   Color get ownershipCueColor => _ownership;
   Color get teachingFocusCueColor => _teachingFocus;
 
-  bool get showsRecordedTrace =>
-      time >= scene.teachingStart && time <= scene.teachingEnd + 1.6;
-  bool get showsEndpointRegion => time >= scene.teachingEnd;
+  bool get showsRecordedTrace {
+    final lesson = scene.education;
+    return lesson == null
+        ? time >= scene.teachingStart && time <= scene.teachingEnd + 1.6
+        : _showsEducationRelationships(lesson, time);
+  }
+
+  bool get showsEndpointRegion =>
+      scene.education == null && time >= scene.teachingEnd;
+  bool get showsEducationRelationships {
+    final lesson = scene.education;
+    return possessionTransition == null &&
+        lesson != null &&
+        _showsEducationRelationships(lesson, time);
+  }
+
+  bool get showsEducationMovement {
+    final lesson = scene.education;
+    return lesson != null && _showsEducationMovement(lesson, time);
+  }
+
   List<int> get currentHighlightPlayerIds => scene.education == null
       ? roles.playerIds
-      : <int>[scene.education!.focusActor.playerId];
+      : educationKeyActorIds.toList(growable: false);
+
+  Set<int> get educationKeyActorIds {
+    final lesson = scene.education;
+    if (lesson == null) return const <int>{};
+    final sample = data.sample(time);
+    return <int>{
+      for (final id in _educationKeyActorIds(lesson, time))
+        if (sample.players[data.playerIndex(id)] != null) id,
+    };
+  }
+
+  Set<int> get transitionEmphasisPlayerIds {
+    final transition = possessionTransition;
+    if (transition == null) return const <int>{};
+    final sample = data.sample(time);
+    return <int>{
+      for (final id in <int>[
+        transition.formerOwnerId,
+        transition.newOwnerId,
+      ])
+        if (sample.players[data.playerIndex(id)] != null) id,
+    };
+  }
+
+  List<({int firstPlayerId, int secondPlayerId, bool dashed})>
+      get educationRelationshipIndicators {
+    final lesson = scene.education;
+    if (lesson == null || !showsEducationRelationships) return const [];
+    final values = switch (lesson.objective) {
+      SpatialLearningObjective.receivingLane ||
+      SpatialLearningObjective.switchingSpace =>
+        <({int firstPlayerId, int secondPlayerId, bool dashed})>[
+          (
+            firstPlayerId: lesson.supportActors.first.playerId,
+            secondPlayerId: lesson.focusActor.playerId,
+            dashed: true,
+          ),
+          (
+            firstPlayerId: lesson.focusActor.playerId,
+            secondPlayerId: lesson.opponentActors.first.playerId,
+            dashed: false,
+          ),
+        ],
+      SpatialLearningObjective.pressureOutlet =>
+        <({int firstPlayerId, int secondPlayerId, bool dashed})>[
+          (
+            firstPlayerId: lesson.supportActors.first.playerId,
+            secondPlayerId: lesson.focusActor.playerId,
+            dashed: true,
+          ),
+          time < lesson.outcome
+              ? (
+                  firstPlayerId: lesson.supportActors.first.playerId,
+                  secondPlayerId: lesson.opponentActors.first.playerId,
+                  dashed: false,
+                )
+              : (
+                  firstPlayerId: lesson.focusActor.playerId,
+                  secondPlayerId: lesson.opponentActors.last.playerId,
+                  dashed: false,
+                ),
+        ],
+      SpatialLearningObjective.thirdPlayer =>
+        <({int firstPlayerId, int secondPlayerId, bool dashed})>[
+          (
+            firstPlayerId: lesson.supportActors.first.playerId,
+            secondPlayerId: lesson.supportActors[1].playerId,
+            dashed: true,
+          ),
+          (
+            firstPlayerId: lesson.supportActors[1].playerId,
+            secondPlayerId: lesson.focusActor.playerId,
+            dashed: true,
+          ),
+        ],
+    };
+    final sample = data.sample(time);
+    return <({int firstPlayerId, int secondPlayerId, bool dashed})>[
+      for (final value in values)
+        if (sample.players[data.playerIndex(value.firstPlayerId)] != null &&
+            sample.players[data.playerIndex(value.secondPlayerId)] != null)
+          value,
+    ];
+  }
 
   int? get currentConfirmedOwnerId => data.confirmedPossessionOwnerIdAt(time);
 
@@ -2938,7 +2944,9 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     if (lesson != null) {
       final id = lesson.focusActor.playerId;
       return <int>{
-        if (sample.players[data.playerIndex(id)] != null) id,
+        if (showsEducationRelationships &&
+            sample.players[data.playerIndex(id)] != null)
+          id,
       };
     }
     return <int>{
@@ -2958,7 +2966,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     if (lesson == null) return const <int>{};
     final visible = observedPlayerIds.toSet();
     return <int>{
-      for (final id in requiredPlayerIds)
+      for (final id in educationKeyActorIds)
         if (id != lesson.focusActor.playerId &&
             id != currentConfirmedOwnerId &&
             visible.contains(id))
@@ -3091,7 +3099,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     if (!showsRecordedTrace) return;
     final lesson = scene.education;
     if (lesson != null) {
-      _drawEducationEvidence(canvas, pitch, lesson);
+      _drawEducationEvidence(canvas, pitch);
       return;
     }
     final tone = scene.theme == SpatialLearningTheme.turnover ||
@@ -3152,65 +3160,81 @@ class SpatialLibraryPitchPainter extends CustomPainter {
   void _drawEducationEvidence(
     Canvas canvas,
     Rect pitch,
-    SpatialEducationLesson lesson,
   ) {
-    final playerIndex = data.playerIndex(lesson.focusActor.playerId);
-    final firstFrame = (lesson.movementStart * data.fps).ceil();
-    final lastFrame = (math.min(time, lesson.outcome) * data.fps).floor();
-    var segment = <RealMatchReplayPoint>[];
-    void paintSegment() {
-      if (segment.length < 2) {
-        segment = <RealMatchReplayPoint>[];
-        return;
-      }
-      final path = Path();
-      for (var index = 0; index < segment.length; index++) {
-        final projected = _project(pitch, segment[index]);
-        index == 0
-            ? path.moveTo(projected.dx, projected.dy)
-            : path.lineTo(projected.dx, projected.dy);
-      }
-      canvas.drawPath(
-        path,
-        Paint()
-          ..color = _teachingFocus.withValues(alpha: .82)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2
-          ..strokeCap = StrokeCap.round
-          ..strokeJoin = StrokeJoin.round,
-      );
-      segment = <RealMatchReplayPoint>[];
-    }
-
-    for (var frame = firstFrame; frame <= lastFrame; frame++) {
-      final value = data.sample(frame / data.fps).players[playerIndex];
-      if (value == null) {
-        paintSegment();
-      } else {
-        segment.add(value);
-      }
-    }
-    paintSegment();
-    if (showsEndpointRegion) {
-      final reached = data.sample(lesson.outcome).players[playerIndex];
-      if (reached != null) {
-        canvas.drawCircle(
-          _project(pitch, reached),
-          10,
+    final sample = data.sample(time);
+    for (final indicator in educationRelationshipIndicators) {
+      final first = sample.players[data.playerIndex(indicator.firstPlayerId)];
+      final second = sample.players[data.playerIndex(indicator.secondPlayerId)];
+      if (first == null || second == null) continue;
+      final start = _project(pitch, first);
+      final end = _project(pitch, second);
+      final vector = end - start;
+      if (vector.distance < 36) continue;
+      final direction = vector / vector.distance;
+      final shortenedStart = start + direction * 20;
+      final shortenedEnd = end - direction * 20;
+      if (indicator.dashed) {
+        _drawDashedRelationship(
+          canvas,
+          shortenedStart,
+          shortenedEnd,
           Paint()
-            ..color = _teachingFocus.withValues(alpha: .2)
-            ..style = PaintingStyle.fill,
-        );
-        canvas.drawCircle(
-          _project(pitch, reached),
-          10,
-          Paint()
-            ..color = _teachingFocus.withValues(alpha: .65)
+            ..color = Colors.white.withValues(alpha: .5)
             ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.2,
+            ..strokeWidth = 1.3
+            ..strokeCap = StrokeCap.round,
+        );
+      } else {
+        _drawGapMarker(
+          canvas,
+          shortenedStart,
+          shortenedEnd,
+          _turnover.withValues(alpha: .58),
         );
       }
     }
+  }
+
+  void _drawDashedRelationship(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Paint paint,
+  ) {
+    final vector = end - start;
+    final distance = vector.distance;
+    if (distance <= 0) return;
+    final direction = vector / distance;
+    const dash = 5.0;
+    const gap = 4.0;
+    for (var offset = 0.0; offset < distance; offset += dash + gap) {
+      final finish = math.min(offset + dash, distance);
+      canvas.drawLine(
+        start + direction * offset,
+        start + direction * finish,
+        paint,
+      );
+    }
+  }
+
+  void _drawGapMarker(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Color color,
+  ) {
+    final vector = end - start;
+    if (vector.distance <= 0) return;
+    final direction = vector / vector.distance;
+    final normal = Offset(-direction.dy, direction.dx) * 3.5;
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(start, end, paint);
+    canvas.drawLine(start - normal, start + normal, paint);
+    canvas.drawLine(end - normal, end + normal, paint);
   }
 
   List<RealMatchReplayPoint> get recordedBallTrace {
@@ -3244,8 +3268,54 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     return List.unmodifiable(segments);
   }
 
+  List<RealMatchReplayPoint> observedEducationMovementTrail(int id) {
+    final lesson = scene.education;
+    if (lesson == null ||
+        id != lesson.focusActor.playerId ||
+        !showsEducationMovement) {
+      return const <RealMatchReplayPoint>[];
+    }
+    final index = data.playerIndex(id);
+    final current = data.sample(time).players[index];
+    if (current == null) return const <RealMatchReplayPoint>[];
+    final firstFrame = (math.max(lesson.movementStart, time - 1.2) * data.fps)
+        .ceil()
+        .clamp(0, data.frames.length - 1);
+    final lastFrame =
+        (time * data.fps).floor().clamp(firstFrame, data.frames.length - 1);
+    var segment = <RealMatchReplayPoint>[];
+    for (var frame = firstFrame; frame <= lastFrame; frame++) {
+      final point = data.sample(frame / data.fps).players[index];
+      if (point == null) {
+        segment = <RealMatchReplayPoint>[];
+      } else {
+        segment.add(point);
+      }
+    }
+    if (segment.isEmpty ||
+        segment.last.x != current.x ||
+        segment.last.y != current.y) {
+      segment.add(current);
+    }
+    return segment.length < 2
+        ? const <RealMatchReplayPoint>[]
+        : List.unmodifiable(segment);
+  }
+
   void _drawTails(Canvas canvas, Rect pitch) {
-    if (scene.education != null) return;
+    final lesson = scene.education;
+    if (lesson != null) {
+      final points = observedEducationMovementTrail(lesson.focusActor.playerId);
+      if (points.length > 1) {
+        _drawObservedMovementArrow(
+          canvas,
+          pitch,
+          points,
+          lesson.focusActor.playerId,
+        );
+      }
+      return;
+    }
     for (final id in currentHighlightPlayerIds) {
       final role = roles.values.firstWhere((value) => value.playerId == id);
       for (final points in observedTailSegments(id)) {
@@ -3268,6 +3338,83 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     }
   }
 
+  void _drawObservedMovementArrow(
+    Canvas canvas,
+    Rect pitch,
+    List<RealMatchReplayPoint> points,
+    int playerId,
+  ) {
+    final projected = <Offset>[
+      for (final point in points) _project(pitch, point),
+    ];
+    final badge = _playerBadges(data.renderSample(time))[playerId];
+    if (badge == null) return;
+    final safetyRadius = badge.radius + 2;
+    var outsideIndex = projected.length - 2;
+    while (outsideIndex >= 0 &&
+        (projected[outsideIndex] - badge.center).distance < safetyRadius) {
+      outsideIndex--;
+    }
+    late final Offset arrowEnd;
+    late final Offset direction;
+    late final int lastPathIndex;
+    if (outsideIndex >= 0 && outsideIndex + 1 < projected.length) {
+      final outside = projected[outsideIndex];
+      final inside = projected[outsideIndex + 1];
+      final boundaryVector = inside - outside;
+      if (boundaryVector.distance < 1) return;
+      var lower = 0.0;
+      var upper = 1.0;
+      for (var iteration = 0; iteration < 10; iteration++) {
+        final middle = (lower + upper) / 2;
+        final candidate = outside + boundaryVector * middle;
+        if ((candidate - badge.center).distance >= safetyRadius) {
+          lower = middle;
+        } else {
+          upper = middle;
+        }
+      }
+      arrowEnd = outside + boundaryVector * lower;
+      direction = boundaryVector / boundaryVector.distance;
+      lastPathIndex = outsideIndex;
+    } else {
+      final totalVector = projected.last - projected.first;
+      if (totalVector.distance < 2) return;
+      direction = totalVector / totalVector.distance;
+      arrowEnd =
+          projected.last - direction * math.min(8.0, totalVector.distance * .4);
+      lastPathIndex = projected.length - 2;
+    }
+    final path = Path()..moveTo(projected.first.dx, projected.first.dy);
+    for (var index = 1; index <= lastPathIndex; index++) {
+      path.lineTo(projected[index].dx, projected[index].dy);
+    }
+    path.lineTo(arrowEnd.dx, arrowEnd.dy);
+    final paint = Paint()
+      ..color = _teachingFocus.withValues(alpha: .78)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(path, paint);
+    final side = Offset(-direction.dy, direction.dx);
+    final arrow = Path()
+      ..moveTo(arrowEnd.dx, arrowEnd.dy)
+      ..lineTo(
+        arrowEnd.dx - direction.dx * 7 + side.dx * 3.5,
+        arrowEnd.dy - direction.dy * 7 + side.dy * 3.5,
+      )
+      ..lineTo(
+        arrowEnd.dx - direction.dx * 7 - side.dx * 3.5,
+        arrowEnd.dy - direction.dy * 7 - side.dy * 3.5,
+      )
+      ..close();
+    canvas.drawPath(
+      arrow,
+      Paint()..color = _teachingFocus.withValues(alpha: .86),
+    );
+  }
+
   void _drawPlayers(
     Canvas canvas,
     Rect pitch,
@@ -3283,6 +3430,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
         int priority(int index) {
           final playerId = data.players[index].id;
           if (playerId == ownerId) return 5;
+          if (transitionEmphasisPlayerIds.contains(playerId)) return 4;
           if (playerId == activeAction?.playerId) return 4;
           if (teachingFocusIds.contains(playerId)) return 4;
           if (scene.education != null) {
@@ -3310,12 +3458,17 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       final teachingFocus = teachingFocusIds.contains(player.id);
       final neutralEducation =
           neutralEducationEmphasisPlayerIds.contains(player.id);
+      final formerTransitionOwner =
+          player.id == possessionTransition?.formerOwnerId;
+      final newTransitionOwner = player.id == possessionTransition?.newOwnerId;
       final involved = (scene.education == null && role != null) ||
           cueActor ||
           player.id == activeAction?.playerId ||
           confirmedOwner ||
           teachingFocus ||
-          neutralEducation;
+          neutralEducation ||
+          formerTransitionOwner ||
+          newTransitionOwner;
       final marker = involved ? 16.2 : 13.2;
       final badgeCenter = center - Offset(0, marker * .38);
       final kit = kitForPlayer(player);
@@ -3359,6 +3512,26 @@ class SpatialLibraryPitchPainter extends CustomPainter {
             ..color = Colors.white.withValues(alpha: .42)
             ..style = PaintingStyle.stroke
             ..strokeWidth = 1,
+        );
+      }
+      if (formerTransitionOwner) {
+        canvas.drawCircle(
+          badgeCenter,
+          marker + 2.4,
+          Paint()
+            ..color = _turnover.withValues(alpha: .78)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.8,
+        );
+      }
+      if (newTransitionOwner && !confirmedOwner) {
+        canvas.drawCircle(
+          badgeCenter,
+          marker + 2.4,
+          Paint()
+            ..color = _connection.withValues(alpha: .78)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.8,
         );
       }
       if (teachingFocus) {
@@ -3453,6 +3626,8 @@ class SpatialLibraryPitchPainter extends CustomPainter {
             final involved = roleById.containsKey(playerId) ||
                 playerId == cuePlayerId ||
                 playerId == activeAction?.playerId ||
+                educationKeyActorIds.contains(playerId) ||
+                transitionEmphasisPlayerIds.contains(playerId) ||
                 confirmedOwner;
             final radius = involved ? 16.2 : 13.2;
             final center =
@@ -3607,6 +3782,8 @@ class SpatialLibraryPitchPainter extends CustomPainter {
 
     addPriority(activeAction?.playerId);
     addPriority(currentConfirmedOwnerId);
+    addPriority(possessionTransition?.formerOwnerId);
+    addPriority(possessionTransition?.newOwnerId);
     addPriority(cuePlayerId);
     addPriority(
       scene.education?.focusActor.playerId ?? scene.focusPlayerId,
@@ -3917,16 +4094,20 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       final role = roleById[playerId];
       final tone = playerId == currentConfirmedOwnerId
           ? _ownership
-          : teachingFocusIds.contains(playerId) ||
-                  playerId ==
-                      (scene.education?.focusActor.playerId ??
-                          scene.focusPlayerId)
-              ? _teachingFocus
-              : scene.education != null
-                  ? Colors.white70
-                  : role?.kind == SpatialObservedRoleKind.nearbyDefender
-                      ? _turnover
-                      : _connection;
+          : playerId == possessionTransition?.formerOwnerId
+              ? _turnover
+              : playerId == possessionTransition?.newOwnerId
+                  ? _connection
+                  : teachingFocusIds.contains(playerId) ||
+                          playerId ==
+                              (scene.education?.focusActor.playerId ??
+                                  scene.focusPlayerId)
+                      ? _teachingFocus
+                      : scene.education != null
+                          ? Colors.white70
+                          : role?.kind == SpatialObservedRoleKind.nearbyDefender
+                              ? _turnover
+                              : _connection;
       layouts.add((
         geometry: SpatialPlayerNameLabelGeometry(
           playerId: playerId,
@@ -4090,9 +4271,10 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       oldDelegate.viewport.camera != viewport.camera ||
       oldDelegate.activeAction?.kind != activeAction?.kind ||
       oldDelegate.activeAction?.eventId != activeAction?.eventId ||
+      oldDelegate.possessionTransition?.confirmationFrame !=
+          possessionTransition?.confirmationFrame ||
       oldDelegate.cuePlayerId != cuePlayerId ||
       !setEquals(oldDelegate.nameLabelPlayerIds, nameLabelPlayerIds) ||
-      oldDelegate.cueRect != cueRect ||
       oldDelegate.cueTarget != cueTarget ||
       oldDelegate.textScaler != textScaler ||
       !mapEquals(
@@ -4341,7 +4523,7 @@ String _educationAction(
     SpatialLearningObjective.pressureOutlet =>
       l10n.spatialEducationPressureOutletAction(
         _cuePlayerLabel(data, lesson.opponentActors.first.playerId),
-        (lesson.pressureMeters ?? 0).toStringAsFixed(1),
+        movement,
         passer,
         focus,
       ),
@@ -4505,10 +4687,7 @@ Set<int> _requiredCueActorIds({
     ids.addAll(scene.teachingActorIds);
   }
   if (scene.education case final lesson?) {
-    if (time >= lesson.movementStart - .0001 &&
-        time <= (lesson.nextConnection ?? lesson.outcome) + 1.6) {
-      ids.addAll(lesson.actorIds);
-    }
+    ids.addAll(_educationKeyActorIds(lesson, time));
   }
   // Every source-visible player named by the current cue remains readable.
   for (final player in data.players) {
@@ -4529,12 +4708,62 @@ Set<int> _requiredCueActorIds({
   return ids;
 }
 
-_SpatialPhaseCue _phaseCue(
-  AppLocalizations l10n,
-  SpatialLibraryScene scene,
-  RealMatchReplayData data,
+bool _showsEducationRelationships(
+  SpatialEducationLesson lesson,
+  double time,
+) =>
+    time >= lesson.movementStart - .0001 && time <= lesson.outcome + 1.1;
+
+bool _showsEducationMovement(
+  SpatialEducationLesson lesson,
+  double time,
+) =>
+    time >= lesson.movementStart - .0001 && time <= lesson.outcome + .0001;
+
+Set<int> _educationKeyActorIds(
+  SpatialEducationLesson lesson,
   double time,
 ) {
+  if (!_showsEducationRelationships(lesson, time)) return const <int>{};
+  return switch (lesson.objective) {
+    SpatialLearningObjective.receivingLane ||
+    SpatialLearningObjective.switchingSpace =>
+      <int>{
+        lesson.focusActor.playerId,
+        lesson.supportActors.first.playerId,
+        lesson.opponentActors.first.playerId,
+      },
+    SpatialLearningObjective.pressureOutlet => <int>{
+        lesson.focusActor.playerId,
+        lesson.supportActors.first.playerId,
+        (time < lesson.outcome
+                ? lesson.opponentActors.first
+                : lesson.opponentActors.last)
+            .playerId,
+      },
+    SpatialLearningObjective.thirdPlayer => <int>{
+        lesson.focusActor.playerId,
+        lesson.supportActors.first.playerId,
+        lesson.supportActors[1].playerId,
+      },
+  };
+}
+
+_SpatialPhaseCue _phaseCue(AppLocalizations l10n, SpatialLibraryScene scene,
+    RealMatchReplayData data, double time,
+    {SpatialObservedPossessionTransition? possessionTransition}) {
+  if (possessionTransition != null) {
+    final newOwnerId = possessionTransition.newOwnerId;
+    final newOwnerVisible =
+        data.sample(time).players[data.playerIndex(newOwnerId)] != null;
+    return _SpatialPhaseCue(
+      phase: _SpatialCuePhase.connection,
+      text: l10n.spatialObservedTransitionCaption(
+        _cuePlayerLabel(data, newOwnerId),
+      ),
+      targetPlayerId: newOwnerVisible ? newOwnerId : null,
+    );
+  }
   final lesson = scene.education;
   if (lesson != null) {
     return _educationPhaseCue(l10n, scene, data, lesson, time);
@@ -4728,7 +4957,9 @@ _SpatialPhaseCue _educationPhaseCue(
       _SpatialCuePhase.review =>
         _educationResult(l10n, data, lesson, time),
     },
-    targetPlayerId: focusVisible ? lesson.focusActor.playerId : null,
+    targetPlayerId: focusVisible && _showsEducationRelationships(lesson, time)
+        ? lesson.focusActor.playerId
+        : null,
   );
 }
 

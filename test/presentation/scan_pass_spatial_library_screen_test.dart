@@ -859,7 +859,7 @@ void main() {
     (size: const Size(1280, 900), scale: 1, locale: const Locale('en')),
   ]) {
     testWidgets(
-        'cue and source actors avoid overlap at ${configuration.size} '
+        'fixed subtitle and source overlays stay separate at ${configuration.size} '
         '${configuration.locale.languageCode}', (tester) async {
       await tester.binding.setSurfaceSize(configuration.size);
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -874,10 +874,17 @@ void main() {
       await tester.pump();
 
       final painter = _painter(tester);
-      final cue = painter.cueRect;
-      expect(painter.viewport.view.contains(cue.topLeft), isTrue);
-      expect(painter.viewport.view.contains(cue.bottomRight), isTrue);
-      expect(cue.overlaps(painter.ballSafetyRect), isFalse);
+      final subtitleRect = tester.getRect(
+        find.byKey(const ValueKey<String>('spatial-context')),
+      );
+      final pitchRect = tester.getRect(
+        find.byKey(const ValueKey<String>('spatial-pitch')),
+      );
+      final controlsRect = tester.getRect(
+        find.byKey(const ValueKey<String>('spatial-controls')),
+      );
+      expect(subtitleRect.top, greaterThanOrEqualTo(pitchRect.bottom));
+      expect(subtitleRect.bottom, lessThanOrEqualTo(controlsRect.top));
       expect(
         find.byKey(const ValueKey<String>('spatial-attack-direction')),
         findsOneWidget,
@@ -899,8 +906,7 @@ void main() {
         directionSemantics.label,
         startsWith(l10n.spatialAttackDirection(attackingTeamName, direction)),
       );
-      final directionRect = painter.reservedOverlayRects[1];
-      expect(cue.overlaps(directionRect), isFalse);
+      final directionRect = painter.reservedOverlayRects.single;
       expect(directionRect.overlaps(painter.ballSafetyRect), isFalse);
       for (final actorRect in painter.keyPlayerSafetyRects) {
         expect(directionRect.overlaps(actorRect), isFalse);
@@ -911,11 +917,6 @@ void main() {
         expect(point, isNotNull);
         final projected = painter.viewport.project(point!);
         expect(painter.viewport.view.deflate(20).contains(projected), isTrue);
-        expect(
-          cue.overlaps(Rect.fromCircle(center: projected, radius: 24)),
-          isFalse,
-          reason: '${firstScene.id} actor $id cue=$cue point=$projected',
-        );
       }
       _expectNameLabelsAreCollisionFree(painter);
       final labelIds =
@@ -1414,7 +1415,7 @@ void main() {
   });
 
   testWidgets(
-      'Griezmann pressure aftermath keeps every required actor cue-clear in landscape',
+      'Griezmann pressure aftermath keeps the subtitle outside the pitch',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(667, 320));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -1434,14 +1435,17 @@ void main() {
     expect(painter.scene.id, scene.id);
     expect(painter.time, closeTo(14.5, .01));
     expect(painter.keyPlayerSafetyRects, isNotEmpty);
-    for (final actorRect in painter.keyPlayerSafetyRects) {
-      expect(
-        painter.cueRect.overlaps(actorRect),
-        isFalse,
-        reason: '${scene.id} cue=${painter.cueRect} actor=$actorRect',
-      );
-    }
-    expect(painter.cueRect.overlaps(painter.ballSafetyRect), isFalse);
+    final subtitleRect = tester.getRect(
+      find.byKey(const ValueKey<String>('spatial-context')),
+    );
+    final pitchRect = tester.getRect(
+      find.byKey(const ValueKey<String>('spatial-pitch')),
+    );
+    final controlsRect = tester.getRect(
+      find.byKey(const ValueKey<String>('spatial-controls')),
+    );
+    expect(subtitleRect.top, greaterThanOrEqualTo(pitchRect.bottom));
+    expect(subtitleRect.bottom, lessThanOrEqualTo(controlsRect.top));
     expect(tester.takeException(), isNull);
   });
 

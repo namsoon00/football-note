@@ -22985,6 +22985,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get spatialEducationPlaybackRateHalf => '· 0.5×';
 
   @override
+  String spatialObservedTransitionCaption(String player) {
+    return '攻守転換 · $playerのチームがポゼッションを得ます。';
+  }
+
+  @override
   String get spatialEducationSourceSpeed => '原速度（1倍）で再生';
 
   @override
@@ -23012,81 +23017,81 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String spatialEducationReceivingLaneQuestion(String focus, String passer) {
-    return '$passerがつなぐ前に、$focusはどこへ動くでしょう？';
+    return '$passerがつなぐ前の$focusを見ましょう。';
   }
 
   @override
   String spatialEducationPressureOutletQuestion(String focus, String defender) {
-    return '$focusは$defenderから離れて受け、もう一度つなげるでしょうか？';
+    return '$focusと$defenderの間隔を見ましょう。';
   }
 
   @override
   String spatialEducationThirdPlayerQuestion(String focus, String middle) {
-    return '$middleが受ける前に、$focusはいつ動き始めるでしょう？';
+    return '$middleが受ける前の$focusを見ましょう。';
   }
 
   @override
   String spatialEducationSwitchingSpaceQuestion(String focus, String passer) {
-    return '$passerが逆へ動かすと、$focusの周囲はどう変わるでしょう？';
+    return '$passerが逆サイドへつなぐ時の$focusを見ましょう。';
   }
 
   @override
   String spatialEducationReceivingLaneAction(
       String focus, String meters, String passer) {
-    return '$focusは$passerのつなぎの前に${meters}m動きます。';
+    return '$focusは$passerがつなぐ前に${meters}m動きます。';
   }
 
   @override
   String spatialEducationPressureOutletAction(
       String defender, String meters, String passer, String focus) {
-    return '$defenderは$passerから${meters}m。$focusを見ましょう。';
+    return '$focusが${meters}m動きます。';
   }
 
   @override
   String spatialEducationThirdPlayerAction(
       String focus, String meters, String middle) {
-    return '$focusは$middleが受ける前に${meters}m動きます。';
+    return '$middleが受ける前に、\n$focusが先に動きます。';
   }
 
   @override
   String spatialEducationSwitchingSpaceAction(
       String passer, String focus, String meters) {
-    return '$passer → $focus：横へ${meters}m。';
+    return 'プレーが逆サイドへ移ります：$passerから$focus、${meters}m。';
   }
 
   @override
   String spatialEducationReceivingLaneResult(String passer, String focus,
       String defender, String before, String after) {
-    return '$passerから見た$focusと$defenderの角度：$before° → $after°。';
+    return '$passerから見た$focusと$defenderの間のレーンが開きます（$before°から$after°）。';
   }
 
   @override
   String spatialEducationPressureOutletResult(
       String focus, String defender, String before, String after) {
-    return '$focusと$defenderの間隔：${before}m → ${after}m。';
+    return '間隔が$before→${after}mに広がります。';
   }
 
   @override
   String spatialEducationPressureOutletConnectionResult(
       String focus, String defender, String before, String after, String next) {
-    return '$focusと$defenderの間隔：${before}m → ${after}m。続いて$nextが受けます。';
+    return '間隔$before→${after}m、次は$nextです。';
   }
 
   @override
   String spatialEducationThirdPlayerAdvanceResult(String focus, String meters) {
-    return '$focusは前方へ${meters}m進んだ位置で受けます。';
+    return '$focusは前方${meters}mの位置で受けます。';
   }
 
   @override
   String spatialEducationThirdPlayerClearanceResult(
       String focus, String defender, String before, String after) {
-    return '$focusと$defenderの間隔：${before}m → ${after}m。';
+    return '$focusが$defenderとの距離を広げます：${before}mから${after}m。';
   }
 
   @override
   String spatialEducationSwitchingSpaceResult(
       String focus, String defender, String before, String after) {
-    return '$focusと$defenderの間隔：${before}m → ${after}m。';
+    return '$focusの周囲に余裕が生まれます：$defenderと${before}mから${after}m。';
   }
 
   @override
