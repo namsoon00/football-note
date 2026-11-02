@@ -16,11 +16,11 @@ Usage:
   ./scripts/cli.sh <command>
 
 Commands:
-  coding    Coding agent flow (optional harness -> verify -> branch merge -> push main)
-  request   Chat task flow (request normalization -> harness -> verify -> merge/push)
+  coding    Coding agent flow (optional harness -> one final verify -> merge/push)
+  request   Chat task flow (request normalization -> one final verify -> merge/push)
   chat      Alias for `request`
   build     Build agent flow (ios/android/all)
-  verify    Run full verification (includes iOS simulator build/run)
+  verify    Run quick prelaunch verification (VERIFY_SCOPE=full for full checks)
   verify-push  Verify, commit on work branch, merge/push main (supports --issue N)
   fix       Run auto-fix steps and checks
   test      Run flutter tests

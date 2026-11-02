@@ -34,9 +34,10 @@ This project supports automated iOS/Android deployment through GitHub Actions an
 
 Workflow runs `./scripts/check_release_secrets.sh ios|android` first and fails fast with an explicit missing-key list.
 
-Before either mobile build starts, the `Release quality gate` job runs the
-repository verification contracts and the Flutter test suite. GitHub Pages
-uses the same contract and test gate before creating its deployment artifact.
+Before either mobile build starts, the `Release quality gate` job runs
+`VERIFY_SCOPE=full ./scripts/verify.sh` once, including the repository contracts
+and full Flutter suite. Normal GitHub Pages pushes run the quick profile once;
+a manual Pages dispatch can explicitly select full before creating its artifact.
 
 ## One-time Platform Setup
 

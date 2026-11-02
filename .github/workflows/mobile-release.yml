@@ -44,17 +44,13 @@ jobs:
           channel: stable
           flutter-version: "3.41.2"
 
-      - name: Install Flutter dependencies
-        run: flutter pub get
-
       - name: Install verification tooling
         run: sudo apt-get update && sudo apt-get install --yes ripgrep
 
-      - name: Verify release contracts
+      - name: Run full release verification
+        env:
+          VERIFY_SCOPE: full
         run: ./scripts/verify.sh
-
-      - name: Run Flutter tests
-        run: flutter test
 
   android:
     name: Android Release
@@ -128,6 +124,7 @@ jobs:
       - name: Build Android App Bundle
         run: |
           flutter build appbundle --release \
+            --no-pub \
             --build-number "${GITHUB_RUN_NUMBER}" \
             --build-name "${{ steps.build_version.outputs.name }}"
 
@@ -222,6 +219,7 @@ jobs:
       - name: Build IPA
         run: |
           flutter build ipa --release \
+            --no-pub \
             --export-method app-store \
             --build-number "${GITHUB_RUN_NUMBER}" \
             --build-name "${{ steps.build_version.outputs.name }}"

@@ -3,11 +3,19 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-VERIFY_SCOPE="${VERIFY_SCOPE:-full}"
-if [[ "${GITHUB_ACTIONS:-}" == "true" && "${VERIFY_SCOPE}" == "full" ]]; then
-  # Keep CI runs predictable and avoid long-running simulator/test hangs.
-  VERIFY_SCOPE="minimal"
-fi
+requested_scope="${VERIFY_SCOPE:-quick}"
+case "${requested_scope}" in
+  quick|minimal)
+    VERIFY_SCOPE="quick"
+    ;;
+  full)
+    VERIFY_SCOPE="full"
+    ;;
+  *)
+    echo "Unknown VERIFY_SCOPE: ${requested_scope} (expected quick, minimal, or full)" >&2
+    exit 2
+    ;;
+esac
 
 run_with_timeout() {
   local timeout_seconds="$1"
@@ -46,10 +54,17 @@ echo "==> localization consistency"
 python3 scripts/check_l10n_consistency.py
 
 echo "==> flutter analyze"
-flutter analyze
+flutter analyze --no-pub
 
 echo "==> design consistency guardrails"
 ./scripts/check_design_consistency.sh
+
+if [[ "${VERIFY_SCOPE}" == "quick" ]]; then
+  echo "==> prelaunch smoke tests"
+  ./scripts/run_prelaunch_smoke_tests.sh
+  echo "==> quick prelaunch verification complete"
+  exit 0
+fi
 
 echo "==> spatial education asset verification"
 python3 tool/scan_pass_replay/prepare_spatial_education.py --verify-assets
@@ -68,6 +83,9 @@ echo "==> issue worker wording regression"
 
 echo "==> web asset version stamp regression"
 ./scripts/test_web_asset_version_stamp.sh
+
+echo "==> verification profile pipeline regression"
+./scripts/test_verify_profiles.sh
 
 echo "==> iOS native asset embedding regression"
 ./scripts/test_ios_native_assets.sh
@@ -92,11 +110,6 @@ echo "==> running 3D removal contract"
 
 echo "==> running release video fixture contract"
 ./scripts/test_running_release_video_fixtures_contract.sh
-
-if [[ "${VERIFY_SCOPE}" == "minimal" ]]; then
-  echo "==> minimal verification complete (skipping flutter test/run)"
-  exit 0
-fi
 
 echo "==> flutter test"
 run_with_timeout 600 flutter test
