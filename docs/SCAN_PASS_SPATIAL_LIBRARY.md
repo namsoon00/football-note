@@ -70,18 +70,49 @@ The other club families are representative palettes, not source-backed exact
 garment claims. Raw pinned match metadata provides only shirt and number
 colours, includes older catalogue entries, and does not describe patterns.
 
-The compact title contains match identity. A single short teaching card is
-placed in a currently clear part of the pitch without a connector line.
-It has one learning-objective title and one contextual question or observation.
-Before the action it asks what to watch; during the action it names the
-observed actor and movement; after it reports the measured consequence and,
-only after its source time is reached, the next source-labelled connection.
-Placement rejects overlap with observed actors, the ball and the reached ball
-trace. Gold identifies only a directly observed, nearby source ownership
-record; blue identifies the reviewed learning actor independently, including
-when that actor is off the ball. Player names stay beside their own badges and
-may be suppressed when no safe nearby slot is available. Action words are never
-combined with those names. A source-grounded action instead uses one neutral,
+The compact title contains match identity. A fixed, bottom-centred subtitle
+area sits outside the pitch immediately above the transport controls, so it
+cannot cover the ball, players, name badges, action pictograms or timeline. Its
+compact header keeps the learning objective and current 1x/0.5x rate visible;
+the subtitle itself is one complete observation in at most two lines. Before
+the action it says what to watch, during the action it names the reached,
+observed movement, and after it reports the measured consequence. A later
+source-labelled connection is named only after its source time is reached.
+Pause, backward seek, slow replay, scene changes and restored source time all
+resolve that same sequence from the source clock rather than UI elapsed time.
+
+During the short measured interval, at most three directly observed key actors
+are emphasized. Blue identifies the reviewed learning actor independently;
+neutral rings identify only the relevant support/defender or the two supporting
+players in a third-player lesson. Up to two low-opacity indicators explain the
+current relationship: a dashed segment denotes a reviewed connection and a
+solid tick-ended segment denotes an observed gap. These are relationship
+markers between current source positions, not claimed ball trajectories. The
+focus runner's short blue trail is built only from already reached, continuous
+source observations and its arrow points toward the current observed position.
+It is painted behind bodies and names, stops short of the badge, breaks at any
+visibility gap and disappears outside the measured movement window. Seeking or
+changing scenes therefore cannot leave a future route or stale trace.
+
+Gold identifies only a directly observed, nearby source ownership record;
+null ownership, an airborne/undetected ball interval or player proximity alone
+does not produce gold or a turnover. A transition cue requires the old and new
+source-labelled owners to be opposing players, directly visible and within 3.5
+m of the observed ball for 0.2 seconds on their respective sides. The gap is at
+most 0.6 seconds and the ball remains observed throughout. The short subtitle
+appears only after the new-owner guard has actually elapsed, names that player,
+and lasts 2.3 source seconds; backward seek removes it before confirmation. The
+former and new owner receive restrained, non-gold outlines while gold continues
+to follow only the currently confirmed owner. Exactly two current clips pass
+this gate outside their teaching cores:
+`1996435-32302-809759-thirdPlayer` at 6.3 seconds and
+`1996435-38177-25534-switchingSpace` at 17.0 seconds. Same-team links, missing
+labels, a merely airborne interval, hidden-ball gaps, distant owners and longer
+uncertain intervals do not by themselves create transition commentary.
+
+Player names stay beside their own badges and may be suppressed when no safe
+nearby slot is available. Action words are never combined with those names. A
+source-grounded action instead uses one neutral,
 high-contrast 32–40 px athlete category illustration attached to the observed
 actor. A separate black-and-white football marks the relevant generic contact:
 carry stays at the foot, direction change adds a modest curved route, and a
@@ -103,8 +134,8 @@ invented. Tapping or keyboard-activating the illustration pauses the replay and
 shows the localized actor and action name; hover and focus expose the same
 meaning. Scene changes, seeking and action changes dismiss that explanation,
 while the existing bottom play action resumes from the same source time.
-Recorded traces never preview a future path and clear after the
-evidenced action. Seeking always uses source time and pauses safely. The primary
+Recorded traces never preview a future path and clear after the evidenced
+action. Seeking always uses source time and pauses safely. The primary
 play action resumes at the current source time in the selected mode. Guided
 mode runs the remaining setup at 1x, the central evidence window at 0.5x and
 the remaining aftermath at 1x; wall-clock duration is the remaining source-time

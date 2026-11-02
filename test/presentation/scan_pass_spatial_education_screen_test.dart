@@ -67,7 +67,8 @@ void main() {
         result,
         contains(scene.education!.afterValue.toStringAsFixed(1)),
       );
-      expect(_painter(tester).showsEndpointRegion, isTrue);
+      expect(_painter(tester).showsEducationRelationships, isTrue);
+      expect(_painter(tester).showsEducationMovement, isFalse);
       expect(tester.takeException(), isNull);
     });
   }
@@ -485,7 +486,7 @@ void main() {
     );
   });
 
-  testWidgets('320px and 1.4 text keep the teaching card cue-clear',
+  testWidgets('fixed two-line subtitle follows backward source-time seeks',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(320, 640));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -497,15 +498,51 @@ void main() {
       _catalogApp(catalog, initialScene: scene, textScale: 1.4),
     );
     await _pumpLoaded(tester);
+    final subtitle = find.byKey(const ValueKey<String>('spatial-context'));
+    final pitch = find.byKey(const ValueKey<String>('spatial-pitch'));
+    final controls = find.byKey(const ValueKey<String>('spatial-controls'));
+    final initialRect = tester.getRect(subtitle);
+    final question = _text(tester, 'spatial-cue-line');
+    void expectReadableCue() {
+      final cue = find.byKey(const ValueKey<String>('spatial-cue-line'));
+      final text = tester.widget<Text>(cue);
+      expect(text.style?.fontSize, greaterThanOrEqualTo(14));
+      expect(
+        find.ancestor(of: cue, matching: find.byType(FittedBox)),
+        findsNothing,
+      );
+    }
+
+    expect(initialRect.top, greaterThanOrEqualTo(tester.getRect(pitch).bottom));
+    expect(initialRect.bottom, lessThanOrEqualTo(tester.getRect(controls).top));
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(const ValueKey<String>('spatial-cue-line')),
+          )
+          .maxLines,
+      2,
+    );
+    expectReadableCue();
+
+    _seek(tester, scene, scene.education!.trigger);
+    await tester.pump();
+    final action = _text(tester, 'spatial-cue-line');
+    expect(action, isNot(question));
+    expect(tester.getRect(subtitle), initialRect);
+    expectReadableCue();
+
     _seek(tester, scene, scene.education!.outcome + .2);
     await tester.pump();
+    final result = _text(tester, 'spatial-cue-line');
+    expect(result, isNot(action));
+    expect(tester.getRect(subtitle), initialRect);
+    expectReadableCue();
 
-    final painter = _painter(tester);
-    expect(painter.viewport.view.contains(painter.cueRect.topLeft), isTrue);
-    expect(painter.viewport.view.contains(painter.cueRect.bottomRight), isTrue);
-    for (final actor in painter.keyPlayerSafetyRects) {
-      expect(painter.cueRect.overlaps(actor), isFalse);
-    }
+    _seek(tester, scene, 0);
+    await tester.pump();
+    expect(_text(tester, 'spatial-cue-line'), question);
+    expect(tester.getRect(subtitle), initialRect);
     expect(tester.takeException(), isNull);
   });
 
@@ -556,7 +593,7 @@ void main() {
   });
 
   testWidgets(
-      'education rings and labels keep one blue focus and named comparison',
+      'education indicators and confirmed transitions follow source time',
       (tester) async {
     final scene = catalog.scenes.firstWhere(
       (value) => value.id == '3442-1123-varane-combination',
@@ -564,26 +601,106 @@ void main() {
     final lesson = scene.education!;
     await tester.pumpWidget(_catalogApp(catalog, initialScene: scene));
     await _pumpLoaded(tester);
-    _seek(tester, scene, lesson.outcome);
+    _seek(tester, scene, lesson.trigger);
     await tester.pump();
 
-    final painter = _painter(tester);
+    var painter = _painter(tester);
     expect(
       painter.blueTeachingFocusPlayerIds,
       <int>{lesson.focusActor.playerId},
     );
     expect(painter.legacyRoleRingPlayerIds, isEmpty);
+    expect(painter.educationKeyActorIds, hasLength(3));
+    expect(painter.educationRelationshipIndicators, hasLength(2));
     expect(
-      painter.neutralEducationEmphasisPlayerIds,
-      contains(lesson.opponentActors.single.playerId),
+      painter.educationRelationshipIndicators
+          .expand((value) => <int>[value.firstPlayerId, value.secondPlayerId])
+          .toSet()
+          .difference(painter.educationKeyActorIds),
+      isEmpty,
     );
     expect(
-      painter.playerNameLabels.map((label) => label.playerId),
-      containsAll(<int>[
-        lesson.focusActor.playerId,
-        lesson.opponentActors.single.playerId,
-      ]),
+      <int>{
+        ...painter.neutralEducationEmphasisPlayerIds,
+        ...painter.goldOwnershipPlayerIds,
+      },
+      containsAll(lesson.supportActors.map((actor) => actor.playerId)),
     );
+    expect(
+      painter.observedEducationMovementTrail(lesson.focusActor.playerId),
+      isNotEmpty,
+    );
+
+    _seek(tester, scene, lesson.outcome + 1.2);
+    await tester.pump();
+    painter = _painter(tester);
+    expect(painter.educationKeyActorIds, isEmpty);
+    expect(painter.educationRelationshipIndicators, isEmpty);
+    expect(painter.blueTeachingFocusPlayerIds, isEmpty);
+    expect(
+      painter.observedEducationMovementTrail(lesson.focusActor.playerId),
+      isEmpty,
+    );
+
+    _seek(tester, scene, lesson.trigger);
+    await tester.pump();
+    painter = _painter(tester);
+    expect(painter.educationRelationshipIndicators, hasLength(2));
+    expect(
+        painter.blueTeachingFocusPlayerIds, <int>{lesson.focusActor.playerId});
+
+    final transitionScene = catalog.scenes.firstWhere(
+      (value) => value.id == '1996435-32302-809759-thirdPlayer',
+    );
+    final nextScene = catalog.scenes.firstWhere(
+      (value) => value.id != transitionScene.id,
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await tester.pumpWidget(
+      _catalogApp(catalog, initialScene: transitionScene),
+    );
+    await _pumpLoaded(tester);
+    final transitions = _painter(tester).focusPlan.possessionTransitions;
+    expect(transitions, hasLength(1));
+    final transition = transitions.single;
+    expect(transition.changeTime, closeTo(6.1, .001));
+    expect(transition.confirmationTime, closeTo(6.3, .001));
+    expect(
+      _replay(transitionScene).player(transition.formerOwnerId).home,
+      isNot(_replay(transitionScene).player(transition.newOwnerId).home),
+    );
+
+    _seek(tester, transitionScene, transition.confirmationTime - .1);
+    await tester.pump();
+    painter = _painter(tester);
+    expect(painter.possessionTransition, isNull);
+    expect(painter.transitionEmphasisPlayerIds, isEmpty);
+
+    _seek(tester, transitionScene, transition.confirmationTime);
+    await tester.pump();
+    painter = _painter(tester);
+    expect(painter.possessionTransition, same(transition));
+    expect(
+      painter.transitionEmphasisPlayerIds,
+      containsAll(<int>[transition.formerOwnerId, transition.newOwnerId]),
+    );
+    expect(painter.goldOwnershipPlayerIds, <int>{transition.newOwnerId});
+    expect(
+      _text(tester, 'spatial-cue-line'),
+      contains(_cueLabel(_replay(transitionScene), transition.newOwnerId)),
+    );
+
+    _seek(tester, transitionScene, transition.confirmationTime - .1);
+    await tester.pump();
+    painter = _painter(tester);
+    expect(painter.possessionTransition, isNull);
+    expect(painter.transitionEmphasisPlayerIds, isEmpty);
+
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-next')));
+    await _pumpScene(tester, nextScene.id);
+    expect(_painter(tester).possessionTransition, isNull);
+    expect(_painter(tester).transitionEmphasisPlayerIds, isEmpty);
   });
 
   for (final configuration in <({

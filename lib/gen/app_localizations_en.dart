@@ -23967,6 +23967,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spatialEducationPlaybackRateHalf => '· 0.5×';
 
   @override
+  String spatialObservedTransitionCaption(String player) {
+    return 'TRANSITION · $player\'s team takes possession.';
+  }
+
+  @override
   String get spatialEducationSourceSpeed => 'Play at source speed (1×)';
 
   @override
@@ -23995,81 +24000,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String spatialEducationReceivingLaneQuestion(String focus, String passer) {
-    return 'Where does $focus move before $passer releases?';
+    return 'Watch $focus before $passer releases.';
   }
 
   @override
   String spatialEducationPressureOutletQuestion(String focus, String defender) {
-    return 'Can $focus receive farther from $defender and connect again?';
+    return 'Gap: $focus to $defender.';
   }
 
   @override
   String spatialEducationThirdPlayerQuestion(String focus, String middle) {
-    return 'When does $focus start moving before $middle receives?';
+    return 'Watch $focus before $middle receives.';
   }
 
   @override
   String spatialEducationSwitchingSpaceQuestion(String focus, String passer) {
-    return 'What changes around $focus when $passer moves play across?';
+    return 'Watch $focus as $passer connects across.';
   }
 
   @override
   String spatialEducationReceivingLaneAction(
       String focus, String meters, String passer) {
-    return '$focus moves $meters m before $passer\'s connection.';
+    return '$focus moves $meters m before $passer releases.';
   }
 
   @override
   String spatialEducationPressureOutletAction(
       String defender, String meters, String passer, String focus) {
-    return '$defender is $meters m from $passer; watch $focus.';
+    return '$focus moves $meters m.';
   }
 
   @override
   String spatialEducationThirdPlayerAction(
       String focus, String meters, String middle) {
-    return '$focus moves $meters m before $middle receives.';
+    return 'Before $middle receives,\n$focus is already moving.';
   }
 
   @override
   String spatialEducationSwitchingSpaceAction(
       String passer, String focus, String meters) {
-    return '$passer → $focus: $meters m across.';
+    return 'Play moves across: $passer to $focus, $meters m.';
   }
 
   @override
   String spatialEducationReceivingLaneResult(String passer, String focus,
       String defender, String before, String after) {
-    return 'At $passer, the angle between $focus and $defender: $before° → $after°.';
+    return 'From $passer, the lane opens between $focus and $defender ($before° to $after°).';
   }
 
   @override
   String spatialEducationPressureOutletResult(
       String focus, String defender, String before, String after) {
-    return '$focus\'s clearance from $defender: $before m → $after m.';
+    return 'Gap opens: $before→$after m.';
   }
 
   @override
   String spatialEducationPressureOutletConnectionResult(
       String focus, String defender, String before, String after, String next) {
-    return '$focus\'s clearance from $defender: $before m → $after m; then $next receives.';
+    return 'Gap $before→$after m; next: $next.';
   }
 
   @override
   String spatialEducationThirdPlayerAdvanceResult(String focus, String meters) {
-    return '$focus receives after gaining $meters m forward.';
+    return '$focus receives $meters m farther forward.';
   }
 
   @override
   String spatialEducationThirdPlayerClearanceResult(
       String focus, String defender, String before, String after) {
-    return '$focus\'s clearance from $defender: $before m → $after m.';
+    return '$focus gains separation from $defender: $before to $after m.';
   }
 
   @override
   String spatialEducationSwitchingSpaceResult(
       String focus, String defender, String before, String after) {
-    return '$focus\'s clearance from $defender: $before m → $after m.';
+    return 'More room opens for $focus: $before to $after m from $defender.';
   }
 
   @override

@@ -40346,6 +40346,12 @@ abstract class AppLocalizations {
   /// **'· 0.5×'**
   String get spatialEducationPlaybackRateHalf;
 
+  /// No description provided for @spatialObservedTransitionCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'TRANSITION · {player}\'s team takes possession.'**
+  String spatialObservedTransitionCaption(String player);
+
   /// No description provided for @spatialEducationSourceSpeed.
   ///
   /// In en, this message translates to:
@@ -40387,93 +40393,93 @@ abstract class AppLocalizations {
   /// No description provided for @spatialEducationReceivingLaneQuestion.
   ///
   /// In en, this message translates to:
-  /// **'Where does {focus} move before {passer} releases?'**
+  /// **'Watch {focus} before {passer} releases.'**
   String spatialEducationReceivingLaneQuestion(String focus, String passer);
 
   /// No description provided for @spatialEducationPressureOutletQuestion.
   ///
   /// In en, this message translates to:
-  /// **'Can {focus} receive farther from {defender} and connect again?'**
+  /// **'Gap: {focus} to {defender}.'**
   String spatialEducationPressureOutletQuestion(String focus, String defender);
 
   /// No description provided for @spatialEducationThirdPlayerQuestion.
   ///
   /// In en, this message translates to:
-  /// **'When does {focus} start moving before {middle} receives?'**
+  /// **'Watch {focus} before {middle} receives.'**
   String spatialEducationThirdPlayerQuestion(String focus, String middle);
 
   /// No description provided for @spatialEducationSwitchingSpaceQuestion.
   ///
   /// In en, this message translates to:
-  /// **'What changes around {focus} when {passer} moves play across?'**
+  /// **'Watch {focus} as {passer} connects across.'**
   String spatialEducationSwitchingSpaceQuestion(String focus, String passer);
 
   /// No description provided for @spatialEducationReceivingLaneAction.
   ///
   /// In en, this message translates to:
-  /// **'{focus} moves {meters} m before {passer}\'s connection.'**
+  /// **'{focus} moves {meters} m before {passer} releases.'**
   String spatialEducationReceivingLaneAction(
       String focus, String meters, String passer);
 
   /// No description provided for @spatialEducationPressureOutletAction.
   ///
   /// In en, this message translates to:
-  /// **'{defender} is {meters} m from {passer}; watch {focus}.'**
+  /// **'{focus} moves {meters} m.'**
   String spatialEducationPressureOutletAction(
       String defender, String meters, String passer, String focus);
 
   /// No description provided for @spatialEducationThirdPlayerAction.
   ///
   /// In en, this message translates to:
-  /// **'{focus} moves {meters} m before {middle} receives.'**
+  /// **'Before {middle} receives,\n{focus} is already moving.'**
   String spatialEducationThirdPlayerAction(
       String focus, String meters, String middle);
 
   /// No description provided for @spatialEducationSwitchingSpaceAction.
   ///
   /// In en, this message translates to:
-  /// **'{passer} → {focus}: {meters} m across.'**
+  /// **'Play moves across: {passer} to {focus}, {meters} m.'**
   String spatialEducationSwitchingSpaceAction(
       String passer, String focus, String meters);
 
   /// No description provided for @spatialEducationReceivingLaneResult.
   ///
   /// In en, this message translates to:
-  /// **'At {passer}, the angle between {focus} and {defender}: {before}° → {after}°.'**
+  /// **'From {passer}, the lane opens between {focus} and {defender} ({before}° to {after}°).'**
   String spatialEducationReceivingLaneResult(String passer, String focus,
       String defender, String before, String after);
 
   /// No description provided for @spatialEducationPressureOutletResult.
   ///
   /// In en, this message translates to:
-  /// **'{focus}\'s clearance from {defender}: {before} m → {after} m.'**
+  /// **'Gap opens: {before}→{after} m.'**
   String spatialEducationPressureOutletResult(
       String focus, String defender, String before, String after);
 
   /// No description provided for @spatialEducationPressureOutletConnectionResult.
   ///
   /// In en, this message translates to:
-  /// **'{focus}\'s clearance from {defender}: {before} m → {after} m; then {next} receives.'**
+  /// **'Gap {before}→{after} m; next: {next}.'**
   String spatialEducationPressureOutletConnectionResult(
       String focus, String defender, String before, String after, String next);
 
   /// No description provided for @spatialEducationThirdPlayerAdvanceResult.
   ///
   /// In en, this message translates to:
-  /// **'{focus} receives after gaining {meters} m forward.'**
+  /// **'{focus} receives {meters} m farther forward.'**
   String spatialEducationThirdPlayerAdvanceResult(String focus, String meters);
 
   /// No description provided for @spatialEducationThirdPlayerClearanceResult.
   ///
   /// In en, this message translates to:
-  /// **'{focus}\'s clearance from {defender}: {before} m → {after} m.'**
+  /// **'{focus} gains separation from {defender}: {before} to {after} m.'**
   String spatialEducationThirdPlayerClearanceResult(
       String focus, String defender, String before, String after);
 
   /// No description provided for @spatialEducationSwitchingSpaceResult.
   ///
   /// In en, this message translates to:
-  /// **'{focus}\'s clearance from {defender}: {before} m → {after} m.'**
+  /// **'More room opens for {focus}: {before} to {after} m from {defender}.'**
   String spatialEducationSwitchingSpaceResult(
       String focus, String defender, String before, String after);
 

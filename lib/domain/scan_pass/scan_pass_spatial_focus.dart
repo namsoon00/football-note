@@ -42,6 +42,34 @@ class SpatialObservedRoles {
 }
 
 const double spatialConfirmedPossessionMaximumDistanceMeters = 3.5;
+const double spatialTransitionOwnerGuardSeconds = .2;
+const double spatialTransitionMaximumGapSeconds = .6;
+const double spatialTransitionDisplaySeconds = 2.3;
+
+class SpatialObservedPossessionTransition {
+  final int formerOwnerId;
+  final int newOwnerId;
+  final int lastFormerOwnerFrame;
+  final int firstNewOwnerFrame;
+  final int confirmationFrame;
+  final double changeTime;
+  final double confirmationTime;
+  final double displayEnd;
+
+  const SpatialObservedPossessionTransition({
+    required this.formerOwnerId,
+    required this.newOwnerId,
+    required this.lastFormerOwnerFrame,
+    required this.firstNewOwnerFrame,
+    required this.confirmationFrame,
+    required this.changeTime,
+    required this.confirmationTime,
+    required this.displayEnd,
+  });
+
+  bool isVisibleAt(double time) =>
+      time >= confirmationTime - .0001 && time <= displayEnd + .0001;
+}
 
 /// Resolves only source-recorded, directly observed possession.
 ///
@@ -88,6 +116,95 @@ extension SpatialConfirmedPossession on RealMatchReplayData {
   }
 }
 
+/// Finds only directly observed changes between opposing source-labelled
+/// owners. The clip is scanned up front, while UI visibility remains gated by
+/// [SpatialObservedPossessionTransition.confirmationTime], so future
+/// confirmation frames can never appear early during playback or seeking.
+List<SpatialObservedPossessionTransition> resolveObservedPossessionTransitions(
+    RealMatchReplayData data) {
+  if (data.sourcePossessionOwners.isEmpty || data.frames.isEmpty) {
+    return const <SpatialObservedPossessionTransition>[];
+  }
+  final runs = <({int? ownerId, int start, int end})>[];
+  var cursor = 0;
+  while (cursor < data.sourcePossessionOwners.length) {
+    final ownerId = data.sourcePossessionOwners[cursor];
+    var end = cursor;
+    while (end + 1 < data.sourcePossessionOwners.length &&
+        data.sourcePossessionOwners[end + 1] == ownerId) {
+      end++;
+    }
+    runs.add((ownerId: ownerId, start: cursor, end: end));
+    cursor = end + 1;
+  }
+
+  final guardFrameSpan = (spatialTransitionOwnerGuardSeconds * data.fps).ceil();
+  final maximumGapFrames =
+      (spatialTransitionMaximumGapSeconds * data.fps).floor();
+  final values = <SpatialObservedPossessionTransition>[];
+  for (var runIndex = 0; runIndex < runs.length; runIndex++) {
+    final former = runs[runIndex];
+    if (former.ownerId == null) continue;
+    var nextIndex = runIndex + 1;
+    while (nextIndex < runs.length && runs[nextIndex].ownerId == null) {
+      nextIndex++;
+    }
+    if (nextIndex >= runs.length) break;
+    final next = runs[nextIndex];
+    final formerOwnerId = former.ownerId!;
+    final newOwnerId = next.ownerId!;
+    final gapFrames = next.start - former.end;
+    if (formerOwnerId == newOwnerId ||
+        gapFrames > maximumGapFrames ||
+        data.player(formerOwnerId).home == data.player(newOwnerId).home) {
+      continue;
+    }
+    final formerGuardStart = former.end - guardFrameSpan;
+    final newGuardEnd = next.start + guardFrameSpan;
+    if (formerGuardStart < former.start ||
+        newGuardEnd > next.end ||
+        newGuardEnd >= data.frames.length) {
+      continue;
+    }
+    var confirmed = true;
+    for (var frame = formerGuardStart; frame <= newGuardEnd; frame++) {
+      if (!data.isBallVisibleAtFrame(frame)) {
+        confirmed = false;
+        break;
+      }
+      if (frame <= former.end &&
+          data.confirmedPossessionOwnerIdAt(frame / data.fps) !=
+              formerOwnerId) {
+        confirmed = false;
+        break;
+      }
+      if (frame >= next.start &&
+          data.confirmedPossessionOwnerIdAt(frame / data.fps) != newOwnerId) {
+        confirmed = false;
+        break;
+      }
+    }
+    if (!confirmed) continue;
+    final confirmationTime = newGuardEnd / data.fps;
+    values.add(
+      SpatialObservedPossessionTransition(
+        formerOwnerId: formerOwnerId,
+        newOwnerId: newOwnerId,
+        lastFormerOwnerFrame: former.end,
+        firstNewOwnerFrame: next.start,
+        confirmationFrame: newGuardEnd,
+        changeTime: next.start / data.fps,
+        confirmationTime: confirmationTime,
+        displayEnd: math.min(
+          data.duration,
+          confirmationTime + spatialTransitionDisplaySeconds,
+        ),
+      ),
+    );
+  }
+  return List.unmodifiable(values);
+}
+
 class SpatialFocusKeyframe {
   final double time;
   final RealMatchReplayCamera camera;
@@ -105,6 +222,7 @@ class SpatialFocusPlan {
   final double duration;
   final RealMatchReplayCamera teachingCamera;
   final List<SpatialFocusKeyframe> keyframes;
+  final List<SpatialObservedPossessionTransition> possessionTransitions;
   final List<List<int>> _relevantPlayerIdsByFrame;
 
   const SpatialFocusPlan._({
@@ -112,6 +230,7 @@ class SpatialFocusPlan {
     required this.duration,
     required this.teachingCamera,
     required this.keyframes,
+    required this.possessionTransitions,
     required List<List<int>> relevantPlayerIdsByFrame,
   }) : _relevantPlayerIdsByFrame = relevantPlayerIdsByFrame;
 
@@ -119,14 +238,26 @@ class SpatialFocusPlan {
     RealMatchReplayData data,
     SpatialLibraryScene scene,
   ) {
+    final possessionTransitions = resolveObservedPossessionTransitions(data);
     final relevantByFrame = <List<int>>[];
     for (var frame = 0; frame < data.frames.length; frame++) {
       final time = frame / data.fps;
       final sample = data.sample(time);
       final activeHome = _activeHomeAt(data, scene, time);
       final sourceAction = scene.sourceActionAt(data, time);
+      SpatialObservedPossessionTransition? transition;
+      for (final value in possessionTransitions) {
+        if (value.isVisibleAt(time)) {
+          transition = value;
+          break;
+        }
+      }
       final relevant = <int>{
         if (sourceAction != null) sourceAction.playerId,
+        if (transition != null) ...[
+          transition.formerOwnerId,
+          transition.newOwnerId,
+        ],
         if (scene.education case final lesson?) ...[
           ..._educationVisibleCueActors(lesson, time),
           if (time >= lesson.movementStart &&
@@ -265,6 +396,7 @@ class SpatialFocusPlan {
       duration: data.duration,
       teachingCamera: teachingCamera,
       keyframes: List.unmodifiable(keyframes),
+      possessionTransitions: possessionTransitions,
       relevantPlayerIdsByFrame: List.unmodifiable(relevantByFrame),
     );
   }
@@ -292,6 +424,13 @@ class SpatialFocusPlan {
         .floor()
         .clamp(0, _relevantPlayerIdsByFrame.length - 1);
     return _relevantPlayerIdsByFrame[frame];
+  }
+
+  SpatialObservedPossessionTransition? possessionTransitionAt(double time) {
+    for (final value in possessionTransitions) {
+      if (value.isVisibleAt(time)) return value;
+    }
+    return null;
   }
 }
 

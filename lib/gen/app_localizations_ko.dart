@@ -23069,6 +23069,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get spatialEducationPlaybackRateHalf => '· 0.5×';
 
   @override
+  String spatialObservedTransitionCaption(String player) {
+    return '공수 전환 · $player의 팀이 소유권을 가져옵니다.';
+  }
+
+  @override
   String get spatialEducationSourceSpeed => '원본 속도(1배속)로 재생';
 
   @override
@@ -23096,81 +23101,81 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String spatialEducationReceivingLaneQuestion(String focus, String passer) {
-    return '$passer가 연결하기 전에 $focus는 어디로 움직일까요?';
+    return '$passer가 연결하기 전 $focus를 보세요.';
   }
 
   @override
   String spatialEducationPressureOutletQuestion(String focus, String defender) {
-    return '$focus가 $defender에게서 더 멀리 받아 다시 연결할 수 있을까요?';
+    return '$focus와 $defender의 간격을 보세요.';
   }
 
   @override
   String spatialEducationThirdPlayerQuestion(String focus, String middle) {
-    return '$middle가 받기 전에 $focus는 언제 움직이기 시작할까요?';
+    return '$middle가 받기 전 $focus를 보세요.';
   }
 
   @override
   String spatialEducationSwitchingSpaceQuestion(String focus, String passer) {
-    return '$passer가 반대편으로 연결할 때 $focus 주변은 어떻게 바뀔까요?';
+    return '$passer가 반대편으로 연결할 때 $focus를 보세요.';
   }
 
   @override
   String spatialEducationReceivingLaneAction(
       String focus, String meters, String passer) {
-    return '$focus가 $passer의 연결 전에 ${meters}m 움직입니다.';
+    return '$focus가 $passer의 연결 전 ${meters}m 움직입니다.';
   }
 
   @override
   String spatialEducationPressureOutletAction(
       String defender, String meters, String passer, String focus) {
-    return '$defender가 $passer에서 ${meters}m 떨어져 있습니다. $focus를 보세요.';
+    return '$focus가 ${meters}m 움직입니다.';
   }
 
   @override
   String spatialEducationThirdPlayerAction(
       String focus, String meters, String middle) {
-    return '$focus가 $middle가 받기 전에 ${meters}m 움직입니다.';
+    return '$middle의 리시브 전,\n$focus가 먼저 움직입니다.';
   }
 
   @override
   String spatialEducationSwitchingSpaceAction(
       String passer, String focus, String meters) {
-    return '$passer → $focus: 가로 ${meters}m.';
+    return '플레이가 반대편으로 이동합니다: $passer에서 $focus, ${meters}m.';
   }
 
   @override
   String spatialEducationReceivingLaneResult(String passer, String focus,
       String defender, String before, String after) {
-    return '$passer에서 본 $focus–$defender 각도: $before° → $after°.';
+    return '$passer가 보는 길에서 $focus가 $defender와 벌어집니다($before°에서 $after°).';
   }
 
   @override
   String spatialEducationPressureOutletResult(
       String focus, String defender, String before, String after) {
-    return '$focus와 $defender의 간격: ${before}m → ${after}m.';
+    return '간격이 $before→${after}m로 벌어집니다.';
   }
 
   @override
   String spatialEducationPressureOutletConnectionResult(
       String focus, String defender, String before, String after, String next) {
-    return '$focus와 $defender의 간격: ${before}m → ${after}m. 이어 $next가 받습니다.';
+    return '간격 $before→${after}m, 다음은 $next입니다.';
   }
 
   @override
   String spatialEducationThirdPlayerAdvanceResult(String focus, String meters) {
-    return '$focus가 전방 ${meters}m를 얻은 뒤 받습니다.';
+    return '$focus가 전방 ${meters}m 지점에서 받습니다.';
   }
 
   @override
   String spatialEducationThirdPlayerClearanceResult(
       String focus, String defender, String before, String after) {
-    return '$focus와 $defender의 간격: ${before}m → ${after}m.';
+    return '$focus가 $defender와 거리를 벌립니다: ${before}m에서 ${after}m.';
   }
 
   @override
   String spatialEducationSwitchingSpaceResult(
       String focus, String defender, String before, String after) {
-    return '$focus와 $defender의 간격: ${before}m → ${after}m.';
+    return '$focus 주변 여유가 커집니다: $defender와 ${before}m에서 ${after}m.';
   }
 
   @override
