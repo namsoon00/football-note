@@ -12832,7 +12832,7 @@
   "spatialActionOneTouchPass": "ワンタッチパス",
   "spatialActionSemantics": "{player}：{action}",
   "@spatialActionSemantics": {"placeholders": {"player": {"type": "String"}, "action": {"type": "String"}}},
-  "spatialActionEvidenceDisclosure": "アクション表示は慎重に扱います。ボール運搬は守備者を抜いたことを意味しません。方向転換は移動経路の変化で、身体の回転を測定したものではありません。ボール受けはトラップ技術を確認する表現ではありません。ヘディングとワンタッチパスは元のアクション記録がある場合だけ表示します。",
+  "spatialActionEvidenceDisclosure": "アクションアイコンは慎重に扱い、タップすると選手名とアクション名を確認できます。ボール運搬は守備者を抜いたことを意味しません。方向転換は移動経路の変化で、身体の回転を測定したものではありません。ボール受けはトラップ技術を確認する表現ではありません。アイコンは測定された足、身体の向き、ボールの高さ、姿勢を示しません。ヘディングとワンタッチパスは元のアクション記録がある場合だけ表示します。",
   "spatialLegacyViewer": "以前のリプレイ参照画面",
   "spatialOfficialVideoViewer": "公式映像パッセージ · 別資料の例示図",
   "spatialPreviousScene": "前のシーン",

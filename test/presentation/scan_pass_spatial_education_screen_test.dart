@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:ui' show PointerDeviceKind;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/scan_pass/real_match_replay.dart';
 import 'package:football_note/domain/scan_pass/scan_pass_spatial_library.dart';
@@ -455,35 +457,112 @@ void main() {
     );
   });
 
+  test('all five action painters use distinct code-native glyph geometry', () {
+    String signature(SpatialActionGlyphGeometry geometry) {
+      final pathLengths = <String>[
+        for (final path in <Path>[
+          ...geometry.strokePaths,
+          ...geometry.fillPaths,
+        ])
+          for (final metric in path.computeMetrics())
+            metric.length.toStringAsFixed(2),
+      ];
+      return '${geometry.strokePaths.length}:'
+          '${geometry.fillPaths.length}:'
+          '${geometry.circles.length}:${pathLengths.join(',')}:'
+          '${geometry.circles.map((circle) => circle.radius.toStringAsFixed(2)).join(',')}';
+    }
+
+    final signatures = <String>{};
+    for (final kind in SpatialOnPitchActionKind.values) {
+      final geometry = SpatialActionIconPainter(kind: kind)
+          .glyphGeometry(const Size(26, 26));
+      signatures.add(signature(geometry));
+      for (final path in <Path>[
+        ...geometry.strokePaths,
+        ...geometry.fillPaths,
+      ]) {
+        expect(
+          (Offset.zero & const Size(26, 26)).contains(path.getBounds().topLeft),
+          isTrue,
+        );
+        expect(
+          (Offset.zero & const Size(26, 26))
+              .contains(path.getBounds().bottomRight),
+          isTrue,
+        );
+      }
+      for (final circle in geometry.circles) {
+        final bounds = Rect.fromCircle(
+          center: circle.center,
+          radius: circle.radius,
+        );
+        expect((Offset.zero & const Size(26, 26)).contains(bounds.topLeft),
+            isTrue);
+        expect(
+          (Offset.zero & const Size(26, 26)).contains(bounds.bottomRight),
+          isTrue,
+        );
+      }
+    }
+    expect(signatures, hasLength(SpatialOnPitchActionKind.values.length));
+  });
+
   for (final configuration in <({
     Locale locale,
+    Size size,
     String sceneId,
     double time,
     SpatialOnPitchActionKind kind,
   })>[
     (
       locale: const Locale('en'),
+      size: const Size(320, 640),
+      sceneId: '1925299-185-560983-thirdPlayer',
+      time: 11.1,
+      kind: SpatialOnPitchActionKind.receive,
+    ),
+    (
+      locale: const Locale('ko'),
+      size: const Size(640, 360),
       sceneId: '1925299-185-560983-thirdPlayer',
       time: 11.8,
       kind: SpatialOnPitchActionKind.carry,
     ),
     (
+      locale: const Locale('ja'),
+      size: const Size(320, 640),
+      sceneId: '1925299-185-560983-thirdPlayer',
+      time: 17.4,
+      kind: SpatialOnPitchActionKind.oneTouchPass,
+    ),
+    (
+      locale: const Locale('en'),
+      size: const Size(640, 360),
+      sceneId: '1925299-185-560983-thirdPlayer',
+      time: 19,
+      kind: SpatialOnPitchActionKind.header,
+    ),
+    (
       locale: const Locale('ko'),
+      size: const Size(320, 640),
       sceneId: '1925299-35928-560882-receivingLane',
       time: 19.5,
       kind: SpatialOnPitchActionKind.directionChange,
     ),
     (
-      locale: const Locale('ja'),
-      sceneId: '1925299-185-560983-thirdPlayer',
-      time: 19,
-      kind: SpatialOnPitchActionKind.header,
+      locale: const Locale('ko'),
+      size: const Size(667, 320),
+      sceneId: '1925299-35928-560882-receivingLane',
+      time: 19.7,
+      kind: SpatialOnPitchActionKind.directionChange,
     ),
   ]) {
     testWidgets(
-        'narrow ${configuration.locale.languageCode} action stays attached and clear',
+        '${configuration.kind.name} icon stays actor-bound and clear in '
+        '${configuration.locale.languageCode} ${configuration.size.width}x${configuration.size.height}',
         (tester) async {
-      await tester.binding.setSurfaceSize(const Size(320, 640));
+      await tester.binding.setSurfaceSize(configuration.size);
       addTearDown(() => tester.binding.setSurfaceSize(null));
       final scene = catalog.scenes.firstWhere(
         (value) => value.id == configuration.sceneId,
@@ -503,100 +582,198 @@ void main() {
       final painter = _painter(tester);
       final action = painter.activeAction;
       expect(action?.kind, configuration.kind);
-      final resolvedAction = action!;
-      final label = painter.playerNameLabels.singleWhere(
-        (value) => value.playerId == resolvedAction.playerId,
+      final icon = painter.actionIcon;
+      expect(icon, isNotNull);
+      final resolvedIcon = icon!;
+      expect(resolvedIcon.actorPlayerId, action!.playerId);
+      expect(resolvedIcon.eventId, action.eventId);
+      expect(resolvedIcon.kind, action.kind);
+      expect(resolvedIcon.attachmentDistance, lessThanOrEqualTo(18));
+      expect(resolvedIcon.visualRect.width, 24);
+      expect(resolvedIcon.hitRect.width, greaterThanOrEqualTo(40));
+      expect(
+        painter.viewport.view.contains(resolvedIcon.visualRect.topLeft),
+        isTrue,
       );
-      expect(label.actionLabel, painter.activeActionLabel);
-      expect(label.displayName, contains(label.actionLabel!));
-      final actor = painter.data.player(resolvedAction.playerId);
-      if (label.attachmentDistance > 18) {
-        expect(actor.number, isNotNull);
-        expect(label.displayName, startsWith('#${actor.number} '));
+      expect(
+        painter.viewport.view.contains(resolvedIcon.visualRect.bottomRight),
+        isTrue,
+      );
+      expect(resolvedIcon.visualRect.overlaps(painter.ballSafetyRect), isFalse);
+      expect(
+        painter.reservedOverlayRects.any(resolvedIcon.visualRect.overlaps),
+        isFalse,
+      );
+      expect(
+        painter.playerBadgeSafetyRects.any(resolvedIcon.visualRect.overlaps),
+        isFalse,
+      );
+      expect(
+        painter.playerNameLabels
+            .any((label) => resolvedIcon.visualRect.overlaps(label.rect)),
+        isFalse,
+      );
+
+      final localizedAction = _actionLabel(
+        lookupAppLocalizations(configuration.locale),
+        action.kind,
+      );
+      for (final name in painter.playerNameLabels) {
+        expect(name.displayName, isNot(contains(localizedAction)));
+        expect(name.displayName, isNot(contains('·')));
+        expect(name.attachmentDistance, lessThanOrEqualTo(18));
       }
-      expect(painter.viewport.view.contains(label.rect.topLeft), isTrue);
-      expect(painter.viewport.view.contains(label.rect.bottomRight), isTrue);
-      expect(label.rect.overlaps(painter.ballSafetyRect), isFalse);
-      expect(painter.reservedOverlayRects.any(label.rect.overlaps), isFalse);
-      expect(painter.playerBadgeSafetyRects.any(label.rect.overlaps), isFalse);
+      expect(
+        find.byKey(
+          ValueKey<String>(
+            'spatial-action-control-${resolvedIcon.sourceIdentity}',
+          ),
+        ),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     });
   }
 
-  testWidgets('crowded distant action fallback keeps source jersey identity',
+  testWidgets('time-gated, hidden, and historical actions have no icon target',
       (tester) async {
-    await tester.binding.setSurfaceSize(const Size(320, 640));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final cases = <(SpatialLibraryScene, double)>[
+      (
+        catalog.scenes.firstWhere(
+          (scene) => scene.id == '1925299-185-560983-thirdPlayer',
+        ),
+        11,
+      ),
+      (
+        catalog.scenes.firstWhere(
+          (scene) => scene.id == '1996435-24085-25534-thirdPlayer',
+        ),
+        1.4,
+      ),
+      (catalog.scenes.firstWhere((scene) => scene.sourceActions.isEmpty), 10),
+    ];
+    for (final (scene, time) in cases) {
+      await tester.pumpWidget(_catalogApp(catalog, initialScene: scene));
+      await _pumpLoaded(tester);
+      _seek(tester, scene, time);
+      await tester.pump();
+
+      expect(_painter(tester).activeAction, isNull);
+      expect(_painter(tester).actionIcon, isNull);
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget.key is ValueKey<String> &&
+              ((widget.key! as ValueKey<String>).value)
+                  .startsWith('spatial-action-control-'),
+        ),
+        findsNothing,
+      );
+    }
+  });
+
+  testWidgets('action icon exposes tap hover focus and keyboard meaning',
+      (tester) async {
     final scene = catalog.scenes.firstWhere(
       (value) => value.id == '1925299-185-560983-thirdPlayer',
     );
-    await tester.pumpWidget(
-      _catalogApp(
-        catalog,
-        initialScene: scene,
-        locale: const Locale('ko'),
-        textScale: 1.4,
-      ),
-    );
+    await tester.pumpWidget(_catalogApp(catalog, initialScene: scene));
     await _pumpLoaded(tester);
     _seek(tester, scene, 19);
     await tester.pump();
 
-    final base = _painter(tester);
-    final action = base.activeAction!;
-    final badge = base.badgeGeometryForPlayer(action.playerId)!;
-    final view = base.viewport.view;
-    const stripHeight = 100.0;
-    final stripTop = (badge.center.dy - stripHeight / 2)
-        .clamp(view.top, view.bottom - stripHeight)
-        .toDouble();
-    final crowded = SpatialLibraryPitchPainter(
-      data: base.data,
-      scene: base.scene,
-      focusPlan: base.focusPlan,
-      viewport: base.viewport,
-      time: base.time,
-      brightness: base.brightness,
-      portrait: base.portrait,
-      textDirection: base.textDirection,
-      textScaler: base.textScaler,
-      locale: base.locale,
-      roles: base.roles,
-      activeAction: action,
-      activeActionLabel: base.activeActionLabel,
-      cuePlayerId: base.cuePlayerId,
-      requiredPlayerIds: base.requiredPlayerIds,
-      nameLabelPlayerIds: base.nameLabelPlayerIds,
-      cueRect: base.cueRect,
-      cueTarget: base.cueTarget,
-      reservedOverlayRects: <Rect>[
-        ...base.reservedOverlayRects,
-        Rect.fromLTWH(view.left, stripTop, view.width, stripHeight),
-      ],
-      preferredNameLabelPlacements: base.preferredNameLabelPlacements,
+    final painter = _painter(tester);
+    final action = painter.activeAction!;
+    final icon = painter.actionIcon!;
+    final control = find.byKey(
+      ValueKey<String>('spatial-action-control-${icon.sourceIdentity}'),
     );
-    final label = crowded.playerNameLabels.singleWhere(
-      (value) => value.playerId == action.playerId,
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    final message = l10n.spatialActionSemantics(
+      action.playerName,
+      _actionLabel(l10n, action.kind),
     );
-    final actor = crowded.data.player(action.playerId);
-    final surname = actor.name!.trim().split(' ').last;
+    final semantics = tester.getSemantics(control).getSemanticsData();
+    expect(semantics.label, message);
+    expect(semantics.hasAction(SemanticsAction.tap), isTrue);
 
-    expect(label.attachmentDistance, greaterThan(18));
-    expect(actor.number, isNotNull);
-    expect(label.displayName, startsWith('#${actor.number} '));
-    expect(label.displayName, contains(surname));
-    expect(label.displayName, contains(crowded.activeActionLabel!));
-    expect(crowded.viewport.view.contains(label.rect.topLeft), isTrue);
-    expect(crowded.viewport.view.contains(label.rect.bottomRight), isTrue);
-    expect(label.rect.overlaps(crowded.ballSafetyRect), isFalse);
-    expect(crowded.playerBadgeSafetyRects.any(label.rect.overlaps), isFalse);
-    expect(
-      crowded.playerNameLabels
-          .where((value) => value.actionLabel == null)
-          .every((value) => value.attachmentDistance <= 18),
-      isTrue,
-      reason: 'ordinary player names never use the distant fallback',
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: const Offset(1, 1));
+    await mouse.moveTo(tester.getCenter(control));
+    await tester.pump();
+    expect(find.text(message), findsOneWidget);
+    await mouse.moveTo(Offset.zero);
+    await tester.pumpAndSettle();
+    expect(find.text(message), findsNothing);
+
+    final focusable = tester.widget<FocusableActionDetector>(
+      find.descendant(
+        of: control,
+        matching: find.byType(FocusableActionDetector),
+      ),
     );
+    focusable.focusNode!.requestFocus();
+    await tester.pumpAndSettle();
+    expect(find.text(message), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    expect(find.text(message), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(find.text(message), findsNothing);
+
+    await tester.tap(control);
+    await tester.pumpAndSettle();
+    expect(find.text(message), findsOneWidget);
+    await tester.tapAt(const Offset(2, 2));
+    await tester.pumpAndSettle();
+    expect(find.text(message), findsNothing);
+    await tester.tap(control);
+    await tester.pumpAndSettle();
+    expect(find.text(message), findsOneWidget);
+    await mouse.removePointer();
+  });
+
+  testWidgets('tap pauses action inspection and seek dismisses it',
+      (tester) async {
+    final scene = catalog.scenes.firstWhere(
+      (value) => value.id == '1925299-185-560983-thirdPlayer',
+    );
+    await tester.pumpWidget(_catalogApp(catalog, initialScene: scene));
+    await _pumpLoaded(tester);
+    _seek(tester, scene, 19);
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump(const Duration(milliseconds: 120));
+
+    var painter = _painter(tester);
+    final action = painter.activeAction!;
+    final icon = painter.actionIcon!;
+    final control = find.byKey(
+      ValueKey<String>('spatial-action-control-${icon.sourceIdentity}'),
+    );
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    final message = l10n.spatialActionSemantics(
+      action.playerName,
+      _actionLabel(l10n, action.kind),
+    );
+    await tester.tap(control);
+    await tester.pump();
+    final pausedAt = _painter(tester).time;
+    expect(find.text(message), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_painter(tester).time, closeTo(pausedAt, .001));
+
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(_painter(tester).time, greaterThan(pausedAt));
+    painter = _painter(tester);
+    expect(painter.actionIcon, isNotNull);
+
+    _seek(tester, scene, 18.9);
+    await tester.pumpAndSettle();
+    expect(find.text(message), findsNothing);
   });
 
   testWidgets('pause and backward seek reproduce the same header source label',
@@ -644,6 +821,19 @@ String _objectiveTitle(
         l10n.spatialEducationObjectiveThirdPlayer,
       SpatialLearningObjective.switchingSpace =>
         l10n.spatialEducationObjectiveSwitchingSpace,
+    };
+
+String _actionLabel(
+  AppLocalizations l10n,
+  SpatialOnPitchActionKind kind,
+) =>
+    switch (kind) {
+      SpatialOnPitchActionKind.carry => l10n.spatialActionCarry,
+      SpatialOnPitchActionKind.directionChange =>
+        l10n.spatialActionDirectionChange,
+      SpatialOnPitchActionKind.receive => l10n.spatialActionReceive,
+      SpatialOnPitchActionKind.header => l10n.spatialActionHeader,
+      SpatialOnPitchActionKind.oneTouchPass => l10n.spatialActionOneTouchPass,
     };
 
 Future<void> _selectPlaybackAction(
