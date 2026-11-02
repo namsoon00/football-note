@@ -4,18 +4,23 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('education asset verifier recomputes every accepted lesson', () async {
-    final result = await Process.run(
-      'python3',
-      <String>[
-        'tool/scan_pass_replay/prepare_spatial_education.py',
-        '--verify-assets',
-      ],
-      workingDirectory: Directory.current.path,
-    );
-    expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
-    expect(result.stdout, contains('Verified education catalogue'));
-  });
+  test(
+    'education asset verifier recomputes every accepted lesson',
+    () async {
+      final result = await Process.run(
+        'python3',
+        <String>[
+          'tool/scan_pass_replay/prepare_spatial_education.py',
+          '--verify-assets',
+        ],
+        workingDirectory: Directory.current.path,
+      );
+      expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
+      expect(result.stdout, contains('Verified education catalogue'));
+    },
+    // Full raw-source I/O can exceed the default timeout under parallel tests.
+    timeout: const Timeout(Duration(minutes: 2)),
+  );
 
   test('audit records proof failures instead of quotas or fabricated lessons',
       () {
@@ -86,6 +91,15 @@ void main() {
     expect(manifest['matchIds'], <int>[1925299, 1996435]);
     expect(manifest['sourceSemantics'], contains('is_detected'));
     expect(manifest['archivePreservation']['fileCount'], 115);
+    expect(
+      manifest['heightEvidence']['contract'],
+      'pinned-source-z-cm-v1',
+    );
+    expect(manifest['heightEvidence']['proofSha256'], hasLength(64));
+    expect(
+      manifest['heightEvidence']['sourceExtractSha256'],
+      'f98b14c36f310a95464ae1ee60c83792361af1f6e412af7bf859ec1ee2871d17',
+    );
     final tracking = (manifest['files'] as List<dynamic>)
         .cast<Map<String, dynamic>>()
         .where(
@@ -104,6 +118,61 @@ void main() {
         '4340d274572876239c154c90bc507a9b3250a656/${file['path']}',
       );
     }
+  });
+
+  test('height proof covers exact frames, validity, and enriched assets', () {
+    final catalog = jsonDecode(
+      File('assets/scan_pass_spatial/education-catalog.json')
+          .readAsStringSync(),
+    ) as Map<String, dynamic>;
+    final proof = jsonDecode(
+      File('assets/scan_pass_spatial/height-proof.json').readAsStringSync(),
+    ) as Map<String, dynamic>;
+    final extract = jsonDecode(
+      File('assets/scan_pass_spatial/source-height-extract.json')
+          .readAsStringSync(),
+    ) as Map<String, dynamic>;
+
+    expect(proof['version'], 'spatial-ball-height-v1');
+    expect(proof['heightSourceContract'], 'pinned-source-z-cm-v1');
+    expect(proof['counts'], <String, dynamic>{
+      'scenes': 70,
+      'frames': 20404,
+      'knownFrames': 17237,
+      'unknownFrames': 3167,
+      'knownGroundFrames': 600,
+    });
+    expect(extract['policy']['unknown'], contains('negative'));
+    expect(extract['policy']['interpolation'], contains('two valid adjacent'));
+    expect(extract['sources'], hasLength(10));
+    expect(extract['scenes'], hasLength(70));
+    expect(
+      (catalog['scenes'] as List<dynamic>).every(
+        (scene) => (scene['asset'] as String)
+            .startsWith('assets/scan_pass_spatial/education_scenes/'),
+      ),
+      isTrue,
+    );
+
+    final mixed = (extract['scenes'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+          (scene) => scene['id'] == '2269-32665-caleta-car-lateralSwitch',
+        );
+    expect(mixed['sourceFrameStart'], 32600);
+    expect((mixed['sourceFrames'] as List<dynamic>).first, 32600);
+    expect((mixed['sourceFrames'] as List<dynamic>).last, 32815);
+    expect((mixed['valid'] as List<dynamic>).where((value) => value),
+        hasLength(190));
+    expect((mixed['valid'] as List<dynamic>).where((value) => !value),
+        hasLength(26));
+    expect(
+      (mixed['rawZMeters'] as List<dynamic>)
+          .whereType<num>()
+          .map((value) => value.toDouble())
+          .reduce((a, b) => a > b ? a : b),
+      closeTo(9.74408101190538, 1e-12),
+    );
   });
 
   test('dynamic-event actions preserve source flags and conservative proof',

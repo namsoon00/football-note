@@ -471,7 +471,7 @@ void main() {
     })>[
       (
         sceneId: '1925299-185-560983-thirdPlayer',
-        time: 11.1,
+        time: 11.3,
         kind: SpatialOnPitchActionKind.receive,
       ),
       (

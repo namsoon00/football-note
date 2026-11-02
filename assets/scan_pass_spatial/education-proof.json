@@ -1700,8 +1700,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-185-560983-thirdPlayer.json",
-      "assetBytes": 287090,
-      "assetSha256": "2c0143c7251d657304f1bfda37f7a455716ded4f1bfa1bb7aff17e0dcd67258c"
+      "assetBytes": 290537,
+      "assetSha256": "2971b5485fc4842d49e1e0d3f0752c59ded94b635788a6b89faaf0daff767560"
     },
     {
       "id": "1925299-1804-51050-receivingLane",
@@ -1776,8 +1776,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-1804-51050-receivingLane.json",
-      "assetBytes": 289764,
-      "assetSha256": "9b9df0d60f76340db71425d3c3c5f3dd17527e5fa77b133d4a5df8412e3c8453"
+      "assetBytes": 293067,
+      "assetSha256": "e810079210a9bd797dff42c018cd14b556f6bae3b03b166ed431eae69a01c817"
     },
     {
       "id": "1925299-6103-51043-thirdPlayer",
@@ -1856,8 +1856,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-6103-51043-thirdPlayer.json",
-      "assetBytes": 288063,
-      "assetSha256": "36108712f296571313d1abc61c3801f4094df44f234ead826fe7340b77c5dce8"
+      "assetBytes": 291365,
+      "assetSha256": "148e691cde471ac063fa8b1247d331fcc698f0d5a699082adb7c359856c9875a"
     },
     {
       "id": "1925299-8890-560986-receivingLane",
@@ -1932,8 +1932,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-8890-560986-receivingLane.json",
-      "assetBytes": 276354,
-      "assetSha256": "2845525481c221f48c6665efee4eb3121833b6bc101b2a8293a2c2f9e1858dca"
+      "assetBytes": 279569,
+      "assetSha256": "09f4d7452826a312478a951e49dab0d1cbc602504e1f7f8d07bcfa7e785ce6b5"
     },
     {
       "id": "1925299-12334-11897-thirdPlayer",
@@ -2012,8 +2012,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-12334-11897-thirdPlayer.json",
-      "assetBytes": 279788,
-      "assetSha256": "2e863c485fbc5e678484604f7a30caa920e0a4ce398b5523792e025afc5ad0dd"
+      "assetBytes": 283054,
+      "assetSha256": "cc5f5c64be8f347f407fa50fb0cfd8e4b7e13401afdf3efac221dc630feeb407"
     },
     {
       "id": "1925299-17728-560882-switchingSpace",
@@ -2088,8 +2088,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-17728-560882-switchingSpace.json",
-      "assetBytes": 275982,
-      "assetSha256": "b2baabf670d6e341c4474fbb6aced79b3e4878612fec6993a46136c10f832ce5"
+      "assetBytes": 279222,
+      "assetSha256": "3056b8b6c46d34ca1195e5c026dfea508272ec3a65b62124cacefe61c828531e"
     },
     {
       "id": "1925299-21757-51043-thirdPlayer",
@@ -2168,8 +2168,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-21757-51043-thirdPlayer.json",
-      "assetBytes": 291505,
-      "assetSha256": "72145ae258d4d3ca939707a002e66d9d0b3358e4c83321eea0871d0e2ed2da38"
+      "assetBytes": 294688,
+      "assetSha256": "be5d293d8a9bf570b253c4e81ecc4bff2aa96b87e986f8afc91f13e7b6e76731"
     },
     {
       "id": "1925299-23261-560989-thirdPlayer",
@@ -2248,8 +2248,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-23261-560989-thirdPlayer.json",
-      "assetBytes": 278034,
-      "assetSha256": "43f4ca218c9560b05e35a01f11d6ba7f351228b8d95c555d1de90e591d96f2ad"
+      "assetBytes": 281256,
+      "assetSha256": "dc3af5bc58d1741a62e288b448a7144d238e1dcffab0e2f0b0069602135a5a51"
     },
     {
       "id": "1925299-24011-287934-receivingLane",
@@ -2324,8 +2324,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-24011-287934-receivingLane.json",
-      "assetBytes": 287132,
-      "assetSha256": "906ec441f35fc1cd4b8e6b6ef964bb55406c68cfc45b766680b09729dc57afd7"
+      "assetBytes": 290442,
+      "assetSha256": "a1c726e3e548165d3a17c0fc5b0d590a90ef66f447b6265b22e68452269419a4"
     },
     {
       "id": "1925299-24526-51043-switchingSpace",
@@ -2400,8 +2400,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-24526-51043-switchingSpace.json",
-      "assetBytes": 275941,
-      "assetSha256": "c5afb389a4a0217970f2d7b6f75535a32cd44f73739a91a99d349ed5b6c5ab9c"
+      "assetBytes": 279296,
+      "assetSha256": "bc183e9d6db1897e5d170e886b345b4e365e51b7b52f442c3faa5db29e3be9f1"
     },
     {
       "id": "1925299-24944-51002-thirdPlayer",
@@ -2480,8 +2480,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-24944-51002-thirdPlayer.json",
-      "assetBytes": 280319,
-      "assetSha256": "06552beec8346babb1c809faa59ac7c0774b8808cd92afbf1cf0fc96786b1d6f"
+      "assetBytes": 283613,
+      "assetSha256": "30504d9c44a2975aa106d501a549db31d98adfcafcf9cf4d2207f735d34d2e80"
     },
     {
       "id": "1925299-27624-51694-thirdPlayer",
@@ -2560,8 +2560,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-27624-51694-thirdPlayer.json",
-      "assetBytes": 280199,
-      "assetSha256": "c138d8e0d12e06abb56ae0c6319d9867241d2304ee8d547f5187fbdf5a4534dd"
+      "assetBytes": 283600,
+      "assetSha256": "7353f15f1ef5a1036aff68c0c2e8025ba57e57b9db69fcc65a7d60fb33f82bcb"
     },
     {
       "id": "1925299-30793-287934-pressureOutlet",
@@ -2647,8 +2647,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-30793-287934-pressureOutlet.json",
-      "assetBytes": 278801,
-      "assetSha256": "d34fa41eec0ae8bd98687122cdb8c61e44c09d155d91c8516bfb24ac145f17f6"
+      "assetBytes": 282286,
+      "assetSha256": "fe371e735f5b3cd86b083840e068eafcb71904d82cbac19cee0dbda7b54b3935"
     },
     {
       "id": "1925299-31474-809166-thirdPlayer",
@@ -2727,8 +2727,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-31474-809166-thirdPlayer.json",
-      "assetBytes": 280569,
-      "assetSha256": "f873f20114b4e1c4f1ea0e56d8bf5bdc689c3d0f7e77518a3a8792e0eb2c9074"
+      "assetBytes": 283937,
+      "assetSha256": "cfb610aff39272456cd6afae8f6d38b9dbf28d69a9c09889a0e0d405524ee121"
     },
     {
       "id": "1925299-32076-50982-thirdPlayer",
@@ -2807,8 +2807,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-32076-50982-thirdPlayer.json",
-      "assetBytes": 280281,
-      "assetSha256": "9fbd10a6a82301605b032043a52a801c799e4c50a23718488c5a0286aa8aeb71"
+      "assetBytes": 283656,
+      "assetSha256": "92b8577d3b2d99d3389e10bb2266d2c0b8984b6916a1472c3077e6da6388b3df"
     },
     {
       "id": "1925299-35928-560882-receivingLane",
@@ -2883,8 +2883,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-35928-560882-receivingLane.json",
-      "assetBytes": 285383,
-      "assetSha256": "0a18bec77d062a2cae70f24382cd6749f749995d0117f481e6cd8a5429581ba1"
+      "assetBytes": 288720,
+      "assetSha256": "59b95975cd620a4b6c7c997ff50e118f419a324267b67e554a53a8b85c226c97"
     },
     {
       "id": "1925299-36563-560983-thirdPlayer",
@@ -2963,8 +2963,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-36563-560983-thirdPlayer.json",
-      "assetBytes": 270282,
-      "assetSha256": "f14fb8ff06b088ffea23cdcaa66b0861dfe0f5edd2590df9bcefea65d892a6f3"
+      "assetBytes": 273638,
+      "assetSha256": "5f4fcca5bd45b90a88e2ee79b6449e3187b792e894ab2893ec00e0d699ee51a4"
     },
     {
       "id": "1925299-37289-51002-thirdPlayer",
@@ -3043,8 +3043,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-37289-51002-thirdPlayer.json",
-      "assetBytes": 267614,
-      "assetSha256": "1ac0b0d260c6a09e33705cf6c9ad935047547b710339a1db98845f71dbc1b8c9"
+      "assetBytes": 270992,
+      "assetSha256": "f27e684127ebccb329da71babf27cf9a40282221f1131c711fabd65a3d5972fc"
     },
     {
       "id": "1925299-41719-51002-pressureOutlet",
@@ -3130,8 +3130,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-41719-51002-pressureOutlet.json",
-      "assetBytes": 277089,
-      "assetSha256": "d6055b57913f834e98dcf577132885068d82429cdbe5dc0836cc23116f175ce0"
+      "assetBytes": 280412,
+      "assetSha256": "22edb553e4966374c57d942dd7c6db9bd6fb77db3d4e51219debb69d67eb0bd9"
     },
     {
       "id": "1925299-49537-69111-switchingSpace",
@@ -3206,8 +3206,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-49537-69111-switchingSpace.json",
-      "assetBytes": 266011,
-      "assetSha256": "d047161c23d7e04c55e1894b70f9daf49f6e5250dcb7cddc5cfc94829d2acb5c"
+      "assetBytes": 269399,
+      "assetSha256": "70dfc113f93a78f17c156489f36a837f103063bad916631c3b0d6ef1e5c8be34"
     },
     {
       "id": "1925299-55799-51002-thirdPlayer",
@@ -3286,8 +3286,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-55799-51002-thirdPlayer.json",
-      "assetBytes": 264824,
-      "assetSha256": "05b93a44da92c398b6761f87def17b09f1f168e59b22b7d68aacf32269924bb0"
+      "assetBytes": 268243,
+      "assetSha256": "1cb747eb98ec968b276dfbda09a2752c7607fc0c93a27cf3902c1199f44eb55c"
     },
     {
       "id": "1996435-2511-931987-pressureOutlet",
@@ -3373,8 +3373,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-2511-931987-pressureOutlet.json",
-      "assetBytes": 208830,
-      "assetSha256": "f0adb6ed63070c8eaa7e916ccc40d891424ec20f3d5a899d2b3306e9963683fa"
+      "assetBytes": 211311,
+      "assetSha256": "ad4f8eba93f6e346eb708e4ce0ff2844a740853b494b96797892371b16c3f8fb"
     },
     {
       "id": "1996435-7549-25534-thirdPlayer",
@@ -3453,8 +3453,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-7549-25534-thirdPlayer.json",
-      "assetBytes": 280270,
-      "assetSha256": "cd9e0ef5be738aa81e61d622dd55b46c3c5ecf716ce84952da690fef6e53f57b"
+      "assetBytes": 283598,
+      "assetSha256": "d40705c9718477fa4694077b120b72cb9dcd46d1909cf73da505e2170e22b944"
     },
     {
       "id": "1996435-12272-133852-thirdPlayer",
@@ -3533,8 +3533,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-12272-133852-thirdPlayer.json",
-      "assetBytes": 256808,
-      "assetSha256": "cf0e7d566184951d68cceb9a01296d455342459d4ad6ce99868aea4d7df1a87a"
+      "assetBytes": 260214,
+      "assetSha256": "108df7cc40d5f1e6cf65bab26a5590aeae0764d18a2399e403dcd87c45dd9f46"
     },
     {
       "id": "1996435-13256-25534-pressureOutlet",
@@ -3620,8 +3620,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-13256-25534-pressureOutlet.json",
-      "assetBytes": 275896,
-      "assetSha256": "3d146fa070c000db60fe6e87e68e6584e1186ce55793be6216b606567d4c2ba8"
+      "assetBytes": 279302,
+      "assetSha256": "537a1fdca1b2381b240eb9eb7cf533a299f095639591b0cb48cd638a55b1c20e"
     },
     {
       "id": "1996435-14344-51646-thirdPlayer",
@@ -3700,8 +3700,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-14344-51646-thirdPlayer.json",
-      "assetBytes": 266477,
-      "assetSha256": "d73ca6c2604f4f8b739e79537a7c9280cd4ee2d9c119f3d00467183baf6cc17c"
+      "assetBytes": 269773,
+      "assetSha256": "b1a72e9b27bada84c8830def4c955db5b89fe6153a73ddaacaa7e9f2f6ad965f"
     },
     {
       "id": "1996435-20986-51000-receivingLane",
@@ -3776,8 +3776,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-20986-51000-receivingLane.json",
-      "assetBytes": 272617,
-      "assetSha256": "1696e7fe61ccae93f85febed919f8c984982e8dd02cab3f93beaca594a7dff7b"
+      "assetBytes": 275960,
+      "assetSha256": "2fadb8ac3521b3f9cf519cc33d37f24facd3f3d50d84e49b0b83d036bcd3c9a6"
     },
     {
       "id": "1996435-22948-51045-thirdPlayer",
@@ -3856,8 +3856,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-22948-51045-thirdPlayer.json",
-      "assetBytes": 267420,
-      "assetSha256": "2132a7a3330ca7b4a4f274f8a0ceb81448e2ae79acf7306e076010a25673bd60"
+      "assetBytes": 270800,
+      "assetSha256": "eb734ffe9ce577a584c6decbbdf9e39e7f3301c97955361ebc6023e75cffffae"
     },
     {
       "id": "1996435-23556-795547-thirdPlayer",
@@ -3936,8 +3936,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-23556-795547-thirdPlayer.json",
-      "assetBytes": 270654,
-      "assetSha256": "bfd44d2f32570a228b69cc03d597c48e9b2f49f7f7a2aca484cbc081e68f01d2"
+      "assetBytes": 274006,
+      "assetSha256": "2acbe3c09832b867ef7e02ba980876110fc6a227c7cff1b2dadb5dd4d5211987"
     },
     {
       "id": "1996435-24085-25534-thirdPlayer",
@@ -4016,8 +4016,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-24085-25534-thirdPlayer.json",
-      "assetBytes": 261400,
-      "assetSha256": "ca4c3b6c9ea8bb879cca47826bf866fbdb1cb886b5480251168333b709d5233a"
+      "assetBytes": 264815,
+      "assetSha256": "f2735144c0ddee94699e174c4d69bb85b71c5141d304604d8d5f0bf3af27d5c9"
     },
     {
       "id": "1996435-29144-18573-switchingSpace",
@@ -4092,8 +4092,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-29144-18573-switchingSpace.json",
-      "assetBytes": 200744,
-      "assetSha256": "d915b420a6cb0bf9c39467745777710a5407e4e56b20bfe6eec98f47cc215949"
+      "assetBytes": 203415,
+      "assetSha256": "b69cdf3f40e75ea3a42f338b264a0399470be6e874459726535b749dedeb8feb"
     },
     {
       "id": "1996435-32302-809759-thirdPlayer",
@@ -4172,8 +4172,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-32302-809759-thirdPlayer.json",
-      "assetBytes": 265837,
-      "assetSha256": "b56b827813bc288c54ad542a09641573bf30ba2f704ae99a41aeb48874b44404"
+      "assetBytes": 269182,
+      "assetSha256": "f271dd06bb9b55753e8e36004d36362c3f88b61b4669f93e8af105773c157eda"
     },
     {
       "id": "1996435-33100-133852-thirdPlayer",
@@ -4252,8 +4252,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-33100-133852-thirdPlayer.json",
-      "assetBytes": 186198,
-      "assetSha256": "b07dcbd1bc23686c7ac09a887034a4a7860b19c8a1994254dba2b846d2ff46a9"
+      "assetBytes": 188513,
+      "assetSha256": "56b21e44dd56041159927b6135ef69824b766bf0f181ec2947d869b26e6bca4d"
     },
     {
       "id": "1996435-34054-51000-thirdPlayer",
@@ -4332,8 +4332,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-34054-51000-thirdPlayer.json",
-      "assetBytes": 269977,
-      "assetSha256": "18a06d16f7dcaa7ecc4054989cdd93112b9c5d4f9c48ebcf27a8178fa5ffdebc"
+      "assetBytes": 273217,
+      "assetSha256": "c7498a4017cd1a7d4cfe56a722a2c3488bccb592470b55b9ae3e29348e56fe08"
     },
     {
       "id": "1996435-34868-50959-thirdPlayer",
@@ -4412,8 +4412,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-34868-50959-thirdPlayer.json",
-      "assetBytes": 262471,
-      "assetSha256": "fc05a4092e0be095c9a7dbfca2f4a0b0dcc8c40481a22c438999e7da5c4a928b"
+      "assetBytes": 265804,
+      "assetSha256": "439148ee2066e208f2eb9965be6542b3bafbd31e7fcc5bba5a8a6ed05d844461"
     },
     {
       "id": "1996435-35640-50959-thirdPlayer",
@@ -4492,8 +4492,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-35640-50959-thirdPlayer.json",
-      "assetBytes": 266340,
-      "assetSha256": "3fb39989e625498d4eee8b85968f864adab6db134236f972119e28d053b71fb3"
+      "assetBytes": 269650,
+      "assetSha256": "324da38fa4b4fe6c216c9c342c657844d79ac970168ba942163c66347e2521b6"
     },
     {
       "id": "1996435-38177-25534-switchingSpace",
@@ -4568,8 +4568,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-38177-25534-switchingSpace.json",
-      "assetBytes": 271434,
-      "assetSha256": "2a0a42910ec87eade01b2ab5f996af18b197584a8f759e3905905a0314e12b2d"
+      "assetBytes": 274736,
+      "assetSha256": "d9b73cf27b551d251c8195a96f63efcef97e5fbf4ff5f4661b8c5933cb33d814"
     },
     {
       "id": "1996435-38538-51644-switchingSpace",
@@ -4644,8 +4644,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-38538-51644-switchingSpace.json",
-      "assetBytes": 270213,
-      "assetSha256": "078077fce0c5ad95c988774bbf53c37ba076b8c4626d3cf95d2783ef1eb15a22"
+      "assetBytes": 273556,
+      "assetSha256": "ea5e37a40ba47cba66cdf17e0cfb5aa0e1cf09d2097fb545b0725c82914b746f"
     },
     {
       "id": "1996435-38975-28293-pressureOutlet",
@@ -4731,8 +4731,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-38975-28293-pressureOutlet.json",
-      "assetBytes": 266346,
-      "assetSha256": "2689b9e036c228a1c2bfd4214751d8ede411be17f51d32f9088e0439c4a6ee4c"
+      "assetBytes": 269664,
+      "assetSha256": "a6f2106901ee55729801278a5954bbaa7c0ca74b7ba06f41bd97eb428a3615fb"
     },
     {
       "id": "1996435-39890-18573-pressureOutlet",
@@ -4818,8 +4818,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-39890-18573-pressureOutlet.json",
-      "assetBytes": 264647,
-      "assetSha256": "68f125c7386d0799f271bf7dc0dd7ccb39157734d81502c1bb18acd08c847002"
+      "assetBytes": 267945,
+      "assetSha256": "c04da770e30f4273b7e916e01e35a487c21e11380cc5cb5187c8cbb54b6791f9"
     },
     {
       "id": "1996435-41108-17231-thirdPlayer",
@@ -4898,8 +4898,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-41108-17231-thirdPlayer.json",
-      "assetBytes": 262070,
-      "assetSha256": "528f22909f9cc6739109910337e0966fac61fa125cc134eeee913d4f0780aa72"
+      "assetBytes": 265327,
+      "assetSha256": "cfbb23f0a607999d1585224f5081e5ef8f62d1f1c1e893a72c719432ab20ccae"
     },
     {
       "id": "1996435-43882-560893-thirdPlayer",
@@ -4978,8 +4978,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-43882-560893-thirdPlayer.json",
-      "assetBytes": 275549,
-      "assetSha256": "ab0d21b901c70b6f60cf6e2b4b989c485a310a0b028d57b65c07eec945060106"
+      "assetBytes": 279007,
+      "assetSha256": "5e49c58f9e66efc9dd16d9d4f82977589f5b0ccbe4a7b4c7a86dfa1c1a6efcb4"
     },
     {
       "id": "1996435-45027-133852-pressureOutlet",
@@ -5065,8 +5065,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-45027-133852-pressureOutlet.json",
-      "assetBytes": 268661,
-      "assetSha256": "e72f018c8e233531027231dae56fb4997d394c81d4524ae0df3c00c966ca7be0"
+      "assetBytes": 272103,
+      "assetSha256": "fc85953569ecb12c1b41abd15d453f8183253808a6719482666f57c8c1846e58"
     },
     {
       "id": "1996435-53311-26766-pressureOutlet",
@@ -5152,8 +5152,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-53311-26766-pressureOutlet.json",
-      "assetBytes": 183898,
-      "assetSha256": "9e5cf208da3867cbfd183a94f9f07813c4fc9ec9c622ca81f2a66d57f1385029"
+      "assetBytes": 186345,
+      "assetSha256": "30be5ca32e3575423d9ee4db57a86ed2d757764a2e9764b8a8d1c05b90e26445"
     },
     {
       "id": "1996435-57216-50971-thirdPlayer",
@@ -5232,8 +5232,8 @@
         }
       },
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-57216-50971-thirdPlayer.json",
-      "assetBytes": 224279,
-      "assetSha256": "6db334a355127548f7933a75a00cdc6c6509b0af79eb7cff5bbeced9f5d0e3a4"
+      "assetBytes": 227054,
+      "assetSha256": "974ba5bf9f06b62c1717622821b239fef40b3c44ee40e7976656d75d72e81c17"
     }
   ],
   "recentRejections": [

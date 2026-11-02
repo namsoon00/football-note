@@ -33,6 +33,8 @@ enum RealMatchReplayAnnotationSource { provider, derived }
 
 const String skillCornerCurrentSourceUrl =
     'https://github.com/SkillCorner/opendata/tree/4340d274572876239c154c90bc507a9b3250a656';
+const String pinnedSourceBallHeightContract = 'pinned-source-z-cm-v1';
+const double maximumSourceBallHeightMeters = 15;
 
 class RealMatchReplayPoint {
   final double x;
@@ -354,12 +356,14 @@ class RealMatchReplaySample {
   final double sourceFrame;
   final List<RealMatchReplayPoint?> players;
   final RealMatchReplayPoint ball;
+  final bool ballHeightKnown;
 
   const RealMatchReplaySample({
     required this.time,
     required this.sourceFrame,
     required this.players,
     required this.ball,
+    this.ballHeightKnown = true,
   });
 }
 
@@ -374,6 +378,7 @@ class RealMatchReplayDisplaySample {
   final List<RealMatchReplayPoint?> players;
   final List<bool> reconstructed;
   final RealMatchReplayPoint ball;
+  final bool ballHeightKnown;
 
   const RealMatchReplayDisplaySample({
     required this.time,
@@ -381,6 +386,7 @@ class RealMatchReplayDisplaySample {
     required this.players,
     required this.reconstructed,
     required this.ball,
+    this.ballHeightKnown = true,
   });
 
   bool get hasReconstructedPositions => reconstructed.contains(true);
@@ -416,6 +422,9 @@ class RealMatchReplayData {
   final RealMatchReplayCoverage coverage;
   final RealMatchReplayAnnotationSource annotationSource;
   final bool ballHeightAvailable;
+  final Uint8List ballHeightValidity;
+  final bool ballHeightMaskProvided;
+  final String? ballHeightSource;
   final RealMatchReplayScene scene;
 
   late final Map<int, int> _playerIndexById = <int, int>{
@@ -449,6 +458,9 @@ class RealMatchReplayData {
     required this.coverage,
     required this.annotationSource,
     required this.ballHeightAvailable,
+    required this.ballHeightValidity,
+    required this.ballHeightMaskProvided,
+    required this.ballHeightSource,
     required this.scene,
   });
 
@@ -628,6 +640,32 @@ class RealMatchReplayData {
     final scene = sceneJson == null
         ? _legacyScene(duration)
         : _parseScene(_asMap(sceneJson, 'scene'));
+    final ballHeightAvailable = json['ballHeightAvailable'] == null
+        ? true
+        : _boolean(json, 'ballHeightAvailable');
+    final ballHeightMaskValue = json['ballHeightValid'];
+    final ballHeightMaskProvided = ballHeightMaskValue != null;
+    final ballHeightValidity = ballHeightMaskValue == null
+        ? Uint8List.fromList(
+            <int>[
+              for (final frame in frames)
+                ballHeightAvailable &&
+                        frame.last >= 0 &&
+                        frame.last <= maximumSourceBallHeightMeters * 100
+                    ? 1
+                    : 0,
+            ],
+          )
+        : Uint8List.fromList(
+            _asList(ballHeightMaskValue, 'ballHeightValid').map((value) {
+              if (value is! bool) {
+                throw const FormatException(
+                  'Ball-height validity values must be booleans.',
+                );
+              }
+              return value ? 1 : 0;
+            }).toList(growable: false),
+          );
     final data = RealMatchReplayData._(
       fps: _integer(json, 'fps'),
       poseStep: _integer(json, 'poseStep'),
@@ -667,9 +705,10 @@ class RealMatchReplayData {
             RealMatchReplayAnnotationSource.provider.name,
         'annotation source',
       ),
-      ballHeightAvailable: json['ballHeightAvailable'] == null
-          ? true
-          : _boolean(json, 'ballHeightAvailable'),
+      ballHeightAvailable: ballHeightAvailable,
+      ballHeightValidity: ballHeightValidity,
+      ballHeightMaskProvided: ballHeightMaskProvided,
+      ballHeightSource: _optionalString(json, 'ballHeightSource'),
       scene: scene,
     );
     data._validate();
@@ -698,6 +737,35 @@ class RealMatchReplayData {
       visibility[frameIndex][playerIndex] == 1;
 
   bool isBallVisibleAtFrame(int frameIndex) => ballVisibility[frameIndex] == 1;
+
+  bool isBallHeightValidAtFrame(int frameIndex) =>
+      ballHeightValidity[frameIndex] == 1;
+
+  bool get hasAuditedBallHeight =>
+      ballHeightAvailable &&
+      ballHeightMaskProvided &&
+      ballHeightSource == pinnedSourceBallHeightContract;
+
+  /// Source ball height on the replay clock.
+  ///
+  /// Exact valid frames remain known beside a gap. Between frames, height is
+  /// interpolated only when both adjacent source observations are valid.
+  double? heightAt(double time) {
+    final clamped = time.clamp(0.0, duration);
+    final sourceFrame = (clamped * fps).clamp(0.0, frames.length - 1.0);
+    final lower = sourceFrame.floor();
+    final upper = (lower + 1).clamp(0, frames.length - 1);
+    final fraction = sourceFrame - lower;
+    if (fraction == 0 || lower == upper) {
+      return isBallHeightValidAtFrame(lower) ? frames[lower].last / 100 : null;
+    }
+    if (!isBallHeightValidAtFrame(lower) || !isBallHeightValidAtFrame(upper)) {
+      return null;
+    }
+    return (frames[lower].last +
+            (frames[upper].last - frames[lower].last) * fraction) /
+        100;
+  }
 
   bool get hasDisplayReconstruction => displayFrames.isNotEmpty;
 
@@ -782,6 +850,7 @@ class RealMatchReplayData {
         players: source.players,
         reconstructed: List<bool>.filled(players.length, false),
         ball: source.ball,
+        ballHeightKnown: source.ballHeightKnown,
       );
     }
     final lower = source.sourceFrame.floor();
@@ -825,6 +894,7 @@ class RealMatchReplayData {
         growable: false,
       ),
       ball: source.ball,
+      ballHeightKnown: source.ballHeightKnown,
     );
   }
 
@@ -863,6 +933,7 @@ class RealMatchReplayData {
       return value.clamp(math.min(p0, p1), math.max(p0, p1)) / 100;
     }
 
+    final height = heightAt(clamped);
     return RealMatchReplaySample(
       time: clamped,
       sourceFrame: sourceFrame,
@@ -885,8 +956,9 @@ class RealMatchReplayData {
       ball: RealMatchReplayPoint(
         linear(players.length * 2),
         linear(players.length * 2 + 1),
-        linear(players.length * 2 + 2),
+        height ?? 0,
       ),
+      ballHeightKnown: height != null,
     );
   }
 
@@ -946,6 +1018,11 @@ class RealMatchReplayData {
         !_validWebUrl(sourceUrl) ||
         visibility.length != frames.length ||
         ballVisibility.length != frames.length ||
+        ballHeightValidity.length != frames.length ||
+        ballHeightAvailable != ballHeightValidity.contains(1) ||
+        (ballHeightSource != null &&
+            (ballHeightSource != pinnedSourceBallHeightContract ||
+                !ballHeightMaskProvided)) ||
         (sourcePossessionOwners.isNotEmpty &&
             sourcePossessionOwners.length != frames.length) ||
         (displayFrames.isEmpty != displayProvenance.isEmpty) ||
@@ -1017,9 +1094,11 @@ class RealMatchReplayData {
         }
       }
       final ballZ = frame.last;
-      if ((!ballHeightAvailable && ballZ != 0) ||
-          ballZ < -500 ||
-          ballZ > 10000) {
+      final heightValid = isBallHeightValidAtFrame(frameIndex);
+      if ((!heightValid && ballHeightMaskProvided && ballZ != 0) ||
+          (!heightValid && !ballHeightMaskProvided && ballZ < -500) ||
+          (heightValid &&
+              (ballZ < 0 || ballZ > maximumSourceBallHeightMeters * 100))) {
         throw const FormatException('Replay ball height is out of range.');
       }
     }

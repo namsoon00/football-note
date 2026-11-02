@@ -22992,11 +22992,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get spatialEducationAttribution =>
-      '提供元：SkillCorner Open Data（MIT）。選手位置、出典の保持者、ボールの可用性は選択中の固定試合ソースに基づき、学習目標と測定値はアプリが派生します。';
+      '提供元：SkillCorner Open Data（MIT）。選手位置、出典の保持者、ボールのXYと利用可能な高さは選択中の固定試合ソースに基づき、学習目標と測定値はアプリが派生します。';
 
   @override
   String get spatialEducationSelectionDisclosure =>
-      '全ての審査済み区間は準備とその後を各4秒以上含みます。名前付きの学習選手と関連する相手は継続して直接観測され、2024/25の外挿選手座標は除外されます。測定値はセンチメートル量子化XYフレームから再計算します。身体、足、スキャン、意図、得点、最善の選択は主張しません。';
+      '全ての審査済み区間は準備とその後を各4秒以上含みます。名前付きの学習選手と関連する相手は継続して直接観測され、2024/25の外挿選手座標は除外されます。学習測定値はセンチメートル量子化XYフレームから再計算します。元データのボール高さは別に保持し、接触、身体姿勢、アクションの推定には使いません。身体、足、スキャン、意図、得点、最善の選択は主張しません。';
 
   @override
   String spatialEducationCoverageSummary(
@@ -23120,7 +23120,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get spatialActionEvidenceDisclosure =>
-      '選手の絵とボールの動きはアクション分類を示す一般的な例で、タップすると選手名とアクション名を確認できます。測定された身体や足の姿勢、接触、ボールの高さ、方向を再現したものではありません。ボール運搬は守備者を抜いたことを意味せず、方向転換は身体の回転ではなく移動経路を表し、ボール受けはトラップ技術を確認しません。ヘディングとワンタッチパスは元のアクション記録がある場合だけ表示します。';
+      '選手の絵とそのボール動作はアクション分類を示す一般的な例で、タップすると選手名とアクション名を確認できます。測定された身体や足の姿勢、接触、方向を再現したものではありません。別のフィールド上のボールは、そのフレームに有効な高さ観測がある場合だけ元データの高さを使います。ボール運搬は守備者を抜いたことを意味せず、方向転換は身体の回転ではなく移動経路を表し、ボール受けはトラップ技術を確認しません。ヘディングとワンタッチパスは元のアクション記録がある場合だけ表示します。';
 
   @override
   String get spatialLegacyViewer => '以前のリプレイ参照画面';
@@ -23191,7 +23191,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get spatialXyOnlyDisclosure =>
-      'このライブラリは記録プレーをピッチ平面（XY）で表示します。ボールの高さ、身体、足、スキャンの測定値は表示しません。';
+      'フィールド上のボールは記録された地面XYを維持します。その元フレームに有効な高さがあれば、上限付き表示倍率で地面の影から持ち上げ、破線の空のアンカーは高さが不明であることを示します。欠測または負の元高さを地面とは扱いません。身体、足、スキャン、接触、着地点、将来軌道は再構成しません。';
+
+  @override
+  String spatialBallHeightKnownSemantics(String height) {
+    return '記録されたボール高さは${height}m。地面の影より上にボールを表示します。';
+  }
+
+  @override
+  String get spatialBallHeightUnknownSemantics =>
+      'この元データ時点のボール高さは不明です。空の地面アンカーはボールが接地していることを意味しません。';
 
   @override
   String get spatialInferredDisclosure =>

@@ -6,6 +6,8 @@ recomputes each accepted lesson from observed replay frames, then independently
 adapts pinned 2024/25 tracking.  In the recent feed an actor exists for evidence
 only when ``player_data.is_detected is true`` and the ball exists only when
 ``ball_data.is_detected is true``.  Extrapolated coordinates are never copied.
+Exact source ball z is retained with per-frame validity for both source
+generations; missing and negative z remain explicitly unknown.
 """
 
 from __future__ import annotations
@@ -26,7 +28,10 @@ ARCHIVE_CATALOG = ASSETS / "catalog.json"
 EDUCATION_CATALOG = ASSETS / "education-catalog.json"
 EDUCATION_PROOF = ASSETS / "education-proof.json"
 EDUCATION_MANIFEST = ASSETS / "education-source-manifest.json"
+HEIGHT_EXTRACT = ASSETS / "source-height-extract.json"
+HEIGHT_PROOF = ASSETS / "height-proof.json"
 EDUCATION_SCENES = ASSETS / "education_scenes"
+HISTORICAL_MANIFEST = ASSETS / "source-manifest.json"
 FPS = 10
 MISSING = -(2**31)
 HISTORICAL_COMMIT = "1ed50b775f93075c2a6d00d0d795f13b7b89709e"
@@ -39,6 +44,15 @@ ACTION_CONTROL_MAXIMUM_METERS = 3.5
 ACTION_CARRY_MINIMUM_METERS = 2.0
 ACTION_DIRECTION_LEG_MINIMUM_METERS = 1.5
 ACTION_DIRECTION_MINIMUM_DEGREES = 55.0
+HEIGHT_SOURCE_CONTRACT = "pinned-source-z-cm-v1"
+HEIGHT_PROOF_VERSION = "spatial-ball-height-v1"
+MAX_SOURCE_BALL_HEIGHT_METERS = 15.0
+# Filled after deterministic generation. The verifier uses this committed raw
+# extract as its offline trust root when the large pinned source files are not
+# present in CI.
+EXPECTED_HEIGHT_EXTRACT_SHA256 = (
+    "f98b14c36f310a95464ae1ee60c83792361af1f6e412af7bf859ec1ee2871d17"
+)
 REFERENCES = {
     "receivingLane": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/build-and-progress/passing-circuit-receiving-between-the-lines.php",
     "pressureOutlet": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/build-and-progress/passing-circuit-receiving-between-the-lines.php",
@@ -73,6 +87,235 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def source_height(value: object, label: str) -> tuple[float | None, bool]:
+    """Return the exact source value and whether it is a usable observation.
+
+    Missing and negative z are explicitly unknown. Values above the documented
+    football-tracking domain are malformed rather than silently clamped.
+    """
+    if value is None:
+        return None, False
+    if isinstance(value, dict) and set(value) == {"nonFinite"}:
+        marker = value["nonFinite"]
+        if marker in {"NaN", "Infinity", "-Infinity"}:
+            return float(marker), False
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"Malformed source ball height at {label}")
+    numeric = float(value)
+    if not math.isfinite(numeric):
+        return numeric, False
+    if numeric < 0:
+        return numeric, False
+    if numeric > MAX_SOURCE_BALL_HEIGHT_METERS:
+        raise ValueError(
+            f"Source ball height exceeds {MAX_SOURCE_BALL_HEIGHT_METERS:g} m at {label}"
+        )
+    return numeric, True
+
+
+def serializable_height_evidence(value: object) -> object:
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        numeric = float(value)
+        if not math.isfinite(numeric):
+            marker = "NaN" if math.isnan(numeric) else (
+                "Infinity" if numeric > 0 else "-Infinity"
+            )
+            return {"nonFinite": marker}
+    return value
+
+
+def quantized_height_cm(value: float, label: str) -> int:
+    quantized = round(value * 100)
+    if abs(quantized / 100 - value) > QUANTIZATION_METERS + 1e-12:
+        raise ValueError(f"Ball-height quantization exceeds 0.005 m at {label}")
+    return quantized
+
+
+def apply_height_contract(
+    data: dict,
+    samples: list[dict],
+) -> None:
+    if len(samples) != len(data["frames"]):
+        raise ValueError(f"Ball-height sample length mismatch: {data['scene']['id']}")
+    mask: list[bool] = []
+    for index, (row, sample) in enumerate(zip(data["frames"], samples)):
+        if sample.get("sourceFrame") != data["sourceFrameStart"] + index:
+            raise ValueError(f"Non-contiguous ball-height identity: {data['scene']['id']}")
+        raw_evidence = sample.get("rawZMeters")
+        raw_z, valid = source_height(
+            raw_evidence,
+            f"{data['scene']['id']} frame {sample.get('sourceFrame')}",
+        )
+        sample["rawZMeters"] = serializable_height_evidence(raw_evidence)
+        sample["valid"] = valid
+        row[-1] = quantized_height_cm(raw_z, data["scene"]["id"]) if valid else 0
+        mask.append(valid)
+    data["ballHeightAvailable"] = any(mask)
+    data["ballHeightValid"] = mask
+    data["ballHeightSource"] = HEIGHT_SOURCE_CONTRACT
+
+
+def source_record(manifest: dict, suffix: str) -> dict:
+    matches = [item for item in manifest.get("files", []) if item.get("path") == suffix]
+    if len(matches) != 1:
+        raise ValueError(f"Pinned source file is missing or ambiguous: {suffix}")
+    return matches[0]
+
+
+def verify_file(path: Path, record: dict, label: str) -> None:
+    if (
+        not path.is_file()
+        or path.stat().st_size != record.get("bytes")
+        or sha256(path) != record.get("sha256")
+    ):
+        raise ValueError(f"{label} source hash mismatch: {path}")
+
+
+def historical_height_samples(
+    raw_root: Path,
+    scenes: list[dict],
+    *,
+    require_sources: bool,
+) -> tuple[dict[str, list[dict]], list[dict]]:
+    manifest = read_json(HISTORICAL_MANIFEST)
+    if (
+        manifest.get("provider") != "SkillCorner Open Data"
+        or manifest.get("license") != "MIT"
+        or manifest.get("commit") != HISTORICAL_COMMIT
+    ):
+        raise ValueError("Unexpected historical source identity")
+    result: dict[str, list[dict]] = {}
+    source_records: list[dict] = []
+    by_match: dict[int, list[dict]] = collections.defaultdict(list)
+    for scene in scenes:
+        by_match[scene["matchId"]].append(scene)
+    for match_id, match_scenes in sorted(by_match.items()):
+        match_suffix = f"data/matches/{match_id}/match_data.json"
+        tracking_suffix = f"data/matches/{match_id}/structured_data.json"
+        match_record = source_record(manifest, match_suffix)
+        tracking_record = source_record(manifest, tracking_suffix)
+        match_path = raw_root / match_suffix
+        tracking_path = raw_root / tracking_suffix
+        if not match_path.is_file() or not tracking_path.is_file():
+            if require_sources:
+                raise ValueError(f"Missing historical height source for match {match_id}")
+            continue
+        verify_file(match_path, match_record, "Historical match")
+        verify_file(tracking_path, tracking_record, "Historical tracking")
+        match = read_json(match_path)
+        frames = read_json(tracking_path)
+        by_frame = {frame.get("frame"): frame for frame in frames}
+        if len(by_frame) != len(frames):
+            raise ValueError(f"Duplicate historical source frame: {match_id}")
+        ball_id = (match.get("ball") or {}).get("trackable_object")
+        source_records.append({
+            "generation": "historical-2019-20",
+            "matchId": match_id,
+            "commit": HISTORICAL_COMMIT,
+            "path": tracking_suffix,
+            "bytes": tracking_record["bytes"],
+            "sha256": tracking_record["sha256"],
+        })
+        for scene in match_scenes:
+            data = read_json(REPO / scene["asset"])
+            samples = []
+            for local in range(len(data["frames"])):
+                source_frame = data["sourceFrameStart"] + local
+                frame = by_frame.get(source_frame)
+                if frame is None:
+                    raise ValueError(f"Missing source frame {match_id}:{source_frame}")
+                exact = [
+                    item for item in frame.get("data", [])
+                    if ball_id is not None and item.get("trackable_object") == ball_id
+                ]
+                if not exact:
+                    exact = [
+                        item for item in frame.get("data", [])
+                        if item.get("group_name") == "ball"
+                    ]
+                if len(exact) != 1:
+                    raise ValueError(f"Ambiguous source ball {match_id}:{source_frame}")
+                item = exact[0]
+                x, y = item.get("x"), item.get("y")
+                if (
+                    isinstance(x, bool)
+                    or isinstance(y, bool)
+                    or not isinstance(x, (int, float))
+                    or not isinstance(y, (int, float))
+                    or not math.isfinite(x)
+                    or not math.isfinite(y)
+                    or round(float(x) * 100) != data["frames"][local][-3]
+                    or round(float(y) * 100) != data["frames"][local][-2]
+                ):
+                    raise ValueError(f"Historical source ball XY mismatch {scene['id']}:{source_frame}")
+                samples.append({
+                    "sourceFrame": source_frame,
+                    "rawZMeters": item.get("z"),
+                })
+            result[scene["id"]] = samples
+        del frames, by_frame
+    return result, source_records
+
+
+def recent_height_samples_from_raw(
+    raw_dir: Path,
+    scenes: list[dict],
+    manifest: dict,
+    *,
+    require_sources: bool,
+) -> tuple[dict[str, list[dict]], list[dict]]:
+    result: dict[str, list[dict]] = {}
+    records: list[dict] = []
+    by_match: dict[int, list[dict]] = collections.defaultdict(list)
+    for scene in scenes:
+        by_match[scene["matchId"]].append(scene)
+    for match_id, match_scenes in sorted(by_match.items()):
+        suffix = f"data/matches/{match_id}/{match_id}_tracking_extrapolated.jsonl"
+        record = source_record(manifest, suffix)
+        path = raw_dir / f"{match_id}_tracking_extrapolated.jsonl"
+        if not path.is_file():
+            if require_sources:
+                raise ValueError(f"Missing recent height source for match {match_id}")
+            continue
+        verify_file(path, record, "Recent tracking")
+        wanted = {
+            frame
+            for scene in match_scenes
+            for frame in range(scene["startFrame"], scene["endFrame"] + 1)
+        }
+        selected: dict[int, dict] = {}
+        with path.open(encoding="utf-8") as handle:
+            for line in handle:
+                source = json.loads(line)
+                frame = source.get("frame")
+                if frame not in wanted:
+                    continue
+                ball_data = source.get("ball_data") or {}
+                if ball_data.get("is_detected") is not True:
+                    raise ValueError(f"Recent selected ball is not directly detected: {match_id}:{frame}")
+                selected[frame] = ball_data
+        records.append({
+            "generation": "recent-2024-25",
+            "matchId": match_id,
+            "commit": RECENT_COMMIT,
+            "path": suffix,
+            "bytes": record["bytes"],
+            "sha256": record["sha256"],
+        })
+        for scene in match_scenes:
+            samples = []
+            for source_frame in range(scene["startFrame"], scene["endFrame"] + 1):
+                item = selected.get(source_frame)
+                if item is None:
+                    raise ValueError(f"Missing recent selected source frame: {match_id}:{source_frame}")
+                samples.append({
+                    "sourceFrame": source_frame,
+                    "rawZMeters": item.get("z"),
+                })
+            result[scene["id"]] = samples
+    return result, records
 
 
 def actor(data: dict, player_id: int) -> dict:
@@ -673,7 +916,7 @@ def load_recent_frames(path: Path, known_ids: set[int]) -> tuple[list[dict], int
                 x, y = raw_ball.get("x"), raw_ball.get("y")
                 if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
                     raise ValueError("Detected ball is missing XY")
-                ball_point = (float(x), float(y))
+                ball_point = (float(x), float(y), raw_ball.get("z"))
             frames.append({
                 "frame": expected,
                 "timestamp": source.get("timestamp"),
@@ -1330,6 +1573,7 @@ def build_recent_scene(
     ]
     indices = {player["id"]: index for index, player in enumerate(players)}
     raw_frames, visibility, owners, ball_visibility = [], [], [], []
+    height_samples: list[dict] = []
     quantization_error = 0.0
     for source in frames[start:end + 1]:
         if source["ball"] is None:
@@ -1346,6 +1590,10 @@ def build_recent_scene(
                     quantization_error = max(quantization_error, abs(quantized / 100 - coordinate))
                     row.append(quantized)
         row.extend((round(source["ball"][0] * 100), round(source["ball"][1] * 100), 0))
+        height_samples.append({
+            "sourceFrame": source["frame"],
+            "rawZMeters": source["ball"][2],
+        })
         if not any(flags):
             raise ValueError("Recent selected frame has no directly detected player")
         raw_frames.append(row)
@@ -1445,6 +1693,7 @@ def build_recent_scene(
             "outcome": "end",
         },
     }
+    apply_height_contract(data, height_samples)
     # Recompute from the quantized exported payload; raw floating point values
     # are never trusted as catalogue measurements.
     quantized_accepted, quantized_rejected = evaluate_objectives(
@@ -1499,6 +1748,7 @@ def build_recent_scene(
         "maxQuantizationErrorMeters": round(quantization_error, 8),
         "sourceActionEvents": len(entry["sourceActions"]),
         "learning": lesson,
+        "heightSamples": height_samples,
     }
     return data, entry, proof
 
@@ -1586,15 +1836,126 @@ def assert_archive_unchanged() -> None:
             raise ValueError(f"Immutable archive asset changed: {relative}")
 
 
-def generate(raw_dir: Path, source_manifest_path: Path) -> None:
+def height_extract_scene(scene: dict, data: dict, samples: list[dict], source: dict) -> dict:
+    return {
+        "id": scene["id"],
+        "matchId": scene["matchId"],
+        "sourceCommit": scene["sourceCommit"],
+        "sourcePath": source["path"],
+        "sourceSha256": source["sha256"],
+        "sourceFrameStart": data["sourceFrameStart"],
+        "sourceFrames": [item["sourceFrame"] for item in samples],
+        "rawZMeters": [item["rawZMeters"] for item in samples],
+        "valid": [item["valid"] for item in samples],
+    }
+
+
+def build_height_artifacts(
+    scenes: list[dict],
+    evidence: dict[str, list[dict]],
+    sources: list[dict],
+) -> tuple[dict, dict]:
+    sources_by_match = {item["matchId"]: item for item in sources}
+    extract_scenes = []
+    proof_scenes = []
+    for scene in scenes:
+        data = read_json(REPO / scene["asset"])
+        samples = evidence.get(scene["id"])
+        source = sources_by_match.get(scene["matchId"])
+        if samples is None or source is None:
+            raise ValueError(f"Missing height evidence for {scene['id']}")
+        extract_scenes.append(height_extract_scene(scene, data, samples, source))
+        mask = data["ballHeightValid"]
+        known_values = [row[-1] / 100 for row, valid in zip(data["frames"], mask) if valid]
+        proof_scenes.append({
+            "id": scene["id"],
+            "asset": scene["asset"],
+            "assetSha256": scene["assetSha256"],
+            "sourceFrameStart": data["sourceFrameStart"],
+            "sourceFrameEnd": data["sourceFrameStart"] + len(data["frames"]) - 1,
+            "frames": len(data["frames"]),
+            "knownFrames": sum(mask),
+            "unknownFrames": len(mask) - sum(mask),
+            "knownGroundFrames": sum(
+                valid and row[-1] == 0 for row, valid in zip(data["frames"], mask)
+            ),
+            "maximumHeightMeters": max(known_values),
+        })
+    extract = {
+        "version": HEIGHT_PROOF_VERSION,
+        "policy": {
+            "sourceUnit": "meters",
+            "storedUnit": "centimetres",
+            "valid": "finite source z from 0 through 15 m inclusive",
+            "unknown": "missing, non-finite, or negative source z",
+            "unknownStoredValue": 0,
+            "quantizationMaximumErrorMeters": QUANTIZATION_METERS,
+            "interpolation": "only between two valid adjacent source observations",
+        },
+        "sources": sources,
+        "scenes": extract_scenes,
+    }
+    save(HEIGHT_EXTRACT, extract)
+    extract_hash = sha256(HEIGHT_EXTRACT)
+    proof = {
+        "version": HEIGHT_PROOF_VERSION,
+        "generator": "tool/scan_pass_replay/prepare_spatial_education.py",
+        "heightSourceContract": HEIGHT_SOURCE_CONTRACT,
+        "sourceExtract": HEIGHT_EXTRACT.relative_to(REPO).as_posix(),
+        "sourceExtractSha256": extract_hash,
+        "sources": sources,
+        "counts": {
+            "scenes": len(proof_scenes),
+            "frames": sum(item["frames"] for item in proof_scenes),
+            "knownFrames": sum(item["knownFrames"] for item in proof_scenes),
+            "unknownFrames": sum(item["unknownFrames"] for item in proof_scenes),
+            "knownGroundFrames": sum(item["knownGroundFrames"] for item in proof_scenes),
+        },
+        "scenes": proof_scenes,
+    }
+    save(HEIGHT_PROOF, proof)
+    return extract, proof
+
+
+def enrich_historical_scenes(
+    archive_scenes: list[dict],
+    raw_root: Path,
+) -> tuple[list[dict], dict[str, list[dict]], list[dict]]:
+    evidence, sources = historical_height_samples(
+        raw_root,
+        archive_scenes,
+        require_sources=True,
+    )
+    enriched = []
+    for scene in archive_scenes:
+        entry = json.loads(json.dumps(scene))
+        data = read_json(REPO / scene["asset"])
+        apply_height_contract(data, evidence[scene["id"]])
+        path = EDUCATION_SCENES / f"{scene['id']}.json"
+        save(path, data)
+        entry["asset"] = path.relative_to(REPO).as_posix()
+        entry["assetSha256"] = sha256(path)
+        enriched.append(entry)
+    return enriched, evidence, sources
+
+
+def generate(
+    raw_dir: Path,
+    historical_raw_dir: Path,
+    source_manifest_path: Path,
+) -> None:
     assert_archive_unchanged()
     ready = verify_ready(raw_dir, source_manifest_path)
     archive_scenes, archive_audit = audit_archive()
     if EDUCATION_SCENES.exists():
         shutil.rmtree(EDUCATION_SCENES)
     EDUCATION_SCENES.mkdir(parents=True)
+    archive_scenes, historical_height_evidence, historical_height_sources = (
+        enrich_historical_scenes(archive_scenes, historical_raw_dir)
+    )
 
     recent_entries, recent_proof, recent_rejected = [], [], []
+    recent_height_evidence: dict[str, list[dict]] = {}
     attempted_matches = []
     for match_id in ready["matchIds"]:
         match = read_json(raw_dir / f"{match_id}_match.json")
@@ -1634,6 +1995,7 @@ def generate(raw_dir: Path, source_manifest_path: Path) -> None:
             proof["asset"] = entry["asset"]
             proof["assetBytes"] = path.stat().st_size
             proof["assetSha256"] = entry["assetSha256"]
+            recent_height_evidence[entry["id"]] = proof.pop("heightSamples")
             recent_entries.append(entry)
             recent_proof.append(proof)
 
@@ -1679,6 +2041,21 @@ def generate(raw_dir: Path, source_manifest_path: Path) -> None:
     source_action_counts, display_action_counts = source_action_proof_counts(
         recent_entries,
     )
+    recent_height_sources = [
+        {
+            "generation": "recent-2024-25",
+            "matchId": match_id,
+            "commit": RECENT_COMMIT,
+            "path": record["path"],
+            "bytes": record["bytes"],
+            "sha256": record["sha256"],
+        }
+        for match_id in ready["matchIds"]
+        for record in [source_record(
+            ready,
+            f"data/matches/{match_id}/{match_id}_tracking_extrapolated.jsonl",
+        )]
+    ]
     proof = {
         "generator": "tool/scan_pass_replay/prepare_spatial_education.py",
         "proofVersion": CATALOG_PROOF_VERSION,
@@ -1731,8 +2108,22 @@ def generate(raw_dir: Path, source_manifest_path: Path) -> None:
     }
     save(EDUCATION_CATALOG, catalogue)
     save(EDUCATION_PROOF, proof)
+    build_height_artifacts(
+        scenes,
+        {**historical_height_evidence, **recent_height_evidence},
+        [*historical_height_sources, *recent_height_sources],
+    )
+    manifest["heightEvidence"] = {
+        "contract": HEIGHT_SOURCE_CONTRACT,
+        "proof": HEIGHT_PROOF.relative_to(REPO).as_posix(),
+        "proofSha256": sha256(HEIGHT_PROOF),
+        "sourceExtract": HEIGHT_EXTRACT.relative_to(REPO).as_posix(),
+        "sourceExtractSha256": sha256(HEIGHT_EXTRACT),
+        "historicalManifest": HISTORICAL_MANIFEST.relative_to(REPO).as_posix(),
+        "historicalCommit": HISTORICAL_COMMIT,
+    }
     save(EDUCATION_MANIFEST, manifest)
-    verify_assets()
+    verify_assets(raw_dir, historical_raw_dir)
     print(
         f"Generated {len(scenes)} education scenes: {len(archive_scenes)} reviewed archive + "
         f"{len(recent_entries)} recent across {len(all_matches)} matches"
@@ -1845,8 +2236,152 @@ def verify_scene_source_actions(scene: dict, data: dict) -> None:
             raise ValueError(f"Stale source action geometry: {scene['id']} {event_id}")
 
 
+def verify_height_artifacts(
+    catalogue: dict,
+    manifest: dict,
+    raw_dir: Path,
+    historical_raw_dir: Path,
+) -> None:
+    evidence_pin = manifest.get("heightEvidence")
+    if not isinstance(evidence_pin, dict) or evidence_pin.get("contract") != HEIGHT_SOURCE_CONTRACT:
+        raise ValueError("Education manifest has no audited ball-height contract")
+    if (
+        evidence_pin.get("proof") != HEIGHT_PROOF.relative_to(REPO).as_posix()
+        or evidence_pin.get("sourceExtract") != HEIGHT_EXTRACT.relative_to(REPO).as_posix()
+        or evidence_pin.get("historicalManifest")
+        != HISTORICAL_MANIFEST.relative_to(REPO).as_posix()
+        or evidence_pin.get("historicalCommit") != HISTORICAL_COMMIT
+        or evidence_pin.get("proofSha256") != sha256(HEIGHT_PROOF)
+        or evidence_pin.get("sourceExtractSha256") != sha256(HEIGHT_EXTRACT)
+    ):
+        raise ValueError("Education height-evidence pin is stale")
+    if (
+        EXPECTED_HEIGHT_EXTRACT_SHA256 is not None
+        and sha256(HEIGHT_EXTRACT) != EXPECTED_HEIGHT_EXTRACT_SHA256
+    ):
+        raise ValueError("Committed source-height extract hash mismatch")
+    extract = read_json(HEIGHT_EXTRACT)
+    height_proof = read_json(HEIGHT_PROOF)
+    if (
+        extract.get("version") != HEIGHT_PROOF_VERSION
+        or height_proof.get("version") != HEIGHT_PROOF_VERSION
+        or height_proof.get("heightSourceContract") != HEIGHT_SOURCE_CONTRACT
+        or height_proof.get("sourceExtract") != HEIGHT_EXTRACT.relative_to(REPO).as_posix()
+        or height_proof.get("sourceExtractSha256") != sha256(HEIGHT_EXTRACT)
+        or height_proof.get("sources") != extract.get("sources")
+    ):
+        raise ValueError("Ball-height proof identity is stale")
+    extract_scenes = {
+        item.get("id"): item for item in extract.get("scenes", [])
+        if isinstance(item, dict)
+    }
+    proof_scenes = {
+        item.get("id"): item for item in height_proof.get("scenes", [])
+        if isinstance(item, dict)
+    }
+    expected_ids = {scene["id"] for scene in catalogue["scenes"]}
+    if set(extract_scenes) != expected_ids or set(proof_scenes) != expected_ids:
+        raise ValueError("Ball-height proof does not cover the education catalogue")
+    totals = collections.Counter()
+    for scene in catalogue["scenes"]:
+        path = REPO / scene["asset"]
+        data = read_json(path)
+        extracted = extract_scenes[scene["id"]]
+        proof = proof_scenes[scene["id"]]
+        frames = data.get("frames")
+        mask = data.get("ballHeightValid")
+        source_frames = extracted.get("sourceFrames")
+        raw_z = extracted.get("rawZMeters")
+        validity = extracted.get("valid")
+        if (
+            not isinstance(frames, list)
+            or not isinstance(mask, list)
+            or len(mask) != len(frames)
+            or any(type(value) is not bool for value in mask)
+            or not isinstance(source_frames, list)
+            or not isinstance(raw_z, list)
+            or not isinstance(validity, list)
+            or len(source_frames) != len(frames)
+            or len(raw_z) != len(frames)
+            or len(validity) != len(frames)
+            or any(type(value) is not bool for value in validity)
+            or mask != validity
+            or data.get("ballHeightSource") != HEIGHT_SOURCE_CONTRACT
+            or data.get("ballHeightAvailable") is not any(mask)
+            or extracted.get("sourceFrameStart") != data.get("sourceFrameStart")
+            or source_frames != list(range(data["sourceFrameStart"], data["sourceFrameStart"] + len(frames)))
+        ):
+            raise ValueError(f"Malformed ball-height mask or identity: {scene['id']}")
+        for index, (row, value, valid) in enumerate(zip(frames, raw_z, validity)):
+            normalized, expected_valid = source_height(
+                value,
+                f"height extract {scene['id']}:{source_frames[index]}",
+            )
+            expected_cm = quantized_height_cm(normalized, scene["id"]) if expected_valid else 0
+            if valid is not expected_valid or row[-1] != expected_cm:
+                raise ValueError(f"Ball-height payload differs from proof: {scene['id']}")
+        known_values = [row[-1] / 100 for row, valid in zip(frames, mask) if valid]
+        expected_proof = {
+            "id": scene["id"],
+            "asset": scene["asset"],
+            "assetSha256": scene["assetSha256"],
+            "sourceFrameStart": data["sourceFrameStart"],
+            "sourceFrameEnd": data["sourceFrameStart"] + len(frames) - 1,
+            "frames": len(frames),
+            "knownFrames": sum(mask),
+            "unknownFrames": len(mask) - sum(mask),
+            "knownGroundFrames": sum(
+                valid and row[-1] == 0 for row, valid in zip(frames, mask)
+            ),
+            "maximumHeightMeters": max(known_values),
+        }
+        if proof != expected_proof:
+            raise ValueError(f"Ball-height proof summary is stale: {scene['id']}")
+        totals.update({
+            "scenes": 1,
+            "frames": expected_proof["frames"],
+            "knownFrames": expected_proof["knownFrames"],
+            "unknownFrames": expected_proof["unknownFrames"],
+            "knownGroundFrames": expected_proof["knownGroundFrames"],
+        })
+    if dict(totals) != height_proof.get("counts"):
+        raise ValueError("Ball-height proof totals are stale")
+
+    historical = [
+        scene for scene in catalogue["scenes"] if scene["sourceCommit"] == HISTORICAL_COMMIT
+    ]
+    recent = [
+        scene for scene in catalogue["scenes"] if scene["sourceCommit"] == RECENT_COMMIT
+    ]
+    raw_evidence: dict[str, list[dict]] = {}
+    historical_values, _ = historical_height_samples(
+        historical_raw_dir,
+        historical,
+        require_sources=False,
+    )
+    recent_values, _ = recent_height_samples_from_raw(
+        raw_dir,
+        recent,
+        manifest,
+        require_sources=False,
+    )
+    raw_evidence.update(historical_values)
+    raw_evidence.update(recent_values)
+    for scene_id, samples in raw_evidence.items():
+        extracted = extract_scenes[scene_id]
+        if (
+            [item["sourceFrame"] for item in samples] != extracted["sourceFrames"]
+            or [
+                serializable_height_evidence(item.get("rawZMeters"))
+                for item in samples
+            ] != extracted["rawZMeters"]
+        ):
+            raise ValueError(f"Pinned raw ball height differs from extract: {scene_id}")
+
+
 def verify_assets(
     raw_dir: Path = REPO / ".tmp/spatial-education/recent-source",
+    historical_raw_dir: Path = REPO / ".tmp/spatial-lessons/source",
 ) -> None:
     assert_archive_unchanged()
     catalogue = read_json(EDUCATION_CATALOG)
@@ -1860,6 +2395,7 @@ def verify_assets(
         or preservation.get("metadataSha256") != IMMUTABLE_SPATIAL_METADATA_HASHES
     ):
         raise ValueError("Education manifest has stale archive preservation metadata")
+    verify_height_artifacts(catalogue, manifest, raw_dir, historical_raw_dir)
     if (
         catalogue.get("version") != 2
         or catalogue.get("proofVersion") != CATALOG_PROOF_VERSION
@@ -1898,16 +2434,25 @@ def verify_assets(
         data = read_json(path)
         if data.get("displayFrames") or data.get("displayProvenance"):
             raise ValueError(f"Education scene contains display reconstruction: {scene['id']}")
-        if data.get("ballHeightAvailable") is not False or any(row[-1] for row in data["frames"]):
-            raise ValueError(f"Education scene is not XY-only: {scene['id']}")
+        if (
+            data.get("ballHeightSource") != HEIGHT_SOURCE_CONTRACT
+            or data.get("ballHeightAvailable") is not True
+        ):
+            raise ValueError(f"Education scene lacks audited source height: {scene['id']}")
         if scene["sourceCommit"] == RECENT_COMMIT:
             if not data.get("ballVisibility") or not all(data["ballVisibility"]):
                 raise ValueError(f"Recent ball availability is not faithfully exported: {scene['id']}")
             if not scene["asset"].startswith("assets/scan_pass_spatial/education_scenes/"):
                 raise ValueError("Recent scene is outside the explicit education directory")
         else:
-            if scene["asset"] not in {item["asset"] for item in archived["scenes"]}:
-                raise ValueError("Education archive entry does not reuse an original scene")
+            if not scene["asset"].startswith("assets/scan_pass_spatial/education_scenes/"):
+                raise ValueError("Historical education scene is outside the education directory")
+            archived_scene = next(
+                (item for item in archived["scenes"] if item["id"] == scene["id"]),
+                None,
+            )
+            if archived_scene is None:
+                raise ValueError("Historical education scene is not in the immutable archive")
         verify_scene_source_actions(scene, data)
         if scene["matchId"] in source_actions_by_match:
             expected_actions = build_scene_source_actions(
@@ -1946,6 +2491,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--raw-dir", type=Path, default=REPO / ".tmp/spatial-education/recent-source")
     parser.add_argument(
+        "--historical-raw-dir",
+        type=Path,
+        default=REPO / ".tmp/spatial-lessons/source",
+    )
+    parser.add_argument(
         "--source-manifest",
         type=Path,
         default=EDUCATION_MANIFEST,
@@ -1954,9 +2504,9 @@ def main() -> None:
     parser.add_argument("--verify-assets", action="store_true")
     args = parser.parse_args()
     if args.verify_assets:
-        verify_assets(args.raw_dir)
+        verify_assets(args.raw_dir, args.historical_raw_dir)
     else:
-        generate(args.raw_dir, args.source_manifest)
+        generate(args.raw_dir, args.historical_raw_dir, args.source_manifest)
 
 
 if __name__ == "__main__":

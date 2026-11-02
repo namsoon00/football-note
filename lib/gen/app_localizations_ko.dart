@@ -23076,11 +23076,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get spatialEducationAttribution =>
-      '제공자: SkillCorner Open Data(MIT). 선수 위치, 출처 소유권, 공 가용성은 선택한 고정 경기 출처에서 가져오며 학습 목표와 측정값은 앱이 파생합니다.';
+      '제공자: SkillCorner Open Data(MIT). 선수 위치, 출처 소유권, 공 XY와 사용 가능한 공 높이는 선택한 고정 경기 출처에서 가져오며 학습 목표와 측정값은 앱이 파생합니다.';
 
   @override
   String get spatialEducationSelectionDisclosure =>
-      '모든 검토 장면은 준비와 이후 흐름을 각각 4초 이상 포함합니다. 이름이 표시된 학습 선수와 관련 상대는 계속 직접 관측되어야 하며, 2024/25의 외삽 선수 좌표는 제외합니다. 측정값은 센티미터 단위 XY 프레임에서 다시 계산합니다. 몸, 발, 스캔, 의도, 득점 또는 최선의 선택을 주장하지 않습니다.';
+      '모든 검토 장면은 준비와 이후 흐름을 각각 4초 이상 포함합니다. 이름이 표시된 학습 선수와 관련 상대는 계속 직접 관측되어야 하며, 2024/25의 외삽 선수 좌표는 제외합니다. 학습 측정값은 센티미터 단위 XY 프레임에서 다시 계산합니다. 원본 공 높이는 별도로 보존하며 접촉, 몸 자세 또는 액션 추론에 사용하지 않습니다. 몸, 발, 스캔, 의도, 득점 또는 최선의 선택을 주장하지 않습니다.';
 
   @override
   String spatialEducationCoverageSummary(
@@ -23204,7 +23204,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get spatialActionEvidenceDisclosure =>
-      '선수 그림과 공 제스처는 액션 종류를 보여 주는 일반적인 예시이며, 탭하면 선수와 액션 이름을 확인할 수 있습니다. 측정된 몸·발 자세, 접촉, 공 높이 또는 방향을 재구성한 것이 아닙니다. 볼 운반은 수비수를 제쳤다는 뜻이 아니고, 방향 전환은 몸 회전이 아닌 이동 경로를 설명하며, 볼 받음은 트래핑 기술을 확인하지 않습니다. 헤딩과 원터치 패스는 원본 액션 기록이 있을 때만 표시합니다.';
+      '선수 그림과 그 공 제스처는 액션 종류를 보여 주는 일반적인 예시이며, 탭하면 선수와 액션 이름을 확인할 수 있습니다. 측정된 몸·발 자세, 접촉 또는 방향을 재구성한 것이 아닙니다. 별도의 필드 공은 해당 프레임에 유효한 높이 관측값이 있을 때만 원본 높이를 사용합니다. 볼 운반은 수비수를 제쳤다는 뜻이 아니고, 방향 전환은 몸 회전이 아닌 이동 경로를 설명하며, 볼 받음은 트래핑 기술을 확인하지 않습니다. 헤딩과 원터치 패스는 원본 액션 기록이 있을 때만 표시합니다.';
 
   @override
   String get spatialLegacyViewer => '이전 리플레이 참고 화면';
@@ -23275,7 +23275,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get spatialXyOnlyDisclosure =>
-      '이 라이브러리는 기록 경기를 피치 평면(XY)으로 보여 줍니다. 공 높이, 신체, 발, 스캔 측정값은 표시하지 않습니다.';
+      '필드 공의 기록된 지면 XY는 그대로 유지합니다. 해당 원본 프레임에 유효한 높이가 있으면 제한된 표시 배율로 지면 그림자 위에 공을 띄우고, 점선의 빈 앵커는 높이를 모른다는 뜻입니다. 누락되거나 음수인 원본 높이를 지면으로 취급하지 않습니다. 몸, 발, 스캔, 접촉, 착지점 또는 미래 궤적을 재구성하지 않습니다.';
+
+  @override
+  String spatialBallHeightKnownSemantics(String height) {
+    return '기록된 공 높이 ${height}m. 공을 지면 그림자 위에 표시합니다.';
+  }
+
+  @override
+  String get spatialBallHeightUnknownSemantics =>
+      '이 원본 시점의 공 높이는 알 수 없습니다. 빈 지면 앵커는 공이 지면에 있다는 뜻이 아닙니다.';
 
   @override
   String get spatialInferredDisclosure =>

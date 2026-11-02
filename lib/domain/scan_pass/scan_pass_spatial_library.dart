@@ -594,7 +594,9 @@ class SpatialLibraryScene {
         (data.duration - duration).abs() > 1 / data.fps ||
         data.annotationSource != RealMatchReplayAnnotationSource.derived ||
         data.coverage != RealMatchReplayCoverage.broadcastVisible ||
-        data.ballHeightAvailable ||
+        (education != null
+            ? !data.hasAuditedBallHeight
+            : data.ballHeightAvailable) ||
         highlightPlayerIds
             .any((id) => !data.players.any((player) => player.id == id))) {
       throw const FormatException(
@@ -1700,11 +1702,9 @@ class SpatialLibraryCatalog {
               (scene.sourceCommit == expectedRecentSourceCommit
                   ? '2024/25'
                   : '2019/20') ||
-          (scene.sourceCommit == expectedRecentSourceCommit
-              ? !scene.asset.startsWith(
-                  'assets/scan_pass_spatial/education_scenes/',
-                )
-              : !scene.asset.startsWith('assets/scan_pass_spatial/scenes/')) ||
+          !scene.asset.startsWith(
+            'assets/scan_pass_spatial/education_scenes/',
+          ) ||
           scene.duration < 20 ||
           scene.duration > 40 ||
           scene.duration - lesson.outcome < 4 ||
