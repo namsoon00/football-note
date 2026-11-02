@@ -65,16 +65,20 @@ void main() {
       expect(() => scene.validateReplay(data), returnsNormally,
           reason: scene.id);
       expect(data.hasDisplayReconstruction, isFalse, reason: scene.id);
-      expect(data.ballHeightAvailable, isFalse, reason: scene.id);
+      expect(data.hasAuditedBallHeight, isTrue, reason: scene.id);
+      expect(data.ballHeightValidity, hasLength(data.frames.length));
+      expect(
+        data.ballHeightValidity.contains(1),
+        isTrue,
+        reason: scene.id,
+      );
+      expect(
+        scene.asset,
+        startsWith('assets/scan_pass_spatial/education_scenes/'),
+      );
       if (scene.season == '2024/25') {
         expect(data.ballVisibility.every((value) => value == 1), isTrue,
             reason: scene.id);
-        expect(
-          scene.asset,
-          startsWith('assets/scan_pass_spatial/education_scenes/'),
-        );
-      } else {
-        expect(scene.asset, startsWith('assets/scan_pass_spatial/scenes/'));
       }
     }
   });

@@ -77,5 +77,14 @@
       "assets/scan_pass_spatial/quality-proof.json": "a0b6a92442f408f6a340d98b7631b2afb1b4b447c1444008f6f6fe7a5c13e879",
       "assets/scan_pass_spatial/catalog.json": "1535cfef76a5d28c51e6cd438ca484b90906acef92fc8ed3aba384bb7d1796f1"
     }
+  },
+  "heightEvidence": {
+    "contract": "pinned-source-z-cm-v1",
+    "proof": "assets/scan_pass_spatial/height-proof.json",
+    "proofSha256": "04a36873b48ced83577589b59ee62767d96cc6def85c8bd0cc2221a34ae7ebc0",
+    "sourceExtract": "assets/scan_pass_spatial/source-height-extract.json",
+    "sourceExtractSha256": "f98b14c36f310a95464ae1ee60c83792361af1f6e412af7bf859ec1ee2871d17",
+    "historicalManifest": "assets/scan_pass_spatial/source-manifest.json",
+    "historicalCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e"
   }
 }

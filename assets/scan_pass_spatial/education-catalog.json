@@ -41,7 +41,7 @@
     {
       "id": "1925299-185-560983-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-185-560983-thirdPlayer.json",
-      "assetSha256": "2c0143c7251d657304f1bfda37f7a455716ded4f1bfa1bb7aff17e0dcd67258c",
+      "assetSha256": "2971b5485fc4842d49e1e0d3f0752c59ded94b635788a6b89faaf0daff767560",
       "theme": "combination",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -530,7 +530,7 @@
     {
       "id": "1925299-1804-51050-receivingLane",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-1804-51050-receivingLane.json",
-      "assetSha256": "9b9df0d60f76340db71425d3c3c5f3dd17527e5fa77b133d4a5df8412e3c8453",
+      "assetSha256": "e810079210a9bd797dff42c018cd14b556f6bae3b03b166ed431eae69a01c817",
       "theme": "forwardConnection",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -1046,7 +1046,7 @@
     {
       "id": "1925299-6103-51043-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-6103-51043-thirdPlayer.json",
-      "assetSha256": "36108712f296571313d1abc61c3801f4094df44f234ead826fe7340b77c5dce8",
+      "assetSha256": "148e691cde471ac063fa8b1247d331fcc698f0d5a699082adb7c359856c9875a",
       "theme": "combination",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -1575,7 +1575,7 @@
     {
       "id": "1925299-8890-560986-receivingLane",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-8890-560986-receivingLane.json",
-      "assetSha256": "2845525481c221f48c6665efee4eb3121833b6bc101b2a8293a2c2f9e1858dca",
+      "assetSha256": "09f4d7452826a312478a951e49dab0d1cbc602504e1f7f8d07bcfa7e785ce6b5",
       "theme": "forwardConnection",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -2053,7 +2053,7 @@
     {
       "id": "1925299-12334-11897-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-12334-11897-thirdPlayer.json",
-      "assetSha256": "2e863c485fbc5e678484604f7a30caa920e0a4ce398b5523792e025afc5ad0dd",
+      "assetSha256": "cc5f5c64be8f347f407fa50fb0cfd8e4b7e13401afdf3efac221dc630feeb407",
       "theme": "combination",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -2504,7 +2504,7 @@
     {
       "id": "1925299-17728-560882-switchingSpace",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-17728-560882-switchingSpace.json",
-      "assetSha256": "b2baabf670d6e341c4474fbb6aced79b3e4878612fec6993a46136c10f832ce5",
+      "assetSha256": "3056b8b6c46d34ca1195e5c026dfea508272ec3a65b62124cacefe61c828531e",
       "theme": "lateralSwitch",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -2943,7 +2943,7 @@
     {
       "id": "1925299-21757-51043-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-21757-51043-thirdPlayer.json",
-      "assetSha256": "72145ae258d4d3ca939707a002e66d9d0b3358e4c83321eea0871d0e2ed2da38",
+      "assetSha256": "be5d293d8a9bf570b253c4e81ecc4bff2aa96b87e986f8afc91f13e7b6e76731",
       "theme": "combination",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -3432,7 +3432,7 @@
     {
       "id": "1925299-23261-560989-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-23261-560989-thirdPlayer.json",
-      "assetSha256": "43f4ca218c9560b05e35a01f11d6ba7f351228b8d95c555d1de90e591d96f2ad",
+      "assetSha256": "dc3af5bc58d1741a62e288b448a7144d238e1dcffab0e2f0b0069602135a5a51",
       "theme": "combination",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -3999,7 +3999,7 @@
     {
       "id": "1925299-24011-287934-receivingLane",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-24011-287934-receivingLane.json",
-      "assetSha256": "906ec441f35fc1cd4b8e6b6ef964bb55406c68cfc45b766680b09729dc57afd7",
+      "assetSha256": "a1c726e3e548165d3a17c0fc5b0d590a90ef66f447b6265b22e68452269419a4",
       "theme": "forwardConnection",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -4516,7 +4516,7 @@
     {
       "id": "1925299-24526-51043-switchingSpace",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-24526-51043-switchingSpace.json",
-      "assetSha256": "c5afb389a4a0217970f2d7b6f75535a32cd44f73739a91a99d349ed5b6c5ab9c",
+      "assetSha256": "bc183e9d6db1897e5d170e886b345b4e365e51b7b52f442c3faa5db29e3be9f1",
       "theme": "lateralSwitch",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -4877,7 +4877,7 @@
     {
       "id": "1925299-24944-51002-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-24944-51002-thirdPlayer.json",
-      "assetSha256": "06552beec8346babb1c809faa59ac7c0774b8808cd92afbf1cf0fc96786b1d6f",
+      "assetSha256": "30504d9c44a2975aa106d501a549db31d98adfcafcf9cf4d2207f735d34d2e80",
       "theme": "combination",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -5445,7 +5445,7 @@
     {
       "id": "1925299-27624-51694-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-27624-51694-thirdPlayer.json",
-      "assetSha256": "c138d8e0d12e06abb56ae0c6319d9867241d2304ee8d547f5187fbdf5a4534dd",
+      "assetSha256": "7353f15f1ef5a1036aff68c0c2e8025ba57e57b9db69fcc65a7d60fb33f82bcb",
       "theme": "combination",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -5935,7 +5935,7 @@
     {
       "id": "1925299-30793-287934-pressureOutlet",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-30793-287934-pressureOutlet.json",
-      "assetSha256": "d34fa41eec0ae8bd98687122cdb8c61e44c09d155d91c8516bfb24ac145f17f6",
+      "assetSha256": "fe371e735f5b3cd86b083840e068eafcb71904d82cbac19cee0dbda7b54b3935",
       "theme": "pressureSupport",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -6426,7 +6426,7 @@
     {
       "id": "1925299-31474-809166-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-31474-809166-thirdPlayer.json",
-      "assetSha256": "f873f20114b4e1c4f1ea0e56d8bf5bdc689c3d0f7e77518a3a8792e0eb2c9074",
+      "assetSha256": "cfb610aff39272456cd6afae8f6d38b9dbf28d69a9c09889a0e0d405524ee121",
       "theme": "combination",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -6837,7 +6837,7 @@
     {
       "id": "1925299-32076-50982-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-32076-50982-thirdPlayer.json",
-      "assetSha256": "9fbd10a6a82301605b032043a52a801c799e4c50a23718488c5a0286aa8aeb71",
+      "assetSha256": "92b8577d3b2d99d3389e10bb2266d2c0b8984b6916a1472c3077e6da6388b3df",
       "theme": "combination",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -7249,7 +7249,7 @@
     {
       "id": "1925299-35928-560882-receivingLane",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-35928-560882-receivingLane.json",
-      "assetSha256": "0a18bec77d062a2cae70f24382cd6749f749995d0117f481e6cd8a5429581ba1",
+      "assetSha256": "59b95975cd620a4b6c7c997ff50e118f419a324267b67e554a53a8b85c226c97",
       "theme": "forwardConnection",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -7649,7 +7649,7 @@
     {
       "id": "1925299-36563-560983-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-36563-560983-thirdPlayer.json",
-      "assetSha256": "f14fb8ff06b088ffea23cdcaa66b0861dfe0f5edd2590df9bcefea65d892a6f3",
+      "assetSha256": "5f4fcca5bd45b90a88e2ee79b6449e3187b792e894ab2893ec00e0d699ee51a4",
       "theme": "combination",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -8139,7 +8139,7 @@
     {
       "id": "1925299-37289-51002-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-37289-51002-thirdPlayer.json",
-      "assetSha256": "1ac0b0d260c6a09e33705cf6c9ad935047547b710339a1db98845f71dbc1b8c9",
+      "assetSha256": "f27e684127ebccb329da71babf27cf9a40282221f1131c711fabd65a3d5972fc",
       "theme": "combination",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -8589,7 +8589,7 @@
     {
       "id": "1925299-41719-51002-pressureOutlet",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-41719-51002-pressureOutlet.json",
-      "assetSha256": "d6055b57913f834e98dcf577132885068d82429cdbe5dc0836cc23116f175ce0",
+      "assetSha256": "22edb553e4966374c57d942dd7c6db9bd6fb77db3d4e51219debb69d67eb0bd9",
       "theme": "pressureSupport",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -9118,7 +9118,7 @@
     {
       "id": "1925299-49537-69111-switchingSpace",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-49537-69111-switchingSpace.json",
-      "assetSha256": "d047161c23d7e04c55e1894b70f9daf49f6e5250dcb7cddc5cfc94829d2acb5c",
+      "assetSha256": "70dfc113f93a78f17c156489f36a837f103063bad916631c3b0d6ef1e5c8be34",
       "theme": "lateralSwitch",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -9556,7 +9556,7 @@
     {
       "id": "1925299-55799-51002-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1925299-55799-51002-thirdPlayer.json",
-      "assetSha256": "05b93a44da92c398b6761f87def17b09f1f168e59b22b7d68aacf32269924bb0",
+      "assetSha256": "1cb747eb98ec968b276dfbda09a2752c7607fc0c93a27cf3902c1199f44eb55c",
       "theme": "combination",
       "matchId": 1925299,
       "date": "2024-12-21",
@@ -10006,7 +10006,7 @@
     {
       "id": "1996435-2511-931987-pressureOutlet",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-2511-931987-pressureOutlet.json",
-      "assetSha256": "f0adb6ed63070c8eaa7e916ccc40d891424ec20f3d5a899d2b3306e9963683fa",
+      "assetSha256": "ad4f8eba93f6e346eb708e4ce0ff2844a740853b494b96797892371b16c3f8fb",
       "theme": "pressureSupport",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -10379,7 +10379,7 @@
     {
       "id": "1996435-7549-25534-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-7549-25534-thirdPlayer.json",
-      "assetSha256": "cd9e0ef5be738aa81e61d622dd55b46c3c5ecf716ce84952da690fef6e53f57b",
+      "assetSha256": "d40705c9718477fa4694077b120b72cb9dcd46d1909cf73da505e2170e22b944",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -10986,7 +10986,7 @@
     {
       "id": "1996435-12272-133852-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-12272-133852-thirdPlayer.json",
-      "assetSha256": "cf0e7d566184951d68cceb9a01296d455342459d4ad6ce99868aea4d7df1a87a",
+      "assetSha256": "108df7cc40d5f1e6cf65bab26a5590aeae0764d18a2399e403dcd87c45dd9f46",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -11514,7 +11514,7 @@
     {
       "id": "1996435-13256-25534-pressureOutlet",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-13256-25534-pressureOutlet.json",
-      "assetSha256": "3d146fa070c000db60fe6e87e68e6584e1186ce55793be6216b606567d4c2ba8",
+      "assetSha256": "537a1fdca1b2381b240eb9eb7cf533a299f095639591b0cb48cd638a55b1c20e",
       "theme": "pressureSupport",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -11886,7 +11886,7 @@
     {
       "id": "1996435-14344-51646-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-14344-51646-thirdPlayer.json",
-      "assetSha256": "d73ca6c2604f4f8b739e79537a7c9280cd4ee2d9c119f3d00467183baf6cc17c",
+      "assetSha256": "b1a72e9b27bada84c8830def4c955db5b89fe6153a73ddaacaa7e9f2f6ad965f",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -12336,7 +12336,7 @@
     {
       "id": "1996435-20986-51000-receivingLane",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-20986-51000-receivingLane.json",
-      "assetSha256": "1696e7fe61ccae93f85febed919f8c984982e8dd02cab3f93beaca594a7dff7b",
+      "assetSha256": "2fadb8ac3521b3f9cf519cc33d37f24facd3f3d50d84e49b0b83d036bcd3c9a6",
       "theme": "forwardConnection",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -12814,7 +12814,7 @@
     {
       "id": "1996435-22948-51045-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-22948-51045-thirdPlayer.json",
-      "assetSha256": "2132a7a3330ca7b4a4f274f8a0ceb81448e2ae79acf7306e076010a25673bd60",
+      "assetSha256": "eb734ffe9ce577a584c6decbbdf9e39e7f3301c97955361ebc6023e75cffffae",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -13343,7 +13343,7 @@
     {
       "id": "1996435-23556-795547-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-23556-795547-thirdPlayer.json",
-      "assetSha256": "bfd44d2f32570a228b69cc03d597c48e9b2f49f7f7a2aca484cbc081e68f01d2",
+      "assetSha256": "2acbe3c09832b867ef7e02ba980876110fc6a227c7cff1b2dadb5dd4d5211987",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -13716,7 +13716,7 @@
     {
       "id": "1996435-24085-25534-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-24085-25534-thirdPlayer.json",
-      "assetSha256": "ca4c3b6c9ea8bb879cca47826bf866fbdb1cb886b5480251168333b709d5233a",
+      "assetSha256": "f2735144c0ddee94699e174c4d69bb85b71c5141d304604d8d5f0bf3af27d5c9",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -14167,7 +14167,7 @@
     {
       "id": "1996435-29144-18573-switchingSpace",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-29144-18573-switchingSpace.json",
-      "assetSha256": "d915b420a6cb0bf9c39467745777710a5407e4e56b20bfe6eec98f47cc215949",
+      "assetSha256": "b69cdf3f40e75ea3a42f338b264a0399470be6e874459726535b749dedeb8feb",
       "theme": "lateralSwitch",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -14489,7 +14489,7 @@
     {
       "id": "1996435-32302-809759-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-32302-809759-thirdPlayer.json",
-      "assetSha256": "b56b827813bc288c54ad542a09641573bf30ba2f704ae99a41aeb48874b44404",
+      "assetSha256": "f271dd06bb9b55753e8e36004d36362c3f88b61b4669f93e8af105773c157eda",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -15018,7 +15018,7 @@
     {
       "id": "1996435-33100-133852-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-33100-133852-thirdPlayer.json",
-      "assetSha256": "b07dcbd1bc23686c7ac09a887034a4a7860b19c8a1994254dba2b846d2ff46a9",
+      "assetSha256": "56b21e44dd56041159927b6135ef69824b766bf0f181ec2947d869b26e6bca4d",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -15313,7 +15313,7 @@
     {
       "id": "1996435-34054-51000-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-34054-51000-thirdPlayer.json",
-      "assetSha256": "18a06d16f7dcaa7ecc4054989cdd93112b9c5d4f9c48ebcf27a8178fa5ffdebc",
+      "assetSha256": "c7498a4017cd1a7d4cfe56a722a2c3488bccb592470b55b9ae3e29348e56fe08",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -15920,7 +15920,7 @@
     {
       "id": "1996435-34868-50959-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-34868-50959-thirdPlayer.json",
-      "assetSha256": "fc05a4092e0be095c9a7dbfca2f4a0b0dcc8c40481a22c438999e7da5c4a928b",
+      "assetSha256": "439148ee2066e208f2eb9965be6542b3bafbd31e7fcc5bba5a8a6ed05d844461",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -16371,7 +16371,7 @@
     {
       "id": "1996435-35640-50959-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-35640-50959-thirdPlayer.json",
-      "assetSha256": "3fb39989e625498d4eee8b85968f864adab6db134236f972119e28d053b71fb3",
+      "assetSha256": "324da38fa4b4fe6c216c9c342c657844d79ac970168ba942163c66347e2521b6",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -16978,7 +16978,7 @@
     {
       "id": "1996435-38177-25534-switchingSpace",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-38177-25534-switchingSpace.json",
-      "assetSha256": "2a0a42910ec87eade01b2ab5f996af18b197584a8f759e3905905a0314e12b2d",
+      "assetSha256": "d9b73cf27b551d251c8195a96f63efcef97e5fbf4ff5f4661b8c5933cb33d814",
       "theme": "lateralSwitch",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -17377,7 +17377,7 @@
     {
       "id": "1996435-38538-51644-switchingSpace",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-38538-51644-switchingSpace.json",
-      "assetSha256": "078077fce0c5ad95c988774bbf53c37ba076b8c4626d3cf95d2783ef1eb15a22",
+      "assetSha256": "ea5e37a40ba47cba66cdf17e0cfb5aa0e1cf09d2097fb545b0725c82914b746f",
       "theme": "lateralSwitch",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -17894,7 +17894,7 @@
     {
       "id": "1996435-38975-28293-pressureOutlet",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-38975-28293-pressureOutlet.json",
-      "assetSha256": "2689b9e036c228a1c2bfd4214751d8ede411be17f51d32f9088e0439c4a6ee4c",
+      "assetSha256": "a6f2106901ee55729801278a5954bbaa7c0ca74b7ba06f41bd97eb428a3615fb",
       "theme": "pressureSupport",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -18421,7 +18421,7 @@
     {
       "id": "1996435-39890-18573-pressureOutlet",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-39890-18573-pressureOutlet.json",
-      "assetSha256": "68f125c7386d0799f271bf7dc0dd7ccb39157734d81502c1bb18acd08c847002",
+      "assetSha256": "c04da770e30f4273b7e916e01e35a487c21e11380cc5cb5187c8cbb54b6791f9",
       "theme": "pressureSupport",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -18872,7 +18872,7 @@
     {
       "id": "1996435-41108-17231-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-41108-17231-thirdPlayer.json",
-      "assetSha256": "528f22909f9cc6739109910337e0966fac61fa125cc134eeee913d4f0780aa72",
+      "assetSha256": "cfbb23f0a607999d1585224f5081e5ef8f62d1f1c1e893a72c719432ab20ccae",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -19244,7 +19244,7 @@
     {
       "id": "1996435-43882-560893-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-43882-560893-thirdPlayer.json",
-      "assetSha256": "ab0d21b901c70b6f60cf6e2b4b989c485a310a0b028d57b65c07eec945060106",
+      "assetSha256": "5e49c58f9e66efc9dd16d9d4f82977589f5b0ccbe4a7b4c7a86dfa1c1a6efcb4",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -19734,7 +19734,7 @@
     {
       "id": "1996435-45027-133852-pressureOutlet",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-45027-133852-pressureOutlet.json",
-      "assetSha256": "e72f018c8e233531027231dae56fb4997d394c81d4524ae0df3c00c966ca7be0",
+      "assetSha256": "fc85953569ecb12c1b41abd15d453f8183253808a6719482666f57c8c1846e58",
       "theme": "pressureSupport",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -20107,7 +20107,7 @@
     {
       "id": "1996435-53311-26766-pressureOutlet",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-53311-26766-pressureOutlet.json",
-      "assetSha256": "9e5cf208da3867cbfd183a94f9f07813c4fc9ec9c622ca81f2a66d57f1385029",
+      "assetSha256": "30be5ca32e3575423d9ee4db57a86ed2d757764a2e9764b8a8d1c05b90e26445",
       "theme": "pressureSupport",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -20442,7 +20442,7 @@
     {
       "id": "1996435-57216-50971-thirdPlayer",
       "asset": "assets/scan_pass_spatial/education_scenes/1996435-57216-50971-thirdPlayer.json",
-      "assetSha256": "6db334a355127548f7933a75a00cdc6c6509b0af79eb7cff5bbeced9f5d0e3a4",
+      "assetSha256": "974ba5bf9f06b62c1717622821b239fef40b3c44ee40e7976656d75d72e81c17",
       "theme": "combination",
       "matchId": 1996435,
       "date": "2025-02-01",
@@ -20774,7 +20774,7 @@
     },
     {
       "id": "2068-8591-barella-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/2068-8591-barella-lateralSwitch.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/2068-8591-barella-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 2068,
       "date": "2019-10-06",
@@ -20838,7 +20838,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2068",
-      "assetSha256": "03b832c04a25dcb62df66c8bd893ee2f97356414ecc763dfa8e2fd9f84807a91",
+      "assetSha256": "11af2625e016485a493d10d34b4a8c86e27d77bb143c7d52e8b6d69fe610d339",
       "season": "2019/20",
       "learning": {
         "objective": "switchingSpace",
@@ -20900,7 +20900,7 @@
     },
     {
       "id": "2068-59528-vecino-combination",
-      "asset": "assets/scan_pass_spatial/scenes/2068-59528-vecino-combination.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/2068-59528-vecino-combination.json",
       "theme": "combination",
       "matchId": 2068,
       "date": "2019-10-06",
@@ -20976,7 +20976,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2068",
-      "assetSha256": "f8f0d4a7a89c73802d590f9b5203e3794fecb0deb2190127315f88e943311621",
+      "assetSha256": "f9f43d43ca568417562851a5c979a79f37293ad224330107a81cadc340786450",
       "season": "2019/20",
       "learning": {
         "objective": "thirdPlayer",
@@ -21042,7 +21042,7 @@
     },
     {
       "id": "2068-62562-ronaldo-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/2068-62562-ronaldo-lateralSwitch.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/2068-62562-ronaldo-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 2068,
       "date": "2019-10-06",
@@ -21106,7 +21106,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2068",
-      "assetSha256": "b285f47055094c2b547d87a93a09201b4d422914cdb30ee61d748690ff14d0b3",
+      "assetSha256": "22c89bd976a0b80cdfd8829c4713906a1155f249fb211ce7eb9319bdfd0ba279",
       "season": "2019/20",
       "learning": {
         "objective": "receivingLane",
@@ -21168,7 +21168,7 @@
     },
     {
       "id": "2269-32665-caleta-car-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/2269-32665-caleta-car-lateralSwitch.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/2269-32665-caleta-car-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 2269,
       "date": "2019-10-27",
@@ -21231,7 +21231,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2269",
-      "assetSha256": "f504917ed4daf42cd26e348ecd63a85254ee9ec4a06a718670a0976ab4d130f8",
+      "assetSha256": "d4d2da954bdaecc61653c3229ffc80fe29a9af562292496bdfc853e75368260f",
       "season": "2019/20",
       "learning": {
         "objective": "switchingSpace",
@@ -21293,7 +21293,7 @@
     },
     {
       "id": "2269-34881-mbappe-combination",
-      "asset": "assets/scan_pass_spatial/scenes/2269-34881-mbappe-combination.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/2269-34881-mbappe-combination.json",
       "theme": "combination",
       "matchId": 2269,
       "date": "2019-10-27",
@@ -21366,7 +21366,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2269",
-      "assetSha256": "416c143dc3ca499977d1fa7a4f1355c93f5ce5deaad1ddf4583e926baa2c6618",
+      "assetSha256": "9e7e7b7ff47d15c2bd968028483cc1ce5f34ad2af351a8514d32cecbac194df5",
       "season": "2019/20",
       "learning": {
         "objective": "pressureOutlet",
@@ -21439,7 +21439,7 @@
     },
     {
       "id": "2440-48036-hernandez-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/2440-48036-hernandez-lateralSwitch.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/2440-48036-hernandez-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 2440,
       "date": "2019-11-10",
@@ -21503,7 +21503,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2440",
-      "assetSha256": "d8b438ea07eaf7436a7204a60664cfd53644a3af0a2a0a3af5b9243eb2befeeb",
+      "assetSha256": "366d8e43783f31c0ae2944af70e911c7e4a78628bb6627e5c86a3b7b005ebf1e",
       "season": "2019/20",
       "learning": {
         "objective": "switchingSpace",
@@ -21565,7 +21565,7 @@
     },
     {
       "id": "2440-60405-stones-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/2440-60405-stones-lateralSwitch.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/2440-60405-stones-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 2440,
       "date": "2019-11-10",
@@ -21628,7 +21628,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2440",
-      "assetSha256": "58dd03de87fea270996223dcbf436188d25e1b10cd8a255a8a2ef0203925326b",
+      "assetSha256": "132955822d136529effc9c24fc7e1b665d689f2d9f162f8ea079f6312bf7addd",
       "season": "2019/20",
       "learning": {
         "objective": "switchingSpace",
@@ -21690,7 +21690,7 @@
     },
     {
       "id": "2440-60995-silva-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/2440-60995-silva-lateralSwitch.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/2440-60995-silva-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 2440,
       "date": "2019-11-10",
@@ -21754,7 +21754,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2440",
-      "assetSha256": "03a331fe0d03d8b08293ecb020224a8c579ffa77e35d867bd52e55c343e18516",
+      "assetSha256": "d16222c87ce2ab89ab66cfade3d4b78fc411094ced78e45f6b89124ab453d0aa",
       "season": "2019/20",
       "learning": {
         "objective": "switchingSpace",
@@ -21816,7 +21816,7 @@
     },
     {
       "id": "2841-2912-semedo-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/2841-2912-semedo-lateralSwitch.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/2841-2912-semedo-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 2841,
       "date": "2019-12-18",
@@ -21880,7 +21880,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
-      "assetSha256": "b01af757b1846db4b2fbdf9934872d3c52adb9c9d0bfc9b45c10617d186cc9a2",
+      "assetSha256": "4be2e4815a7113ae4a0647581d01ad8876191c565914b38c95a324b379223f36",
       "season": "2019/20",
       "learning": {
         "objective": "switchingSpace",
@@ -21942,7 +21942,7 @@
     },
     {
       "id": "2841-8050-rakitic-combination",
-      "asset": "assets/scan_pass_spatial/scenes/2841-8050-rakitic-combination.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/2841-8050-rakitic-combination.json",
       "theme": "combination",
       "matchId": 2841,
       "date": "2019-12-18",
@@ -22017,7 +22017,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
-      "assetSha256": "6f1e335920282a3e3697d78f44ab6073d05978bb9320f6ab07b6f31968243108",
+      "assetSha256": "cdffc5cf814c3a346cbee428e31ca5bfdb30271db8d7180305ee277e2c2af34d",
       "season": "2019/20",
       "learning": {
         "objective": "thirdPlayer",
@@ -22083,7 +22083,7 @@
     },
     {
       "id": "2841-22836-benzema-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/2841-22836-benzema-lateralSwitch.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/2841-22836-benzema-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 2841,
       "date": "2019-12-18",
@@ -22147,7 +22147,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
-      "assetSha256": "6f293b1a699d3cb00f388beb6e037869163c3b5d34e3fdee3709c1f506b3eada",
+      "assetSha256": "7eb844447daf685fb2c8b72ec551a6c055e279d9611914ae3783021207ea3174",
       "season": "2019/20",
       "learning": {
         "objective": "switchingSpace",
@@ -22209,7 +22209,7 @@
     },
     {
       "id": "2841-62241-suarez-pressureSupport",
-      "asset": "assets/scan_pass_spatial/scenes/2841-62241-suarez-pressureSupport.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/2841-62241-suarez-pressureSupport.json",
       "theme": "pressureSupport",
       "matchId": 2841,
       "date": "2019-12-18",
@@ -22272,7 +22272,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
-      "assetSha256": "22d5749260b4b140c17758fb28fd8f795344724d42b1442457423b7391581dc1",
+      "assetSha256": "05a18ef0fb6b1c9d00ad27b401ade6a845a9117ede05db4a6f725ede92f27274",
       "season": "2019/20",
       "learning": {
         "objective": "receivingLane",
@@ -22334,7 +22334,7 @@
     },
     {
       "id": "2841-64724-modric-combination",
-      "asset": "assets/scan_pass_spatial/scenes/2841-64724-modric-combination.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/2841-64724-modric-combination.json",
       "theme": "combination",
       "matchId": 2841,
       "date": "2019-12-18",
@@ -22409,7 +22409,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/2841",
-      "assetSha256": "9fa90956ece1fe432fb81f1cbe496727db9e0e666f0e1700026952ae1108beb0",
+      "assetSha256": "48e5412fa0f8430df1c28e3d2bd3e7210c0189613dff748d04bab03708464ae0",
       "season": "2019/20",
       "learning": {
         "objective": "thirdPlayer",
@@ -22475,7 +22475,7 @@
     },
     {
       "id": "3442-1123-varane-combination",
-      "asset": "assets/scan_pass_spatial/scenes/3442-1123-varane-combination.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/3442-1123-varane-combination.json",
       "theme": "combination",
       "matchId": 3442,
       "date": "2020-03-01",
@@ -22551,7 +22551,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
-      "assetSha256": "e2cf97b2de3fb1cc0ade801d4846aac5dd4f7886133d34fa20e2ea742461a283",
+      "assetSha256": "6f9570e6f481d0840a7275957052aea9bfba5a9f1e49051986278e94ba8b10ea",
       "season": "2019/20",
       "learning": {
         "objective": "thirdPlayer",
@@ -22617,7 +22617,7 @@
     },
     {
       "id": "3442-5842-carvajal-pressureSupport",
-      "asset": "assets/scan_pass_spatial/scenes/3442-5842-carvajal-pressureSupport.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/3442-5842-carvajal-pressureSupport.json",
       "theme": "pressureSupport",
       "matchId": 3442,
       "date": "2020-03-01",
@@ -22680,7 +22680,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
-      "assetSha256": "423eb0063be3334e1d529acd9f41561380f603d28e6eb06b505ceac29fb7ce6b",
+      "assetSha256": "f7d132d95464542348b98965450b65c64c9ea3ca9e13cbeef4b91d6c7a6e06ea",
       "season": "2019/20",
       "learning": {
         "objective": "pressureOutlet",
@@ -22753,7 +22753,7 @@
     },
     {
       "id": "3442-14487-valverde-combination",
-      "asset": "assets/scan_pass_spatial/scenes/3442-14487-valverde-combination.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/3442-14487-valverde-combination.json",
       "theme": "combination",
       "matchId": 3442,
       "date": "2020-03-01",
@@ -22829,7 +22829,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
-      "assetSha256": "112a5fd9142905b8a456a65ec0302f9a4c6544f381a3b25f6dc03a92f7c0db3a",
+      "assetSha256": "d6ce2a3995318c031155f1f7816fc6008cae3b8558edd8419a7354202f70b0a1",
       "season": "2019/20",
       "learning": {
         "objective": "thirdPlayer",
@@ -22895,7 +22895,7 @@
     },
     {
       "id": "3442-15598-busquets-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/3442-15598-busquets-lateralSwitch.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/3442-15598-busquets-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 3442,
       "date": "2020-03-01",
@@ -22959,7 +22959,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
-      "assetSha256": "fa36a90da29f12a774cb7222a890357696a9faba0573aff1de785ecab7ba1e4d",
+      "assetSha256": "b17dd9189148bf6a437165d39fda18b248d56fd176c4ba27a5a2bc2690aa8e4c",
       "season": "2019/20",
       "learning": {
         "objective": "receivingLane",
@@ -23021,7 +23021,7 @@
     },
     {
       "id": "3442-20531-isco-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/3442-20531-isco-lateralSwitch.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/3442-20531-isco-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 3442,
       "date": "2020-03-01",
@@ -23085,7 +23085,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
-      "assetSha256": "5ea4a3d0e1c2171ccda61e60f7b6857be4168e215a17c13625396908de85788f",
+      "assetSha256": "f2f092bd3ed138a2f8a25270f3c25fc4ae0b6831a87185dc06ce329caa22df05",
       "season": "2019/20",
       "learning": {
         "objective": "receivingLane",
@@ -23147,7 +23147,7 @@
     },
     {
       "id": "3442-48981-ter-stegen-combination",
-      "asset": "assets/scan_pass_spatial/scenes/3442-48981-ter-stegen-combination.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/3442-48981-ter-stegen-combination.json",
       "theme": "combination",
       "matchId": 3442,
       "date": "2020-03-01",
@@ -23222,7 +23222,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
-      "assetSha256": "66ed2c444443171b96e0aafe1a897b6d4e409f14390dea979cf4a5564c67102b",
+      "assetSha256": "142a192b76cc3b3770c7d9baad972743b70ae3af8f70fe36623474cdfb1c6e32",
       "season": "2019/20",
       "learning": {
         "objective": "thirdPlayer",
@@ -23288,7 +23288,7 @@
     },
     {
       "id": "3442-50144-messi-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/3442-50144-messi-lateralSwitch.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/3442-50144-messi-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 3442,
       "date": "2020-03-01",
@@ -23352,7 +23352,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3442",
-      "assetSha256": "674ccd9ea94b4aa565049ed6d4591d6fb5e00702ff70dfcb94d4245a10e153f6",
+      "assetSha256": "f1cba05eea7e5d3c5d4506eeb0daa95db7ed4df44c362e5fe0f562f63ad8f76b",
       "season": "2019/20",
       "learning": {
         "objective": "switchingSpace",
@@ -23414,7 +23414,7 @@
     },
     {
       "id": "3518-14668-skriniar-combination",
-      "asset": "assets/scan_pass_spatial/scenes/3518-14668-skriniar-combination.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/3518-14668-skriniar-combination.json",
       "theme": "combination",
       "matchId": 3518,
       "date": "2020-03-08",
@@ -23489,7 +23489,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
-      "assetSha256": "1889286644a9e47d6f2cac164fbf6f85fe14f5dfbcdd22943e4a63ccf9043978",
+      "assetSha256": "3cef9ce404336172142bca1efc8985f3496d0bb72a6d7be70269797b6f572374",
       "season": "2019/20",
       "learning": {
         "objective": "thirdPlayer",
@@ -23555,7 +23555,7 @@
     },
     {
       "id": "3518-18716-bonucci-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/3518-18716-bonucci-lateralSwitch.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/3518-18716-bonucci-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 3518,
       "date": "2020-03-08",
@@ -23619,7 +23619,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3518",
-      "assetSha256": "2efddd41656f56fa4c5202986230fcbb0c86b963b82d15411ccd73c66e9428fe",
+      "assetSha256": "33ff97dca85d94d2385690fee8bc47f4b6751b557419a94794218264b2b87f4f",
       "season": "2019/20",
       "learning": {
         "objective": "switchingSpace",
@@ -23681,7 +23681,7 @@
     },
     {
       "id": "3749-64216-can-combination",
-      "asset": "assets/scan_pass_spatial/scenes/3749-64216-can-combination.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/3749-64216-can-combination.json",
       "theme": "combination",
       "matchId": 3749,
       "date": "2020-05-26",
@@ -23757,7 +23757,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/3749",
-      "assetSha256": "7abaf1f6209c39855792c3d0e190bb687d3f600bcfc4c6fca3538391030fa69e",
+      "assetSha256": "4bef14354353c19b7916383f0629d431506ae7d6df814b944e15a0c66271f266",
       "season": "2019/20",
       "learning": {
         "objective": "thirdPlayer",
@@ -23823,7 +23823,7 @@
     },
     {
       "id": "4039-738-walker-combination",
-      "asset": "assets/scan_pass_spatial/scenes/4039-738-walker-combination.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/4039-738-walker-combination.json",
       "theme": "combination",
       "matchId": 4039,
       "date": "2020-07-02",
@@ -23898,7 +23898,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/4039",
-      "assetSha256": "24048d58a2b6add6cf566889567423e3d5da81f0b9891c7bbfe203039bbf2c88",
+      "assetSha256": "450116549a96f3e7c8024d013e751a6e9b466259064db55bbf40e5edf2bae0c0",
       "season": "2019/20",
       "learning": {
         "objective": "pressureOutlet",
@@ -23971,7 +23971,7 @@
     },
     {
       "id": "4039-24426-van-dijk-lateralSwitch",
-      "asset": "assets/scan_pass_spatial/scenes/4039-24426-van-dijk-lateralSwitch.json",
+      "asset": "assets/scan_pass_spatial/education_scenes/4039-24426-van-dijk-lateralSwitch.json",
       "theme": "lateralSwitch",
       "matchId": 4039,
       "date": "2020-07-02",
@@ -24035,7 +24035,7 @@
       },
       "sourceCommit": "1ed50b775f93075c2a6d00d0d795f13b7b89709e",
       "sourceUrl": "https://github.com/SkillCorner/opendata/tree/1ed50b775f93075c2a6d00d0d795f13b7b89709e/data/matches/4039",
-      "assetSha256": "42d7e43bb38aff815bcf7566735b5dc7d6b59dc2ff4dd3a00f2f545bc57c2915",
+      "assetSha256": "07f3a405be2aad4e814ea74071ee1aebcbb772db8afb887fc1f1a92136eada04",
       "season": "2019/20",
       "learning": {
         "objective": "switchingSpace",

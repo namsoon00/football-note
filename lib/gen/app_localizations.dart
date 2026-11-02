@@ -40361,13 +40361,13 @@ abstract class AppLocalizations {
   /// No description provided for @spatialEducationAttribution.
   ///
   /// In en, this message translates to:
-  /// **'Provider: SkillCorner Open Data (MIT). Player positions, source ownership and ball availability come from the selected pinned match source; lesson objectives and measurements are derived by this app.'**
+  /// **'Provider: SkillCorner Open Data (MIT). Player positions, source ownership, ball XY and available ball height come from the selected pinned match source; lesson objectives and measurements are derived by this app.'**
   String get spatialEducationAttribution;
 
   /// No description provided for @spatialEducationSelectionDisclosure.
   ///
   /// In en, this message translates to:
-  /// **'Every reviewed passage keeps at least four seconds of setup and aftermath. Named teaching actors and relevant opponents must remain directly observed; 2024/25 extrapolated player coordinates are excluded. Measurements are recomputed from centimetre-quantized XY frames. No body, foot, scan, intent, goal or best-choice claim is made.'**
+  /// **'Every reviewed passage keeps at least four seconds of setup and aftermath. Named teaching actors and relevant opponents must remain directly observed; 2024/25 extrapolated player coordinates are excluded. Learning measurements are recomputed from centimetre-quantized XY frames. Source ball height is kept separately and never used to infer contact, body pose or an action. No body, foot, scan, intent, goal or best-choice claim is made.'**
   String get spatialEducationSelectionDisclosure;
 
   /// No description provided for @spatialEducationCoverageSummary.
@@ -40534,7 +40534,7 @@ abstract class AppLocalizations {
   /// No description provided for @spatialActionEvidenceDisclosure.
   ///
   /// In en, this message translates to:
-  /// **'The athlete pictures and ball gestures are generic action-category illustrations; tap one to read the actor and action. They are not reconstructions of measured body or foot pose, contact, ball height, or direction. Carry does not mean a defender was beaten. Direction change describes the movement path, not measured body rotation. Receive does not confirm trapping technique. Headers and one-touch passes appear only when recorded in the original action data.'**
+  /// **'The athlete pictures and their ball gestures are generic action-category illustrations; tap one to read the actor and action. They are not reconstructions of measured body or foot pose, contact, or direction. The separate field ball uses source height only where that frame has a valid height observation. Carry does not mean a defender was beaten. Direction change describes the movement path, not measured body rotation. Receive does not confirm trapping technique. Headers and one-touch passes appear only when recorded in the original action data.'**
   String get spatialActionEvidenceDisclosure;
 
   /// No description provided for @spatialLegacyViewer.
@@ -40666,8 +40666,20 @@ abstract class AppLocalizations {
   /// No description provided for @spatialXyOnlyDisclosure.
   ///
   /// In en, this message translates to:
-  /// **'This library renders recorded play in the pitch plane (XY) and does not show ball height, body, foot, or scan measurements.'**
+  /// **'The field ball keeps its recorded ground XY. When that source frame has valid height, the ball is lifted above its ground shadow using a capped display scale; a dashed hollow anchor means height is unknown. Missing or negative source height is never treated as ground. This does not reconstruct body, foot, scan, contact, landing point, or future trajectory.'**
   String get spatialXyOnlyDisclosure;
+
+  /// No description provided for @spatialBallHeightKnownSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded ball height {height} metres; the ball is shown above its ground shadow.'**
+  String spatialBallHeightKnownSemantics(String height);
+
+  /// No description provided for @spatialBallHeightUnknownSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball height is unknown at this source instant; the hollow ground anchor does not claim the ball is grounded.'**
+  String get spatialBallHeightUnknownSemantics;
 
   /// No description provided for @spatialInferredDisclosure.
   ///

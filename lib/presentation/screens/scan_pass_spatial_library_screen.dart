@@ -648,6 +648,11 @@ class _ScanPassSpatialLibraryScreenState
           ? null
           : sample.players[data.playerIndex(cue.targetPlayerId!)];
       final cueTarget = viewport.project(cueActorPoint ?? sample.ball);
+      final ballGeometry = SpatialBallScreenGeometry.forReplay(
+        data: data,
+        time: _time,
+        viewport: viewport,
+      );
       final currentOwner = data.confirmedPossessionOwnerIdAt(_time);
       final protectedPlayerIds = _requiredCueActorIds(
         scene: scene,
@@ -661,7 +666,7 @@ class _ScanPassSpatialLibraryScreenState
         protectedPlayerIds.add(activeAction.playerId);
       }
       final occupied = <Rect>[
-        Rect.fromCircle(center: viewport.project(sample.ball), radius: 14),
+        ballGeometry.safetyRect,
         for (final playerId in protectedPlayerIds)
           if (sample.players[data.playerIndex(playerId)] case final point?)
             Rect.fromCircle(
@@ -854,6 +859,11 @@ class _ScanPassSpatialLibraryScreenState
                 _learningTitle(_l10n, scene),
               ),
               value: _sourceTimeLabel(scene),
+              hint: ballGeometry.heightKnown
+                  ? _l10n.spatialBallHeightKnownSemantics(
+                      ballGeometry.heightMeters!.toStringAsFixed(2),
+                    )
+                  : _l10n.spatialBallHeightUnknownSemantics,
               child: ExcludeSemantics(
                 child: CustomPaint(
                   key: const ValueKey<String>('spatial-pitch'),
@@ -977,7 +987,11 @@ class _ScanPassSpatialLibraryScreenState
         fieldWidth: data.pitchWidth,
       );
       values.add(
-        Rect.fromCircle(center: viewport.project(sample.ball), radius: 14),
+        SpatialBallScreenGeometry.forReplay(
+          data: data,
+          time: time,
+          viewport: viewport,
+        ).safetyRect,
       );
       final ids = <int>{...focusPlan.relevantPlayerIdsAt(time)};
       final owner = data.confirmedPossessionOwnerIdAt(time);
@@ -2374,6 +2388,71 @@ class SpatialPitchViewport {
       view.deflate(safetyPixels).contains(project(point));
 }
 
+/// Inspectable screen-space geometry for the source ball and its ground cue.
+///
+/// Height uses a presentation-only linear scale of 9 px/m capped at 6 m, then
+/// caps lift to the screen headroom above the source ground anchor. It does not
+/// reconstruct body pose, contact, a landing point, or a trajectory.
+class SpatialBallScreenGeometry {
+  static const double displayPixelsPerMeter = 9;
+  static const double displayHeightCapMeters = 6;
+  static const double safetyPadding = 7;
+
+  final Offset groundAnchor;
+  final Rect shadowRect;
+  final Rect ballRect;
+  final Rect safetyRect;
+  final bool heightKnown;
+  final double? heightMeters;
+
+  const SpatialBallScreenGeometry({
+    required this.groundAnchor,
+    required this.shadowRect,
+    required this.ballRect,
+    required this.safetyRect,
+    required this.heightKnown,
+    required this.heightMeters,
+  });
+
+  factory SpatialBallScreenGeometry.forReplay({
+    required RealMatchReplayData data,
+    required double time,
+    required SpatialPitchViewport viewport,
+  }) {
+    final sample = data.renderSample(time);
+    final anchor = viewport.project(sample.ball);
+    final height = data.heightAt(time);
+    final displayedMeters = (height ?? 0).clamp(0.0, displayHeightCapMeters);
+    final desiredLift =
+        height == null ? 10.0 : 4 + displayedMeters * displayPixelsPerMeter;
+    final radius = height == null ? 6.4 : 6.4 + displayedMeters * .23;
+    final availableLift = math.max(
+      0.0,
+      anchor.dy - viewport.view.top - radius - safetyPadding,
+    );
+    final lift = math.min(desiredLift, availableLift);
+    final ballRect = Rect.fromCircle(
+      center: anchor - Offset(0, lift),
+      radius: radius,
+    );
+    final shadowWidth = height == null ? 12.0 : 15 - displayedMeters * .35;
+    final shadowHeight = height == null ? 7.0 : 6.5 - displayedMeters * .18;
+    final shadowRect = Rect.fromCenter(
+      center: anchor,
+      width: shadowWidth.clamp(12.0, 15.0),
+      height: shadowHeight.clamp(5.0, 7.0),
+    );
+    return SpatialBallScreenGeometry(
+      groundAnchor: anchor,
+      shadowRect: shadowRect,
+      ballRect: ballRect,
+      safetyRect: shadowRect.expandToInclude(ballRect).inflate(safetyPadding),
+      heightKnown: height != null,
+      heightMeters: height,
+    );
+  }
+}
+
 class SpatialPlayerNameLabelGeometry {
   final int playerId;
   final String sourceName;
@@ -2427,6 +2506,12 @@ class SpatialLibraryPitchPainter extends CustomPainter {
   final List<Rect> reservedOverlayRects;
   final Map<int, int> preferredNameLabelPlacements;
   final int? preferredActionIconPlacement;
+  late final SpatialBallScreenGeometry _ballGeometry =
+      SpatialBallScreenGeometry.forReplay(
+    data: data,
+    time: time,
+    viewport: viewport,
+  );
   late final SpatialActionIconGeometry? _actionIcon =
       _layoutActionIcon(data.renderSample(time));
   late final List<
@@ -2564,7 +2649,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     _drawTails(canvas, view);
     _drawPlayers(canvas, view, sample);
     _drawPlayerNameLabels(canvas);
-    _drawBall(canvas, view, sample.ball);
+    _drawBall(canvas);
     canvas.restore();
   }
 
@@ -3528,41 +3613,95 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     }
   }
 
-  void _drawBall(Canvas canvas, Rect pitch, RealMatchReplayPoint ball) {
-    final center = _project(pitch, ball);
+  void _drawBall(Canvas canvas) {
+    final geometry = _ballGeometry;
+    if (geometry.heightKnown) {
+      final displayed = geometry.heightMeters!
+          .clamp(0.0, SpatialBallScreenGeometry.displayHeightCapMeters);
+      canvas.drawOval(
+        geometry.shadowRect,
+        Paint()
+          ..color = Colors.black.withValues(alpha: .46 - displayed * .01)
+          ..maskFilter = MaskFilter.blur(
+            BlurStyle.normal,
+            .6 + displayed * .08,
+          ),
+      );
+      canvas.drawOval(
+        geometry.shadowRect,
+        Paint()
+          ..color = Colors.white.withValues(alpha: .42)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = .8,
+      );
+    } else {
+      final path = Path();
+      for (var index = 0; index < 8; index++) {
+        final start = index * math.pi / 4;
+        path.addArc(geometry.shadowRect, start, math.pi / 7);
+      }
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = Colors.white.withValues(alpha: .58)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.1,
+      );
+    }
+
+    final center = geometry.ballRect.center;
+    final radius = geometry.ballRect.width / 2;
     canvas.drawCircle(
-      center,
-      6.4,
+      center + const Offset(0, .8),
+      radius + .7,
       Paint()
-        ..color = const Color(0xFFFFD66B).withValues(alpha: .9)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2,
+        ..color = Colors.black.withValues(alpha: .3)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.4),
     );
     canvas.drawCircle(
       center,
-      5.1,
-      Paint()
-        ..color = Colors.black.withValues(alpha: .35)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
+      radius,
+      Paint()..color = geometry.heightKnown ? Colors.white : Colors.white70,
     );
-    canvas.drawCircle(center, 3.8, Paint()..color = Colors.white);
     canvas.drawCircle(
       center,
-      3.8,
+      radius,
       Paint()
         ..color = Colors.black87
         ..style = PaintingStyle.stroke
-        ..strokeWidth = .8,
+        ..strokeWidth = 1,
     );
+    final panel = Path();
+    for (var index = 0; index < 5; index++) {
+      final angle = -math.pi / 2 + index * math.pi * 2 / 5;
+      final point =
+          center + Offset(math.cos(angle), math.sin(angle)) * radius * .37;
+      index == 0
+          ? panel.moveTo(point.dx, point.dy)
+          : panel.lineTo(point.dx, point.dy);
+    }
+    panel.close();
+    canvas.drawPath(panel, Paint()..color = Colors.black87);
+    final seam = Paint()
+      ..color = Colors.black54
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = .75;
+    for (var index = 0; index < 5; index++) {
+      final angle = -math.pi / 2 + index * math.pi * 2 / 5;
+      canvas.drawLine(
+        center + Offset(math.cos(angle), math.sin(angle)) * radius * .36,
+        center + Offset(math.cos(angle), math.sin(angle)) * radius * .82,
+        seam,
+      );
+    }
   }
 
   // Kept for compatibility with source-regression geometry checks.
   List<Rect> get calloutRects => const <Rect>[];
 
-  Rect get ballSafetyRect => Rect.fromCircle(
-        center: _project(viewport.view, data.renderSample(time).ball),
-        radius: 12,
-      );
+  SpatialBallScreenGeometry get ballGeometry => _ballGeometry;
+
+  Rect get ballSafetyRect => _ballGeometry.safetyRect;
 
   List<Rect> get keyPlayerSafetyRects => [
         for (final playerId in requiredPlayerIds)

@@ -1,6 +1,6 @@
 # Scan Pass source-grounded spatial library
 
-The measured 2D spatial library is the primary Scan Pass experience. It is a
+The source-grounded spatial library is the primary Scan Pass experience. It is a
 pitch-first viewer of broadcast-visible SkillCorner tracking, not a diagram
 invented from video. The separate 12-passage official-video viewer remains
 available through one More-menu route and keeps its existing history and
@@ -30,7 +30,12 @@ keeps the recorded ball, current source-labelled owner, blue teaching focus and
 actors named by the current question/observation visible. The camera never
 fills gaps or treats an
 unobserved actor as empty space. Numbered flat kit symbols have a separate
-ground anchor, and the ball remains a separate visible object. The symbols are
+ground anchor, and the ball remains a separate visible object. The field ball
+keeps source XY as a ground anchor and uses audited source z only where that
+individual frame has a valid nonnegative height. A subtle shadow stays at the
+ground anchor while the black-and-white ball lifts on a capped presentation
+scale; a dashed hollow anchor distinguishes unknown height from known ground.
+The symbols are
 shirts and shorts, not bodies, and do not claim real orientation, feet,
 contact posture or scanning direction.
 
@@ -85,7 +90,8 @@ one-touch moves it in and out through exactly one contact. That motion is a
 non-looping function of the current source time, so pause freezes it and forward
 or backward seek reproduces it; reduced-motion settings show the static contact
 and route. The illustration and gesture do not reconstruct measured body/foot
-pose, contact, ball height or direction.
+pose, contact or direction. Their illustrative ball gesture is separate from
+the recorded field ball and its source height.
 
 The target remains at least 44 px. Its clamped viewport rectangle and the visible
 illustration use the same recorded geometry, so edge clamping cannot shift the
@@ -153,7 +159,9 @@ For those matches the importer reads the full original
 coordinates never enter visibility, teaching evidence or rendering. Ball XY is
 available only when the source ball flag is detected; every exported recent
 clip has a continuous detected-ball interval. Source period, timestamp, active
-roster and original shirt numbers are preserved. Export is XY-only.
+roster and original shirt numbers are preserved. Directly detected source z is
+stored to centimetres when finite and nonnegative; missing or negative z is
+explicitly unknown rather than flattened to ground.
 
 `assets/scan_pass_spatial/source-manifest.json` pins every raw URL, size,
 SHA-256 and Git blob. The raw files are not bundled.
@@ -167,6 +175,11 @@ metadata hashes and derives all 115 pre-existing asset hashes from the tracked
 v1 catalogue and preservation manifest. `education-proof.json` records all archive and recent accept/reject
 decisions. Teacher references shape the four lesson definitions; they are not
 provenance for match coordinates and are not described as actual coach review.
+`source-height-extract.json` records the exact selected source frame identities,
+raw z values and validity for both source generations. `height-proof.json`
+binds that pinned extract to per-scene counts and enriched asset hashes. The
+education manifest pins both proof files while the original 115-file archive
+remains byte-identical.
 
 ## Source-grounded on-pitch actions
 
@@ -176,7 +189,7 @@ and display name, period, source start/end frame, start/end type, nullable
 `one_touch`, `carry`, `is_header` and `hand_pass` values, matching flags and the
 pinned CSV path/commit. Incoming `is_previous_pass_matched` and outgoing
 `is_pass_reception_matched` remain separate metadata rather than being treated
-as interchangeable boundaries. The 25 historical XY-only lessons have an
+as interchangeable boundaries. The 25 historical lessons have an
 empty action list; no header or contact metadata is inferred for them.
 
 The current pinned clips contain 375 relevant possession records. After the
@@ -210,9 +223,10 @@ Vocabulary is deliberately narrower than common coaching shorthand:
   A nullable `one_touch` remains unknown rather than becoming a confident
   one-touch technique claim. This does not claim a foot/chest trap or technique.
 - **Header:** source `is_header=true`; an unsupported hand-pass combination is
-  rejected. No jump, ball height or body contact is rendered.
+  rejected. The generic header illustration adds no jump, height or body
+  contact claim; the separate field ball may still show valid source height.
 - **One-touch pass:** source `one_touch=true`, an actual `end_type=pass`, a
-  matched end and no header/hand-pass conflict.
+matched end and no header/hand-pass conflict.
 
 At runtime a header/receive symbol additionally requires the named actor and
 ball to be directly observed within 3.5 m at the original start frame; a
@@ -302,17 +316,23 @@ python3 tool/scan_pass_replay/prepare_spatial_library.py \
   --audit .tmp/spatial-lessons/source-audit.json
 python3 tool/scan_pass_replay/prepare_spatial_library.py --verify-assets
 python3 tool/scan_pass_replay/prepare_spatial_education.py \
-  --raw-dir .tmp/spatial-education/recent-source
+  --raw-dir .tmp/spatial-education/recent-source \
+  --historical-raw-dir .tmp/spatial-lessons/source
 python3 tool/scan_pass_replay/prepare_spatial_education.py --verify-assets
 ```
 
 The recent raw directory contains the basenames listed in the committed
 `education-source-manifest.json`. Generation verifies each exact pinned path,
 URL, byte count and SHA-256 from that manifest; `--source-manifest` can select
-an equivalent audited manifest explicitly. Asset-only verification needs no
-raw download and no `.tmp` file, and is part of `scripts/verify.sh` for CI. If
-the pinned raw Dynamic Events CSVs are present, the same verifier also checks
-their bytes/hashes and reproduces every committed action record from them.
+an equivalent audited manifest explicitly. Historical height import separately
+checks every selected `match_data.json` and `structured_data.json` against the
+original source manifest. Asset-only verification needs no raw download and no
+`.tmp` file, and is part of `scripts/verify.sh` for CI: it checks every mask,
+centimetre value, scene hash, proof summary and the hard-pinned complete height
+extract. When pinned raw files are present, the verifier additionally checks
+their full bytes/hashes and compares every selected source-frame z value. If
+the pinned raw Dynamic Events CSVs are present, it also reproduces every
+committed action record from them.
 
 Generation scans the raw files deterministically, records all rejection
 reasons, and emits only the selected source-safe catalogue. The immutable v1
@@ -333,7 +353,9 @@ manifest booleans: it reloads every selected replay,
 recomputes each objective and metric, checks source ownership and direct
 visibility, recomputes carry/direction geometry, checks typed nullable flags and
 action provenance, checks the strict mixed-source allowlist and derives
-`matchCount` from represented matches.
+`matchCount` from represented matches. It also requires the explicit audited
+height contract, rejects malformed ranges or masks, and distinguishes known
+zero from unknown missing/negative samples.
 
 The historical `--verify-assets` does not trust summary booleans. It reloads each shipped
 source frame and visibility mask, then recomputes duration and context bounds,
@@ -351,20 +373,31 @@ repository verifies each scene SHA-256 before parsing.
   exact source frames, measurements, reference URLs, scene hashes and typed
   recent Dynamic Events action evidence.
 - `catalog.json`: byte-identical v1 archive/test fixture; not runtime fallback.
-- `scenes/*.json`: 10 fps source frames, sparse visibility, source ownership
-  labels and metadata reused without modification by accepted historical lessons.
-- `education_scenes/*.json`: 10 fps 2024/25 direct-detection-only XY clips;
-  no pose, carry-forward, extrapolated actor or reconstructed display layer.
+- `scenes/*.json`: byte-identical 10 fps archive fixtures with sparse
+  visibility, source ownership labels and original metadata.
+- `education_scenes/*.json`: enriched copies of all 70 accepted lessons. They
+  preserve source XY and add source z in centimetres plus a Boolean per-frame
+  validity mask; there is no pose, carry-forward, extrapolated actor or
+  reconstructed display layer.
 - `education-proof.json` and `education-source-manifest.json`: all decisions,
-  thresholds, measurements and pinned recent input hashes.
+  thresholds, measurements, height-proof pins and pinned recent input hashes.
+- `source-height-extract.json` and `height-proof.json`: exact source frames/raw
+  z/validity for both generations and per-scene height/asset audit summaries.
 - `quality-proof.json`: thresholds, precise guard/core windows, actor coverage,
   speed/continuity results and every candidate rejection.
 - `legacy-asset-preservation.json`: byte hashes for the retained official-video,
   25-scene replay and authored-sample assets.
 
-This remains broadcast-visible XY coverage rather than complete full-pitch
-measurement. Real visibility gaps outside the teaching evidence are preserved,
-ball height is unavailable for every education scene and is not taught, and absence
-from the feed is not evidence of open space. Kit symbols add no body pose or
+This remains broadcast-visible tracking rather than complete full-pitch
+measurement. Player evidence and learning metrics remain XY-only. Ball height
+is shown only for frames with a finite, nonnegative source z no higher than
+15 m; mixed known/unknown scenes remain displayable, exact valid frames survive
+beside gaps, and interpolation requires two valid adjacent observations. The
+display uses a desired 9 px/m capped at 6 m solely to separate the ball from
+its source ground anchor, then caps that lift to the available screen headroom.
+This is not metric body reconstruction. The existing 32 px camera framing is
+unchanged, so height display does not globally shrink the pitch. Real
+visibility and height gaps are preserved, and absence from the feed is not
+evidence of open space or a grounded pass. Kit symbols add no body pose or
 orientation inference. Those source limits are surfaced rather than repaired
 by the camera, symbols or copy.
