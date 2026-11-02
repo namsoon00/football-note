@@ -75,11 +75,20 @@ Placement rejects overlap with observed actors, the ball and the reached ball
 trace. Gold identifies only a directly observed, nearby source ownership
 record; blue identifies the reviewed learning actor independently, including
 when that actor is off the ball. Player names stay beside their own badges and
-may be suppressed when no safe nearby slot is available; an active action actor
-is reserved first and its compact action caption is added to that same
-collision-safe label. If a narrow crowded view has no ordinary adjacent slot,
-the named compact caption uses the nearest safe in-pitch slot and a short
-connector back to that actor. Recorded traces never preview a future path and clear after the
+may be suppressed when no safe nearby slot is available. Action words are never
+combined with those names. A source-grounded action instead uses one neutral,
+high-contrast 24 px symbol attached to the observed actor: ball/trail for carry,
+a curved path for direction change, arrival/stop for receive, head/ball for
+header and touch/outgoing pass for one-touch pass. Its practical 40 px hit area
+does not change the visible symbol size. Placement is kept stable for the same
+event and viewport, remains inside the pitch viewport, and rejects players, the
+ball,
+names and teaching overlays; if no attached safe slot exists, no distant symbol
+is invented. Tapping or keyboard-activating the symbol pauses the replay and
+shows the localized actor and action name; hover and focus expose the same
+meaning. Scene changes, seeking and action changes dismiss that explanation,
+while the existing bottom play action resumes from the same source time.
+Recorded traces never preview a future path and clear after the
 evidenced action. Seeking always uses source time and pauses safely. The primary
 play action resumes at the current source time in the selected mode. Guided
 mode runs the remaining setup at 1x, the central evidence window at 0.5x and
@@ -168,10 +177,10 @@ pass receptions and 56 non-header one-touch pass endings. These are source
 evidence counts, not a scene quota. Exact source-contact observation leaves six
 displayable headers, 261 receives and 55 one-touch passes. One header actor is
 not observed at its source instant and another header has a 3.574 m actor-ball
-gap, so neither produces an on-pitch caption. When display windows overlap, the most recently reached
+gap, so neither produces an on-pitch symbol. When display windows overlap, the most recently reached
 action wins; `header` wins a same-frame tie with `one-touch pass`. A brief event
-stays readable for 1.2–1.6 seconds after its source instant, but never appears
-before that frame. Pause, forward seek and backward seek resolve the same label
+keeps its symbol available for 1.2–1.6 seconds after its source instant, but it
+never appears before that frame. Pause, forward seek and backward seek resolve the same symbol
 from source time without changing playback mode.
 
 Vocabulary is deliberately narrower than common coaching shorthand:
@@ -196,7 +205,7 @@ Vocabulary is deliberately narrower than common coaching shorthand:
 - **One-touch pass:** source `one_touch=true`, an actual `end_type=pass`, a
   matched end and no header/hand-pass conflict.
 
-At runtime a header/receive caption additionally requires the named actor and
+At runtime a header/receive symbol additionally requires the named actor and
 ball to be directly observed within 3.5 m at the original start frame; a
 one-touch pass applies the same gate at the original end frame. Later actor
 reappearance cannot repair missing contact evidence, and ownership is not
@@ -204,11 +213,12 @@ required for these instant actions. Carry/direction evidence requires the
 observed ball throughout the source-controlled interval. The active actor is
 included in camera and name priority, while player numbers, gold confirmed
 ownership and blue teaching
-focus keep their independent meanings. The action label receives no invented
-ring, arc, pose, contact animation or leader line. Ordinary captions remain
-within 18 pixels of the actor badge. If crowding forces the single active-action
-caption farther away, its compact text includes the actor's source jersey
-number and surname and still avoids players, ball and educational cues.
+focus keep their independent meanings. The action symbol receives no invented
+ring, pose, contact animation or leader line. The neutral action symbol is
+separate from both rings and from player-name labels. It is a categorical
+pictogram, not a measured foot, body heading, ball height, contact pose or
+travel direction. Ordinary names remain within 18 pixels of their own actor
+badge and never acquire action words.
 
 ## Selection and evidence gates
 

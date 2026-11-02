@@ -103,6 +103,9 @@ class _ScanPassSpatialLibraryScreenState
   Rect? _directionPlacementRect;
   String? _nameLabelPlacementKey;
   Map<int, int> _nameLabelPlacements = const <int, int>{};
+  String? _actionIconPlacementKey;
+  int? _actionIconPlacementIndex;
+  int _actionTooltipGeneration = 0;
 
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
   SpatialLibraryScene? get _scene => _catalog?.scenes[_sceneIndex];
@@ -171,6 +174,7 @@ class _ScanPassSpatialLibraryScreenState
     final catalog = _catalog;
     if (catalog == null || index < 0 || index >= catalog.scenes.length) return;
     final generation = ++_loadGeneration;
+    _dismissActionInspection();
     _stopPlayback(update: false);
     setState(() {
       _requestedSceneIndex = index;
@@ -197,6 +201,7 @@ class _ScanPassSpatialLibraryScreenState
     RealMatchReplayData data,
     int index,
   ) {
+    _dismissActionInspection();
     _controller
       ..duration = Duration(milliseconds: (data.duration * 1000).round())
       ..value = 0;
@@ -243,6 +248,7 @@ class _ScanPassSpatialLibraryScreenState
 
   void _handleSystemFontsChanged() {
     if (!mounted) return;
+    _dismissActionInspection();
     setState(() {
       _cuePlacementKey = null;
       _cuePlacementRect = null;
@@ -250,7 +256,14 @@ class _ScanPassSpatialLibraryScreenState
       _directionPlacementRect = null;
       _nameLabelPlacementKey = null;
       _nameLabelPlacements = const <int, int>{};
+      _actionIconPlacementKey = null;
+      _actionIconPlacementIndex = null;
     });
+  }
+
+  void _dismissActionInspection() {
+    Tooltip.dismissAllToolTips();
+    _actionTooltipGeneration++;
   }
 
   void _stopPlayback({bool update = true}) {
@@ -273,6 +286,7 @@ class _ScanPassSpatialLibraryScreenState
       _stopPlayback();
       return;
     }
+    _dismissActionInspection();
     if (_scene?.education != null &&
         _playbackMode == _SpatialPlaybackMode.guided) {
       _playFocusReplay(restart: _finished);
@@ -347,6 +361,7 @@ class _ScanPassSpatialLibraryScreenState
   }
 
   void _seek(double value) {
+    _dismissActionInspection();
     _stopPlayback(update: false);
     setState(() => _controller.value = value);
   }
@@ -624,7 +639,7 @@ class _ScanPassSpatialLibraryScreenState
           if (sample.players[data.playerIndex(playerId)] case final point?)
             Rect.fromCircle(
               center: viewport.project(point),
-              radius: playerId == activeAction?.playerId ? 64 : 28,
+              radius: playerId == activeAction?.playerId ? 42 : 28,
             ),
       ];
       if (_time >= scene.teachingStart) {
@@ -754,6 +769,11 @@ class _ScanPassSpatialLibraryScreenState
           '${textScaler.scale(10).toStringAsFixed(1)}:'
           '${locale.toLanguageTag()}:'
           '${activeAction?.eventId}:${activeAction?.kind.name}';
+      final actionIconPlacementKey = activeAction == null
+          ? null
+          : '${scene.id}:$rotated:'
+              '${size.width.toStringAsFixed(1)}x${size.height.toStringAsFixed(1)}:'
+              '${activeAction.eventId}:${activeAction.kind.name}';
       final pitchPainter = SpatialLibraryPitchPainter(
         data: data,
         scene: scene,
@@ -767,7 +787,6 @@ class _ScanPassSpatialLibraryScreenState
         locale: locale,
         roles: roles,
         activeAction: activeAction,
-        activeActionLabel: activeActionLabel,
         cuePlayerId: cueActorPoint == null ? null : cue.targetPlayerId,
         requiredPlayerIds: protectedPlayerIds,
         nameLabelPlayerIds: nameLabelPlayerIds,
@@ -778,7 +797,14 @@ class _ScanPassSpatialLibraryScreenState
             nameLabelPlacementKey == _nameLabelPlacementKey
                 ? _nameLabelPlacements
                 : const <int, int>{},
+        preferredActionIconPlacement:
+            actionIconPlacementKey == _actionIconPlacementKey
+                ? _actionIconPlacementIndex
+                : null,
       );
+      final actionIcon = pitchPainter.actionIcon;
+      _actionIconPlacementKey = actionIconPlacementKey;
+      _actionIconPlacementIndex = actionIcon?.placementIndex;
       final nextNameLabelPlacements =
           nameLabelPlacementKey == _nameLabelPlacementKey
               ? Map<int, int>.of(_nameLabelPlacements)
@@ -801,12 +827,6 @@ class _ScanPassSpatialLibraryScreenState
                 _learningTitle(_l10n, scene),
               ),
               value: _sourceTimeLabel(scene),
-              hint: activeAction == null
-                  ? null
-                  : _l10n.spatialActionSemantics(
-                      activeAction.playerName,
-                      activeActionLabel!,
-                    ),
               child: ExcludeSemantics(
                 child: CustomPaint(
                   key: const ValueKey<String>('spatial-pitch'),
@@ -833,6 +853,22 @@ class _ScanPassSpatialLibraryScreenState
               compact: compact,
             ),
           ),
+          if (actionIcon != null)
+            Positioned.fromRect(
+              rect: actionIcon.hitRect,
+              child: _SpatialActionIconControl(
+                key: ValueKey<String>(
+                  'spatial-action-icon-${actionIcon.sourceIdentity}-'
+                  '$_actionTooltipGeneration',
+                ),
+                geometry: actionIcon,
+                message: _l10n.spatialActionSemantics(
+                  activeAction!.playerName,
+                  activeActionLabel!,
+                ),
+                onInspect: _stopPlayback,
+              ),
+            ),
           if (_requestedSceneIndex != null)
             const Positioned(
               left: 0,
@@ -2308,7 +2344,6 @@ class SpatialPlayerNameLabelGeometry {
   final int playerId;
   final String sourceName;
   final String displayName;
-  final String? actionLabel;
   final Rect rect;
   final Rect badgeRect;
   final int placementIndex;
@@ -2317,7 +2352,6 @@ class SpatialPlayerNameLabelGeometry {
     required this.playerId,
     required this.sourceName,
     required this.displayName,
-    this.actionLabel,
     required this.rect,
     required this.badgeRect,
     required this.placementIndex,
@@ -2336,6 +2370,394 @@ class SpatialPlayerNameLabelGeometry {
   }
 }
 
+class SpatialActionIconGeometry {
+  final int actorPlayerId;
+  final SpatialOnPitchActionKind kind;
+  final String eventId;
+  final Rect visualRect;
+  final Rect hitRect;
+  final Rect actorBadgeRect;
+  final int placementIndex;
+
+  const SpatialActionIconGeometry({
+    required this.actorPlayerId,
+    required this.kind,
+    required this.eventId,
+    required this.visualRect,
+    required this.hitRect,
+    required this.actorBadgeRect,
+    required this.placementIndex,
+  });
+
+  String get sourceIdentity => '$eventId:${kind.name}:$actorPlayerId';
+
+  double get attachmentDistance {
+    final dx = math.max(
+      0.0,
+      math.max(
+        actorBadgeRect.left - visualRect.right,
+        visualRect.left - actorBadgeRect.right,
+      ),
+    );
+    final dy = math.max(
+      0.0,
+      math.max(
+        actorBadgeRect.top - visualRect.bottom,
+        visualRect.top - actorBadgeRect.bottom,
+      ),
+    );
+    return math.sqrt(dx * dx + dy * dy);
+  }
+}
+
+typedef SpatialActionGlyphCircle = ({
+  Offset center,
+  double radius,
+  bool filled,
+});
+
+class SpatialActionGlyphGeometry {
+  final List<Path> strokePaths;
+  final List<Path> fillPaths;
+  final List<SpatialActionGlyphCircle> circles;
+
+  const SpatialActionGlyphGeometry({
+    this.strokePaths = const <Path>[],
+    this.fillPaths = const <Path>[],
+    this.circles = const <SpatialActionGlyphCircle>[],
+  });
+}
+
+class SpatialActionIconPainter extends CustomPainter {
+  final SpatialOnPitchActionKind kind;
+  final bool highlighted;
+
+  const SpatialActionIconPainter({
+    required this.kind,
+    this.highlighted = false,
+  });
+
+  SpatialActionGlyphGeometry glyphGeometry(Size size) {
+    final scale = math.min(size.width, size.height) / 24;
+    final origin = Offset(
+      (size.width - 24 * scale) / 2,
+      (size.height - 24 * scale) / 2,
+    );
+    Offset point(double x, double y) => origin + Offset(x * scale, y * scale);
+    Path path() => Path();
+
+    return switch (kind) {
+      SpatialOnPitchActionKind.carry => () {
+          final trail = path()
+            ..moveTo(point(4, 18).dx, point(4, 18).dy)
+            ..cubicTo(
+              point(7, 18).dx,
+              point(7, 18).dy,
+              point(10, 15).dx,
+              point(10, 15).dy,
+              point(14, 11).dx,
+              point(14, 11).dy,
+            );
+          return SpatialActionGlyphGeometry(
+            strokePaths: <Path>[trail],
+            circles: <SpatialActionGlyphCircle>[
+              (center: point(18, 7), radius: 3 * scale, filled: false),
+              (center: point(5, 18), radius: 1.1 * scale, filled: true),
+              (center: point(10, 15), radius: .9 * scale, filled: true),
+            ],
+          );
+        }(),
+      SpatialOnPitchActionKind.directionChange => () {
+          final curve = path()
+            ..moveTo(point(5, 18).dx, point(5, 18).dy)
+            ..cubicTo(
+              point(5, 11).dx,
+              point(5, 11).dy,
+              point(10, 9).dx,
+              point(10, 9).dy,
+              point(17, 10).dx,
+              point(17, 10).dy,
+            )
+            ..quadraticBezierTo(
+              point(19, 9).dx,
+              point(19, 9).dy,
+              point(19, 6).dx,
+              point(19, 6).dy,
+            );
+          final arrow = path()
+            ..moveTo(point(19, 5).dx, point(19, 5).dy)
+            ..lineTo(point(15.7, 8).dx, point(15.7, 8).dy)
+            ..lineTo(point(20.3, 9).dx, point(20.3, 9).dy)
+            ..close();
+          return SpatialActionGlyphGeometry(
+            strokePaths: <Path>[curve],
+            fillPaths: <Path>[arrow],
+          );
+        }(),
+      SpatialOnPitchActionKind.receive => () {
+          final arrival = path()
+            ..moveTo(point(8.8, 8.8).dx, point(8.8, 8.8).dy)
+            ..lineTo(point(14, 14).dx, point(14, 14).dy);
+          final stop = path()
+            ..moveTo(point(14, 11).dx, point(14, 11).dy)
+            ..lineTo(point(14, 18).dx, point(14, 18).dy)
+            ..quadraticBezierTo(
+              point(17, 20).dx,
+              point(17, 20).dy,
+              point(20, 18).dx,
+              point(20, 18).dy,
+            );
+          return SpatialActionGlyphGeometry(
+            strokePaths: <Path>[arrival, stop],
+            circles: <SpatialActionGlyphCircle>[
+              (center: point(6.5, 6.5), radius: 3 * scale, filled: false),
+            ],
+          );
+        }(),
+      SpatialOnPitchActionKind.header => () {
+          final neck = path()
+            ..moveTo(point(9.2, 17).dx, point(9.2, 17).dy)
+            ..lineTo(point(9.2, 18.8).dx, point(9.2, 18.8).dy)
+            ..moveTo(point(12.8, 17).dx, point(12.8, 17).dy)
+            ..lineTo(point(12.8, 18.8).dx, point(12.8, 18.8).dy);
+          final shoulders = path()
+            ..moveTo(point(5, 21).dx, point(5, 21).dy)
+            ..quadraticBezierTo(
+              point(11, 18).dx,
+              point(11, 18).dy,
+              point(17, 21).dx,
+              point(17, 21).dy,
+            );
+          return SpatialActionGlyphGeometry(
+            strokePaths: <Path>[neck, shoulders],
+            circles: <SpatialActionGlyphCircle>[
+              (center: point(11, 13), radius: 4.2 * scale, filled: false),
+              (center: point(18, 6), radius: 2.8 * scale, filled: false),
+            ],
+          );
+        }(),
+      SpatialOnPitchActionKind.oneTouchPass => () {
+          final pass = path()
+            ..moveTo(point(10, 14).dx, point(10, 14).dy)
+            ..lineTo(point(19, 8).dx, point(19, 8).dy);
+          final touchMark = path()
+            ..moveTo(point(10.5, 7).dx, point(10.5, 7).dy)
+            ..lineTo(point(12.8, 10.5).dx, point(12.8, 10.5).dy);
+          final arrow = path()
+            ..moveTo(point(20, 7.2).dx, point(20, 7.2).dy)
+            ..lineTo(point(15.4, 7.5).dx, point(15.4, 7.5).dy)
+            ..lineTo(point(18, 11.2).dx, point(18, 11.2).dy)
+            ..close();
+          return SpatialActionGlyphGeometry(
+            strokePaths: <Path>[pass, touchMark],
+            fillPaths: <Path>[arrow],
+            circles: <SpatialActionGlyphCircle>[
+              (center: point(6.5, 15.5), radius: 3 * scale, filled: false),
+            ],
+          );
+        }(),
+    };
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bounds = Offset.zero & size;
+    final background = Paint()..color = const Color(0xF21A2420);
+    final border = Paint()
+      ..color = highlighted ? const Color(0xFFFFFFFF) : const Color(0xFFD8E2DD)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = highlighted ? 2 : 1.2;
+    final shape = RRect.fromRectAndRadius(
+      bounds.deflate(1),
+      const Radius.circular(6),
+    );
+    canvas.drawRRect(shape, background);
+    canvas.drawRRect(shape, border);
+
+    final geometry = glyphGeometry(size);
+    final scale = math.min(size.width, size.height) / 24;
+    final stroke = Paint()
+      ..color = const Color(0xFFF6FAF7)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.7 * scale
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final fill = Paint()..color = const Color(0xFFF6FAF7);
+    for (final path in geometry.strokePaths) {
+      canvas.drawPath(path, stroke);
+    }
+    for (final path in geometry.fillPaths) {
+      canvas.drawPath(path, fill);
+    }
+    for (final circle in geometry.circles) {
+      if (circle.filled) {
+        canvas.drawCircle(circle.center, circle.radius, fill);
+      } else {
+        canvas.drawCircle(
+          circle.center,
+          circle.radius,
+          Paint()..color = const Color(0xFF1A2420),
+        );
+        canvas.drawCircle(circle.center, circle.radius, stroke);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant SpatialActionIconPainter oldDelegate) =>
+      oldDelegate.kind != kind || oldDelegate.highlighted != highlighted;
+}
+
+class _SpatialActionIconControl extends StatefulWidget {
+  final SpatialActionIconGeometry geometry;
+  final String message;
+  final VoidCallback onInspect;
+
+  const _SpatialActionIconControl({
+    super.key,
+    required this.geometry,
+    required this.message,
+    required this.onInspect,
+  });
+
+  @override
+  State<_SpatialActionIconControl> createState() =>
+      _SpatialActionIconControlState();
+}
+
+class _SpatialActionIconControlState extends State<_SpatialActionIconControl> {
+  final _tooltipKey = GlobalKey<TooltipState>();
+  final _focusNode = FocusNode();
+  bool _hovered = false;
+  bool _focused = false;
+  bool _pinned = false;
+
+  void _show({bool pinned = false}) {
+    if (pinned) _pinned = true;
+    _tooltipKey.currentState?.ensureTooltipVisible();
+    if (mounted) setState(() {});
+  }
+
+  void _dismiss() {
+    Tooltip.dismissAllToolTips();
+    _pinned = false;
+    if (mounted) setState(() {});
+  }
+
+  void _activate() {
+    widget.onInspect();
+    _show(pinned: true);
+  }
+
+  void _handleFocus(bool focused) {
+    _focused = focused;
+    if (focused) {
+      _show();
+    } else if (!_hovered && !_pinned) {
+      _dismiss();
+    } else if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _handleEnter(PointerEnterEvent event) {
+    _hovered = true;
+    _show();
+  }
+
+  void _handleExit(PointerExitEvent event) {
+    _hovered = false;
+    if (!_focused && !_pinned) {
+      _dismiss();
+    } else if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final geometry = widget.geometry;
+    final visualSize = geometry.visualRect.width;
+    final preferBelow =
+        geometry.visualRect.center.dy >= geometry.actorBadgeRect.center.dy;
+    return Semantics(
+      key: ValueKey<String>(
+        'spatial-action-control-${geometry.sourceIdentity}',
+      ),
+      container: true,
+      button: true,
+      label: widget.message,
+      onTap: _activate,
+      child: Tooltip(
+        key: _tooltipKey,
+        message: widget.message,
+        excludeFromSemantics: true,
+        triggerMode: TooltipTriggerMode.manual,
+        preferBelow: preferBelow,
+        verticalOffset: 18,
+        child: FocusableActionDetector(
+          focusNode: _focusNode,
+          mouseCursor: SystemMouseCursors.click,
+          onFocusChange: _handleFocus,
+          shortcuts: const <ShortcutActivator, Intent>{
+            SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+            SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+            SingleActivator(LogicalKeyboardKey.escape): DismissIntent(),
+          },
+          actions: <Type, Action<Intent>>{
+            ActivateIntent: CallbackAction<ActivateIntent>(
+              onInvoke: (intent) {
+                _activate();
+                return null;
+              },
+            ),
+            DismissIntent: CallbackAction<DismissIntent>(
+              onInvoke: (intent) {
+                _dismiss();
+                return null;
+              },
+            ),
+          },
+          child: MouseRegion(
+            onEnter: _handleEnter,
+            onExit: _handleExit,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              excludeFromSemantics: true,
+              onTap: () {
+                _focusNode.requestFocus();
+                _activate();
+              },
+              child: Center(
+                child: ExcludeSemantics(
+                  child: SizedBox.square(
+                    dimension: visualSize,
+                    child: CustomPaint(
+                      key: ValueKey<String>(
+                        'spatial-action-glyph-${geometry.sourceIdentity}',
+                      ),
+                      painter: SpatialActionIconPainter(
+                        kind: geometry.kind,
+                        highlighted: _hovered || _focused,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class SpatialLibraryPitchPainter extends CustomPainter {
   static const _kitResolver = SpatialKitResolver();
 
@@ -2351,7 +2773,6 @@ class SpatialLibraryPitchPainter extends CustomPainter {
   final Locale locale;
   final SpatialObservedRoles roles;
   final SpatialOnPitchAction? activeAction;
-  final String? activeActionLabel;
   final int? cuePlayerId;
   final Set<int> requiredPlayerIds;
   final Set<int> nameLabelPlayerIds;
@@ -2359,6 +2780,9 @@ class SpatialLibraryPitchPainter extends CustomPainter {
   final Offset cueTarget;
   final List<Rect> reservedOverlayRects;
   final Map<int, int> preferredNameLabelPlacements;
+  final int? preferredActionIconPlacement;
+  late final SpatialActionIconGeometry? _actionIcon =
+      _layoutActionIcon(data.renderSample(time));
   late final List<
       ({
         SpatialPlayerNameLabelGeometry geometry,
@@ -2379,7 +2803,6 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     this.locale = const Locale('en'),
     required this.roles,
     this.activeAction,
-    this.activeActionLabel,
     this.cuePlayerId,
     this.requiredPlayerIds = const <int>{},
     this.nameLabelPlayerIds = const <int>{},
@@ -2387,7 +2810,8 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     this.cueTarget = Offset.zero,
     this.reservedOverlayRects = const [],
     this.preferredNameLabelPlacements = const <int, int>{},
-  }) : assert((activeAction == null) == (activeActionLabel == null));
+    this.preferredActionIconPlacement,
+  });
 
   Color get _pitch => brightness == Brightness.dark
       ? const Color(0xFF173E2B)
@@ -2969,6 +3393,92 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     return (center: badge.center, radius: badge.radius);
   }
 
+  SpatialActionIconGeometry? get actionIcon => _actionIcon;
+
+  SpatialActionIconGeometry? _layoutActionIcon(
+    RealMatchReplaySample sample,
+  ) {
+    final action = activeAction;
+    if (action == null) return null;
+    final badges = _playerBadges(sample);
+    final actorBadge = badges[action.playerId];
+    if (actorBadge == null) return null;
+
+    const visualSize = 24.0;
+    const hitSize = 40.0;
+    final badge = actorBadge.rect;
+    final visualCandidates = <Rect>[
+      for (final gap in const <double>[4, 10, 16])
+        for (final shift in const <double>[0, -10, 10, -18, 18]) ...<Rect>[
+          Rect.fromLTWH(
+            badge.right + gap,
+            badge.center.dy - visualSize / 2 + shift,
+            visualSize,
+            visualSize,
+          ),
+          Rect.fromLTWH(
+            badge.left - visualSize - gap,
+            badge.center.dy - visualSize / 2 + shift,
+            visualSize,
+            visualSize,
+          ),
+          Rect.fromLTWH(
+            badge.center.dx - visualSize / 2 + shift,
+            badge.top - visualSize - gap,
+            visualSize,
+            visualSize,
+          ),
+          Rect.fromLTWH(
+            badge.center.dx - visualSize / 2 + shift,
+            badge.bottom + gap,
+            visualSize,
+            visualSize,
+          ),
+        ],
+    ];
+    final preferred = preferredActionIconPlacement;
+    final indices = <int>[
+      if (preferred != null && preferred < visualCandidates.length) preferred,
+      for (var index = 0; index < visualCandidates.length; index++)
+        if (index != preferred) index,
+    ];
+    final safeVisualView = viewport.view;
+    final safeHitView = viewport.view;
+    final occupied = <Rect>[
+      ...reservedOverlayRects.map((rect) => rect.inflate(1)),
+      ballSafetyRect,
+      ...badges.values.map((value) => value.rect),
+    ];
+    final protectedControls = reservedOverlayRects;
+    for (final index in indices) {
+      final visualRect = visualCandidates[index];
+      final hitRect = Rect.fromCenter(
+        center: visualRect.center,
+        width: hitSize,
+        height: hitSize,
+      );
+      if (!safeVisualView.contains(visualRect.topLeft) ||
+          !safeVisualView.contains(visualRect.bottomRight) ||
+          !safeHitView.contains(hitRect.topLeft) ||
+          !safeHitView.contains(hitRect.bottomRight) ||
+          occupied.any(visualRect.overlaps) ||
+          protectedControls.any(hitRect.overlaps)) {
+        continue;
+      }
+      final geometry = SpatialActionIconGeometry(
+        actorPlayerId: action.playerId,
+        kind: action.kind,
+        eventId: action.eventId,
+        visualRect: visualRect,
+        hitRect: hitRect,
+        actorBadgeRect: badge,
+        placementIndex: index,
+      );
+      if (geometry.attachmentDistance <= 18) return geometry;
+    }
+    return null;
+  }
+
   List<SpatialPlayerNameLabelGeometry> get playerNameLabels =>
       _playerNameLayouts
           .map((layout) => layout.geometry)
@@ -2985,6 +3495,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       ...reservedOverlayRects.map((rect) => rect.inflate(3)),
       ballSafetyRect,
       ...badges.values.map((badge) => badge.rect.inflate(2)),
+      if (actionIcon case final icon?) icon.visualRect.inflate(3),
     ];
     final roleById = <int, SpatialObservedRole>{
       for (final role in roles.values) role.playerId: role,
@@ -3029,19 +3540,25 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     final teachingFocusIds = blueTeachingFocusPlayerIds;
     for (final playerId in prioritizedIds) {
       final badge = badges[playerId];
-      if (badge == null || !safeView.contains(badge.center)) continue;
+      if (badge == null ||
+          !(playerId == activeAction?.playerId
+              ? viewport.view.contains(badge.center)
+              : safeView.contains(badge.center))) {
+        continue;
+      }
       final player = data.player(playerId);
-      final sourceName = player.name?.trim() ?? '';
+      final replayName = player.name?.trim() ?? '';
+      final sourceName = replayName.isNotEmpty
+          ? replayName
+          : playerId == activeAction?.playerId
+              ? activeAction!.playerName.trim()
+              : '';
       if (sourceName.isEmpty) continue;
       final shortName = _spatialShortPlayerName(sourceName);
-      final actionLabel =
-          playerId == activeAction?.playerId ? activeActionLabel : null;
-      final displayName =
-          actionLabel == null ? shortName : '$shortName · $actionLabel';
-      var resolvedDisplayName = displayName;
+      final displayName = shortName;
       var painter = TextPainter(
         text: TextSpan(
-          text: actionLabel == null ? displayName : '$shortName\n$actionLabel',
+          text: displayName,
           style: const TextStyle(
             color: Colors.white,
             fontSize: 10.5,
@@ -3049,7 +3566,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
             height: 1,
           ),
         ),
-        maxLines: actionLabel == null ? 1 : 2,
+        maxLines: 1,
         ellipsis: '…',
         textAlign: TextAlign.center,
         locale: locale,
@@ -3222,17 +3739,11 @@ class SpatialLibraryPitchPainter extends CustomPainter {
         placementIndex = candidateIndex;
         break;
       }
-      if ((chosen == null || placementIndex == null) && actionLabel != null) {
-        // A source action must not disappear merely because the ordinary
-        // two-line name slot is crowded on a narrow phone. Keep the actor's
-        // source jersey number, surname and localized action together in a
-        // smaller in-pitch caption, then search outward without adding a line.
-        final compactDisplayName = player.number == null
-            ? displayName
-            : '#${player.number} $displayName';
+      if ((chosen == null || placementIndex == null) &&
+          playerId == activeAction?.playerId) {
         final compactPainter = TextPainter(
           text: TextSpan(
-            text: compactDisplayName,
+            text: displayName,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 9,
@@ -3242,28 +3753,41 @@ class SpatialLibraryPitchPainter extends CustomPainter {
           ),
           maxLines: 1,
           ellipsis: '…',
+          textAlign: TextAlign.center,
           locale: locale,
           textScaler: textScaler,
           textDirection: textDirection,
-        )..layout(maxWidth: math.max(48, safeView.width - 12));
+        )..layout(maxWidth: math.max(44, safeView.width * .42));
         final compactSize = Size(
-          compactPainter.width + 12,
+          compactPainter.width + 10,
           compactPainter.height + 6,
         );
         final compactCandidates = <Rect>[
-          for (final shift in <double>[
-            0,
-            12,
-            -12,
-            24,
-            -24,
-            36,
-            -36,
-            48,
-            -48,
-            60,
-            -60,
-          ]) ...<Rect>[
+          Rect.fromLTWH(
+            center.dx - compactSize.width / 2,
+            rect.bottom + 3,
+            compactSize.width,
+            compactSize.height,
+          ),
+          Rect.fromLTWH(
+            rect.right + 3,
+            center.dy - compactSize.height / 2,
+            compactSize.width,
+            compactSize.height,
+          ),
+          Rect.fromLTWH(
+            rect.left - compactSize.width - 3,
+            center.dy - compactSize.height / 2,
+            compactSize.width,
+            compactSize.height,
+          ),
+          Rect.fromLTWH(
+            center.dx - compactSize.width / 2,
+            rect.top - compactSize.height - 3,
+            compactSize.width,
+            compactSize.height,
+          ),
+          for (final shift in const <double>[10, -10, 18, -18]) ...<Rect>[
             Rect.fromLTWH(
               center.dx - compactSize.width / 2 + shift,
               rect.bottom + 3,
@@ -3277,66 +3801,19 @@ class SpatialLibraryPitchPainter extends CustomPainter {
               compactSize.height,
             ),
           ],
-          for (final shift in <double>[0, 12, -12, 24, -24, 36, -36]) ...<Rect>[
-            Rect.fromLTWH(
-              rect.right + 3,
-              center.dy - compactSize.height / 2 + shift,
-              compactSize.width,
-              compactSize.height,
-            ),
-            Rect.fromLTWH(
-              rect.left - compactSize.width - 3,
-              center.dy - compactSize.height / 2 + shift,
-              compactSize.width,
-              compactSize.height,
-            ),
-          ],
         ];
         for (var index = 0; index < compactCandidates.length; index++) {
           final candidate = compactCandidates[index];
           if (!safeView.contains(candidate.topLeft) ||
               !safeView.contains(candidate.bottomRight) ||
-              (player.number == null && attachmentDistance(candidate) > 18) ||
+              attachmentDistance(candidate) > 18 ||
               occupied.any(candidate.overlaps)) {
             continue;
           }
           painter = compactPainter;
-          resolvedDisplayName = compactDisplayName;
           chosen = candidate;
-          placementIndex = index;
+          placementIndex = candidates.length + index;
           break;
-        }
-        if (chosen == null || placementIndex == null) {
-          final safeCandidates = <Rect>[];
-          const step = 6.0;
-          for (var top = safeView.top;
-              top + compactSize.height <= safeView.bottom;
-              top += step) {
-            for (var left = safeView.left;
-                left + compactSize.width <= safeView.right;
-                left += step) {
-              final candidate = Rect.fromLTWH(
-                left,
-                top,
-                compactSize.width,
-                compactSize.height,
-              );
-              if (!occupied.any(candidate.overlaps) &&
-                  (player.number != null ||
-                      attachmentDistance(candidate) <= 18)) {
-                safeCandidates.add(candidate);
-              }
-            }
-          }
-          safeCandidates.sort((first, second) => (first.center - center)
-              .distanceSquared
-              .compareTo((second.center - center).distanceSquared));
-          if (safeCandidates.isNotEmpty) {
-            painter = compactPainter;
-            resolvedDisplayName = compactDisplayName;
-            chosen = safeCandidates.first;
-            placementIndex = compactCandidates.length;
-          }
         }
       }
       if (chosen == null || placementIndex == null) continue;
@@ -3358,8 +3835,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
         geometry: SpatialPlayerNameLabelGeometry(
           playerId: playerId,
           sourceName: sourceName,
-          displayName: resolvedDisplayName,
-          actionLabel: actionLabel,
+          displayName: displayName,
           rect: chosen,
           badgeRect: badge.rect,
           placementIndex: placementIndex,
@@ -3464,7 +3940,6 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       oldDelegate.viewport.camera != viewport.camera ||
       oldDelegate.activeAction?.kind != activeAction?.kind ||
       oldDelegate.activeAction?.eventId != activeAction?.eventId ||
-      oldDelegate.activeActionLabel != activeActionLabel ||
       oldDelegate.cuePlayerId != cuePlayerId ||
       !setEquals(oldDelegate.nameLabelPlayerIds, nameLabelPlayerIds) ||
       oldDelegate.cueRect != cueRect ||
@@ -3473,7 +3948,8 @@ class SpatialLibraryPitchPainter extends CustomPainter {
       !mapEquals(
         oldDelegate.preferredNameLabelPlacements,
         preferredNameLabelPlacements,
-      );
+      ) ||
+      oldDelegate.preferredActionIconPlacement != preferredActionIconPlacement;
 }
 
 class SpatialLibraryMinimapPainter extends CustomPainter {
