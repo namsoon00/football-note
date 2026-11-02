@@ -111,8 +111,9 @@ the remaining aftermath at 1x; wall-clock duration is the remaining source-time
 span divided by that rate, so one source second takes two wall-clock seconds at
 0.5x. The source-speed More action restarts at zero and keeps 1x selected across
 later pause, seek and resume actions. The guided-replay action restarts at zero
-and restores guided mode, while each newly loaded scene defaults to guided
-mode. Replaying after the true end restarts at zero in the selected mode.
+and restores guided mode. Ordinary scene switches, navigation and re-entry keep
+the selected guided/source mode. Replaying after the true end restarts at zero
+in the selected mode.
 Previous, play/pause, scene list and next remain in the bottom controls.
 
 The scene list reports the learning goal, actual clip duration, match, teaching
@@ -125,6 +126,57 @@ count, clear-search action and one-step reset remain in the same scrollable
 bottom sheet.
 Source information and guided replay are discreet More-menu actions. There are
 no tabs, scores, joystick controls, mandatory quiz or separate start screen.
+
+## Personal viewing history
+
+Spatial viewing state uses the versioned
+`scan_pass_spatial_library_personalization_v1` `OptionRepository` key. It is
+separate from official-video history. Each record is keyed by scene ID plus the
+scene asset SHA-256, so replaced footage cannot inherit an old resume point,
+coverage or bookmark. Unknown versions, malformed numbers and ranges, deleted
+scenes, and stale team/player/objective values fail closed or are removed when
+the current catalogue loads.
+
+Resume time and coverage use the scene's source clock. Guided 0.5x playback
+therefore records the same source interval as 1x playback; it does not earn
+extra viewed seconds. Coverage accepts only finite, positive forward deltas of
+at most 1.5 source seconds while playback is active and the app is foreground.
+It merges overlaps, so repeat viewing counts once. Opening, loading, seeking,
+backward movement, a large jump, paused/background time and library inspection
+add no coverage. A scene is `Watched` only after at least 90% unique source
+coverage and actual playback of the final interval. `Watched` describes viewing
+state only, not understanding or mastery.
+
+The current source time is checkpointed on pause, seek, scene switch, lifecycle
+backgrounding, navigation/dispose and every five seconds during playback. A
+write is not attempted on every animation frame. Writes are serialized;
+failure never blocks playback and exposes a localized Retry action without
+claiming the history was saved. An unfinished last scene reopens at its exact
+source time, paused. Explicitly selecting or replaying a completed scene starts
+it from zero. On automatic re-entry after the last scene completed, the viewer
+chooses the next unfinished scene within the persisted filters; if none remains,
+it keeps the last completed scene at its end with Replay available.
+
+The scene sheet shows localized Unwatched, In progress (unique seconds/total)
+and Watched states, plus bookmarks. Query, attacking team, player,
+theme/objective, watch/bookmark filter, unfinished-first ordering, playback
+mode and auto-next are persisted. The sheet and Previous/Next use the same
+filter function, including localized search aliases. Next prioritizes a
+not-completed scene within that exact result set. Manual Previous and explicit
+selection still allow review, and manual Next can intentionally repeat when
+every eligible scene is watched after the viewer explains that no unwatched
+scene remains.
+
+Auto-next defaults on and is available in More. It runs only after a natural
+scene end that also earns genuine completion from accumulated source
+coverage. A normal saved resume or pause/resume can therefore finish honestly;
+paused/background time still adds no coverage. An explicit seek or
+library/menu/action inspection blocks auto-next for that scene session.
+Deliberately choosing guided replay or source-speed restart clears that manual
+inspection guard. On success the next eligible not-completed scene loads at its
+own saved time and remains paused. With no matching unfinished scene, the
+viewer stays on the completed scene at its end with Replay available; it never
+broadens filters, resets history or cycles forever.
 
 ## Source and license
 

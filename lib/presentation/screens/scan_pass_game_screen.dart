@@ -27,6 +27,7 @@ import '../../domain/scan_pass/real_match_replay.dart';
 import '../../domain/scan_pass/real_match_replay_detail.dart';
 import '../../domain/scan_pass/authored_touch_sample.dart';
 import '../../domain/scan_pass/scan_pass_spatial_library.dart';
+import '../../domain/scan_pass/scan_pass_spatial_personalization.dart';
 import '../../domain/scan_pass/scan_pass_spatial_focus.dart';
 import '../../domain/scan_pass/scan_pass_space.dart';
 import '../../domain/scan_pass/scan_pass_video_learning.dart';

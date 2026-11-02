@@ -3,6 +3,7 @@ import 'dart:async';
 import '../application/backup_service.dart';
 import '../application/drive_backup_service.dart';
 import '../application/family_access_service.dart';
+import '../application/scan_pass_spatial_library_service.dart';
 import '../domain/repositories/option_repository.dart';
 
 class AutoBackupOptionRepository implements OptionRepository {
@@ -18,6 +19,7 @@ class AutoBackupOptionRepository implements OptionRepository {
     DriveBackupService.parentDriveEmailLocalKey,
     DriveBackupService.parentDriveLabelLocalKey,
     DriveBackupService.parentDriveSubjectLocalKey,
+    ScanPassSpatialLibraryService.storageKey,
     'welcome_seen_v1',
   };
 

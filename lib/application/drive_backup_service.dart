@@ -35,6 +35,7 @@ import 'player_level_service.dart';
 import 'player_profile_service.dart';
 import 'running_coach_history_service.dart';
 import 'running_growth_service.dart';
+import 'scan_pass_spatial_library_service.dart';
 import 'team_management_service.dart';
 import 'training_board_service.dart';
 import 'training_plan_reminder_service.dart';
@@ -678,6 +679,7 @@ class DriveBackupService implements BackupRepository {
     'logs_filter_feedback_only',
     'logs_quick_guide_seen_v1',
     'welcome_seen_v1',
+    ScanPassSpatialLibraryService.storageKey,
     'league_standings_last_selected_league_v1',
     'league_standings_last_selected_type_v1',
     'league_standings_favorite_fixture_filter_types_v1',

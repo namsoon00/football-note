@@ -40651,6 +40651,90 @@ abstract class AppLocalizations {
   /// **'No scenes match this filter.'**
   String get spatialNoScenes;
 
+  /// No description provided for @spatialNoUnwatchedScenes.
+  ///
+  /// In en, this message translates to:
+  /// **'No unwatched scenes match these filters. Replay is still available.'**
+  String get spatialNoUnwatchedScenes;
+
+  /// No description provided for @spatialHistorySaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t save viewing history. Try again.'**
+  String get spatialHistorySaveFailed;
+
+  /// No description provided for @spatialHistoryRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get spatialHistoryRetry;
+
+  /// No description provided for @spatialAddBookmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Add bookmark'**
+  String get spatialAddBookmark;
+
+  /// No description provided for @spatialRemoveBookmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove bookmark'**
+  String get spatialRemoveBookmark;
+
+  /// No description provided for @spatialAutoNextOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-next: On'**
+  String get spatialAutoNextOn;
+
+  /// No description provided for @spatialAutoNextOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-next: Off'**
+  String get spatialAutoNextOff;
+
+  /// No description provided for @spatialWatchFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get spatialWatchFilterAll;
+
+  /// No description provided for @spatialWatchUnwatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Unwatched'**
+  String get spatialWatchUnwatched;
+
+  /// No description provided for @spatialWatchInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress ({covered}/{total} s)'**
+  String spatialWatchInProgress(int covered, int total);
+
+  /// No description provided for @spatialWatchInProgressShort.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get spatialWatchInProgressShort;
+
+  /// No description provided for @spatialWatchWatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Watched'**
+  String get spatialWatchWatched;
+
+  /// No description provided for @spatialBookmarked.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarked'**
+  String get spatialBookmarked;
+
+  /// No description provided for @spatialUnfinishedFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfinished first'**
+  String get spatialUnfinishedFirst;
+
   /// No description provided for @spatialMitAttribution.
   ///
   /// In en, this message translates to:

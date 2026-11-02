@@ -26,11 +26,11 @@ class _InjectedSpatialLibraryRepository
 enum _SpatialMenuAction {
   guidedReplay,
   sourceSpeed,
+  bookmark,
+  autoNext,
   sourceInfo,
   officialVideo,
 }
-
-enum _SpatialPlaybackMode { guided, source }
 
 enum _SpatialCuePhase { context, connection, aftermath, continuation, review }
 
@@ -87,7 +87,7 @@ class _ScanPassSpatialLibraryScreenState
   RealMatchReplayData? _data;
   SpatialFocusPlan? _focusPlan;
   final Map<String, SpatialFocusPlan> _focusPlans = {};
-  final _libraryFilters = _SpatialLibrarySheetFilters();
+  SpatialLibraryFilters _libraryFilters = const SpatialLibraryFilters();
   Object? _loadError;
   int _sceneIndex = 0;
   int? _requestedSceneIndex;
@@ -96,7 +96,13 @@ class _ScanPassSpatialLibraryScreenState
   int _playGeneration = 0;
   bool _playing = false;
   bool _focusedReplay = false;
-  _SpatialPlaybackMode _playbackMode = _SpatialPlaybackMode.guided;
+  bool _foreground = true;
+  bool _autoNextEligibleRun = false;
+  bool _autoNextBlocked = false;
+  bool _persistenceFailureShown = false;
+  double? _lastPlaybackSourceTime;
+  SpatialLibraryPlaybackMode _playbackMode = SpatialLibraryPlaybackMode.guided;
+  Timer? _checkpointTimer;
   String? _cuePlacementKey;
   Rect? _cuePlacementRect;
   String? _directionPlacementKey;
@@ -129,6 +135,13 @@ class _ScanPassSpatialLibraryScreenState
         catalogLoader: widget.catalogLoader ?? assets.loadCatalog,
         sceneLoader: widget.sceneLoader ?? assets.loadScene,
       ),
+      optionRepository: widget.optionRepository,
+    );
+    _checkpointTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (_) {
+        if (_playing && _foreground) unawaited(_checkpointCurrent());
+      },
     );
     _registerLicense();
     _loadInitial();
@@ -146,6 +159,7 @@ class _ScanPassSpatialLibraryScreenState
   }
 
   void _tick() {
+    _capturePlaybackProgress();
     if (mounted) setState(() {});
   }
 
@@ -177,9 +191,40 @@ class _ScanPassSpatialLibraryScreenState
     try {
       final catalog = await _service.loadCatalog();
       if (!mounted || generation != _loadGeneration) return;
-      final data = await _loadScene(catalog.scenes.first);
+      await _service.prepareCatalog(catalog);
       if (!mounted || generation != _loadGeneration) return;
-      _applyLoaded(catalog, data, 0);
+      _libraryFilters = _service.preferences.filters;
+      _playbackMode = _service.preferences.playbackMode;
+      final initialScene = _service.initialScene(
+        catalog,
+        matchesQuery: _matchesLocalizedQuery,
+      );
+      final initialIndex = catalog.scenes.indexWhere(
+        (scene) => scene.id == initialScene.id,
+      );
+      final data = await _loadScene(initialScene);
+      if (!mounted || generation != _loadGeneration) return;
+      _applyLoaded(
+        catalog,
+        data,
+        initialIndex,
+        resumeTime: _service.initialResumeTime(initialScene),
+      );
+      if (_service.isWatched(initialScene) &&
+          _service.nextUnfinished(
+                filteredScenes: _filteredScenes(),
+                currentSceneId: initialScene.id,
+              ) ==
+              null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _showNoUnwatchedScenes();
+        });
+      }
+      unawaited(
+        _service
+            .selectScene(initialScene, sourceTime: _time)
+            .then((_) => _showPersistenceFailureIfNeeded()),
+      );
     } catch (error) {
       if (!mounted || generation != _loadGeneration) return;
       setState(() {
@@ -210,6 +255,9 @@ class _ScanPassSpatialLibraryScreenState
       final data = await _loadScene(scene);
       if (!mounted || generation != _loadGeneration) return;
       _applyLoaded(catalog, data, index);
+      await _service.selectScene(scene, sourceTime: _time);
+      if (!mounted || generation != _loadGeneration) return;
+      _showPersistenceFailureIfNeeded();
     } catch (error) {
       if (!mounted || generation != _loadGeneration) return;
       setState(() {
@@ -223,12 +271,17 @@ class _ScanPassSpatialLibraryScreenState
   void _applyLoaded(
     SpatialLibraryCatalog catalog,
     RealMatchReplayData data,
-    int index,
-  ) {
+    int index, {
+    double? resumeTime,
+  }) {
     _dismissActionInspection();
     _controller
       ..duration = Duration(milliseconds: (data.duration * 1000).round())
-      ..value = 0;
+      ..value = data.duration <= 0
+          ? 0
+          : ((resumeTime ?? _service.resumeTime(catalog.scenes[index])) /
+                  data.duration)
+              .clamp(0.0, 1.0);
     final plan = _focusPlans.putIfAbsent(
       data.scene.id,
       () => SpatialFocusPlan.build(data, catalog.scenes[index]),
@@ -243,7 +296,10 @@ class _ScanPassSpatialLibraryScreenState
       _loadError = null;
       _playing = false;
       _focusedReplay = false;
-      _playbackMode = _SpatialPlaybackMode.guided;
+      _playbackMode = _service.preferences.playbackMode;
+      _lastPlaybackSourceTime = null;
+      _autoNextEligibleRun = false;
+      _autoNextBlocked = false;
     });
   }
 
@@ -253,12 +309,22 @@ class _ScanPassSpatialLibraryScreenState
         state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden ||
         state == AppLifecycleState.detached) {
+      _capturePlaybackProgress();
+      _foreground = false;
       _stopPlayback();
+    } else if (state == AppLifecycleState.resumed) {
+      _foreground = true;
     }
   }
 
   @override
   void dispose() {
+    _capturePlaybackProgress();
+    final scene = _scene;
+    if (scene != null) {
+      unawaited(_service.checkpoint(scene, sourceTime: _time));
+    }
+    _checkpointTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     PaintingBinding.instance.systemFonts
         .removeListener(_handleSystemFontsChanged);
@@ -290,9 +356,16 @@ class _ScanPassSpatialLibraryScreenState
     _actionTooltipGeneration++;
   }
 
-  void _stopPlayback({bool update = true}) {
+  void _stopPlayback({
+    bool update = true,
+    bool blockAutoNext = false,
+  }) {
+    _capturePlaybackProgress();
     _playGeneration++;
     _controller.stop();
+    _lastPlaybackSourceTime = null;
+    _autoNextEligibleRun = false;
+    if (blockAutoNext) _autoNextBlocked = true;
     if (update && mounted && (_playing || _focusedReplay)) {
       setState(() {
         _playing = false;
@@ -302,6 +375,25 @@ class _ScanPassSpatialLibraryScreenState
       _playing = false;
       _focusedReplay = false;
     }
+    unawaited(_checkpointCurrent());
+  }
+
+  void _capturePlaybackProgress() {
+    if (!_playing || !_foreground) return;
+    final scene = _scene;
+    final previous = _lastPlaybackSourceTime;
+    final current = _time;
+    if (scene != null && previous != null) {
+      _service.recordPlaying(scene: scene, from: previous, to: current);
+    }
+    _lastPlaybackSourceTime = current;
+  }
+
+  Future<void> _checkpointCurrent() async {
+    final scene = _scene;
+    if (scene == null) return;
+    await _service.checkpoint(scene, sourceTime: _time);
+    if (mounted) _showPersistenceFailureIfNeeded();
   }
 
   void _togglePlayback() {
@@ -312,7 +404,7 @@ class _ScanPassSpatialLibraryScreenState
     }
     _dismissActionInspection();
     if (_scene?.education != null &&
-        _playbackMode == _SpatialPlaybackMode.guided) {
+        _playbackMode == SpatialLibraryPlaybackMode.guided) {
       _playFocusReplay(restart: _finished);
     } else {
       if (_finished) _controller.value = 0;
@@ -324,9 +416,12 @@ class _ScanPassSpatialLibraryScreenState
     final data = _data;
     if (data == null) return;
     final generation = ++_playGeneration;
+    final autoNextEligible = !_autoNextBlocked;
     setState(() {
       _playing = true;
       _focusedReplay = false;
+      _autoNextEligibleRun = autoNextEligible;
+      _lastPlaybackSourceTime = _time;
     });
     unawaited(() async {
       try {
@@ -335,7 +430,10 @@ class _ScanPassSpatialLibraryScreenState
         return;
       }
       if (!mounted || generation != _playGeneration) return;
-      setState(() => _playing = false);
+      await _handleNaturalPlaybackEnd(
+        generation,
+        autoNextEligible: autoNextEligible,
+      );
     }());
   }
 
@@ -344,13 +442,24 @@ class _ScanPassSpatialLibraryScreenState
     final scene = _scene;
     if (data == null || scene == null) return;
     _stopPlayback(update: false);
-    if (restart) _controller.value = 0;
+    if (restart) {
+      _controller.value = 0;
+      _autoNextBlocked = false;
+    }
     final generation = ++_playGeneration;
+    final autoNextEligible = !_autoNextBlocked;
     setState(() {
       _playing = true;
       _focusedReplay = true;
-      _playbackMode = _SpatialPlaybackMode.guided;
+      _playbackMode = SpatialLibraryPlaybackMode.guided;
+      _autoNextEligibleRun = autoNextEligible;
+      _lastPlaybackSourceTime = _time;
     });
+    unawaited(
+      _service
+          .setPlaybackMode(SpatialLibraryPlaybackMode.guided)
+          .then((_) => _showPersistenceFailureIfNeeded()),
+    );
     unawaited(() async {
       Future<void> playTo(double sourceTime, double rate) async {
         final remainingSourceTime = sourceTime - _time;
@@ -377,23 +486,60 @@ class _ScanPassSpatialLibraryScreenState
         return;
       }
       if (!mounted || generation != _playGeneration) return;
-      setState(() {
-        _playing = false;
-        _focusedReplay = false;
-      });
+      await _handleNaturalPlaybackEnd(
+        generation,
+        autoNextEligible: autoNextEligible,
+      );
     }());
+  }
+
+  Future<void> _handleNaturalPlaybackEnd(
+    int generation, {
+    required bool autoNextEligible,
+  }) async {
+    _capturePlaybackProgress();
+    final scene = _scene;
+    if (scene == null || !mounted || generation != _playGeneration) return;
+    setState(() {
+      _playing = false;
+      _focusedReplay = false;
+      _lastPlaybackSourceTime = null;
+    });
+    await _service.checkpoint(scene, sourceTime: _time);
+    if (!mounted || generation != _playGeneration) return;
+    _showPersistenceFailureIfNeeded();
+    if (!autoNextEligible ||
+        !_autoNextEligibleRun ||
+        !_service.preferences.autoNext ||
+        !_service.isWatched(scene)) {
+      return;
+    }
+    final next = _service.nextUnfinished(
+      filteredScenes: _filteredScenes(),
+      currentSceneId: scene.id,
+    );
+    if (next == null) {
+      _showNoUnwatchedScenes();
+      return;
+    }
+    final catalog = _catalog;
+    if (catalog == null) return;
+    final index = catalog.scenes.indexWhere((value) => value.id == next.id);
+    if (index >= 0) await _selectScene(index);
   }
 
   void _seek(double value) {
     _dismissActionInspection();
     _stopPlayback(update: false);
+    _autoNextBlocked = true;
     setState(() => _controller.value = value);
+    unawaited(_checkpointCurrent());
   }
 
   Future<void> _openLibrary() async {
     final catalog = _catalog;
     if (catalog == null) return;
-    _stopPlayback();
+    _stopPlayback(blockAutoNext: true);
     final selected = await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
@@ -402,6 +548,8 @@ class _ScanPassSpatialLibraryScreenState
         catalog: catalog,
         selectedIndex: _sceneIndex,
         filters: _libraryFilters,
+        preferences: _service.preferences,
+        onFiltersChanged: _setLibraryFilters,
       ),
     );
     if (!mounted || selected == null || selected == _sceneIndex) return;
@@ -412,7 +560,7 @@ class _ScanPassSpatialLibraryScreenState
     final catalog = _catalog;
     final scene = _scene;
     if (catalog == null || scene == null) return;
-    _stopPlayback();
+    _stopPlayback(blockAutoNext: true);
     await showModalBottomSheet<void>(
       context: context,
       useSafeArea: true,
@@ -451,10 +599,37 @@ class _ScanPassSpatialLibraryScreenState
         _playFocusReplay(restart: true);
         break;
       case _SpatialMenuAction.sourceSpeed:
+        final originatingSceneIdentity = _scene?.spatialHistoryIdentity;
         _stopPlayback(update: false);
         _controller.value = 0;
-        setState(() => _playbackMode = _SpatialPlaybackMode.source);
+        _autoNextBlocked = false;
+        setState(() => _playbackMode = SpatialLibraryPlaybackMode.source);
+        final loadGeneration = _loadGeneration;
+        final playGeneration = _playGeneration;
+        await _service.setPlaybackMode(SpatialLibraryPlaybackMode.source);
+        if (!mounted) return;
+        _showPersistenceFailureIfNeeded();
+        if (loadGeneration != _loadGeneration ||
+            playGeneration != _playGeneration ||
+            originatingSceneIdentity != _scene?.spatialHistoryIdentity ||
+            _playbackMode != SpatialLibraryPlaybackMode.source) {
+          return;
+        }
         _playAtSourceSpeed();
+        break;
+      case _SpatialMenuAction.bookmark:
+        final scene = _scene;
+        if (scene == null) return;
+        await _service.toggleBookmark(scene);
+        if (!mounted) return;
+        setState(() {});
+        _showPersistenceFailureIfNeeded();
+        break;
+      case _SpatialMenuAction.autoNext:
+        await _service.setAutoNext(!_service.preferences.autoNext);
+        if (!mounted) return;
+        setState(() {});
+        _showPersistenceFailureIfNeeded();
         break;
       case _SpatialMenuAction.sourceInfo:
         await _openInfo();
@@ -462,7 +637,7 @@ class _ScanPassSpatialLibraryScreenState
       case _SpatialMenuAction.officialVideo:
         final optionRepository = widget.optionRepository;
         if (optionRepository == null) return;
-        _stopPlayback();
+        _stopPlayback(blockAutoNext: true);
         await Navigator.of(context).push<void>(
           MaterialPageRoute<void>(
             builder: (context) => ScanPassVideoLearningScreen(
@@ -478,9 +653,101 @@ class _ScanPassSpatialLibraryScreenState
   void _selectRelative(int delta) {
     final catalog = _catalog;
     if (catalog == null) return;
-    final base = _requestedSceneIndex ?? _sceneIndex;
-    final target = (base + delta) % catalog.scenes.length;
-    unawaited(_selectScene(target));
+    final baseIndex = _requestedSceneIndex ?? _sceneIndex;
+    if (baseIndex < 0 || baseIndex >= catalog.scenes.length) return;
+    final scene = catalog.scenes[baseIndex];
+    final filtered = _filteredScenes();
+    SpatialLibraryScene? target;
+    if (delta > 0) {
+      target = _service.nextUnfinished(
+        filteredScenes: filtered,
+        currentSceneId: scene.id,
+      );
+      if (target == null) {
+        _showNoUnwatchedScenes();
+        target = _service.relativeScene(
+          filteredScenes: filtered,
+          currentSceneId: scene.id,
+          delta: delta,
+        );
+      }
+    } else {
+      target = _service.relativeScene(
+        filteredScenes: filtered,
+        currentSceneId: scene.id,
+        delta: delta,
+      );
+    }
+    if (target == null) {
+      _showNoUnwatchedScenes();
+      return;
+    }
+    final targetIndex = catalog.scenes.indexWhere(
+      (candidate) => candidate.id == target!.id,
+    );
+    if (targetIndex >= 0 && targetIndex != _sceneIndex) {
+      unawaited(_selectScene(targetIndex));
+    }
+  }
+
+  List<SpatialLibraryScene> _filteredScenes() {
+    final catalog = _catalog;
+    if (catalog == null) return const <SpatialLibraryScene>[];
+    return _service.filteredScenes(
+      catalog: catalog,
+      matchesQuery: _matchesLocalizedQuery,
+    );
+  }
+
+  bool _matchesLocalizedQuery(SpatialLibraryScene scene, String query) =>
+      SpatialLibraryDiscovery.matchesScene(
+        scene,
+        query,
+        themeTerms: <String>[
+          _learningTitle(_l10n, scene),
+          if (scene.education != null)
+            _educationQuestion(_l10n, scene, scene.education!),
+        ],
+      );
+
+  void _setLibraryFilters(SpatialLibraryFilters filters) {
+    _libraryFilters = filters;
+    unawaited(
+      _service.setFilters(filters).then((_) {
+        if (mounted) _showPersistenceFailureIfNeeded();
+      }),
+    );
+  }
+
+  void _showNoUnwatchedScenes() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(_l10n.spatialNoUnwatchedScenes)),
+    );
+  }
+
+  void _showPersistenceFailureIfNeeded() {
+    if (!mounted) return;
+    if (!_service.hasPersistenceError) {
+      _persistenceFailureShown = false;
+      return;
+    }
+    if (_persistenceFailureShown) return;
+    _persistenceFailureShown = true;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_l10n.spatialHistorySaveFailed),
+        action: SnackBarAction(
+          label: _l10n.spatialHistoryRetry,
+          onPressed: () => unawaited(() async {
+            await _service.retryPersistence();
+            if (!mounted) return;
+            _persistenceFailureShown = false;
+            _showPersistenceFailureIfNeeded();
+          }()),
+        ),
+      ),
+    );
   }
 
   @override
@@ -910,7 +1177,7 @@ class _ScanPassSpatialLibraryScreenState
                   time: _time,
                   reducedMotion: reduceActionMotion,
                 ),
-                onInspect: _stopPlayback,
+                onInspect: () => _stopPlayback(blockAutoNext: true),
               ),
             ),
           if (_requestedSceneIndex != null)
@@ -927,7 +1194,7 @@ class _ScanPassSpatialLibraryScreenState
 
   bool _usesHalfPlaybackRate(SpatialLibraryScene scene) =>
       scene.education != null &&
-      _playbackMode == _SpatialPlaybackMode.guided &&
+      _playbackMode == SpatialLibraryPlaybackMode.guided &&
       _time >= scene.teachingStart &&
       _time < scene.teachingEnd;
 
@@ -1218,7 +1485,7 @@ class _ScanPassSpatialLibraryScreenState
         key: const ValueKey<String>('spatial-more'),
         tooltip: _l10n.flowMore,
         margin: EdgeInsets.zero,
-        onOpened: _stopPlayback,
+        onOpened: () => _stopPlayback(blockAutoNext: true),
         onSelected: (action) => unawaited(_handleMenu(action)),
         icon: Icons.more_horiz,
         itemBuilder: (context) => [
@@ -1233,6 +1500,24 @@ class _ScanPassSpatialLibraryScreenState
               value: _SpatialMenuAction.sourceSpeed,
               child: Text(_l10n.spatialEducationSourceSpeed),
             ),
+          PopupMenuItem(
+            key: const ValueKey<String>('spatial-bookmark-toggle'),
+            value: _SpatialMenuAction.bookmark,
+            child: Text(
+              _scene != null && _service.isBookmarked(_scene!)
+                  ? _l10n.spatialRemoveBookmark
+                  : _l10n.spatialAddBookmark,
+            ),
+          ),
+          PopupMenuItem(
+            key: const ValueKey<String>('spatial-auto-next-toggle'),
+            value: _SpatialMenuAction.autoNext,
+            child: Text(
+              _service.preferences.autoNext
+                  ? _l10n.spatialAutoNextOn
+                  : _l10n.spatialAutoNextOff,
+            ),
+          ),
           PopupMenuItem(
             key: const ValueKey<String>('spatial-source-info'),
             value: _SpatialMenuAction.sourceInfo,
@@ -1407,23 +1692,19 @@ class _ScanPassSpatialLibraryScreenState
   }
 }
 
-class _SpatialLibrarySheetFilters {
-  String query = '';
-  SpatialLearningTheme? theme;
-  SpatialLearningObjective? objective;
-  String? attackingTeam;
-  String? player;
-}
-
 class _SpatialLibrarySheet extends StatefulWidget {
   final SpatialLibraryCatalog catalog;
   final int selectedIndex;
-  final _SpatialLibrarySheetFilters filters;
+  final SpatialLibraryFilters filters;
+  final SpatialLibraryPreferences preferences;
+  final ValueChanged<SpatialLibraryFilters> onFiltersChanged;
 
   const _SpatialLibrarySheet({
     required this.catalog,
     required this.selectedIndex,
     required this.filters,
+    required this.preferences,
+    required this.onFiltersChanged,
   });
 
   @override
@@ -1432,10 +1713,12 @@ class _SpatialLibrarySheet extends StatefulWidget {
 
 class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
   late final TextEditingController _searchController;
+  late SpatialLibraryFilters _filters;
 
   @override
   void initState() {
     super.initState();
+    _filters = widget.filters;
     _searchController = TextEditingController(text: widget.filters.query);
   }
 
@@ -1448,39 +1731,20 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final scenes = widget.catalog.scenes
-        .where(
-          (scene) =>
-              widget.filters.objective == null ||
-              scene.education?.objective == widget.filters.objective,
-        )
-        .where(
-          (scene) =>
-              widget.filters.theme == null ||
-              scene.theme == widget.filters.theme,
-        )
-        .where(
-          (scene) =>
-              widget.filters.attackingTeam == null ||
-              scene.attackingTeam == widget.filters.attackingTeam,
-        )
-        .where(
-          (scene) =>
-              widget.filters.player == null ||
-              scene.involvesPlayer(widget.filters.player!),
-        )
-        .where(
-          (scene) => SpatialLibraryDiscovery.matchesScene(
-            scene,
-            _searchController.text,
-            themeTerms: <String>[
-              _learningTitle(l10n, scene),
-              if (scene.education != null)
-                _educationQuestion(l10n, scene, scene.education!),
-            ],
-          ),
-        )
-        .toList(growable: false);
+    final preferences = widget.preferences.copyWith(filters: _filters);
+    final scenes = SpatialLibraryPersonalization.filteredScenes(
+      catalog: widget.catalog,
+      preferences: preferences,
+      matchesQuery: (scene, query) => SpatialLibraryDiscovery.matchesScene(
+        scene,
+        query,
+        themeTerms: <String>[
+          _learningTitle(l10n, scene),
+          if (scene.education != null)
+            _educationQuestion(l10n, scene, scene.education!),
+        ],
+      ),
+    );
     final themes = widget.catalog.themes.toList(growable: false)
       ..sort((a, b) => a.index.compareTo(b.index));
     final objectives = widget.catalog.scenes
@@ -1491,7 +1755,7 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
       ..sort((a, b) => a.index.compareTo(b.index));
     final teams = widget.catalog.attackingTeams.toList(growable: false)..sort();
     final players = widget.catalog
-        .participants(attackingTeam: widget.filters.attackingTeam)
+        .participants(attackingTeam: _filters.attackingTeam)
         .toList(growable: false)
       ..sort();
     return Padding(
@@ -1530,10 +1794,8 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                 TextField(
                   key: const ValueKey<String>('spatial-search'),
                   controller: _searchController,
-                  onChanged: (value) {
-                    widget.filters.query = value;
-                    setState(() {});
-                  },
+                  onChanged: (value) =>
+                      _updateFilters(_filters.copyWith(query: value)),
                   onTapOutside: (_) => FocusScope.of(context).unfocus(),
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
@@ -1569,11 +1831,11 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                       width: width,
                       child: KeyedSubtree(
                         key: ValueKey<String>(
-                          'spatial-team-value-${widget.filters.attackingTeam ?? 'all'}',
+                          'spatial-team-value-${_filters.attackingTeam ?? 'all'}',
                         ),
                         child: DropdownButtonFormField<String?>(
                           key: const ValueKey<String>('spatial-team-filter'),
-                          initialValue: widget.filters.attackingTeam,
+                          initialValue: _filters.attackingTeam,
                           isExpanded: true,
                           decoration: InputDecoration(
                             isDense: true,
@@ -1607,11 +1869,11 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                       width: width,
                       child: KeyedSubtree(
                         key: ValueKey<String>(
-                          'spatial-player-value-${widget.filters.player ?? 'all'}',
+                          'spatial-player-value-${_filters.player ?? 'all'}',
                         ),
                         child: DropdownButtonFormField<String?>(
                           key: const ValueKey<String>('spatial-player-filter'),
-                          initialValue: widget.filters.player,
+                          initialValue: _filters.player,
                           isExpanded: true,
                           decoration: InputDecoration(
                             isDense: true,
@@ -1637,9 +1899,9 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                                 ),
                               ),
                           ],
-                          onChanged: (value) => setState(() {
-                            widget.filters.player = value;
-                          }),
+                          onChanged: (value) => _updateFilters(
+                            _filters.copyWith(player: value),
+                          ),
                         ),
                       ),
                     ),
@@ -1657,12 +1919,11 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                     padding: const EdgeInsets.symmetric(horizontal: 3),
                     child: ChoiceChip(
                       key: const ValueKey<String>('spatial-theme-all'),
-                      selected: widget.filters.theme == null &&
-                          widget.filters.objective == null,
-                      onSelected: (_) => setState(() {
-                        widget.filters.theme = null;
-                        widget.filters.objective = null;
-                      }),
+                      selected:
+                          _filters.theme == null && _filters.objective == null,
+                      onSelected: (_) => _updateFilters(
+                        _filters.copyWith(theme: null, objective: null),
+                      ),
                       label: Text(l10n.realMatchReplayAllCategories),
                     ),
                   ),
@@ -1674,11 +1935,10 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                           key: ValueKey<String>(
                             'spatial-theme-${theme.name}',
                           ),
-                          selected: widget.filters.theme == theme,
-                          onSelected: (_) => setState(() {
-                            widget.filters.theme = theme;
-                            widget.filters.objective = null;
-                          }),
+                          selected: _filters.theme == theme,
+                          onSelected: (_) => _updateFilters(
+                            _filters.copyWith(theme: theme, objective: null),
+                          ),
                           label: Text(_themeTitle(l10n, theme)),
                         ),
                       ),
@@ -1690,15 +1950,50 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                           key: ValueKey<String>(
                             'spatial-objective-${objective.name}',
                           ),
-                          selected: widget.filters.objective == objective,
-                          onSelected: (_) => setState(() {
-                            widget.filters.objective = objective;
-                            widget.filters.theme = null;
-                          }),
+                          selected: _filters.objective == objective,
+                          onSelected: (_) => _updateFilters(
+                            _filters.copyWith(
+                              objective: objective,
+                              theme: null,
+                            ),
+                          ),
                           label:
                               Text(_educationObjectiveTitle(l10n, objective)),
                         ),
                       ),
+                ]),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(children: [
+                  for (final filter in SpatialLibraryWatchFilter.values)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: ChoiceChip(
+                        key: ValueKey<String>(
+                          'spatial-watch-filter-${filter.name}',
+                        ),
+                        selected: _filters.watchFilter == filter,
+                        onSelected: (_) => _updateFilters(
+                          _filters.copyWith(watchFilter: filter),
+                        ),
+                        label: Text(_watchFilterLabel(l10n, filter)),
+                      ),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: FilterChip(
+                      key: const ValueKey<String>('spatial-unfinished-first'),
+                      selected: _filters.unfinishedFirst,
+                      onSelected: (value) => _updateFilters(
+                        _filters.copyWith(unfinishedFirst: value),
+                      ),
+                      label: Text(l10n.spatialUnfinishedFirst),
+                    ),
+                  ),
                 ]),
               ),
             ),
@@ -1779,6 +2074,9 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                                 scene: scene,
                                 l10n: l10n,
                                 clock: _catalogClock(scene.startClock),
+                                record: preferences.records[
+                                        scene.spatialHistoryIdentity] ??
+                                    const SpatialLibrarySceneRecord(),
                               ),
                             ),
                           ),
@@ -1796,40 +2094,40 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
 
   bool get _hasActiveFilters =>
       _searchController.text.isNotEmpty ||
-      widget.filters.theme != null ||
-      widget.filters.objective != null ||
-      widget.filters.attackingTeam != null ||
-      widget.filters.player != null;
+      _filters.theme != null ||
+      _filters.objective != null ||
+      _filters.attackingTeam != null ||
+      _filters.player != null ||
+      _filters.watchFilter != SpatialLibraryWatchFilter.all ||
+      !_filters.unfinishedFirst;
 
   void _clearSearch() {
     _searchController.clear();
-    widget.filters.query = '';
-    setState(() {});
+    _updateFilters(_filters.copyWith(query: ''));
   }
 
   void _selectAttackingTeam(String? value) {
     final compatiblePlayers = widget.catalog.participants(
       attackingTeam: value,
     );
-    setState(() {
-      widget.filters.attackingTeam = value;
-      if (widget.filters.player != null &&
-          !compatiblePlayers.contains(widget.filters.player)) {
-        widget.filters.player = null;
-      }
-    });
+    final player =
+        _filters.player != null && compatiblePlayers.contains(_filters.player)
+            ? _filters.player
+            : null;
+    _updateFilters(
+      _filters.copyWith(attackingTeam: value, player: player),
+    );
   }
 
   void _resetFilters() {
     _searchController.clear();
-    widget.filters.query = '';
     FocusScope.of(context).unfocus();
-    setState(() {
-      widget.filters.theme = null;
-      widget.filters.objective = null;
-      widget.filters.attackingTeam = null;
-      widget.filters.player = null;
-    });
+    _updateFilters(const SpatialLibraryFilters());
+  }
+
+  void _updateFilters(SpatialLibraryFilters filters) {
+    setState(() => _filters = filters);
+    widget.onFiltersChanged(filters);
   }
 
   String _catalogClock(double seconds) {
@@ -1839,19 +2137,42 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
   }
 }
 
+String _watchFilterLabel(
+  AppLocalizations l10n,
+  SpatialLibraryWatchFilter filter,
+) =>
+    switch (filter) {
+      SpatialLibraryWatchFilter.all => l10n.spatialWatchFilterAll,
+      SpatialLibraryWatchFilter.unwatched => l10n.spatialWatchUnwatched,
+      SpatialLibraryWatchFilter.inProgress => l10n.spatialWatchInProgressShort,
+      SpatialLibraryWatchFilter.watched => l10n.spatialWatchWatched,
+      SpatialLibraryWatchFilter.bookmarked => l10n.spatialBookmarked,
+    };
+
 class _SpatialResultCardBody extends StatelessWidget {
   final SpatialLibraryScene scene;
   final AppLocalizations l10n;
   final String clock;
+  final SpatialLibrarySceneRecord record;
 
   const _SpatialResultCardBody({
     required this.scene,
     required this.l10n,
     required this.clock,
+    required this.record,
   });
 
   @override
   Widget build(BuildContext context) {
+    final watchState = record.coverage.watchState(scene.duration);
+    final watchLabel = switch (watchState) {
+      SpatialLibraryWatchState.unwatched => l10n.spatialWatchUnwatched,
+      SpatialLibraryWatchState.inProgress => l10n.spatialWatchInProgress(
+          record.coverage.coveredSeconds(scene.duration).round(),
+          scene.duration.round(),
+        ),
+      SpatialLibraryWatchState.watched => l10n.spatialWatchWatched,
+    };
     final focusPlayer = Text(
       scene.education?.focusActor.playerName ?? scene.focusPlayerName,
       key: ValueKey<String>('spatial-focus-player-${scene.id}'),
@@ -1886,6 +2207,44 @@ class _SpatialResultCardBody extends StatelessWidget {
       runSpacing: 4,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
+        _SpatialResultBadge(
+          key: ValueKey<String>('spatial-watch-state-${scene.id}'),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            if (watchState == SpatialLibraryWatchState.watched) ...[
+              const Icon(Icons.check, size: 14),
+              const SizedBox(width: 3),
+            ],
+            Flexible(
+              child: Text(
+                watchLabel,
+                key: ValueKey<String>('spatial-watch-text-${scene.id}'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ),
+          ]),
+        ),
+        if (record.bookmarked)
+          _SpatialResultBadge(
+            key: ValueKey<String>('spatial-bookmark-state-${scene.id}'),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.bookmark, size: 14),
+              const SizedBox(width: 3),
+              Flexible(
+                child: Text(
+                  l10n.spatialBookmarked,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+            ]),
+          ),
         _SpatialResultBadge(
           child: Text(
             _learningTitle(l10n, scene),
