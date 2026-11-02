@@ -193,6 +193,15 @@ layer to keep all 22 players visible, marks the selected actor and fixed camera
 rectangle, and retains hollow reconstructed-position markers. That map supplies
 team context only; it does not change source-only detail evidence.
 
+In the main spatial viewer, an active source action uses a neutral 32–40 px
+generic athlete illustration and a separately drawn football. Receive has one
+source-time arrival that stops at contact; one-touch has one arrival and one
+departure through a single contact. These gestures never loop, freeze with the
+source clock, reproduce under seeking, and become a static contact/route when
+reduced motion is requested. They identify an action category only and are not
+reconstructions of measured body or foot pose, contact, ball height or travel
+direction.
+
 The main viewer remains the simple one-action experience: picture, compact
 title, one relevant cue and one play/pause/continue action. The catalog and
 source disclosure remain in the overflow menu; there is no scrubber, speed

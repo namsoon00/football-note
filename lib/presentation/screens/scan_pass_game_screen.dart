@@ -44,6 +44,7 @@ import '../widgets/video_learning_surface.dart';
 part 'scan_pass_possession_lesson_screen.dart';
 part 'scan_pass_pressure_lesson_screen.dart';
 part 'scan_pass_real_match_replay_screen.dart';
+part 'scan_pass_spatial_action_pictogram.dart';
 part 'scan_pass_spatial_library_screen.dart';
 part 'scan_pass_video_learning_screen.dart';
 part 'scan_pass_replay_action_detail.dart';

@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "generation_mode": "built-in image_gen",
+  "created_on": "2026-11-02",
+  "purpose": "Generic football action category illustrations; not measured match body poses, foot contacts, ball directions or heights.",
+  "reference_concept_sha256": "93c17cca1a4963b2b78a4a2405394dc7daa66dd168fa69513a1bb0a5da440f6f",
+  "common_prompt": "Use case: scientific-educational. Asset type: production football action category pictogram. Reference image: approved five-action athlete concept, style reference only. Recreate only the specified professional full-athlete pose as a dark navy silhouette on a genuinely transparent square background. Anatomical adult athlete proportions, clear negative space, mature signage style, complete head, arms, legs and feet, approximately 8–10% safety margin. No football, arrows, words, labels, frame, watermark or shadows. The application separately renders the football and motion. Preserve the approved pose and visual style.",
+  "rendering": "Original generated PNG alpha preserved. Runtime tint and separate football/motion painting. No raster edits, crops or recoloring.",
+  "assets": [
+    {
+      "kind": "carry",
+      "path": "assets/scan_pass_actions/carry.png",
+      "sha256": "6ba14f2a449b1c2ecffa1d6f351e29778bdbc35d99cf157e39a91881976bdc4c",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "contact_ball_anchor": [
+        0.72,
+        0.91
+      ],
+      "pose_prompt": "Full body running right, front foot low right and trailing leg left; controlled forward carry.",
+      "source_file": "exec-2601a60d-b46d-485c-bd70-3d63296ba7af.png"
+    },
+    {
+      "kind": "direction_change",
+      "path": "assets/scan_pass_actions/direction_change.png",
+      "sha256": "cf0b7b50f70c6ebf7b023634584ea828e4b142bba40b97dd73726efaab44ed44",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "contact_ball_anchor": [
+        0.58,
+        0.825
+      ],
+      "pose_prompt": "Full body athletic change of direction, planted left leg and bent right leg with foot near lower center; hips turning.",
+      "source_file": "exec-1a2356a4-ce54-4065-8d49-bb1a19bc2b3e.png"
+    },
+    {
+      "kind": "receive",
+      "path": "assets/scan_pass_actions/receive.png",
+      "sha256": "30fd96d87e2786d9d57006b50900b9b64e8693b232522c5dbc077aa62cbb672a",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "contact_ball_anchor": [
+        0.16,
+        0.91
+      ],
+      "pose_prompt": "Full body receiving stance, left foot extended toward lower left to cushion a ball, other leg supports right.",
+      "source_file": "exec-13b4bf8a-654e-4613-bee2-d2e56a4ad22c.png"
+    },
+    {
+      "kind": "header",
+      "path": "assets/scan_pass_actions/header.png",
+      "sha256": "c9b7c182ee255246726c5af496c735af8f20339156312742734304513f4d883e",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "contact_ball_anchor": [
+        0.778,
+        0.15
+      ],
+      "pose_prompt": "Full body jumping and leaning right, forehead near upper right and feet lower left; heading pose.",
+      "source_file": "exec-9cb12328-3398-4c3a-ac68-cfe02e438e45.png"
+    },
+    {
+      "kind": "one_touch_pass",
+      "path": "assets/scan_pass_actions/one_touch_pass.png",
+      "sha256": "9788381193009a316060040a10537481b783ce8046163c9f6ed9849106a1efe5",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "contact_ball_anchor": [
+        0.75,
+        0.91
+      ],
+      "pose_prompt": "Full body passing stance, single contact foot extended lower right, support leg behind; immediate first-time pass.",
+      "source_file": "exec-de8799f1-d9cb-4660-8f29-6d33d5c548f6.png"
+    }
+  ]
+}
