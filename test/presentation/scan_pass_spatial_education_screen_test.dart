@@ -457,57 +457,6 @@ void main() {
     );
   });
 
-  test('all five action painters use distinct code-native glyph geometry', () {
-    String signature(SpatialActionGlyphGeometry geometry) {
-      final pathLengths = <String>[
-        for (final path in <Path>[
-          ...geometry.strokePaths,
-          ...geometry.fillPaths,
-        ])
-          for (final metric in path.computeMetrics())
-            metric.length.toStringAsFixed(2),
-      ];
-      return '${geometry.strokePaths.length}:'
-          '${geometry.fillPaths.length}:'
-          '${geometry.circles.length}:${pathLengths.join(',')}:'
-          '${geometry.circles.map((circle) => circle.radius.toStringAsFixed(2)).join(',')}';
-    }
-
-    final signatures = <String>{};
-    for (final kind in SpatialOnPitchActionKind.values) {
-      final geometry = SpatialActionIconPainter(kind: kind)
-          .glyphGeometry(const Size(26, 26));
-      signatures.add(signature(geometry));
-      for (final path in <Path>[
-        ...geometry.strokePaths,
-        ...geometry.fillPaths,
-      ]) {
-        expect(
-          (Offset.zero & const Size(26, 26)).contains(path.getBounds().topLeft),
-          isTrue,
-        );
-        expect(
-          (Offset.zero & const Size(26, 26))
-              .contains(path.getBounds().bottomRight),
-          isTrue,
-        );
-      }
-      for (final circle in geometry.circles) {
-        final bounds = Rect.fromCircle(
-          center: circle.center,
-          radius: circle.radius,
-        );
-        expect((Offset.zero & const Size(26, 26)).contains(bounds.topLeft),
-            isTrue);
-        expect(
-          (Offset.zero & const Size(26, 26)).contains(bounds.bottomRight),
-          isTrue,
-        );
-      }
-    }
-    expect(signatures, hasLength(SpatialOnPitchActionKind.values.length));
-  });
-
   for (final configuration in <({
     Locale locale,
     Size size,
@@ -515,48 +464,54 @@ void main() {
     double time,
     SpatialOnPitchActionKind kind,
   })>[
-    (
-      locale: const Locale('en'),
-      size: const Size(320, 640),
-      sceneId: '1925299-185-560983-thirdPlayer',
-      time: 11.1,
-      kind: SpatialOnPitchActionKind.receive,
-    ),
-    (
-      locale: const Locale('ko'),
-      size: const Size(640, 360),
-      sceneId: '1925299-185-560983-thirdPlayer',
-      time: 11.8,
-      kind: SpatialOnPitchActionKind.carry,
-    ),
-    (
-      locale: const Locale('ja'),
-      size: const Size(320, 640),
-      sceneId: '1925299-185-560983-thirdPlayer',
-      time: 17.4,
-      kind: SpatialOnPitchActionKind.oneTouchPass,
-    ),
-    (
-      locale: const Locale('en'),
-      size: const Size(640, 360),
-      sceneId: '1925299-185-560983-thirdPlayer',
-      time: 19,
-      kind: SpatialOnPitchActionKind.header,
-    ),
-    (
-      locale: const Locale('ko'),
-      size: const Size(320, 640),
-      sceneId: '1925299-35928-560882-receivingLane',
-      time: 19.5,
-      kind: SpatialOnPitchActionKind.directionChange,
-    ),
-    (
-      locale: const Locale('ko'),
-      size: const Size(667, 320),
-      sceneId: '1925299-35928-560882-receivingLane',
-      time: 19.7,
-      kind: SpatialOnPitchActionKind.directionChange,
-    ),
+    for (final actionCase in <({
+      String sceneId,
+      double time,
+      SpatialOnPitchActionKind kind,
+    })>[
+      (
+        sceneId: '1925299-185-560983-thirdPlayer',
+        time: 11.1,
+        kind: SpatialOnPitchActionKind.receive,
+      ),
+      (
+        sceneId: '1925299-185-560983-thirdPlayer',
+        time: 11.8,
+        kind: SpatialOnPitchActionKind.carry,
+      ),
+      (
+        sceneId: '1925299-185-560983-thirdPlayer',
+        time: 17.4,
+        kind: SpatialOnPitchActionKind.oneTouchPass,
+      ),
+      (
+        sceneId: '1925299-185-560983-thirdPlayer',
+        time: 19,
+        kind: SpatialOnPitchActionKind.header,
+      ),
+      (
+        sceneId: '1925299-35928-560882-receivingLane',
+        time: 19.7,
+        kind: SpatialOnPitchActionKind.directionChange,
+      ),
+    ])
+      for (final locale in const <Locale>[
+        Locale('en'),
+        Locale('ko'),
+        Locale('ja'),
+      ])
+        for (final size in const <Size>[
+          Size(390, 844),
+          Size(320, 740),
+          Size(667, 320),
+        ])
+          (
+            locale: locale,
+            size: size,
+            sceneId: actionCase.sceneId,
+            time: actionCase.time,
+            kind: actionCase.kind,
+          ),
   ]) {
     testWidgets(
         '${configuration.kind.name} icon stays actor-bound and clear in '
@@ -588,9 +543,13 @@ void main() {
       expect(resolvedIcon.actorPlayerId, action!.playerId);
       expect(resolvedIcon.eventId, action.eventId);
       expect(resolvedIcon.kind, action.kind);
-      expect(resolvedIcon.attachmentDistance, lessThanOrEqualTo(18));
-      expect(resolvedIcon.visualRect.width, 24);
-      expect(resolvedIcon.hitRect.width, greaterThanOrEqualTo(40));
+      expect(resolvedIcon.attachmentDistance, lessThanOrEqualTo(24));
+      expect(
+        resolvedIcon.visualSize,
+        anyOf(closeTo(32, .001), closeTo(36, .001), closeTo(40, .001)),
+      );
+      expect(resolvedIcon.hitRect.size, const Size.square(44));
+      expect(resolvedIcon.hitTargetContainsVisual, isTrue);
       expect(
         painter.viewport.view.contains(resolvedIcon.visualRect.topLeft),
         isTrue,
@@ -599,13 +558,21 @@ void main() {
         painter.viewport.view.contains(resolvedIcon.visualRect.bottomRight),
         isTrue,
       );
-      expect(resolvedIcon.visualRect.overlaps(painter.ballSafetyRect), isFalse);
       expect(
-        painter.reservedOverlayRects.any(resolvedIcon.visualRect.overlaps),
+        painter.viewport.view.contains(resolvedIcon.hitRect.topLeft),
+        isTrue,
+      );
+      expect(
+        painter.viewport.view.contains(resolvedIcon.hitRect.bottomRight),
+        isTrue,
+      );
+      expect(resolvedIcon.hitRect.overlaps(painter.ballSafetyRect), isFalse);
+      expect(
+        painter.reservedOverlayRects.any(resolvedIcon.hitRect.overlaps),
         isFalse,
       );
       expect(
-        painter.playerBadgeSafetyRects.any(resolvedIcon.visualRect.overlaps),
+        painter.playerBadgeSafetyRects.any(resolvedIcon.hitRect.overlaps),
         isFalse,
       );
       expect(

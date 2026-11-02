@@ -77,14 +77,23 @@ record; blue identifies the reviewed learning actor independently, including
 when that actor is off the ball. Player names stay beside their own badges and
 may be suppressed when no safe nearby slot is available. Action words are never
 combined with those names. A source-grounded action instead uses one neutral,
-high-contrast 24 px symbol attached to the observed actor: ball/trail for carry,
-a curved path for direction change, arrival/stop for receive, head/ball for
-header and touch/outgoing pass for one-touch pass. Its practical 40 px hit area
-does not change the visible symbol size. Placement is kept stable for the same
-event and viewport, remains inside the pitch viewport, and rejects players, the
-ball,
-names and teaching overlays; if no attached safe slot exists, no distant symbol
-is invented. Tapping or keyboard-activating the symbol pauses the replay and
+high-contrast 32–40 px athlete category illustration attached to the observed
+actor. A separate black-and-white football marks the relevant generic contact:
+carry stays at the foot, direction change adds a modest curved route, and a
+header stays at the forehead. Receive moves the ball in and holds it at contact;
+one-touch moves it in and out through exactly one contact. That motion is a
+non-looping function of the current source time, so pause freezes it and forward
+or backward seek reproduces it; reduced-motion settings show the static contact
+and route. The illustration and gesture do not reconstruct measured body/foot
+pose, contact, ball height or direction.
+
+The target remains at least 44 px. Its clamped viewport rectangle and the visible
+illustration use the same recorded geometry, so edge clamping cannot shift the
+picture away from the target. Placement is kept stable for the same event and
+viewport, remains inside the surrounding pitch viewport, and tries 40 px, then
+36 px and finally 32 px while rejecting players, the recorded ball, names and
+teaching overlays. If no attached slot within 24 px exists, no distant symbol is
+invented. Tapping or keyboard-activating the illustration pauses the replay and
 shows the localized actor and action name; hover and focus expose the same
 meaning. Scene changes, seeking and action changes dismiss that explanation,
 while the existing bottom play action resumes from the same source time.
@@ -214,11 +223,13 @@ observed ball throughout the source-controlled interval. The active actor is
 included in camera and name priority, while player numbers, gold confirmed
 ownership and blue teaching
 focus keep their independent meanings. The action symbol receives no invented
-ring, pose, contact animation or leader line. The neutral action symbol is
-separate from both rings and from player-name labels. It is a categorical
-pictogram, not a measured foot, body heading, ball height, contact pose or
-travel direction. Ordinary names remain within 18 pixels of their own actor
-badge and never acquire action words.
+ring or leader line. Its athlete pose, contact point and short ball route are
+generic category illustrations driven only by the already active action and its
+source-time phase; they do not alter the recorded field ball or claim a measured
+foot, body heading, ball height, contact pose or travel direction. The neutral
+action badge stays separate from both rings and from player-name labels.
+Ordinary names remain within 18 pixels of their own actor badge and never
+acquire action words.
 
 ## Selection and evidence gates
 

@@ -24104,7 +24104,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spatialActionEvidenceDisclosure =>
-      'Action symbols are cautious; tap one to read the actor and action. Carry does not mean a defender was beaten. Direction change describes the movement path, not measured body rotation. Receive does not confirm trapping technique. The symbols do not show a measured foot, body heading, ball height, or pose. Headers and one-touch passes appear only when recorded in the original action data.';
+      'The athlete pictures and ball gestures are generic action-category illustrations; tap one to read the actor and action. They are not reconstructions of measured body or foot pose, contact, ball height, or direction. Carry does not mean a defender was beaten. Direction change describes the movement path, not measured body rotation. Receive does not confirm trapping technique. Headers and one-touch passes appear only when recorded in the original action data.';
 
   @override
   String get spatialLegacyViewer => 'Legacy replay reference';

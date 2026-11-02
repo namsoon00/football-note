@@ -106,6 +106,7 @@ class _ScanPassSpatialLibraryScreenState
   String? _actionIconPlacementKey;
   int? _actionIconPlacementIndex;
   int _actionTooltipGeneration = 0;
+  bool _actionPictogramsPrecached = false;
 
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
   SpatialLibraryScene? get _scene => _catalog?.scenes[_sceneIndex];
@@ -146,6 +147,29 @@ class _ScanPassSpatialLibraryScreenState
 
   void _tick() {
     if (mounted) setState(() {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_actionPictogramsPrecached) return;
+    _actionPictogramsPrecached = true;
+    for (final kind in SpatialOnPitchActionKind.values) {
+      unawaited(
+        precacheImage(
+          SpatialActionPictogramAssets.imageProvider(kind),
+          context,
+          onError: (exception, stackTrace) {
+            if (kDebugMode) {
+              debugPrint(
+                'Unable to precache ${SpatialActionPictogramAssets.spec(kind).assetPath}: '
+                '$exception',
+              );
+            }
+          },
+        ),
+      );
+    }
   }
 
   Future<void> _loadInitial() async {
@@ -617,6 +641,9 @@ class _ScanPassSpatialLibraryScreenState
       final activeActionLabel = activeAction == null
           ? null
           : _spatialActionLabel(_l10n, activeAction.kind);
+      final mediaQuery = MediaQuery.of(context);
+      final reduceActionMotion =
+          mediaQuery.disableAnimations || mediaQuery.accessibleNavigation;
       final cueActorPoint = cue.targetPlayerId == null
           ? null
           : sample.players[data.playerIndex(cue.targetPlayerId!)];
@@ -865,6 +892,13 @@ class _ScanPassSpatialLibraryScreenState
                 message: _l10n.spatialActionSemantics(
                   activeAction!.playerName,
                   activeActionLabel!,
+                ),
+                gesturePhase: SpatialActionMotion.phaseAt(
+                  action: activeAction,
+                  scene: scene,
+                  data: data,
+                  time: _time,
+                  reducedMotion: reduceActionMotion,
                 ),
                 onInspect: _stopPlayback,
               ),
@@ -2370,394 +2404,6 @@ class SpatialPlayerNameLabelGeometry {
   }
 }
 
-class SpatialActionIconGeometry {
-  final int actorPlayerId;
-  final SpatialOnPitchActionKind kind;
-  final String eventId;
-  final Rect visualRect;
-  final Rect hitRect;
-  final Rect actorBadgeRect;
-  final int placementIndex;
-
-  const SpatialActionIconGeometry({
-    required this.actorPlayerId,
-    required this.kind,
-    required this.eventId,
-    required this.visualRect,
-    required this.hitRect,
-    required this.actorBadgeRect,
-    required this.placementIndex,
-  });
-
-  String get sourceIdentity => '$eventId:${kind.name}:$actorPlayerId';
-
-  double get attachmentDistance {
-    final dx = math.max(
-      0.0,
-      math.max(
-        actorBadgeRect.left - visualRect.right,
-        visualRect.left - actorBadgeRect.right,
-      ),
-    );
-    final dy = math.max(
-      0.0,
-      math.max(
-        actorBadgeRect.top - visualRect.bottom,
-        visualRect.top - actorBadgeRect.bottom,
-      ),
-    );
-    return math.sqrt(dx * dx + dy * dy);
-  }
-}
-
-typedef SpatialActionGlyphCircle = ({
-  Offset center,
-  double radius,
-  bool filled,
-});
-
-class SpatialActionGlyphGeometry {
-  final List<Path> strokePaths;
-  final List<Path> fillPaths;
-  final List<SpatialActionGlyphCircle> circles;
-
-  const SpatialActionGlyphGeometry({
-    this.strokePaths = const <Path>[],
-    this.fillPaths = const <Path>[],
-    this.circles = const <SpatialActionGlyphCircle>[],
-  });
-}
-
-class SpatialActionIconPainter extends CustomPainter {
-  final SpatialOnPitchActionKind kind;
-  final bool highlighted;
-
-  const SpatialActionIconPainter({
-    required this.kind,
-    this.highlighted = false,
-  });
-
-  SpatialActionGlyphGeometry glyphGeometry(Size size) {
-    final scale = math.min(size.width, size.height) / 24;
-    final origin = Offset(
-      (size.width - 24 * scale) / 2,
-      (size.height - 24 * scale) / 2,
-    );
-    Offset point(double x, double y) => origin + Offset(x * scale, y * scale);
-    Path path() => Path();
-
-    return switch (kind) {
-      SpatialOnPitchActionKind.carry => () {
-          final trail = path()
-            ..moveTo(point(4, 18).dx, point(4, 18).dy)
-            ..cubicTo(
-              point(7, 18).dx,
-              point(7, 18).dy,
-              point(10, 15).dx,
-              point(10, 15).dy,
-              point(14, 11).dx,
-              point(14, 11).dy,
-            );
-          return SpatialActionGlyphGeometry(
-            strokePaths: <Path>[trail],
-            circles: <SpatialActionGlyphCircle>[
-              (center: point(18, 7), radius: 3 * scale, filled: false),
-              (center: point(5, 18), radius: 1.1 * scale, filled: true),
-              (center: point(10, 15), radius: .9 * scale, filled: true),
-            ],
-          );
-        }(),
-      SpatialOnPitchActionKind.directionChange => () {
-          final curve = path()
-            ..moveTo(point(5, 18).dx, point(5, 18).dy)
-            ..cubicTo(
-              point(5, 11).dx,
-              point(5, 11).dy,
-              point(10, 9).dx,
-              point(10, 9).dy,
-              point(17, 10).dx,
-              point(17, 10).dy,
-            )
-            ..quadraticBezierTo(
-              point(19, 9).dx,
-              point(19, 9).dy,
-              point(19, 6).dx,
-              point(19, 6).dy,
-            );
-          final arrow = path()
-            ..moveTo(point(19, 5).dx, point(19, 5).dy)
-            ..lineTo(point(15.7, 8).dx, point(15.7, 8).dy)
-            ..lineTo(point(20.3, 9).dx, point(20.3, 9).dy)
-            ..close();
-          return SpatialActionGlyphGeometry(
-            strokePaths: <Path>[curve],
-            fillPaths: <Path>[arrow],
-          );
-        }(),
-      SpatialOnPitchActionKind.receive => () {
-          final arrival = path()
-            ..moveTo(point(8.8, 8.8).dx, point(8.8, 8.8).dy)
-            ..lineTo(point(14, 14).dx, point(14, 14).dy);
-          final stop = path()
-            ..moveTo(point(14, 11).dx, point(14, 11).dy)
-            ..lineTo(point(14, 18).dx, point(14, 18).dy)
-            ..quadraticBezierTo(
-              point(17, 20).dx,
-              point(17, 20).dy,
-              point(20, 18).dx,
-              point(20, 18).dy,
-            );
-          return SpatialActionGlyphGeometry(
-            strokePaths: <Path>[arrival, stop],
-            circles: <SpatialActionGlyphCircle>[
-              (center: point(6.5, 6.5), radius: 3 * scale, filled: false),
-            ],
-          );
-        }(),
-      SpatialOnPitchActionKind.header => () {
-          final neck = path()
-            ..moveTo(point(9.2, 17).dx, point(9.2, 17).dy)
-            ..lineTo(point(9.2, 18.8).dx, point(9.2, 18.8).dy)
-            ..moveTo(point(12.8, 17).dx, point(12.8, 17).dy)
-            ..lineTo(point(12.8, 18.8).dx, point(12.8, 18.8).dy);
-          final shoulders = path()
-            ..moveTo(point(5, 21).dx, point(5, 21).dy)
-            ..quadraticBezierTo(
-              point(11, 18).dx,
-              point(11, 18).dy,
-              point(17, 21).dx,
-              point(17, 21).dy,
-            );
-          return SpatialActionGlyphGeometry(
-            strokePaths: <Path>[neck, shoulders],
-            circles: <SpatialActionGlyphCircle>[
-              (center: point(11, 13), radius: 4.2 * scale, filled: false),
-              (center: point(18, 6), radius: 2.8 * scale, filled: false),
-            ],
-          );
-        }(),
-      SpatialOnPitchActionKind.oneTouchPass => () {
-          final pass = path()
-            ..moveTo(point(10, 14).dx, point(10, 14).dy)
-            ..lineTo(point(19, 8).dx, point(19, 8).dy);
-          final touchMark = path()
-            ..moveTo(point(10.5, 7).dx, point(10.5, 7).dy)
-            ..lineTo(point(12.8, 10.5).dx, point(12.8, 10.5).dy);
-          final arrow = path()
-            ..moveTo(point(20, 7.2).dx, point(20, 7.2).dy)
-            ..lineTo(point(15.4, 7.5).dx, point(15.4, 7.5).dy)
-            ..lineTo(point(18, 11.2).dx, point(18, 11.2).dy)
-            ..close();
-          return SpatialActionGlyphGeometry(
-            strokePaths: <Path>[pass, touchMark],
-            fillPaths: <Path>[arrow],
-            circles: <SpatialActionGlyphCircle>[
-              (center: point(6.5, 15.5), radius: 3 * scale, filled: false),
-            ],
-          );
-        }(),
-    };
-  }
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final bounds = Offset.zero & size;
-    final background = Paint()..color = const Color(0xF21A2420);
-    final border = Paint()
-      ..color = highlighted ? const Color(0xFFFFFFFF) : const Color(0xFFD8E2DD)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = highlighted ? 2 : 1.2;
-    final shape = RRect.fromRectAndRadius(
-      bounds.deflate(1),
-      const Radius.circular(6),
-    );
-    canvas.drawRRect(shape, background);
-    canvas.drawRRect(shape, border);
-
-    final geometry = glyphGeometry(size);
-    final scale = math.min(size.width, size.height) / 24;
-    final stroke = Paint()
-      ..color = const Color(0xFFF6FAF7)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.7 * scale
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    final fill = Paint()..color = const Color(0xFFF6FAF7);
-    for (final path in geometry.strokePaths) {
-      canvas.drawPath(path, stroke);
-    }
-    for (final path in geometry.fillPaths) {
-      canvas.drawPath(path, fill);
-    }
-    for (final circle in geometry.circles) {
-      if (circle.filled) {
-        canvas.drawCircle(circle.center, circle.radius, fill);
-      } else {
-        canvas.drawCircle(
-          circle.center,
-          circle.radius,
-          Paint()..color = const Color(0xFF1A2420),
-        );
-        canvas.drawCircle(circle.center, circle.radius, stroke);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant SpatialActionIconPainter oldDelegate) =>
-      oldDelegate.kind != kind || oldDelegate.highlighted != highlighted;
-}
-
-class _SpatialActionIconControl extends StatefulWidget {
-  final SpatialActionIconGeometry geometry;
-  final String message;
-  final VoidCallback onInspect;
-
-  const _SpatialActionIconControl({
-    super.key,
-    required this.geometry,
-    required this.message,
-    required this.onInspect,
-  });
-
-  @override
-  State<_SpatialActionIconControl> createState() =>
-      _SpatialActionIconControlState();
-}
-
-class _SpatialActionIconControlState extends State<_SpatialActionIconControl> {
-  final _tooltipKey = GlobalKey<TooltipState>();
-  final _focusNode = FocusNode();
-  bool _hovered = false;
-  bool _focused = false;
-  bool _pinned = false;
-
-  void _show({bool pinned = false}) {
-    if (pinned) _pinned = true;
-    _tooltipKey.currentState?.ensureTooltipVisible();
-    if (mounted) setState(() {});
-  }
-
-  void _dismiss() {
-    Tooltip.dismissAllToolTips();
-    _pinned = false;
-    if (mounted) setState(() {});
-  }
-
-  void _activate() {
-    widget.onInspect();
-    _show(pinned: true);
-  }
-
-  void _handleFocus(bool focused) {
-    _focused = focused;
-    if (focused) {
-      _show();
-    } else if (!_hovered && !_pinned) {
-      _dismiss();
-    } else if (mounted) {
-      setState(() {});
-    }
-  }
-
-  void _handleEnter(PointerEnterEvent event) {
-    _hovered = true;
-    _show();
-  }
-
-  void _handleExit(PointerExitEvent event) {
-    _hovered = false;
-    if (!_focused && !_pinned) {
-      _dismiss();
-    } else if (mounted) {
-      setState(() {});
-    }
-  }
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final geometry = widget.geometry;
-    final visualSize = geometry.visualRect.width;
-    final preferBelow =
-        geometry.visualRect.center.dy >= geometry.actorBadgeRect.center.dy;
-    return Semantics(
-      key: ValueKey<String>(
-        'spatial-action-control-${geometry.sourceIdentity}',
-      ),
-      container: true,
-      button: true,
-      label: widget.message,
-      onTap: _activate,
-      child: Tooltip(
-        key: _tooltipKey,
-        message: widget.message,
-        excludeFromSemantics: true,
-        triggerMode: TooltipTriggerMode.manual,
-        preferBelow: preferBelow,
-        verticalOffset: 18,
-        child: FocusableActionDetector(
-          focusNode: _focusNode,
-          mouseCursor: SystemMouseCursors.click,
-          onFocusChange: _handleFocus,
-          shortcuts: const <ShortcutActivator, Intent>{
-            SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-            SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
-            SingleActivator(LogicalKeyboardKey.escape): DismissIntent(),
-          },
-          actions: <Type, Action<Intent>>{
-            ActivateIntent: CallbackAction<ActivateIntent>(
-              onInvoke: (intent) {
-                _activate();
-                return null;
-              },
-            ),
-            DismissIntent: CallbackAction<DismissIntent>(
-              onInvoke: (intent) {
-                _dismiss();
-                return null;
-              },
-            ),
-          },
-          child: MouseRegion(
-            onEnter: _handleEnter,
-            onExit: _handleExit,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              excludeFromSemantics: true,
-              onTap: () {
-                _focusNode.requestFocus();
-                _activate();
-              },
-              child: Center(
-                child: ExcludeSemantics(
-                  child: SizedBox.square(
-                    dimension: visualSize,
-                    child: CustomPaint(
-                      key: ValueKey<String>(
-                        'spatial-action-glyph-${geometry.sourceIdentity}',
-                      ),
-                      painter: SpatialActionIconPainter(
-                        kind: geometry.kind,
-                        highlighted: _hovered || _focused,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class SpatialLibraryPitchPainter extends CustomPainter {
   static const _kitResolver = SpatialKitResolver();
 
@@ -3404,37 +3050,37 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     final actorBadge = badges[action.playerId];
     if (actorBadge == null) return null;
 
-    const visualSize = 24.0;
-    const hitSize = 40.0;
+    const hitSize = 44.0;
     final badge = actorBadge.rect;
     final visualCandidates = <Rect>[
-      for (final gap in const <double>[4, 10, 16])
-        for (final shift in const <double>[0, -10, 10, -18, 18]) ...<Rect>[
-          Rect.fromLTWH(
-            badge.right + gap,
-            badge.center.dy - visualSize / 2 + shift,
-            visualSize,
-            visualSize,
-          ),
-          Rect.fromLTWH(
-            badge.left - visualSize - gap,
-            badge.center.dy - visualSize / 2 + shift,
-            visualSize,
-            visualSize,
-          ),
-          Rect.fromLTWH(
-            badge.center.dx - visualSize / 2 + shift,
-            badge.top - visualSize - gap,
-            visualSize,
-            visualSize,
-          ),
-          Rect.fromLTWH(
-            badge.center.dx - visualSize / 2 + shift,
-            badge.bottom + gap,
-            visualSize,
-            visualSize,
-          ),
-        ],
+      for (final visualSize in const <double>[40, 36, 32])
+        for (final gap in const <double>[6, 12, 18])
+          for (final shift in const <double>[0, -12, 12, -22, 22]) ...<Rect>[
+            Rect.fromLTWH(
+              badge.right + gap,
+              badge.center.dy - visualSize / 2 + shift,
+              visualSize,
+              visualSize,
+            ),
+            Rect.fromLTWH(
+              badge.left - visualSize - gap,
+              badge.center.dy - visualSize / 2 + shift,
+              visualSize,
+              visualSize,
+            ),
+            Rect.fromLTWH(
+              badge.center.dx - visualSize / 2 + shift,
+              badge.top - visualSize - gap,
+              visualSize,
+              visualSize,
+            ),
+            Rect.fromLTWH(
+              badge.center.dx - visualSize / 2 + shift,
+              badge.bottom + gap,
+              visualSize,
+              visualSize,
+            ),
+          ],
     ];
     final preferred = preferredActionIconPlacement;
     final indices = <int>[
@@ -3452,16 +3098,19 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     final protectedControls = reservedOverlayRects;
     for (final index in indices) {
       final visualRect = visualCandidates[index];
-      final hitRect = Rect.fromCenter(
-        center: visualRect.center,
-        width: hitSize,
-        height: hitSize,
+      final hitRect = SpatialActionIconGeometry.clampTarget(
+        Rect.fromCenter(
+          center: visualRect.center,
+          width: hitSize,
+          height: hitSize,
+        ),
+        safeHitView,
       );
       if (!safeVisualView.contains(visualRect.topLeft) ||
           !safeVisualView.contains(visualRect.bottomRight) ||
           !safeHitView.contains(hitRect.topLeft) ||
           !safeHitView.contains(hitRect.bottomRight) ||
-          occupied.any(visualRect.overlaps) ||
+          occupied.any(hitRect.overlaps) ||
           protectedControls.any(hitRect.overlaps)) {
         continue;
       }
@@ -3474,7 +3123,10 @@ class SpatialLibraryPitchPainter extends CustomPainter {
         actorBadgeRect: badge,
         placementIndex: index,
       );
-      if (geometry.attachmentDistance <= 18) return geometry;
+      if (geometry.hitTargetContainsVisual &&
+          geometry.attachmentDistance <= 24) {
+        return geometry;
+      }
     }
     return null;
   }
