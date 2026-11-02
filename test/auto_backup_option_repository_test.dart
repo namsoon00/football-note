@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/backup_service.dart';
+import 'package:football_note/application/scan_pass_spatial_library_service.dart';
 import 'package:football_note/domain/repositories/backup_repository.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/infrastructure/auto_backup_option_repository.dart';
@@ -42,6 +43,30 @@ void main() {
       expect(backupRepository.backupIfSignedInCount, 0);
     },
   );
+
+  test('spatial viewing checkpoints stay local without skipping storage',
+      () async {
+    final backupRepository = _FakeBackupRepository();
+    final delegate = _MemoryOptionRepository();
+    final repository = AutoBackupOptionRepository(
+      delegate,
+      BackupService(backupRepository),
+      debounceDuration: Duration.zero,
+    );
+
+    await repository.setValue(
+      ScanPassSpatialLibraryService.storageKey,
+      '{"version":1}',
+    );
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(
+      delegate.getValue<String>(ScanPassSpatialLibraryService.storageKey),
+      '{"version":1}',
+    );
+    expect(backupRepository.backupIfSignedInCount, 0);
+  });
 }
 
 class _MemoryOptionRepository implements OptionRepository {

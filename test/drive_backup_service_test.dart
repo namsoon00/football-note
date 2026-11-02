@@ -12,6 +12,7 @@ import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/family_drive_link_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/player_level_service.dart';
+import 'package:football_note/application/scan_pass_spatial_library_service.dart';
 import 'package:football_note/application/training_plan_reminder_service.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/sport_definition.dart';
@@ -307,6 +308,7 @@ void main() {
       'health_connect_jump_rope_changes_token_v1': 'local-token',
       'local_pre_restore_backup': '{"should":"be excluded"}',
       'local_pre_restore_backup_at': '2026-01-01T00:00:00.000',
+      ScanPassSpatialLibraryService.storageKey: '{"version":1}',
     });
 
     final backup = service.buildBackupForTesting();
@@ -352,6 +354,10 @@ void main() {
     );
     expect(backupOptions.containsKey('local_pre_restore_backup'), isFalse);
     expect(backupOptions.containsKey('local_pre_restore_backup_at'), isFalse);
+    expect(
+      backupOptions.containsKey(ScanPassSpatialLibraryService.storageKey),
+      isFalse,
+    );
     expect(family['updatedByRole'], 'child');
     expect(family['familyLayerOnly'], isFalse);
 
@@ -516,6 +522,10 @@ void main() {
     await optionBox.put('club_morning_workout_alert_weekdays', <int>[1, 3, 5]);
     await optionBox.put('league_standings_last_selected_type_v1', 'epl');
     await optionBox.put('welcome_seen_v1', true);
+    await optionBox.put(
+      ScanPassSpatialLibraryService.storageKey,
+      '{"version":1,"lastSceneIdentity":"local-scene"}',
+    );
     await optionBox.put('tab_quick_guide_seen_parent_mode_v1', true);
     await optionBox.put('tab_quick_guide_seen_v1_0', true);
     await optionBox.put(
@@ -597,6 +607,10 @@ void main() {
     ]);
     expect(optionBox.get('league_standings_last_selected_type_v1'), 'epl');
     expect(optionBox.get('welcome_seen_v1'), isTrue);
+    expect(
+      optionBox.get(ScanPassSpatialLibraryService.storageKey),
+      '{"version":1,"lastSceneIdentity":"local-scene"}',
+    );
     expect(optionBox.get('tab_quick_guide_seen_parent_mode_v1'), isTrue);
     expect(optionBox.get('tab_quick_guide_seen_v1_0'), isTrue);
     expect(

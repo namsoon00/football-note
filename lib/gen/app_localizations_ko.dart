@@ -23266,6 +23266,51 @@ class AppLocalizationsKo extends AppLocalizations {
   String get spatialNoScenes => '조건에 맞는 장면이 없습니다.';
 
   @override
+  String get spatialNoUnwatchedScenes =>
+      '현재 필터에 보지 않은 장면이 없습니다. 기존 장면은 다시 볼 수 있어요.';
+
+  @override
+  String get spatialHistorySaveFailed => '시청 기록을 저장하지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get spatialHistoryRetry => '다시 시도';
+
+  @override
+  String get spatialAddBookmark => '북마크 추가';
+
+  @override
+  String get spatialRemoveBookmark => '북마크 해제';
+
+  @override
+  String get spatialAutoNextOn => '자동 다음 장면: 켜짐';
+
+  @override
+  String get spatialAutoNextOff => '자동 다음 장면: 꺼짐';
+
+  @override
+  String get spatialWatchFilterAll => '전체';
+
+  @override
+  String get spatialWatchUnwatched => '보지 않음';
+
+  @override
+  String spatialWatchInProgress(int covered, int total) {
+    return '보는 중 ($covered/$total초)';
+  }
+
+  @override
+  String get spatialWatchInProgressShort => '보는 중';
+
+  @override
+  String get spatialWatchWatched => '시청 완료';
+
+  @override
+  String get spatialBookmarked => '북마크';
+
+  @override
+  String get spatialUnfinishedFirst => '미완료 먼저';
+
+  @override
   String get spatialMitAttribution =>
       '출처: SkillCorner Open Data의 과거 선수 위치 기록(MIT 라이선스). 원본 경기 파일은 앱에 포함하지 않습니다.';
 

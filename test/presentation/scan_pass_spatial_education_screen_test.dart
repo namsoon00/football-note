@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' show PointerDeviceKind;
 
@@ -5,8 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/scan_pass_spatial_library_service.dart';
+import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/scan_pass/real_match_replay.dart';
 import 'package:football_note/domain/scan_pass/scan_pass_spatial_library.dart';
+import 'package:football_note/domain/scan_pass/scan_pass_spatial_personalization.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 
@@ -163,9 +168,133 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     expect(
       _painter(tester).time,
-      closeTo(nextSeekTime + .3, .12),
-      reason: 'a newly loaded scene must return to guided 0.5× mode',
+      closeTo(nextSeekTime + .6, .12),
+      reason: 'simple scene switching must preserve source-speed mode',
     );
+  });
+
+  testWidgets(
+      'delayed source-mode save cannot start playback on a newly selected scene',
+      (tester) async {
+    final options = _DelayedWriteOptions();
+    await tester.pumpWidget(_catalogApp(catalog, options: options));
+    await _pumpLoaded(tester);
+
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-more')));
+    await tester.pumpAndSettle();
+    options.delayNextWrite = true;
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-source-speed')),
+    );
+    await tester.pump();
+    expect(options.writeBlocked, isTrue);
+
+    final nextScene = catalog.scenes[1];
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-next')));
+    await _pumpScene(tester, nextScene.id);
+    expect(_painter(tester).time, 0);
+
+    options.releaseWrite.complete();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(_painter(tester).scene.id, nextScene.id);
+    expect(
+      _painter(tester).time,
+      0,
+      reason: 'a stale menu continuation must leave the new scene paused',
+    );
+  });
+
+  testWidgets('recreation restores source-speed preference paused',
+      (tester) async {
+    final options = _MemoryOptions();
+    final scene = catalog.scenes.first;
+    final resume = (scene.teachingStart + scene.teachingEnd) / 2;
+    await tester.pumpWidget(_catalogApp(catalog, options: options));
+    await _pumpLoaded(tester);
+    await _selectPlaybackAction(tester, 'spatial-source-speed');
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump();
+    _seek(tester, scene, resume);
+    await tester.pump();
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+
+    await tester.pumpWidget(_catalogApp(catalog, options: options));
+    await _pumpLoaded(tester);
+    expect(_painter(tester).time, closeTo(resume, .01));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(_painter(tester).time, closeTo(resume, .01));
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(_painter(tester).time, closeTo(resume + .6, .12));
+  });
+
+  testWidgets(
+      'saved filtered resume and pause continue to genuine auto-next paused',
+      (tester) async {
+    final grouped = <(String, String), List<SpatialLibraryScene>>{};
+    for (final scene in catalog.scenes) {
+      for (final player in scene.participantNames) {
+        grouped.putIfAbsent(
+          (scene.attackingTeam, player),
+          () => <SpatialLibraryScene>[],
+        ).add(scene);
+      }
+    }
+    final group =
+        grouped.entries.firstWhere((entry) => entry.value.length >= 2);
+    final first = group.value[0];
+    final expectedNext = group.value[1];
+    final resume = first.duration > 12 ? 12.0 : first.duration / 2;
+    final options = _MemoryOptions();
+    options.values[ScanPassSpatialLibraryService.storageKey] = jsonEncode(
+      SpatialLibraryPreferences(
+        lastSceneIdentity: first.spatialHistoryIdentity,
+        records: <String, SpatialLibrarySceneRecord>{
+          first.spatialHistoryIdentity: SpatialLibrarySceneRecord(
+            resumeTime: resume,
+            coverage: SpatialLibraryCoverage(
+              intervals: <SpatialLibraryViewedInterval>[
+                SpatialLibraryViewedInterval(0, resume),
+              ],
+            ),
+          ),
+        },
+        filters: SpatialLibraryFilters(
+          query: first.attackingTeam,
+          attackingTeam: first.attackingTeam,
+          player: group.key.$2,
+        ),
+        playbackMode: SpatialLibraryPlaybackMode.source,
+      ).toJson(),
+    );
+    await tester.pumpWidget(_catalogApp(catalog, options: options));
+    await _pumpLoaded(tester);
+    expect(_painter(tester).scene.id, first.id);
+    expect(_painter(tester).time, closeTo(resume, .01));
+
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump();
+    for (var attempt = 0;
+        attempt < 160 && _painter(tester).scene.id == first.id;
+        attempt++) {
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    await _pumpScene(tester, expectedNext.id);
+    final paused = _painter(tester).time;
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(_painter(tester).time, paused);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('guided menu and finished replay intentionally restart at zero',
@@ -818,6 +947,7 @@ Widget _catalogApp(
   SpatialLibraryScene? initialScene,
   double textScale = 1,
   Locale locale = const Locale('en'),
+  OptionRepository? options,
 }) {
   final ordered = initialScene == null
       ? catalog
@@ -847,6 +977,7 @@ Widget _catalogApp(
       child: child!,
     ),
     home: ScanPassSpatialLibraryScreen(
+      optionRepository: options,
       catalogLoader: () async => ordered,
       sceneLoader: (scene) async => _replay(scene),
     ),
@@ -909,3 +1040,42 @@ SpatialLibraryPitchPainter _painter(WidgetTester tester) => tester
 
 RealMatchReplayData _replay(SpatialLibraryScene scene) =>
     RealMatchReplayData.fromJsonString(File(scene.asset).readAsStringSync());
+
+class _MemoryOptions implements OptionRepository {
+  final Map<String, dynamic> values = <String, dynamic>{};
+
+  @override
+  List<int> getIntOptions(String key, List<int> defaults) => defaults;
+
+  @override
+  List<String> getOptions(String key, List<String> defaults) => defaults;
+
+  @override
+  T? getValue<T>(String key) => values[key] is T ? values[key] as T : null;
+
+  @override
+  Future<void> saveOptions(String key, List<dynamic> options) async {
+    values[key] = options;
+  }
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    values[key] = value;
+  }
+}
+
+class _DelayedWriteOptions extends _MemoryOptions {
+  bool delayNextWrite = false;
+  bool writeBlocked = false;
+  final Completer<void> releaseWrite = Completer<void>();
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    if (delayNextWrite) {
+      delayNextWrite = false;
+      writeBlocked = true;
+      await releaseWrite.future;
+    }
+    await super.setValue(key, value);
+  }
+}

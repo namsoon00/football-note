@@ -23182,6 +23182,50 @@ class AppLocalizationsJa extends AppLocalizations {
   String get spatialNoScenes => '条件に合うシーンはありません。';
 
   @override
+  String get spatialNoUnwatchedScenes => 'このフィルターに未視聴のシーンはありません。既存のシーンは再生できます。';
+
+  @override
+  String get spatialHistorySaveFailed => '視聴履歴を保存できませんでした。もう一度お試しください。';
+
+  @override
+  String get spatialHistoryRetry => '再試行';
+
+  @override
+  String get spatialAddBookmark => 'ブックマークに追加';
+
+  @override
+  String get spatialRemoveBookmark => 'ブックマークを解除';
+
+  @override
+  String get spatialAutoNextOn => '自動で次へ：オン';
+
+  @override
+  String get spatialAutoNextOff => '自動で次へ：オフ';
+
+  @override
+  String get spatialWatchFilterAll => 'すべて';
+
+  @override
+  String get spatialWatchUnwatched => '未視聴';
+
+  @override
+  String spatialWatchInProgress(int covered, int total) {
+    return '視聴中（$covered/$total秒）';
+  }
+
+  @override
+  String get spatialWatchInProgressShort => '視聴中';
+
+  @override
+  String get spatialWatchWatched => '視聴済み';
+
+  @override
+  String get spatialBookmarked => 'ブックマーク';
+
+  @override
+  String get spatialUnfinishedFirst => '未完了を先に表示';
+
+  @override
   String get spatialMitAttribution =>
       '出典：SkillCorner Open Data の過去トラッキングデータ（MIT License）。生の試合ファイルは同梱していません。';
 

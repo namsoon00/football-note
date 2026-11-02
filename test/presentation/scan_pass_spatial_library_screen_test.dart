@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -6,10 +7,12 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/scan_pass_spatial_library_service.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/scan_pass/real_match_replay.dart';
 import 'package:football_note/domain/scan_pass/scan_pass_spatial_focus.dart';
 import 'package:football_note/domain/scan_pass/scan_pass_spatial_library.dart';
+import 'package:football_note/domain/scan_pass/scan_pass_spatial_personalization.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/scan_pass_game_screen.dart';
 
@@ -96,6 +99,159 @@ void main() {
     await _pumpScene(tester, catalog.scenes[1].id);
     expect(_sourceTime(tester), 0);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('recreation restores exact source time paused', (tester) async {
+    final options = _Options();
+    await tester.pumpWidget(_catalogApp(catalog, options: options));
+    await _pumpLoaded(tester);
+
+    final slider = tester.widget<Slider>(
+      find.byKey(const ValueKey<String>('spatial-progress')),
+    );
+    slider.onChanged!(.4);
+    await tester.pump();
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+
+    await tester.pumpWidget(_catalogApp(
+      catalog,
+      key: const ValueKey<String>('restored-spatial-viewer'),
+      options: options,
+    ));
+    await _pumpLoaded(tester);
+
+    expect(_sourceTime(tester), closeTo(firstScene.duration * .4, .01));
+    final restored = _sourceTime(tester);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(_sourceTime(tester), closeTo(restored, .01));
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(
+      _sourceTime(tester),
+      closeTo(restored + .6, .12),
+      reason: 'ordinary playback must continue from the restored source time',
+    );
+  });
+
+  testWidgets('real source playback creates progress and bookmark filtering',
+      (tester) async {
+    final options = _Options();
+    await tester.pumpWidget(_catalogApp(catalog, options: options));
+    await _pumpLoaded(tester);
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump();
+    await _openMenu(tester);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-bookmark-toggle')),
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('spatial-scene-selector')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      _textValue(tester, 'spatial-watch-text-${firstScene.id}'),
+      contains('2'),
+    );
+    final bookmarkFilter =
+        find.byKey(const ValueKey<String>('spatial-watch-filter-bookmarked'));
+    await tester.ensureVisible(bookmarkFilter);
+    await tester.tap(bookmarkFilter);
+    await tester.pump();
+    expect(
+      find.byKey(ValueKey<String>('spatial-scene-${firstScene.id}')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(ValueKey<String>('spatial-bookmark-state-${firstScene.id}')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('natural completed playback auto-loads next unfinished paused',
+      (tester) async {
+    final options = _Options();
+    await tester.pumpWidget(_catalogApp(catalog, options: options));
+    await _pumpLoaded(tester);
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump();
+    for (var elapsed = 0;
+        elapsed <= firstScene.duration.ceil() + 1 &&
+            _painter(tester).scene.id == firstScene.id;
+        elapsed++) {
+      await tester.pump(const Duration(seconds: 1));
+    }
+    await _pumpScene(tester, catalog.scenes[1].id);
+
+    expect(_sourceTime(tester), 0);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(_sourceTime(tester), 0);
+    final persisted =
+        options.getValue<String>(ScanPassSpatialLibraryService.storageKey);
+    expect(persisted, isNotNull);
+  });
+
+  testWidgets('seeked final playback can complete but never auto-advances',
+      (tester) async {
+    final options = _Options();
+    options.values[ScanPassSpatialLibraryService.storageKey] = jsonEncode(
+      SpatialLibraryPreferences(
+        lastSceneIdentity: firstScene.spatialHistoryIdentity,
+        records: <String, SpatialLibrarySceneRecord>{
+          firstScene.spatialHistoryIdentity: SpatialLibrarySceneRecord(
+            coverage: SpatialLibraryCoverage(
+              intervals: <SpatialLibraryViewedInterval>[
+                SpatialLibraryViewedInterval(0, firstScene.duration * .9),
+              ],
+            ),
+          ),
+        },
+      ).toJson(),
+    );
+    await tester.pumpWidget(_catalogApp(catalog, options: options));
+    await _pumpLoaded(tester);
+    final slider = tester.widget<Slider>(
+      find.byKey(const ValueKey<String>('spatial-progress')),
+    );
+    slider.onChanged!(.95);
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(_painter(tester).scene.id, firstScene.id);
+    expect(_sourceTime(tester), closeTo(firstScene.duration, .01));
+  });
+
+  testWidgets('save failure offers localized retry without blocking playback',
+      (tester) async {
+    final options = _FailOnceOptions();
+    await tester.pumpWidget(_catalogApp(catalog, options: options));
+    await _pumpLoaded(tester);
+    await tester.pump();
+    final context = tester.element(
+      find.byKey(const ValueKey<String>('spatial-play')),
+    );
+    final l10n = AppLocalizations.of(context)!;
+
+    expect(find.text(l10n.spatialHistorySaveFailed), findsOneWidget);
+    final retry = tester.widget<SnackBarAction>(find.byType(SnackBarAction));
+    expect(retry.label, l10n.spatialHistoryRetry);
+    retry.onPressed();
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey<String>('spatial-play')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(_sourceTime(tester), greaterThan(0));
+    expect(options.failNext, isFalse);
   });
 
   testWidgets('guided replay covers setup, 0.5x core, and 1x aftermath',
@@ -222,7 +378,8 @@ void main() {
   });
 
   for (final configuration in <({Size size, String label})>[
-    (size: const Size(320, 640), label: 'narrow portrait'),
+    (size: const Size(320, 740), label: 'narrow portrait'),
+    (size: const Size(390, 844), label: 'mobile portrait'),
     (size: const Size(667, 320), label: 'short landscape'),
   ]) {
     testWidgets(
@@ -1317,6 +1474,7 @@ Widget _catalogApp(
   Locale locale = const Locale('en'),
   double textScale = 1,
   ThemeMode themeMode = ThemeMode.system,
+  OptionRepository? options,
 }) =>
     _app(
       locale: locale,
@@ -1324,6 +1482,7 @@ Widget _catalogApp(
       themeMode: themeMode,
       home: ScanPassSpatialLibraryScreen(
         key: key,
+        optionRepository: options,
         catalogLoader: () async => catalog,
         sceneLoader: (scene) async => _replay(scene),
       ),
@@ -1601,6 +1760,8 @@ String _expectResultTextWithinCard(
 }
 
 class _Options implements OptionRepository {
+  final Map<String, dynamic> values = <String, dynamic>{};
+
   @override
   List<String> getOptions(String key, List<String> defaults) => defaults;
 
@@ -1608,11 +1769,28 @@ class _Options implements OptionRepository {
   List<int> getIntOptions(String key, List<int> defaults) => defaults;
 
   @override
-  T? getValue<T>(String key) => null;
+  T? getValue<T>(String key) => values[key] is T ? values[key] as T : null;
 
   @override
-  Future<void> saveOptions(String key, List<dynamic> options) async {}
+  Future<void> saveOptions(String key, List<dynamic> options) async {
+    values[key] = options;
+  }
 
   @override
-  Future<void> setValue(String key, dynamic value) async {}
+  Future<void> setValue(String key, dynamic value) async {
+    values[key] = value;
+  }
+}
+
+class _FailOnceOptions extends _Options {
+  bool failNext = true;
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    if (failNext) {
+      failNext = false;
+      throw StateError('storage unavailable');
+    }
+    await super.setValue(key, value);
+  }
 }

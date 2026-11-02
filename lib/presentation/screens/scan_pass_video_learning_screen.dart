@@ -539,6 +539,7 @@ class _ScanPassVideoLearningScreenState
       await Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
           builder: (context) => ScanPassSpatialLibraryScreen(
+            optionRepository: widget.optionRepository,
             sourceLauncher: widget.sourceLauncher,
           ),
         ),

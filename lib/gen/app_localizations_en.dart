@@ -24168,6 +24168,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spatialNoScenes => 'No scenes match this filter.';
 
   @override
+  String get spatialNoUnwatchedScenes =>
+      'No unwatched scenes match these filters. Replay is still available.';
+
+  @override
+  String get spatialHistorySaveFailed =>
+      'Couldn’t save viewing history. Try again.';
+
+  @override
+  String get spatialHistoryRetry => 'Retry';
+
+  @override
+  String get spatialAddBookmark => 'Add bookmark';
+
+  @override
+  String get spatialRemoveBookmark => 'Remove bookmark';
+
+  @override
+  String get spatialAutoNextOn => 'Auto-next: On';
+
+  @override
+  String get spatialAutoNextOff => 'Auto-next: Off';
+
+  @override
+  String get spatialWatchFilterAll => 'All';
+
+  @override
+  String get spatialWatchUnwatched => 'Unwatched';
+
+  @override
+  String spatialWatchInProgress(int covered, int total) {
+    return 'In progress ($covered/$total s)';
+  }
+
+  @override
+  String get spatialWatchInProgressShort => 'In progress';
+
+  @override
+  String get spatialWatchWatched => 'Watched';
+
+  @override
+  String get spatialBookmarked => 'Bookmarked';
+
+  @override
+  String get spatialUnfinishedFirst => 'Unfinished first';
+
+  @override
   String get spatialMitAttribution =>
       'Source: SkillCorner Open Data historical tracking, used under the MIT License. Raw match files are not bundled.';
 
