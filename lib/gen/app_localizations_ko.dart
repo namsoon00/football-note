@@ -22587,7 +22587,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String realMatchReplaySourceCommit(Object commit) {
-    return '소스 커밋 · $commit';
+    return '자료 버전 · $commit';
   }
 
   @override
@@ -23081,11 +23081,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get spatialEducationAttribution =>
-      '제공자: SkillCorner Open Data(MIT). 선수 위치, 출처 소유권, 공 XY와 사용 가능한 공 높이는 선택한 고정 경기 출처에서 가져오며 학습 목표와 측정값은 앱이 파생합니다.';
+      '제공자: SkillCorner Open Data(MIT) 및 공개 공유된 PFF FC 2022 월드컵 릴리스(별도 라이선스 명시 없음). 선수 위치, 출처가 표시한 소유권, 보이는 공 XY와 사용 가능한 원본 공 높이(Z)는 선택한 고정 출처에서 가져오며 학습 목표와 측정값은 앱이 파생합니다.';
 
   @override
   String get spatialEducationSelectionDisclosure =>
-      '모든 검토 장면은 준비와 이후 흐름을 각각 4초 이상 포함합니다. 이름이 표시된 학습 선수와 관련 상대는 계속 직접 관측되어야 하며, 2024/25의 외삽 선수 좌표는 제외합니다. 학습 측정값은 센티미터 단위 XY 프레임에서 다시 계산합니다. 원본 공 높이는 별도로 보존하며 접촉, 몸 자세 또는 액션 추론에 사용하지 않습니다. 몸, 발, 스캔, 의도, 득점 또는 최선의 선택을 주장하지 않습니다.';
+      '모든 검토 장면은 준비와 이후 흐름을 각각 4초 이상 포함합니다. 측정 대상 선수와 관련 상대는 계속 직접 관측되며, 패스 선수는 제공자 연결 시점 주변에서 직접 관측됩니다. 추정되거나 화면 밖인 위치는 결측으로 유지합니다. PFF 자료에서 VISIBLE은 위치가 보인다는 뜻입니다. LOW/MEDIUM 선수 식별 신뢰도는 그대로 보존하며, 이벤트·로스터 ID만으로 모든 오프볼 선수의 신원을 별도로 확인할 수는 없습니다. PFF 패스 연결은 가장 가까운 선수 추정이 아니라 제공자 이벤트 ID를 사용합니다. 측정값은 센티미터 단위 XY 프레임에서 다시 계산하고 원본 공 높이(Z)는 코드형 높이 범주와 구분해 보존합니다. 몸, 발, 스캔, 의도, 득점 또는 최선의 선택을 주장하지 않습니다.';
 
   @override
   String spatialEducationCoverageSummary(
@@ -23111,7 +23111,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String spatialEducationThirdPlayerQuestion(String focus, String middle) {
-    return '$middle가 받기 전 $focus를 보세요.';
+    return '$middle가 패스하기 전 $focus를 보세요.';
   }
 
   @override
@@ -23134,7 +23134,7 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String spatialEducationThirdPlayerAction(
       String focus, String meters, String middle) {
-    return '$middle의 리시브 전,\n$focus가 먼저 움직입니다.';
+    return '$middle의 패스 전,\n$focus가 먼저 움직입니다.';
   }
 
   @override
@@ -23325,7 +23325,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get spatialXyOnlyDisclosure =>
-      '필드 공의 기록된 지면 XY는 그대로 유지합니다. 해당 원본 프레임에 유효한 높이가 있으면 제한된 표시 배율로 지면 그림자 위에 공을 띄우고, 점선의 빈 앵커는 높이를 모른다는 뜻입니다. 누락되거나 음수인 원본 높이를 지면으로 취급하지 않습니다. 몸, 발, 스캔, 접촉, 착지점 또는 미래 궤적을 재구성하지 않습니다.';
+      '필드 공은 직접 관측된 원본 XY만 유지합니다. 추정값이거나 누락되거나 화면 밖인 공은 그리지 않습니다. 보이는 원본 프레임에 유효한 원본 공 높이(Z)가 있으면 제한된 표시 배율로 지면 그림자 위에 공을 띄우고, 점선의 빈 앵커는 높이만 모른다는 뜻입니다. 누락되거나 음수인 원본 높이를 지면으로 취급하지 않습니다. 몸, 발, 스캔, 접촉, 착지점 또는 미래 궤적을 재구성하지 않습니다.';
 
   @override
   String spatialBallHeightKnownSemantics(String height) {
@@ -23337,12 +23337,16 @@ class AppLocalizationsKo extends AppLocalizations {
       '이 원본 시점의 공 높이는 알 수 없습니다. 빈 지면 앵커는 공이 지면에 있다는 뜻이 아닙니다.';
 
   @override
+  String get spatialBallPositionUnavailableSemantics =>
+      '이 원본 시점의 공 위치가 추정값이거나 화면 밖이므로 공 표시를 그리지 않습니다.';
+
+  @override
   String get spatialInferredDisclosure =>
       '필드에는 현재 시각에 직접 관측된 선수 위치만 표시합니다. 누락 표본은 비워 두며 재구성하거나 이전 위치를 이어 표시하지 않습니다.';
 
   @override
   String get spatialSelectionDisclosure =>
-      '20~40초 원본 구간에서 준비와 이후 흐름을 각각 최소 4초 확보하고, 연속된 공 XY, 출발·도착 선수 보호 구간, 보이는 핵심·지원·상대 맥락, 보이는 출처 표기 소유 선수를 기준으로 재현 가능하게 선정했습니다. 학습 장면이 분명하도록 압박 지원 연결은 기록된 공이 최소 4m, 조합 플레이의 각 연결은 최소 5m 이동한 구간만 사용합니다.';
+      '20~40초 원본 구간에서 준비와 이후 흐름을 각각 최소 4초 확보해 재현 가능하게 선정했습니다. 측정 대상과 상대 맥락, 출발·도착 선수의 보호 구간은 직접 관측됩니다. 추정되거나 화면 밖인 선수와 공 표본은 결측으로 남깁니다. 제공자 라벨과 거리 검사가 소유 표시를 제한하며, 거리만으로 소유를 만들지 않습니다. 학습 장면이 분명하도록 압박 지원 연결은 기록된 공이 최소 4m, 조합 플레이의 각 연결은 최소 5m 이동한 구간만 사용합니다.';
 
   @override
   String get spatialThemeLateralSwitch => '측면 전환 연결';

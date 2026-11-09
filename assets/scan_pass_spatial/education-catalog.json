@@ -1,12 +1,12 @@
 {
-  "version": 2,
-  "provider": "SkillCorner Open Data",
-  "license": "MIT",
-  "proofVersion": "spatial-education-catalog-v2",
+  "version": 3,
+  "provider": "Mixed pinned sources",
+  "license": "Per-source terms",
+  "proofVersion": "spatial-education-catalog-v3",
   "actionProofVersion": "spatial-source-actions-v1",
-  "sourceCommit": "mixed-pinned-sources-v1",
-  "sourceUrl": "https://github.com/SkillCorner/opendata",
-  "matchCount": 10,
+  "sourceCommit": "mixed-pinned-sources-v2",
+  "sourceUrl": "https://drive.google.com/drive/folders/1_a_q1e9CXeEPJ3GdCv_3-rNO3gPqacfa",
+  "matchCount": 13,
   "sourcePins": [
     {
       "key": "historical-2019-20",
@@ -34,6 +34,168 @@
       "matchIds": [
         1925299,
         1996435
+      ]
+    },
+    {
+      "key": "pff-world-cup-2022-10517",
+      "provider": "PFF FC",
+      "license": "Public release; no separate license stated",
+      "revision": "3c899b41eb5fcf4c74bf62c83853910a24098eb4b2485cc799fab6fce622a72c",
+      "sourceUrl": "https://drive.google.com/drive/folders/1_a_q1e9CXeEPJ3GdCv_3-rNO3gPqacfa",
+      "matchIds": [
+        10517
+      ],
+      "sourceFiles": [
+        {
+          "role": "metadata",
+          "fileId": "1Xfvmdv7XiZAUumPbjGqYfrUVAhX-0Dl3",
+          "sha256": "9416812b85807dc9c02a2e86e6269a5ef9def47d7ca353c70994626bcc5d417a",
+          "bytes": 955,
+          "url": "https://drive.google.com/file/d/1Xfvmdv7XiZAUumPbjGqYfrUVAhX-0Dl3/view"
+        },
+        {
+          "role": "rosters",
+          "fileId": "1nJcElKpNPp_Tl2TNaOhvdCh5E98T2YtR",
+          "sha256": "e7053ba5aa8d626a41dd725edc2e9d867fa283d3fdf138ab22918f3692bc0057",
+          "bytes": 7575,
+          "url": "https://drive.google.com/file/d/1nJcElKpNPp_Tl2TNaOhvdCh5E98T2YtR/view"
+        },
+        {
+          "role": "events",
+          "fileId": "1Zi9rP8x4-V-9AQ_jGysmkU14wuFgzsIv",
+          "sha256": "d571475b7f733c93b1161f39aa0bb2119a14ca15c74b064029e102ff1ad99c99",
+          "bytes": 22818080,
+          "url": "https://drive.google.com/file/d/1Zi9rP8x4-V-9AQ_jGysmkU14wuFgzsIv/view"
+        },
+        {
+          "role": "tracking",
+          "fileId": "1punYKj2mY1HtewOJ5V1EFO7gHn0jaQm0",
+          "sha256": "3c899b41eb5fcf4c74bf62c83853910a24098eb4b2485cc799fab6fce622a72c",
+          "bytes": 66646392,
+          "url": "https://drive.google.com/file/d/1punYKj2mY1HtewOJ5V1EFO7gHn0jaQm0/view"
+        },
+        {
+          "role": "tracking-spec",
+          "fileId": "17kl9XOlA932IU_K6969VYDYntYJt3Pan",
+          "sha256": "d6d2ab083f864e749c951a3256f6d3415eba7bd5f67eea6025403eaa59838f49",
+          "bytes": 186300,
+          "url": "https://drive.google.com/file/d/17kl9XOlA932IU_K6969VYDYntYJt3Pan/view"
+        },
+        {
+          "role": "event-spec",
+          "fileId": "1Q5Wg-q2lOdFreqyZqfmWKBXLPE8HJopt",
+          "sha256": "90b34f6b7e0401a0ab4c9f1328ef8e10a8f7237e4461359ee8c292d8fa9e0246",
+          "bytes": 824166,
+          "url": "https://drive.google.com/file/d/1Q5Wg-q2lOdFreqyZqfmWKBXLPE8HJopt/view"
+        }
+      ]
+    },
+    {
+      "key": "pff-world-cup-2022-10507",
+      "provider": "PFF FC",
+      "license": "Public release; no separate license stated",
+      "revision": "41cd9896ef663fbcb811c2f97fd9bc7c5fdb92dcf75e1d66ff748a2ddba4acbe",
+      "sourceUrl": "https://drive.google.com/drive/folders/1_a_q1e9CXeEPJ3GdCv_3-rNO3gPqacfa",
+      "matchIds": [
+        10507
+      ],
+      "sourceFiles": [
+        {
+          "role": "metadata",
+          "fileId": "1PhzVr4cGZ3P6-XQFqomh709mSMlvGY4i",
+          "sha256": "097d70bd7b3dca46d0ad18f3f8c291ca17bbc578a28042bb9cd8351c8ac1aeef",
+          "bytes": 989,
+          "url": "https://drive.google.com/file/d/1PhzVr4cGZ3P6-XQFqomh709mSMlvGY4i/view"
+        },
+        {
+          "role": "rosters",
+          "fileId": "1mjm50gm4UFrpTOL7p-6uyBnuOt-ADTG2",
+          "sha256": "e27385e17e5a50e6b67fa4e9545760cf193819ad7cc5a3bae1b41aa4d2ac8ed9",
+          "bytes": 7273,
+          "url": "https://drive.google.com/file/d/1mjm50gm4UFrpTOL7p-6uyBnuOt-ADTG2/view"
+        },
+        {
+          "role": "events",
+          "fileId": "1hhxfeTO1QrHL_wCZQvdpKjNwvnbUg4u1",
+          "sha256": "df95ecba371ac1ba18426f636e4c3c443a2e0a2fc80ebe78c296d4d3f3cb9df6",
+          "bytes": 19670744,
+          "url": "https://drive.google.com/file/d/1hhxfeTO1QrHL_wCZQvdpKjNwvnbUg4u1/view"
+        },
+        {
+          "role": "tracking",
+          "fileId": "1T0dx4YvpkycARke_Nv0JtfOhue4u50Cn",
+          "sha256": "41cd9896ef663fbcb811c2f97fd9bc7c5fdb92dcf75e1d66ff748a2ddba4acbe",
+          "bytes": 46996047,
+          "url": "https://drive.google.com/file/d/1T0dx4YvpkycARke_Nv0JtfOhue4u50Cn/view"
+        },
+        {
+          "role": "tracking-spec",
+          "fileId": "17kl9XOlA932IU_K6969VYDYntYJt3Pan",
+          "sha256": "d6d2ab083f864e749c951a3256f6d3415eba7bd5f67eea6025403eaa59838f49",
+          "bytes": 186300,
+          "url": "https://drive.google.com/file/d/17kl9XOlA932IU_K6969VYDYntYJt3Pan/view"
+        },
+        {
+          "role": "event-spec",
+          "fileId": "1Q5Wg-q2lOdFreqyZqfmWKBXLPE8HJopt",
+          "sha256": "90b34f6b7e0401a0ab4c9f1328ef8e10a8f7237e4461359ee8c292d8fa9e0246",
+          "bytes": 824166,
+          "url": "https://drive.google.com/file/d/1Q5Wg-q2lOdFreqyZqfmWKBXLPE8HJopt/view"
+        }
+      ]
+    },
+    {
+      "key": "pff-world-cup-2022-3857",
+      "provider": "PFF FC",
+      "license": "Public release; no separate license stated",
+      "revision": "fdb32802ccb0d8eecae0f67c91d1a03b3690ca4275fcd1e8bc97fca836660f9e",
+      "sourceUrl": "https://drive.google.com/drive/folders/1_a_q1e9CXeEPJ3GdCv_3-rNO3gPqacfa",
+      "matchIds": [
+        3857
+      ],
+      "sourceFiles": [
+        {
+          "role": "metadata",
+          "fileId": "1GOUsQIE78-oBcs0mD-8VfYenwMG7zd-K",
+          "sha256": "7e9254ee5306c9417294d6a325c06fa4ffea8ef753d98f48077b5bf062d1eb91",
+          "bytes": 994,
+          "url": "https://drive.google.com/file/d/1GOUsQIE78-oBcs0mD-8VfYenwMG7zd-K/view"
+        },
+        {
+          "role": "rosters",
+          "fileId": "1cKygKfjmM6ryiiZCxnacQFacvuD1MWbv",
+          "sha256": "bd86b75a905c0f0ab183256b235b8c1ff757af6708013abaf0512eebefebd2a0",
+          "bytes": 7393,
+          "url": "https://drive.google.com/file/d/1cKygKfjmM6ryiiZCxnacQFacvuD1MWbv/view"
+        },
+        {
+          "role": "events",
+          "fileId": "1vitJQ9Yh4xVAeOV0VhgNVOc6C0QS_-G0",
+          "sha256": "c1b77d5a07e88b1a28bbafcbaa2d6845540604f8f7ffac99bf617a4a80e37188",
+          "bytes": 16976388,
+          "url": "https://drive.google.com/file/d/1vitJQ9Yh4xVAeOV0VhgNVOc6C0QS_-G0/view"
+        },
+        {
+          "role": "tracking",
+          "fileId": "1UwuVYtQNvnUT5-eTDpF7-WanggQPYwY-",
+          "sha256": "fdb32802ccb0d8eecae0f67c91d1a03b3690ca4275fcd1e8bc97fca836660f9e",
+          "bytes": 40392472,
+          "url": "https://drive.google.com/file/d/1UwuVYtQNvnUT5-eTDpF7-WanggQPYwY-/view"
+        },
+        {
+          "role": "tracking-spec",
+          "fileId": "17kl9XOlA932IU_K6969VYDYntYJt3Pan",
+          "sha256": "d6d2ab083f864e749c951a3256f6d3415eba7bd5f67eea6025403eaa59838f49",
+          "bytes": 186300,
+          "url": "https://drive.google.com/file/d/17kl9XOlA932IU_K6969VYDYntYJt3Pan/view"
+        },
+        {
+          "role": "event-spec",
+          "fileId": "1Q5Wg-q2lOdFreqyZqfmWKBXLPE8HJopt",
+          "sha256": "90b34f6b7e0401a0ab4c9f1328ef8e10a8f7237e4461359ee8c292d8fa9e0246",
+          "bytes": 824166,
+          "url": "https://drive.google.com/file/d/1Q5Wg-q2lOdFreqyZqfmWKBXLPE8HJopt/view"
+        }
       ]
     }
   ],
@@ -24094,6 +24256,562 @@
           "quantizationMeters": 0.005
         }
       }
+    },
+    {
+      "id": "pff-10517-6622604-6622609-thirdPlayer",
+      "asset": "assets/scan_pass_spatial/education_scenes/pff-10517-6622604-6622609-thirdPlayer.json",
+      "assetSha256": "0c90981c8977b766d111397ab581c588f51bbb554e5725d830c5a514dd03de7a",
+      "theme": "combination",
+      "matchId": 10517,
+      "date": "2022-12-18",
+      "season": "2022",
+      "home": "Argentina",
+      "away": "France",
+      "period": 1,
+      "startFrame": 12202,
+      "endFrame": 12921,
+      "startClock": 252.653474,
+      "duration": 23.990657323990657,
+      "focusPlayerId": 8583,
+      "focusPlayerName": "Theo Hernandez",
+      "evidenceAnchors": [
+        {
+          "time": 6.0060060060060065,
+          "role": "departure",
+          "playerId": 3870,
+          "playerName": "Kylian Mbappé"
+        },
+        {
+          "time": 7.207207207207207,
+          "role": "arrival",
+          "playerId": 8054,
+          "playerName": "Adrien Rabiot"
+        },
+        {
+          "time": 10.41041041041041,
+          "role": "arrival",
+          "playerId": 8583,
+          "playerName": "Theo Hernandez"
+        }
+      ],
+      "highlightPlayerIds": [
+        3870,
+        8054,
+        8583,
+        13222
+      ],
+      "attackingTeam": "away",
+      "attackDirection": -1,
+      "evidenceStart": 6.0060060060060065,
+      "evidenceEnd": 10.41041041041041,
+      "coreStart": 5.5060060060060065,
+      "coreEnd": 10.91041041041041,
+      "corePlayerIds": [
+        3870,
+        8054,
+        8583
+      ],
+      "supportPlayerIds": [
+        3870,
+        8054
+      ],
+      "opponentContextPlayerIds": [
+        13222
+      ],
+      "metrics": {
+        "forwardMeters": 9.95,
+        "lateralMeters": 21.0,
+        "startWidthMeters": 8.79,
+        "insideGainMeters": -21.0,
+        "pressureMeters": null,
+        "carryMeters": 0.0,
+        "sequenceSeconds": 4.404
+      },
+      "sourceCommit": "3c899b41eb5fcf4c74bf62c83853910a24098eb4b2485cc799fab6fce622a72c",
+      "sourceUrl": "https://drive.google.com/file/d/1punYKj2mY1HtewOJ5V1EFO7gHn0jaQm0/view",
+      "learning": {
+        "objective": "thirdPlayer",
+        "proofVersion": "spatial-education-evidence-v2",
+        "referenceUrls": [
+          "https://www.fifatrainingcentre.com/en/game/game-analysis/in-possession/third-player-combinations.php"
+        ],
+        "sourceConnectionEventIds": [
+          "pff:6738221:6622604",
+          "pff:6738225:6622609"
+        ],
+        "questionKey": "spatialEducationThirdPlayerQuestion",
+        "actionKey": "spatialEducationThirdPlayerAction",
+        "resultKey": "spatialEducationThirdPlayerResult",
+        "focusActor": {
+          "playerId": 8583,
+          "playerName": "Theo Hernandez"
+        },
+        "supportActors": [
+          {
+            "playerId": 3870,
+            "playerName": "Kylian Mbappé"
+          },
+          {
+            "playerId": 8054,
+            "playerName": "Adrien Rabiot"
+          }
+        ],
+        "opponentActors": [
+          {
+            "playerId": 13222,
+            "playerName": "Nahuel Molina"
+          }
+        ],
+        "nextActor": null,
+        "movementStart": 5.005005005005005,
+        "trigger": 8.274941608274942,
+        "outcome": 10.41041041041041,
+        "slowStart": 5.005005005005005,
+        "slowEnd": 10.41041041041041,
+        "nextConnection": null,
+        "sourceFrames": {
+          "movementStart": 12352,
+          "trigger": 12450,
+          "outcome": 12514,
+          "nextConnection": null
+        },
+        "measurements": {
+          "kind": "forwardAdvanceMeters",
+          "before": 0.0,
+          "after": 9.95,
+          "improvement": 9.95,
+          "movementMeters": 13.913,
+          "pressureMeters": null,
+          "lateralMeters": null,
+          "forwardMeters": 9.95,
+          "receiverContributionDegrees": null,
+          "defenderProjectionBefore": null,
+          "defenderProjectionAfter": null,
+          "movementAlignment": 0.991,
+          "baselinePassLineGapMeters": null,
+          "afterPassLineGapMeters": null,
+          "receiverLineGapContributionMeters": null,
+          "quantizationMeters": 0.005
+        }
+      },
+      "sourceActions": []
+    },
+    {
+      "id": "pff-10507-6525919-6525929-thirdPlayer",
+      "asset": "assets/scan_pass_spatial/education_scenes/pff-10507-6525919-6525929-thirdPlayer.json",
+      "assetSha256": "70d512b5a15d9234632df9137a3df1e0e83d4d9ff4c8808baa0e861607e147f6",
+      "theme": "combination",
+      "matchId": 10507,
+      "date": "2022-12-05",
+      "season": "2022",
+      "home": "Brazil",
+      "away": "South Korea",
+      "period": 1,
+      "startFrame": 66637,
+      "endFrame": 67125,
+      "startClock": 2130.99779,
+      "duration": 16.28294961628295,
+      "focusPlayerId": 1695,
+      "focusPlayerName": "Vinícius Junior",
+      "evidenceAnchors": [
+        {
+          "time": 5.739072405739073,
+          "role": "departure",
+          "playerId": 195,
+          "playerName": "Richarlison"
+        },
+        {
+          "time": 6.873540206873541,
+          "role": "arrival",
+          "playerId": 3865,
+          "playerName": "Neymar"
+        },
+        {
+          "time": 10.21021021021021,
+          "role": "arrival",
+          "playerId": 1695,
+          "playerName": "Vinícius Junior"
+        }
+      ],
+      "highlightPlayerIds": [
+        195,
+        3865,
+        1695,
+        12502
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 5.739072405739073,
+      "evidenceEnd": 10.21021021021021,
+      "coreStart": 5.239072405739073,
+      "coreEnd": 10.71021021021021,
+      "corePlayerIds": [
+        195,
+        3865,
+        1695
+      ],
+      "supportPlayerIds": [
+        195,
+        3865
+      ],
+      "opponentContextPlayerIds": [
+        12502
+      ],
+      "metrics": {
+        "forwardMeters": 39.51,
+        "lateralMeters": 7.53,
+        "startWidthMeters": 26.27,
+        "insideGainMeters": 7.53,
+        "pressureMeters": null,
+        "carryMeters": 0.0,
+        "sequenceSeconds": 4.471
+      },
+      "sourceCommit": "41cd9896ef663fbcb811c2f97fd9bc7c5fdb92dcf75e1d66ff748a2ddba4acbe",
+      "sourceUrl": "https://drive.google.com/file/d/1T0dx4YvpkycARke_Nv0JtfOhue4u50Cn/view",
+      "learning": {
+        "objective": "thirdPlayer",
+        "proofVersion": "spatial-education-evidence-v2",
+        "referenceUrls": [
+          "https://www.fifatrainingcentre.com/en/game/game-analysis/in-possession/third-player-combinations.php"
+        ],
+        "sourceConnectionEventIds": [
+          "pff:6643833:6525919",
+          "pff:6643843:6525929"
+        ],
+        "questionKey": "spatialEducationThirdPlayerQuestion",
+        "actionKey": "spatialEducationThirdPlayerAction",
+        "resultKey": "spatialEducationThirdPlayerResult",
+        "focusActor": {
+          "playerId": 1695,
+          "playerName": "Vinícius Junior"
+        },
+        "supportActors": [
+          {
+            "playerId": 195,
+            "playerName": "Richarlison"
+          },
+          {
+            "playerId": 3865,
+            "playerName": "Neymar"
+          }
+        ],
+        "opponentActors": [
+          {
+            "playerId": 12502,
+            "playerName": "Min Jae Kim"
+          }
+        ],
+        "nextActor": null,
+        "movementStart": 4.738071404738071,
+        "trigger": 8.174841508174842,
+        "outcome": 10.21021021021021,
+        "slowStart": 4.738071404738071,
+        "slowEnd": 10.21021021021021,
+        "nextConnection": null,
+        "sourceFrames": {
+          "movementStart": 66779,
+          "trigger": 66882,
+          "outcome": 66943,
+          "nextConnection": null
+        },
+        "measurements": {
+          "kind": "forwardAdvanceMeters",
+          "before": 0.0,
+          "after": 39.51,
+          "improvement": 39.51,
+          "movementMeters": 24.408,
+          "pressureMeters": null,
+          "lateralMeters": null,
+          "forwardMeters": 39.51,
+          "receiverContributionDegrees": null,
+          "defenderProjectionBefore": null,
+          "defenderProjectionAfter": null,
+          "movementAlignment": 1.0,
+          "baselinePassLineGapMeters": null,
+          "afterPassLineGapMeters": null,
+          "receiverLineGapContributionMeters": null,
+          "quantizationMeters": 0.005
+        }
+      },
+      "sourceActions": []
+    },
+    {
+      "id": "pff-3857-6504653-6504660-thirdPlayer",
+      "asset": "assets/scan_pass_spatial/education_scenes/pff-3857-6504653-6504660-thirdPlayer.json",
+      "assetSha256": "954748f31faa4f9ffbf8d743974e7c1865752deb6aae8f66b04add8d6d81a601",
+      "theme": "combination",
+      "matchId": 3857,
+      "date": "2022-12-02",
+      "season": "2022",
+      "home": "South Korea",
+      "away": "Portugal",
+      "period": 1,
+      "startFrame": 37633,
+      "endFrame": 38352,
+      "startClock": 1210.477022,
+      "duration": 23.990657323990657,
+      "focusPlayerId": 1830,
+      "focusPlayerName": "Kang-in Lee",
+      "evidenceAnchors": [
+        {
+          "time": 6.0060060060060065,
+          "role": "departure",
+          "playerId": 1257,
+          "playerName": "In-beom Hwang"
+        },
+        {
+          "time": 8.775442108775442,
+          "role": "arrival",
+          "playerId": 83,
+          "playerName": "Heung-min Son"
+        },
+        {
+          "time": 17.384050717384053,
+          "role": "arrival",
+          "playerId": 1830,
+          "playerName": "Kang-in Lee"
+        }
+      ],
+      "highlightPlayerIds": [
+        1257,
+        83,
+        1830,
+        240
+      ],
+      "attackingTeam": "home",
+      "attackDirection": 1,
+      "evidenceStart": 6.0060060060060065,
+      "evidenceEnd": 17.384050717384053,
+      "coreStart": 5.5060060060060065,
+      "coreEnd": 17.884050717384053,
+      "corePlayerIds": [
+        1257,
+        83,
+        1830
+      ],
+      "supportPlayerIds": [
+        1257,
+        83
+      ],
+      "opponentContextPlayerIds": [
+        240
+      ],
+      "metrics": {
+        "forwardMeters": 20.43,
+        "lateralMeters": 30.82,
+        "startWidthMeters": 18.17,
+        "insideGainMeters": 5.52,
+        "pressureMeters": null,
+        "carryMeters": 0.0,
+        "sequenceSeconds": 11.378
+      },
+      "sourceCommit": "fdb32802ccb0d8eecae0f67c91d1a03b3690ca4275fcd1e8bc97fca836660f9e",
+      "sourceUrl": "https://drive.google.com/file/d/1UwuVYtQNvnUT5-eTDpF7-WanggQPYwY-/view",
+      "learning": {
+        "objective": "thirdPlayer",
+        "proofVersion": "spatial-education-evidence-v2",
+        "referenceUrls": [
+          "https://www.fifatrainingcentre.com/en/game/game-analysis/in-possession/third-player-combinations.php"
+        ],
+        "sourceConnectionEventIds": [
+          "pff:6623595:6504653",
+          "pff:6623603:6504660"
+        ],
+        "questionKey": "spatialEducationThirdPlayerQuestion",
+        "actionKey": "spatialEducationThirdPlayerAction",
+        "resultKey": "spatialEducationThirdPlayerResult",
+        "focusActor": {
+          "playerId": 1830,
+          "playerName": "Kang-in Lee"
+        },
+        "supportActors": [
+          {
+            "playerId": 1257,
+            "playerName": "In-beom Hwang"
+          },
+          {
+            "playerId": 83,
+            "playerName": "Heung-min Son"
+          }
+        ],
+        "opponentActors": [
+          {
+            "playerId": 240,
+            "playerName": "Rúben Neves"
+          }
+        ],
+        "nextActor": null,
+        "movementStart": 5.005005005005005,
+        "trigger": 16.38304971638305,
+        "outcome": 17.384050717384053,
+        "slowStart": 5.005005005005005,
+        "slowEnd": 17.384050717384053,
+        "nextConnection": null,
+        "sourceFrames": {
+          "movementStart": 37783,
+          "trigger": 38124,
+          "outcome": 38154,
+          "nextConnection": null
+        },
+        "measurements": {
+          "kind": "defenderClearanceMeters",
+          "before": 3.123,
+          "after": 15.823,
+          "improvement": 12.7,
+          "movementMeters": 35.687,
+          "pressureMeters": null,
+          "lateralMeters": null,
+          "forwardMeters": 20.43,
+          "receiverContributionDegrees": null,
+          "defenderProjectionBefore": null,
+          "defenderProjectionAfter": null,
+          "movementAlignment": 1.0,
+          "baselinePassLineGapMeters": null,
+          "afterPassLineGapMeters": null,
+          "receiverLineGapContributionMeters": null,
+          "quantizationMeters": 0.005
+        }
+      },
+      "sourceActions": []
+    },
+    {
+      "id": "pff-3857-6505127-6505134-ronaldo-thirdPlayer",
+      "asset": "assets/scan_pass_spatial/education_scenes/pff-3857-6505127-6505134-ronaldo-thirdPlayer.json",
+      "assetSha256": "dd53128997e5fa327b50d6d4feeb64a1faac86aa001bb99032a6afe064279feb",
+      "theme": "combination",
+      "matchId": 3857,
+      "date": "2022-12-02",
+      "season": "2022",
+      "home": "South Korea",
+      "away": "Portugal",
+      "period": 2,
+      "startFrame": 120713,
+      "endFrame": 121432,
+      "startClock": 3806.940461,
+      "duration": 23.990657323990657,
+      "focusPlayerId": 6020,
+      "focusPlayerName": "Cristiano Ronaldo",
+      "evidenceAnchors": [
+        {
+          "time": 6.0060060060060065,
+          "role": "departure",
+          "playerId": 240,
+          "playerName": "Rúben Neves"
+        },
+        {
+          "time": 7.540874207540875,
+          "role": "arrival",
+          "playerId": 8000,
+          "playerName": "Joao Mario"
+        },
+        {
+          "time": 9.342676009342677,
+          "role": "arrival",
+          "playerId": 6020,
+          "playerName": "Cristiano Ronaldo"
+        }
+      ],
+      "highlightPlayerIds": [
+        240,
+        8000,
+        6020,
+        13910
+      ],
+      "attackingTeam": "away",
+      "attackDirection": 1,
+      "evidenceStart": 6.0060060060060065,
+      "evidenceEnd": 9.342676009342677,
+      "coreStart": 5.5060060060060065,
+      "coreEnd": 9.842676009342677,
+      "corePlayerIds": [
+        240,
+        8000,
+        6020
+      ],
+      "supportPlayerIds": [
+        240,
+        8000
+      ],
+      "opponentContextPlayerIds": [
+        13910
+      ],
+      "metrics": {
+        "forwardMeters": 8.06,
+        "lateralMeters": 8.99,
+        "startWidthMeters": 7.57,
+        "insideGainMeters": -8.99,
+        "pressureMeters": null,
+        "carryMeters": 0.0,
+        "sequenceSeconds": 3.337
+      },
+      "sourceCommit": "fdb32802ccb0d8eecae0f67c91d1a03b3690ca4275fcd1e8bc97fca836660f9e",
+      "sourceUrl": "https://drive.google.com/file/d/1UwuVYtQNvnUT5-eTDpF7-WanggQPYwY-/view",
+      "learning": {
+        "objective": "thirdPlayer",
+        "proofVersion": "spatial-education-evidence-v2",
+        "referenceUrls": [
+          "https://www.fifatrainingcentre.com/en/game/game-analysis/in-possession/third-player-combinations.php"
+        ],
+        "sourceConnectionEventIds": [
+          "pff:6624095:6505127",
+          "pff:6624105:6505134"
+        ],
+        "questionKey": "spatialEducationThirdPlayerQuestion",
+        "actionKey": "spatialEducationThirdPlayerAction",
+        "resultKey": "spatialEducationThirdPlayerResult",
+        "focusActor": {
+          "playerId": 6020,
+          "playerName": "Cristiano Ronaldo"
+        },
+        "supportActors": [
+          {
+            "playerId": 240,
+            "playerName": "Rúben Neves"
+          },
+          {
+            "playerId": 8000,
+            "playerName": "Joao Mario"
+          }
+        ],
+        "opponentActors": [
+          {
+            "playerId": 13910,
+            "playerName": "Kyung-won Kwon"
+          }
+        ],
+        "nextActor": null,
+        "movementStart": 5.005005005005005,
+        "trigger": 8.775442108775442,
+        "outcome": 9.342676009342677,
+        "slowStart": 5.005005005005005,
+        "slowEnd": 9.342676009342677,
+        "nextConnection": null,
+        "sourceFrames": {
+          "movementStart": 120863,
+          "trigger": 120976,
+          "outcome": 120993,
+          "nextConnection": null
+        },
+        "measurements": {
+          "kind": "defenderClearanceMeters",
+          "before": 2.742,
+          "after": 3.927,
+          "improvement": 1.184,
+          "movementMeters": 10.202,
+          "pressureMeters": null,
+          "lateralMeters": null,
+          "forwardMeters": 8.06,
+          "receiverContributionDegrees": null,
+          "defenderProjectionBefore": null,
+          "defenderProjectionAfter": null,
+          "movementAlignment": 0.996,
+          "baselinePassLineGapMeters": null,
+          "afterPassLineGapMeters": null,
+          "receiverLineGapContributionMeters": null,
+          "quantizationMeters": 0.005
+        }
+      },
+      "sourceActions": []
     }
   ]
 }

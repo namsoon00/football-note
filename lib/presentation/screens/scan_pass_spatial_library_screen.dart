@@ -905,7 +905,11 @@ class _ScanPassSpatialLibraryScreenState
       final cueActorPoint = cue.targetPlayerId == null
           ? null
           : sample.players[data.playerIndex(cue.targetPlayerId!)];
-      final cueTarget = viewport.project(cueActorPoint ?? sample.ball);
+      final cueTarget = cueActorPoint != null
+          ? viewport.project(cueActorPoint)
+          : sample.ballVisible
+              ? viewport.project(sample.ball)
+              : viewport.view.center;
       final ballGeometry = SpatialBallScreenGeometry.forReplay(
         data: data,
         time: _time,
@@ -929,7 +933,7 @@ class _ScanPassSpatialLibraryScreenState
           ..add(possessionTransition.newOwnerId);
       }
       final occupied = <Rect>[
-        ballGeometry.safetyRect,
+        if (ballGeometry.visible) ballGeometry.safetyRect,
         for (final playerId in protectedPlayerIds)
           if (sample.players[data.playerIndex(playerId)] case final point?)
             Rect.fromCircle(
@@ -942,16 +946,20 @@ class _ScanPassSpatialLibraryScreenState
         final teachingPlayerIndex = scene.education == null
             ? null
             : data.playerIndex(scene.education!.focusActor.playerId);
-        final tracePoints = <Offset>[
-          for (var frame = (scene.teachingStart * data.fps).ceil();
-              frame <= (traceEnd * data.fps).floor();
-              frame++)
-            if (teachingPlayerIndex == null)
-              viewport.project(data.sample(frame / data.fps).ball)
-            else if (data.sample(frame / data.fps).players[teachingPlayerIndex]
-                case final point?)
-              viewport.project(point),
-        ];
+        final tracePoints = <Offset>[];
+        for (var frame = (scene.teachingStart * data.fps).ceil();
+            frame <= (traceEnd * data.fps).floor();
+            frame++) {
+          final frameSample = data.sample(frame / data.fps);
+          if (teachingPlayerIndex == null) {
+            if (frameSample.ballVisible) {
+              tracePoints.add(viewport.project(frameSample.ball));
+            }
+          } else if (frameSample.players[teachingPlayerIndex]
+              case final point?) {
+            tracePoints.add(viewport.project(point));
+          }
+        }
         if (tracePoints.isNotEmpty) {
           occupied.add(
             Rect.fromLTRB(
@@ -1084,11 +1092,13 @@ class _ScanPassSpatialLibraryScreenState
                 _learningTitle(_l10n, scene),
               ),
               value: _sourceTimeLabel(scene),
-              hint: ballGeometry.heightKnown
-                  ? _l10n.spatialBallHeightKnownSemantics(
-                      ballGeometry.heightMeters!.toStringAsFixed(2),
-                    )
-                  : _l10n.spatialBallHeightUnknownSemantics,
+              hint: !ballGeometry.visible
+                  ? _l10n.spatialBallPositionUnavailableSemantics
+                  : ballGeometry.heightKnown
+                      ? _l10n.spatialBallHeightKnownSemantics(
+                          ballGeometry.heightMeters!.toStringAsFixed(2),
+                        )
+                      : _l10n.spatialBallHeightUnknownSemantics,
               child: ExcludeSemantics(
                 child: CustomPaint(
                   key: const ValueKey<String>('spatial-pitch'),
@@ -1717,7 +1727,7 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                             compact: true,
                             margin: EdgeInsets.zero,
                           ),
-                    hintText: widget.catalog.version == 2
+                    hintText: widget.catalog.version >= 2
                         ? l10n.spatialEducationSearchHint
                         : l10n.spatialSearchHint,
                     border: const OutlineInputBorder(),
@@ -1846,7 +1856,7 @@ class _SpatialLibrarySheetState extends State<_SpatialLibrarySheet> {
                           label: Text(_themeTitle(l10n, theme)),
                         ),
                       ),
-                  if (widget.catalog.version == 2)
+                  if (widget.catalog.version >= 2)
                     for (final objective in objectives)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 3),
@@ -2266,7 +2276,7 @@ class _SpatialSourceInfoSheet extends StatelessWidget {
             ),
           ]),
           Text(
-            catalog.version == 2
+            catalog.version >= 2
                 ? l10n.spatialEducationCoverageSummary(
                     catalog.scenes.length,
                     catalog.matchIds.length,
@@ -2301,7 +2311,7 @@ class _SpatialSourceInfoSheet extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            catalog.version == 2
+            catalog.version >= 2
                 ? l10n.spatialEducationAttribution
                 : l10n.spatialMitAttribution,
           ),
@@ -2315,7 +2325,7 @@ class _SpatialSourceInfoSheet extends StatelessWidget {
           Text(l10n.spatialActionEvidenceDisclosure),
           const SizedBox(height: 8),
           Text(
-            catalog.version == 2
+            catalog.version >= 2
                 ? l10n.spatialEducationSelectionDisclosure
                 : l10n.spatialSelectionDisclosure,
           ),
@@ -2665,6 +2675,7 @@ class SpatialBallScreenGeometry {
   final Rect shadowRect;
   final Rect ballRect;
   final Rect safetyRect;
+  final bool visible;
   final bool heightKnown;
   final double? heightMeters;
 
@@ -2673,6 +2684,7 @@ class SpatialBallScreenGeometry {
     required this.shadowRect,
     required this.ballRect,
     required this.safetyRect,
+    required this.visible,
     required this.heightKnown,
     required this.heightMeters,
   });
@@ -2683,6 +2695,17 @@ class SpatialBallScreenGeometry {
     required SpatialPitchViewport viewport,
   }) {
     final sample = data.renderSample(time);
+    if (!sample.ballVisible) {
+      return const SpatialBallScreenGeometry(
+        groundAnchor: Offset.zero,
+        shadowRect: Rect.zero,
+        ballRect: Rect.zero,
+        safetyRect: Rect.zero,
+        visible: false,
+        heightKnown: false,
+        heightMeters: null,
+      );
+    }
     final anchor = viewport.project(sample.ball);
     final height = data.heightAt(time);
     final displayedMeters = (height ?? 0).clamp(0.0, displayHeightCapMeters);
@@ -2710,6 +2733,7 @@ class SpatialBallScreenGeometry {
       shadowRect: shadowRect,
       ballRect: ballRect,
       safetyRect: shadowRect.expandToInclude(ballRect).inflate(safetyPadding),
+      visible: true,
       heightKnown: height != null,
       heightMeters: height,
     );
@@ -3242,10 +3266,16 @@ class SpatialLibraryPitchPainter extends CustomPainter {
     final traceEnd = math.min(time, scene.evidenceEnd);
     final firstFrame = (scene.evidenceStart * data.fps).ceil();
     final lastFrame = (traceEnd * data.fps).floor();
-    return <RealMatchReplayPoint>[
-      for (var frame = firstFrame; frame <= lastFrame; frame++)
-        data.sample(frame / data.fps).ball,
-    ];
+    var segment = <RealMatchReplayPoint>[];
+    for (var frame = firstFrame; frame <= lastFrame; frame++) {
+      final sample = data.sample(frame / data.fps);
+      if (!sample.ballVisible) {
+        segment = <RealMatchReplayPoint>[];
+      } else {
+        segment.add(sample.ball);
+      }
+    }
+    return segment;
   }
 
   List<List<RealMatchReplayPoint>> observedTailSegments(int id) {
@@ -4155,6 +4185,7 @@ class SpatialLibraryPitchPainter extends CustomPainter {
 
   void _drawBall(Canvas canvas) {
     final geometry = _ballGeometry;
+    if (!geometry.visible) return;
     if (geometry.heightKnown) {
       final displayed = geometry.heightMeters!
           .clamp(0.0, SpatialBallScreenGeometry.displayHeightCapMeters);
@@ -4401,9 +4432,11 @@ class SpatialLibraryMinimapPainter extends CustomPainter {
         Paint()..color = markerColorForPlayer(player),
       );
     }
-    final ball = project(sample.ball);
-    canvas.drawCircle(ball, 2.8, Paint()..color = Colors.black87);
-    canvas.drawCircle(ball, 1.8, Paint()..color = Colors.white);
+    if (sample.ballVisible) {
+      final ball = project(sample.ball);
+      canvas.drawCircle(ball, 2.8, Paint()..color = Colors.black87);
+      canvas.drawCircle(ball, 1.8, Paint()..color = Colors.white);
+    }
   }
 
   @override

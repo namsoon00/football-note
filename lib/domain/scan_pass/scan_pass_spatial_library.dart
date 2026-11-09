@@ -182,6 +182,7 @@ class SpatialEducationLesson {
   final SpatialEducationMeasurement measurement;
   final String proofVersion;
   final List<String> referenceUrls;
+  final List<String> sourceConnectionEventIds;
   final String questionKey;
   final String actionKey;
   final String resultKey;
@@ -219,6 +220,7 @@ class SpatialEducationLesson {
     required this.measurement,
     required this.proofVersion,
     required this.referenceUrls,
+    this.sourceConnectionEventIds = const <String>[],
     required this.questionKey,
     required this.actionKey,
     required this.resultKey,
@@ -271,17 +273,35 @@ class SpatialSourcePin {
   final String key;
   final String provider;
   final String license;
-  final String commit;
+  final String revision;
   final String sourceUrl;
   final Set<int> matchIds;
+  final List<SpatialSourceFile> sourceFiles;
 
   const SpatialSourcePin({
     required this.key,
     required this.provider,
     required this.license,
-    required this.commit,
+    required this.revision,
     required this.sourceUrl,
     required this.matchIds,
+    this.sourceFiles = const <SpatialSourceFile>[],
+  });
+}
+
+class SpatialSourceFile {
+  final String role;
+  final String fileId;
+  final String sha256;
+  final int bytes;
+  final String url;
+
+  const SpatialSourceFile({
+    required this.role,
+    required this.fileId,
+    required this.sha256,
+    required this.bytes,
+    required this.url,
   });
 }
 
@@ -321,6 +341,13 @@ class SpatialLibraryDiscovery {
       scene.focusPlayerName,
       ...scene.evidenceAnchors.map((anchor) => anchor.playerName),
       scene.season,
+      if (scene.season == '2022') ...const <String>[
+        'World Cup',
+        '2022 World Cup',
+        'FIFA World Cup',
+        '월드컵',
+        'ワールドカップ',
+      ],
       if (scene.education != null) scene.education!.objective.name,
       if (scene.education != null) ...scene.education!.actorNames,
       for (final player in scene.participantNames)
@@ -557,6 +584,7 @@ class SpatialLibraryScene {
     final actorMetadata = data.players[actorIndex];
     final sample = data.sample(time);
     final actor = sample.players[actorIndex];
+    if (!sample.ballVisible) return null;
     if (actor == null || _distance(actor, sample.ball) > 3.5) return null;
 
     SpatialObservedDefenderGap? nearest;
@@ -628,7 +656,8 @@ class SpatialLibraryScene {
       final sample = data.sample(anchor.time);
       final player = sample.players[index];
       if (player == null ||
-          _distance(player, sample.ball) > 3.5 + 1 / data.fps) {
+          (sample.ballVisible &&
+              _distance(player, sample.ball) > 3.5 + 1 / data.fps)) {
         throw const FormatException(
           'Spatial evidence owner is too far from the recorded ball.',
         );
@@ -636,11 +665,18 @@ class SpatialLibraryScene {
     }
     final coreStartFrame = (coreStart * data.fps).round();
     final coreEndFrame = (coreEnd * data.fps).round();
-    for (final id in <int>{
-      ...corePlayerIds,
-      ...supportPlayerIds,
-      ...opponentContextPlayerIds,
-    }) {
+    final continuouslyObservedIds =
+        education?.sourceConnectionEventIds.isNotEmpty == true
+            ? <int>{
+                education!.focusActor.playerId,
+                ...education!.opponentActors.map((actor) => actor.playerId),
+              }
+            : <int>{
+                ...corePlayerIds,
+                ...supportPlayerIds,
+                ...opponentContextPlayerIds,
+              };
+    for (final id in continuouslyObservedIds) {
       final index = data.playerIndex(id);
       for (var frame = coreStartFrame; frame <= coreEndFrame; frame++) {
         if (!data.isVisibleAtFrame(frame, index)) {
@@ -773,7 +809,7 @@ bool _hasObservedSpatialActionContact(
 (int, int) _spatialActionDisplayFrames(
   SpatialSourceActionEvidence evidence,
   SpatialOnPitchActionKind kind, {
-  required int fps,
+  required double fps,
   required int sceneEndFrame,
 }) {
   final (start, lingerSeconds) = switch (kind) {
@@ -931,6 +967,8 @@ extension SpatialEducationReplayValidation on SpatialEducationLesson {
     if (proofVersion != SpatialEducationLesson.expectedProofVersion ||
         referenceUrls.isEmpty ||
         referenceUrls.any((url) => !url.startsWith('https://')) ||
+        sourceConnectionEventIds.toSet().length !=
+            sourceConnectionEventIds.length ||
         questionKey !=
             'spatialEducation${_objectiveSuffix(objective)}Question' ||
         actionKey != 'spatialEducation${_objectiveSuffix(objective)}Action' ||
@@ -990,11 +1028,14 @@ extension SpatialEducationReplayValidation on SpatialEducationLesson {
     }
     final firstFrame = (movementStart * data.fps).round();
     final lastFrame = (outcome * data.fps).round();
-    for (final actor in <SpatialLearningActor>{
-      focusActor,
-      ...supportActors,
-      ...opponentActors,
-    }) {
+    final continuouslyObservedActors = sourceConnectionEventIds.isNotEmpty
+        ? <SpatialLearningActor>{focusActor, ...opponentActors}
+        : <SpatialLearningActor>{
+            focusActor,
+            ...supportActors,
+            ...opponentActors,
+          };
+    for (final actor in continuouslyObservedActors) {
       final index = data.playerIndex(actor.playerId);
       for (var frame = firstFrame; frame <= lastFrame; frame++) {
         if (!data.isVisibleAtFrame(frame, index)) {
@@ -1005,12 +1046,16 @@ extension SpatialEducationReplayValidation on SpatialEducationLesson {
       }
     }
     final finalFrame = ((nextConnection ?? outcome) * data.fps).round();
-    for (var frame = firstFrame; frame <= finalFrame; frame++) {
-      if (!data.isBallVisibleAtFrame(frame)) {
-        throw const FormatException(
-          'Spatial education evidence contains a hidden ball.',
-        );
+    if (sourceConnectionEventIds.isEmpty) {
+      for (var frame = firstFrame; frame <= finalFrame; frame++) {
+        if (!data.isBallVisibleAtFrame(frame)) {
+          throw const FormatException(
+            'Spatial education evidence contains a hidden ball.',
+          );
+        }
       }
+    } else {
+      _validateSourceConnections(scene, data);
     }
     if (nextActor != null && nextConnection != null) {
       final index = data.playerIndex(nextActor!.playerId);
@@ -1133,8 +1178,10 @@ extension SpatialEducationReplayValidation on SpatialEducationLesson {
           (trigger, passer.playerId),
           (outcome, focusActor.playerId),
         ]);
-        _expectOwnerNearBall(data, trigger, passer.playerId);
-        _expectOwnerNearBall(data, outcome, focusActor.playerId);
+        _expectOwnerNearBall(data, trigger, passer.playerId,
+            allowHiddenBall: sourceConnectionEventIds.isNotEmpty);
+        _expectOwnerNearBall(data, outcome, focusActor.playerId,
+            allowHiddenBall: sourceConnectionEventIds.isNotEmpty);
         break;
       case SpatialLearningObjective.pressureOutlet:
         if (measurement !=
@@ -1171,9 +1218,12 @@ extension SpatialEducationReplayValidation on SpatialEducationLesson {
           (outcome, focusActor.playerId),
           (nextConnection!, nextActor!.playerId),
         ]);
-        _expectOwnerNearBall(data, trigger, passer.playerId);
-        _expectOwnerNearBall(data, outcome, focusActor.playerId);
-        _expectOwnerNearBall(data, nextConnection!, nextActor!.playerId);
+        _expectOwnerNearBall(data, trigger, passer.playerId,
+            allowHiddenBall: sourceConnectionEventIds.isNotEmpty);
+        _expectOwnerNearBall(data, outcome, focusActor.playerId,
+            allowHiddenBall: sourceConnectionEventIds.isNotEmpty);
+        _expectOwnerNearBall(data, nextConnection!, nextActor!.playerId,
+            allowHiddenBall: sourceConnectionEventIds.isNotEmpty);
         break;
       case SpatialLearningObjective.thirdPlayer:
         if (supportActors.length != 2 ||
@@ -1245,9 +1295,12 @@ extension SpatialEducationReplayValidation on SpatialEducationLesson {
           data,
           firstConnection,
           supportActors[0].playerId,
+          allowHiddenBall: sourceConnectionEventIds.isNotEmpty,
         );
-        _expectOwnerNearBall(data, trigger, supportActors[1].playerId);
-        _expectOwnerNearBall(data, outcome, focusActor.playerId);
+        _expectOwnerNearBall(data, trigger, supportActors[1].playerId,
+            allowHiddenBall: sourceConnectionEventIds.isNotEmpty);
+        _expectOwnerNearBall(data, outcome, focusActor.playerId,
+            allowHiddenBall: sourceConnectionEventIds.isNotEmpty);
         break;
       case SpatialLearningObjective.switchingSpace:
         if (measurement !=
@@ -1278,8 +1331,10 @@ extension SpatialEducationReplayValidation on SpatialEducationLesson {
           (trigger, passer.playerId),
           (outcome, focusActor.playerId),
         ]);
-        _expectOwnerNearBall(data, trigger, passer.playerId);
-        _expectOwnerNearBall(data, outcome, focusActor.playerId);
+        _expectOwnerNearBall(data, trigger, passer.playerId,
+            allowHiddenBall: sourceConnectionEventIds.isNotEmpty);
+        _expectOwnerNearBall(data, outcome, focusActor.playerId,
+            allowHiddenBall: sourceConnectionEventIds.isNotEmpty);
         break;
     }
   }
@@ -1288,22 +1343,102 @@ extension SpatialEducationReplayValidation on SpatialEducationLesson {
 void _expectOwnerNearBall(
   RealMatchReplayData data,
   double time,
-  int playerId,
-) {
+  int playerId, {
+  bool allowHiddenBall = false,
+}) {
   final frame = (time * data.fps).round();
   if (frame < 0 ||
       frame >= data.sourcePossessionOwners.length ||
       data.sourcePossessionOwners[frame] != playerId ||
-      !data.isBallVisibleAtFrame(frame)) {
+      (!allowHiddenBall && !data.isBallVisibleAtFrame(frame))) {
     throw const FormatException(
       'Spatial education source ownership does not match the lesson.',
     );
   }
   final player = data.sample(time).players[data.playerIndex(playerId)];
-  if (player == null || _distance(player, data.sample(time).ball) > 3.5) {
+  final sample = data.sample(time);
+  if (player == null ||
+      (sample.ballVisible && _distance(player, sample.ball) > 3.5)) {
     throw const FormatException(
       'Spatial education owner is not observed with the visible ball.',
     );
+  }
+}
+
+extension on SpatialEducationLesson {
+  void _validateSourceConnections(
+    SpatialLibraryScene scene,
+    RealMatchReplayData data,
+  ) {
+    final expected = switch (objective) {
+      SpatialLearningObjective.receivingLane ||
+      SpatialLearningObjective.switchingSpace =>
+        <(int, int, double?, double?)>[
+          (
+            supportActors.single.playerId,
+            focusActor.playerId,
+            trigger,
+            outcome
+          ),
+        ],
+      SpatialLearningObjective.thirdPlayer => <(int, int, double?, double?)>[
+          (
+            supportActors[0].playerId,
+            supportActors[1].playerId,
+            scene.evidenceAnchors.first.time,
+            scene.evidenceAnchors[1].time,
+          ),
+          (supportActors[1].playerId, focusActor.playerId, trigger, outcome),
+        ],
+      SpatialLearningObjective.pressureOutlet => <(int, int, double?, double?)>[
+          (supportActors.first.playerId, focusActor.playerId, trigger, outcome),
+          (focusActor.playerId, nextActor!.playerId, null, nextConnection),
+        ],
+    };
+    if (sourceConnectionEventIds.length != expected.length) {
+      throw const FormatException(
+        'Spatial education source connections are incomplete.',
+      );
+    }
+    final byId = <String, RealMatchReplayEvent>{
+      for (final event in data.events) event.id: event,
+    };
+    final tolerance = 1 / data.fps + .001;
+    for (var index = 0; index < expected.length; index++) {
+      final event = byId[sourceConnectionEventIds[index]];
+      final connection = expected[index];
+      if (event == null ||
+          event.playerId != connection.$1 ||
+          event.targetedPlayerId != connection.$2 ||
+          event.endType != 'pass' ||
+          event.passOutcome != 'complete' ||
+          (connection.$3 != null &&
+              (event.start - connection.$3!).abs() > tolerance) ||
+          (connection.$4 != null &&
+              (event.end - connection.$4!).abs() > tolerance)) {
+        throw const FormatException(
+          'Spatial education source connection does not match the lesson.',
+        );
+      }
+      final guardFrames = (data.fps * .5).round();
+      for (final anchor in <(double, int)>[
+        (event.start, event.playerId),
+        (event.end, event.targetedPlayerId!),
+      ]) {
+        final frame = (anchor.$1 * data.fps).round();
+        final playerIndex = data.playerIndex(anchor.$2);
+        if (frame - guardFrames < 0 ||
+            frame + guardFrames >= data.frames.length ||
+            !List<int>.generate(
+              guardFrames * 2 + 1,
+              (offset) => frame - guardFrames + offset,
+            ).every((value) => data.isVisibleAtFrame(value, playerIndex))) {
+          throw const FormatException(
+            'Spatial education source connection actor is not guarded.',
+          );
+        }
+      }
+    }
   }
 }
 
@@ -1393,6 +1528,8 @@ class SpatialLibraryCatalog {
   static const expectedRecentSourceCommit =
       '4340d274572876239c154c90bc507a9b3250a656';
   static const expectedEducationProofVersion = 'spatial-education-catalog-v2';
+  static const expectedMixedEducationProofVersion =
+      'spatial-education-catalog-v3';
   static const expectedActionProofVersion = 'spatial-source-actions-v1';
 
   final int version;
@@ -1515,13 +1652,28 @@ class SpatialLibraryCatalog {
         ? const <SpatialSourcePin>[]
         : _list(json, 'sourcePins').map((value) {
             final pin = _mapValue(value, 'spatial source pin');
+            final sourceFiles = pin['sourceFiles'] == null
+                ? const <SpatialSourceFile>[]
+                : _list(pin, 'sourceFiles').map((value) {
+                    final file = _mapValue(value, 'spatial source file');
+                    return SpatialSourceFile(
+                      role: _string(file, 'role'),
+                      fileId: _string(file, 'fileId'),
+                      sha256: _string(file, 'sha256'),
+                      bytes: _integer(file, 'bytes'),
+                      url: _string(file, 'url'),
+                    );
+                  }).toList(growable: false);
             return SpatialSourcePin(
               key: _string(pin, 'key'),
               provider: _string(pin, 'provider'),
               license: _string(pin, 'license'),
-              commit: _string(pin, 'commit'),
+              revision: pin['revision'] == null
+                  ? _string(pin, 'commit')
+                  : _string(pin, 'revision'),
               sourceUrl: _string(pin, 'sourceUrl'),
               matchIds: _integerList(pin, 'matchIds').toSet(),
+              sourceFiles: sourceFiles,
             );
           }).toList(growable: false);
     final catalog = SpatialLibraryCatalog(
@@ -1575,7 +1727,7 @@ class SpatialLibraryCatalog {
           .toList(growable: false);
 
   void _validate() {
-    if (version == 2) {
+    if (version == 2 || version == 3) {
       _validateEducation();
       return;
     }
@@ -1657,55 +1809,105 @@ class SpatialLibraryCatalog {
         'https://github.com/SkillCorner/opendata/tree/$expectedSourceCommit';
     const recentRoot =
         'https://github.com/SkillCorner/opendata/tree/$expectedRecentSourceCommit';
+    const pffRoot =
+        'https://drive.google.com/drive/folders/1_a_q1e9CXeEPJ3GdCv_3-rNO3gPqacfa';
+    final mixedProviders = version == 3;
     final ids = <String>{};
-    if (provider != 'SkillCorner Open Data' ||
-        license != 'MIT' ||
-        proofVersion != expectedEducationProofVersion ||
+    if ((mixedProviders
+            ? provider != 'Mixed pinned sources' ||
+                license != 'Per-source terms' ||
+                proofVersion != expectedMixedEducationProofVersion ||
+                sourceCommit != 'mixed-pinned-sources-v2' ||
+                sourceUrl != pffRoot ||
+                sourcePins.length != 5
+            : provider != 'SkillCorner Open Data' ||
+                license != 'MIT' ||
+                proofVersion != expectedEducationProofVersion ||
+                sourceCommit != 'mixed-pinned-sources-v1' ||
+                sourceUrl != 'https://github.com/SkillCorner/opendata' ||
+                sourcePins.length != 2) ||
         actionProofVersion != expectedActionProofVersion ||
-        sourceCommit != 'mixed-pinned-sources-v1' ||
-        sourceUrl != 'https://github.com/SkillCorner/opendata' ||
-        sourcePins.length != 2 ||
         scenes.isEmpty ||
         matchCount != matchIds.length) {
       throw const FormatException('Invalid spatial education metadata.');
     }
-    final pinByCommit = <String, SpatialSourcePin>{
-      for (final pin in sourcePins) pin.commit: pin,
+    final pinByRevision = <String, SpatialSourcePin>{
+      for (final pin in sourcePins) pin.revision: pin,
     };
-    final historical = pinByCommit[expectedSourceCommit];
-    final recent = pinByCommit[expectedRecentSourceCommit];
+    final historical = pinByRevision[expectedSourceCommit];
+    final recent = pinByRevision[expectedRecentSourceCommit];
     if (historical == null ||
         recent == null ||
         historical.key != 'historical-2019-20' ||
         recent.key != 'recent-2024-25' ||
-        historical.provider != provider ||
-        recent.provider != provider ||
-        historical.license != license ||
-        recent.license != license ||
+        historical.provider != 'SkillCorner Open Data' ||
+        recent.provider != 'SkillCorner Open Data' ||
+        historical.license != 'MIT' ||
+        recent.license != 'MIT' ||
         historical.sourceUrl != historicalRoot ||
         recent.sourceUrl != recentRoot ||
+        historical.sourceFiles.isNotEmpty ||
+        recent.sourceFiles.isNotEmpty ||
         recent.matchIds.difference(const <int>{1925299, 1996435}).isNotEmpty ||
         recent.matchIds.isEmpty ||
         sourcePins.expand((pin) => pin.matchIds).toSet().length != matchCount) {
       throw const FormatException('Invalid spatial education source pins.');
     }
+    if (mixedProviders) {
+      final pffMatches = <int>{};
+      for (final pin in sourcePins.where((pin) => pin.provider == 'PFF FC')) {
+        if (!pin.key.startsWith('pff-world-cup-2022-') ||
+            pin.license != 'Public release; no separate license stated' ||
+            pin.sourceUrl != pffRoot ||
+            pin.matchIds.length != 1 ||
+            pin.revision.length != 64 ||
+            pin.sourceFiles.length != 6 ||
+            pin.sourceFiles.map((file) => file.role).toSet().length != 6 ||
+            pin.sourceFiles.any((file) =>
+                file.role.isEmpty ||
+                file.fileId.isEmpty ||
+                file.sha256.length != 64 ||
+                file.bytes <= 0 ||
+                file.url !=
+                    'https://drive.google.com/file/d/${file.fileId}/view')) {
+          throw const FormatException('Invalid PFF source pin.');
+        }
+        pffMatches.addAll(pin.matchIds);
+      }
+      if (pffMatches.difference(const <int>{3857, 10507, 10517}).isNotEmpty ||
+          pffMatches.length != 3) {
+        throw const FormatException('Invalid PFF match source coverage.');
+      }
+    }
     for (final scene in scenes) {
       final lesson = scene.education;
-      final pin = pinByCommit[scene.sourceCommit];
+      final pin = pinByRevision[scene.sourceCommit];
+      final pff = pin?.provider == 'PFF FC';
+      final expectedSceneUrl = pff
+          ? pin!.sourceFiles.singleWhere((file) => file.role == 'tracking').url
+          : '${pin?.sourceUrl}/data/matches/${scene.matchId}';
       if (!ids.add(scene.id) ||
           lesson == null ||
           pin == null ||
           !pin.matchIds.contains(scene.matchId) ||
-          scene.sourceUrl != '${pin.sourceUrl}/data/matches/${scene.matchId}' ||
+          scene.sourceUrl != expectedSceneUrl ||
           scene.assetSha256.length != 64 ||
           scene.season !=
-              (scene.sourceCommit == expectedRecentSourceCommit
-                  ? '2024/25'
-                  : '2019/20') ||
+              (pff
+                  ? '2022'
+                  : scene.sourceCommit == expectedRecentSourceCommit
+                      ? '2024/25'
+                      : '2019/20') ||
+          scene.period < 1 ||
+          scene.period > (pff ? 4 : 2) ||
+          (pff
+              ? lesson.sourceConnectionEventIds.isEmpty ||
+                  scene.sourceActions.isNotEmpty
+              : lesson.sourceConnectionEventIds.isNotEmpty) ||
           !scene.asset.startsWith(
             'assets/scan_pass_spatial/education_scenes/',
           ) ||
-          scene.duration < 20 ||
+          scene.duration < (pff ? 15 : 20) ||
           scene.duration > 40 ||
           scene.duration - lesson.outcome < 4 ||
           lesson.movementStart < 4 ||
@@ -1806,6 +2008,11 @@ SpatialEducationLesson _educationLesson(Map<String, dynamic> json) {
     referenceUrls: _list(json, 'referenceUrls')
         .map((value) => _stringValue(value, 'reference URL'))
         .toList(growable: false),
+    sourceConnectionEventIds: json['sourceConnectionEventIds'] == null
+        ? const <String>[]
+        : _list(json, 'sourceConnectionEventIds')
+            .map((value) => _stringValue(value, 'source connection event id'))
+            .toList(growable: false),
     questionKey: _string(json, 'questionKey'),
     actionKey: _string(json, 'actionKey'),
     resultKey: _string(json, 'resultKey'),
@@ -1929,6 +2136,18 @@ const _spatialSearchCharacterFolds = <String, String>{
 };
 
 const _spatialTeamSearchAliases = <String, List<String>>{
+  'Argentina': <String>['ARG', '아르헨티나', 'アルゼンチン'],
+  'France': <String>['FRA', '프랑스', 'フランス'],
+  'Brazil': <String>['BRA', '브라질', 'ブラジル'],
+  'South Korea': <String>[
+    'Korea Republic',
+    'Korea',
+    'KOR',
+    '대한민국',
+    '한국',
+    '韓国',
+  ],
+  'Portugal': <String>['POR', '포르투갈', 'ポルトガル'],
   'Manchester City': <String>[
     'Man City',
     'Man City FC',
@@ -2065,10 +2284,32 @@ const _spatialPlayerSearchAliases = <String, List<String>>{
     'エムバペ',
     'ムバッペ',
   ],
+  'Kylian Mbappé': <String>[
+    'Kylian Mbappe',
+    'Mbappe',
+    '킬리안 음바페',
+    '음바페',
+    'エムバペ',
+  ],
   'Lautaro Martinez': <String>['라우타로 마르티네스', '라우타로'],
   'Leandro Paredes': <String>['레안드로 파레데스', '파레데스'],
   'Leonardo Bonucci': <String>['레오나르도 보누치', '보누치'],
   'Lionel Messi': <String>['리오넬 메시', '메시', 'メッシ'],
+  'Neymar': <String>['Neymar Jr', '네이마르', 'ネイマール'],
+  'Heung-min Son': <String>[
+    'Son Heung-min',
+    'Son Heungmin',
+    '손흥민',
+    'ソンフンミン',
+  ],
+  'Vinícius Junior': <String>[
+    'Vinicius Junior',
+    'Vini Jr',
+    '비니시우스 주니오르',
+    'ヴィニシウス',
+  ],
+  'Hee-chan Hwang': <String>['Hwang Hee-chan', '황희찬', 'ファンヒチャン'],
+  'Kang-in Lee': <String>['Lee Kang-in', '이강인', 'イガンイン'],
   'Luis Suarez': <String>['루이스 수아레스', '수아레스'],
   'Luiz Fernandinho': <String>['페르난지뉴'],
   'Luka Modric': <String>['루카 모드리치', '모드리치'],

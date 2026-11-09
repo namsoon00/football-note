@@ -68,6 +68,9 @@ class SpatialKitResolver {
     3518: (home: 'Juventus', away: 'Inter'),
     3749: (home: 'Dortmund', away: 'Bayern Munchen'),
     4039: (home: 'Manchester City', away: 'Liverpool'),
+    3857: (home: 'South Korea', away: 'Portugal'),
+    10507: (home: 'Brazil', away: 'South Korea'),
+    10517: (home: 'Argentina', away: 'France'),
   };
 
   SpatialKitPresentation resolve({
@@ -114,6 +117,56 @@ class SpatialKitResolver {
 }
 
 const Map<String, SpatialKitPresentation> _teamKits = {
+  'Argentina': SpatialKitPresentation(
+    teamName: 'Argentina',
+    family: SpatialKitFamily.verticalStripes,
+    primaryColor: Color(0xFFF7F7F2),
+    secondaryColor: Color(0xFF75AADB),
+    trimColor: Color(0xFF111827),
+    shortsColor: Color(0xFF111827),
+    numberColor: Color(0xFF111827),
+    curated: true,
+  ),
+  'France': SpatialKitPresentation(
+    teamName: 'France',
+    family: SpatialKitFamily.plain,
+    primaryColor: Color(0xFF0B1F4D),
+    secondaryColor: Color(0xFF0B1F4D),
+    trimColor: Color(0xFFC8A45A),
+    shortsColor: Color(0xFF0B1F4D),
+    numberColor: Color(0xFFC8A45A),
+    curated: true,
+  ),
+  'Brazil': SpatialKitPresentation(
+    teamName: 'Brazil',
+    family: SpatialKitFamily.contrastSleeves,
+    primaryColor: Color(0xFFF7E12B),
+    secondaryColor: Color(0xFF1D7A45),
+    trimColor: Color(0xFF1D4E9E),
+    shortsColor: Color(0xFF1D4E9E),
+    numberColor: Color(0xFF1D7A45),
+    curated: true,
+  ),
+  'South Korea': SpatialKitPresentation(
+    teamName: 'South Korea',
+    family: SpatialKitFamily.plain,
+    primaryColor: Color(0xFFE9153B),
+    secondaryColor: Color(0xFFE9153B),
+    trimColor: Color(0xFF111827),
+    shortsColor: Color(0xFFE9153B),
+    numberColor: Color(0xFF111827),
+    curated: true,
+  ),
+  'Portugal': SpatialKitPresentation(
+    teamName: 'Portugal',
+    family: SpatialKitFamily.centralBand,
+    primaryColor: Color(0xFFF7F7F2),
+    secondaryColor: Color(0xFF8E1731),
+    trimColor: Color(0xFF0C6B45),
+    shortsColor: Color(0xFFF7F7F2),
+    numberColor: Color(0xFF8E1731),
+    curated: true,
+  ),
   'FC Barcelona': SpatialKitPresentation(
     teamName: 'FC Barcelona',
     family: SpatialKitFamily.checkerboard,
