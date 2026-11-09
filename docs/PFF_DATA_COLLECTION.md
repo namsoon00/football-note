@@ -1,6 +1,7 @@
 # PFF / Gradient Sports data collection
 
-Checked on 2026-11-03 (KST). This record describes acquisition status, not app catalogue coverage.
+Checked on 2026-11-09 (KST). This record describes both the acquired release
+slice and its app catalogue coverage.
 
 ## Full release
 
@@ -10,11 +11,28 @@ Gradient Sports, formerly PFF FC, advertises tracking, event, roster and match m
 - [Legacy enhanced release](https://www.blog.fc.pff.com/blog/enhanced-2022-world-cup-dataset)
 - [Original release](https://www.blog.fc.pff.com/blog/pff-fc-release-2022-world-cup-data)
 
-**Full match files acquired: 0. Full PFF matches imported into the app: 0.**
+The legacy page embeds Klaviyo form `R4ZPQU`. Its public configuration links to
+the genuine [PFF FC public release folder](https://drive.google.com/drive/folders/1_a_q1e9CXeEPJ3GdCv_3-rNO3gPqacfa).
+The connected folder lists 64 match files in each of Metadata, Rosters,
+Tracking Data and Event Data. The Event Data listing has 67 entries when its
+specification and extra folder entries are included; Tracking Data has 65 when
+its specification is included. No email, form submission, newsletter signup,
+account creation, paid agreement or message was used.
 
-The retrieved official pages say to complete a form, but contain no dataset access form or downloadable dataset URL. The legacy `fc.pff.com` site returns HTTP 530. The footer's newsletter signup is not the dataset request form. This is an access blocker; it does not establish that the release has been withdrawn.
+**Full match files acquired: 12 files for 3 matches, plus 2 specifications.
+Full PFF matches imported into the app: 3, represented by 4 derived clips.**
 
-The next required input is an authorised download URL/access method from the user or provider. The [official contact page](https://www.gradientsports.com/contact) lists `support@gradientsports.com`. An unsent request asking for the dataset, specification and permission to show derived educational 2D sequences is saved locally at `.tmp/spatial-caption-pff/pff-source/access-request.eml`. No message, signup, licence acceptance or paid order has been submitted.
+The local ignored source contains complete metadata, roster, event and tracking
+files for Argentina–France (`10517`), Brazil–South Korea (`10507`) and South
+Korea–Portugal (`3857`). Exact Google Drive file IDs, public URLs, byte lengths
+and SHA-256 hashes are committed in
+`assets/scan_pass_spatial/worldcup-source-manifest.json`. The release does not
+state a separate data licence in the acquired material, so the app and docs do
+not describe it as MIT, open data or public domain. Raw match files remain
+ignored and are not bundled.
+
+The earlier “access form unavailable” conclusion was stale because it did not
+inspect the dynamic Klaviyo configuration. It must not be repeated.
 
 ## Limited format samples collected
 
@@ -31,6 +49,52 @@ The six files total 1,516,096 bytes. Local URLs, byte lengths and SHA-256 hashes
 
 ## Admission to the learning catalogue
 
-After access is available, inspect one complete match before bulk collection. Preserve provider files and hashes locally. Confirm permitted educational display and any later public/commercial use. Align tracking and events with their original clocks; inspect period direction changes, observation gaps, player identities and ball validity. Only then select continuous teaching sequences and add a source-specific importer. Do not join the discontinuous fixtures, invent missing coordinates, or present provider grades as proof of a uniquely best decision.
+`tool/scan_pass_worldcup/prepare_worldcup.py` verifies every acquired byte,
+streams the provider JSONL once per match for uncached candidates, and
+reproducibly appends 4 clips after the existing 70 IDs. The selected coverage
+is 1 clip from `10517`, 1 from `10507`, and 2 from `3857`. Twenty-four candidates were
+batch-screened; exact frames, period clocks, provider connection IDs, tracking
+anchor offsets, visibility counts and all 20 rejection reasons are in
+`assets/scan_pass_spatial/worldcup-proof.json`.
 
-The existing 70-lesson SkillCorner catalogue is unchanged by this collection work.
+Rebuild from the ignored pinned source and verify the committed result with:
+
+```sh
+python3 tool/scan_pass_worldcup/prepare_worldcup.py \
+  --raw-root .tmp/worldcup-20261109/source
+python3 tool/scan_pass_worldcup/prepare_worldcup.py --verify-assets
+```
+
+The importer uses raw `homePlayers`, `awayPlayers` and `balls`, never the
+provider's smoothed fields. Only `VISIBLE` coordinates are rendered;
+`ESTIMATED` and off-camera samples remain missing. Only the source `OTB`
+`game_event.player_id` is retained as a possible owner label; it must be
+directly observed and close to the visible ball at an evidence anchor.
+`passerPlayerId`/`receiverPlayerId` and the provider's game/possession event IDs
+establish pass connections. Nearest-player distance never establishes
+possession. Numeric source ball height (Z) is kept only from visible tracking
+samples. Event height codes remain categorical and are recorded only as such.
+`VISIBLE` describes position visibility, not independently verified identity.
+The source's `LOW`/`MEDIUM` player-identity confidence is preserved; joining
+event and roster IDs does not by itself verify every off-ball identity.
+
+Event `startTime`/`endTime` and tracking `videoTimeMs` are video-relative;
+`periodGameClockTime` supplies the displayed period clock. Metadata match dates
+have no timezone suffix. Tracking `generatedTime`/`smoothedTime` are processing
+timestamps, not match-frame UTC. All selected intervals keep contiguous source
+frames within one period and at least four seconds of setup and aftermath.
+Every provider event/reception anchor is within one 29.97 fps source frame of
+its original event time. The largest accepted absolute offset is 0.013319
+seconds (the first reception in scene `pff-10517-6622604-6622609-thirdPlayer`),
+and the proof retains each signed offset rather than relabelling a nearby frame.
+
+Known gaps are intentionally visible as gaps: the ball is not drawn while its
+tracking sample is estimated or absent, and no player is interpolated across a
+camera boundary. Twenty batch candidates were rejected for their exact recorded
+reason, including insufficient four-second nonempty context, a missing or
+misaligned provider-linked actor/reception, a failed 0.5-second visibility
+guard, an owner too far from the visible ball, or no directly observed opening.
+Earlier screened exclusions also include the Mbappé continuation in
+event `6623294` and Son's late pass in event `6507212`, whose target receiver
+anchors were not directly observed. No clip claims a goal, first-touch foot,
+3D trajectory, coaching intent or uniquely best choice.

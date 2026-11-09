@@ -16,6 +16,9 @@ void main() {
     (id: 3518, home: 'Juventus', away: 'Inter'),
     (id: 3749, home: 'Dortmund', away: 'Bayern Munchen'),
     (id: 4039, home: 'Manchester City', away: 'Liverpool'),
+    (id: 3857, home: 'South Korea', away: 'Portugal'),
+    (id: 10507, home: 'Brazil', away: 'South Korea'),
+    (id: 10517, home: 'Argentina', away: 'France'),
   ];
   const expectedFamilies = <String, SpatialKitFamily>{
     'FC Barcelona': SpatialKitFamily.checkerboard,
@@ -28,9 +31,14 @@ void main() {
     'Dortmund': SpatialKitFamily.contrastSleeves,
     'Bayern Munchen': SpatialKitFamily.tonalPanels,
     'Marseille': SpatialKitFamily.plain,
+    'Argentina': SpatialKitFamily.verticalStripes,
+    'France': SpatialKitFamily.plain,
+    'Brazil': SpatialKitFamily.contrastSleeves,
+    'South Korea': SpatialKitFamily.plain,
+    'Portugal': SpatialKitFamily.centralBand,
   };
 
-  test('resolver scopes curated kits to all 18 known fixture sides', () {
+  test('resolver scopes curated kits to all 24 known fixture sides', () {
     final resolvedByTeam = <String, SpatialKitPresentation>{};
     for (final fixture in fixtures) {
       for (final homeSide in <bool>[true, false]) {

@@ -218,7 +218,7 @@ class SpatialFocusKeyframe {
 /// between this small list of deliberate keyframes and reads the cached set of
 /// relevant observed players for the current source frame.
 class SpatialFocusPlan {
-  final int fps;
+  final double fps;
   final double duration;
   final RealMatchReplayCamera teachingCamera;
   final List<SpatialFocusKeyframe> keyframes;
@@ -276,16 +276,18 @@ class SpatialFocusPlan {
       }
       final nearbyAttackers = <({int id, double meters})>[];
       final nearbyDefenders = <({int id, double meters})>[];
-      for (var index = 0; index < data.players.length; index++) {
-        final point = sample.players[index];
-        if (point == null) continue;
-        final player = data.players[index];
-        final meters = _pointDistance(point, sample.ball);
-        final attacks = player.home == activeHome;
-        if (attacks && meters <= 11) {
-          nearbyAttackers.add((id: player.id, meters: meters));
-        } else if (!attacks && meters <= 13) {
-          nearbyDefenders.add((id: player.id, meters: meters));
+      if (sample.ballVisible) {
+        for (var index = 0; index < data.players.length; index++) {
+          final point = sample.players[index];
+          if (point == null) continue;
+          final player = data.players[index];
+          final meters = _pointDistance(point, sample.ball);
+          final attacks = player.home == activeHome;
+          if (attacks && meters <= 11) {
+            nearbyAttackers.add((id: player.id, meters: meters));
+          } else if (!attacks && meters <= 13) {
+            nearbyDefenders.add((id: player.id, meters: meters));
+          }
         }
       }
       if (scene.education == null) {
@@ -324,7 +326,7 @@ class SpatialFocusPlan {
 
       for (var frame = first; frame <= last; frame++) {
         final sample = data.sample(frame / data.fps);
-        include(sample.ball);
+        if (sample.ballVisible) include(sample.ball);
         for (final id in relevantByFrame[frame]) {
           final point = sample.players[data.playerIndex(id)];
           if (point != null) include(point);
@@ -494,6 +496,7 @@ extension SpatialLibrarySceneFocus on SpatialLibraryScene {
     double time,
   ) {
     final sample = data.renderSample(time);
+    if (!sample.ballVisible) return const SpatialObservedRoles([]);
     SpatialEvidenceAnchor? latestReached;
     for (final anchor in evidenceAnchors) {
       if (anchor.time > time) break;

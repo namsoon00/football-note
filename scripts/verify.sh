@@ -68,6 +68,7 @@ fi
 
 echo "==> spatial education asset verification"
 python3 tool/scan_pass_replay/prepare_spatial_education.py --verify-assets
+python3 tool/scan_pass_worldcup/prepare_worldcup.py --verify-assets
 
 echo "==> quiz quality harness"
 ./scripts/quiz_quality_harness.sh

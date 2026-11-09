@@ -7,8 +7,12 @@ MIT-licensed [SkillCorner Open Data](https://github.com/SkillCorner/opendata).
 It keeps the original 20 A-League payloads unchanged and places five historical
 Premier League/LaLiga scenes first in the mixed catalog.
 
-The public default is now the separate 18-scene source-grounded spatial library.
-Its assets, MIT source manifest, deterministic selection proof, and limitations
+The public default is the separate 74-scene source-grounded spatial library.
+Its 70 SkillCorner lessons retain their MIT provenance. Four appended lessons
+come from three complete matches in the publicly shared PFF FC 2022 World Cup
+release; that acquired material states no separate licence and is not described
+as MIT or public domain. Its assets, per-source manifest, deterministic
+selection proof, and limitations
 are documented in
 [`SCAN_PASS_SPATIAL_LIBRARY.md`](SCAN_PASS_SPATIAL_LIBRARY.md). Nothing in that
 addition rewrites this viewer's assets or provenance.
@@ -33,7 +37,8 @@ The five historical scenes use revision
 The bundled MIT license remains at `assets/scan_pass_replay/LICENSE` and is
 registered in Flutter's license registry. Pinned source paths, raw URLs, byte
 sizes and SHA-256 hashes are recorded separately in
-`source-manifest.json` and `historical-source-manifest.json`. Catalog entries
+`source-manifest.json`, `historical-source-manifest.json`, and
+`worldcup-source-manifest.json`. Catalog entries
 carry their own source revision and URL; the source sheet therefore opens the
 pinned match directory for the selected scene rather than downloading the full raw tracking file. Exact raw URLs remain in the manifests.
 

@@ -356,6 +356,7 @@ class RealMatchReplaySample {
   final double sourceFrame;
   final List<RealMatchReplayPoint?> players;
   final RealMatchReplayPoint ball;
+  final bool ballVisible;
   final bool ballHeightKnown;
 
   const RealMatchReplaySample({
@@ -363,6 +364,7 @@ class RealMatchReplaySample {
     required this.sourceFrame,
     required this.players,
     required this.ball,
+    this.ballVisible = true,
     this.ballHeightKnown = true,
   });
 }
@@ -378,6 +380,7 @@ class RealMatchReplayDisplaySample {
   final List<RealMatchReplayPoint?> players;
   final List<bool> reconstructed;
   final RealMatchReplayPoint ball;
+  final bool ballVisible;
   final bool ballHeightKnown;
 
   const RealMatchReplayDisplaySample({
@@ -386,6 +389,7 @@ class RealMatchReplayDisplaySample {
     required this.players,
     required this.reconstructed,
     required this.ball,
+    this.ballVisible = true,
     this.ballHeightKnown = true,
   });
 
@@ -399,7 +403,7 @@ class RealMatchReplayData {
   static const int expectedFrameCount = 309;
   static const int expectedPoseCount = 155;
 
-  final int fps;
+  final double fps;
   final int poseStep;
   final double duration;
   final double startClock;
@@ -667,7 +671,7 @@ class RealMatchReplayData {
             }).toList(growable: false),
           );
     final data = RealMatchReplayData._(
-      fps: _integer(json, 'fps'),
+      fps: _number(json, 'fps'),
       poseStep: _integer(json, 'poseStep'),
       duration: duration,
       startClock: _number(json, 'startClock'),
@@ -791,14 +795,16 @@ class RealMatchReplayData {
     var maxY = pitchWidth / 2;
     for (var frameIndex = 0; frameIndex < frames.length; frameIndex++) {
       final source = frames[frameIndex];
-      minX = math.min(minX, source[players.length * 2] / 100);
-      maxX = math.max(maxX, source[players.length * 2] / 100);
-      minY = math.min(minY, source[players.length * 2 + 1] / 100);
-      maxY = math.max(maxY, source[players.length * 2 + 1] / 100);
-      final ballLift = source.last / 100 * .85;
-      minX = math.min(minX, source[players.length * 2] / 100 - ballLift);
-      maxX = math.max(maxX, source[players.length * 2] / 100 + ballLift);
-      maxY = math.max(maxY, source[players.length * 2 + 1] / 100 + ballLift);
+      if (isBallVisibleAtFrame(frameIndex)) {
+        minX = math.min(minX, source[players.length * 2] / 100);
+        maxX = math.max(maxX, source[players.length * 2] / 100);
+        minY = math.min(minY, source[players.length * 2 + 1] / 100);
+        maxY = math.max(maxY, source[players.length * 2 + 1] / 100);
+        final ballLift = source.last / 100 * .85;
+        minX = math.min(minX, source[players.length * 2] / 100 - ballLift);
+        maxX = math.max(maxX, source[players.length * 2] / 100 + ballLift);
+        maxY = math.max(maxY, source[players.length * 2 + 1] / 100 + ballLift);
+      }
       for (var player = 0; player < players.length; player++) {
         if (!hasDisplayPositionAtFrame(frameIndex, player)) continue;
         final row =
@@ -850,6 +856,7 @@ class RealMatchReplayData {
         players: source.players,
         reconstructed: List<bool>.filled(players.length, false),
         ball: source.ball,
+        ballVisible: source.ballVisible,
         ballHeightKnown: source.ballHeightKnown,
       );
     }
@@ -894,6 +901,7 @@ class RealMatchReplayData {
         growable: false,
       ),
       ball: source.ball,
+      ballVisible: source.ballVisible,
       ballHeightKnown: source.ballHeightKnown,
     );
   }
@@ -934,6 +942,8 @@ class RealMatchReplayData {
     }
 
     final height = heightAt(clamped);
+    final ballVisible = isBallVisibleAtFrame(lower) &&
+        (fraction == 0 || isBallVisibleAtFrame(upper));
     return RealMatchReplaySample(
       time: clamped,
       sourceFrame: sourceFrame,
@@ -958,6 +968,7 @@ class RealMatchReplayData {
         linear(players.length * 2 + 1),
         height ?? 0,
       ),
+      ballVisible: ballVisible,
       ballHeightKnown: height != null,
     );
   }

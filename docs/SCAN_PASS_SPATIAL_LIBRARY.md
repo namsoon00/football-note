@@ -1,37 +1,57 @@
 # Scan Pass source-grounded spatial library
 
 The source-grounded spatial library is the primary Scan Pass experience. It is a
-pitch-first viewer of broadcast-visible SkillCorner tracking, not a diagram
-invented from video. The separate 12-passage official-video viewer remains
+pitch-first viewer of broadcast-visible pinned tracking, not a diagram invented
+from video. It now combines SkillCorner Open Data with a three-match slice of
+the publicly shared PFF FC 2022 World Cup release. The separate 12-passage
+official-video viewer remains
 available through one More-menu route and keeps its existing history and
 progress storage. Its authored qualitative diagrams are not measured replays;
 see [`SCAN_PASS_VIDEO_LEARNING.md`](SCAN_PASS_VIDEO_LEARNING.md).
 
 ## Shipped catalogue
 
-`education-catalog.json` is the only default runtime entry. It contains 70
-evidence-reviewed passages from 10 matches: 25 accepted scenes from eight of
+`education-catalog.json` is the only default runtime entry. It contains 74
+evidence-reviewed passages from 13 matches: 25 accepted scenes from eight of
 the nine pinned 2019/20 matches and 45 newly exported scenes from both requested
-2024/25 A-League matches. The importer audited all 72 scenes in the original
+2024/25 A-League matches, followed by 4 PFF World Cup scenes (1 from
+Argentina–France, 1 from Brazil–South Korea and 2 from South Korea–Portugal).
+The existing
+70 IDs, assets, ordering and default opening are unchanged. The SkillCorner
+importer audited all 72 scenes in the original
 catalogue and rejected 47 that did not demonstrate a supported before/after
 learning outcome. The original `catalog.json`, every original scene and the
 original source/quality/preservation files remain byte-identical as archive
 and test fixtures; they are not a second menu or a fallback.
 
 There is no scene-count, fame, team or player quota. The current evidence
-produces 9 receiving-lane, 11 pressure-outlet, 34 distinct-third-player and 16
+produces 9 receiving-lane, 11 pressure-outlet, 38 distinct-third-player and 16
 opposite-side-space lessons. A later source revision can change those counts
 only by passing the same deterministic measurements.
+
+The World Cup extractor is
+`tool/scan_pass_worldcup/prepare_worldcup.py`. Its source manifest pins actual
+Google Drive file IDs, public file URLs, byte lengths and SHA-256 hashes rather
+than a fictitious Git revision. `worldcup-proof.json` records each clip's exact
+source frames, period clocks and PFF game/possession event identities. Raw
+`VISIBLE` player and ball coordinates are retained at 29.97 fps. Estimated or
+off-camera samples remain gaps: hidden balls are not painted, hidden players are
+not interpolated, and camera gaps never establish a path or owner. Visible
+tracking Z is distinct from the event feed's categorical height codes.
+For PFF, `VISIBLE` means the position is visible; it does not independently
+certify player identity. Source `LOW`/`MEDIUM` identity confidence is retained,
+and event/roster IDs do not independently verify every off-ball identity.
 
 `ScanPassSpatialLibraryScreen` opens directly on one top-down metric pitch.
 Orientation stays fixed for the passage. Precomputed overlapping four-second
 source windows ease the camera between local action envelopes: every frame
-keeps the recorded ball, current source-labelled owner, blue teaching focus and
-actors named by the current question/observation visible. The camera never
-fills gaps or treats an
+keeps the directly observed blue teaching focus and currently observed actors
+named by the question/observation visible. A directly observed ball and confirmed
+source-labelled owner are included when available. The camera never fills gaps
+or treats an
 unobserved actor as empty space. Numbered flat kit symbols have a separate
-ground anchor, and the ball remains a separate visible object. The field ball
-keeps source XY as a ground anchor and uses audited source z only where that
+ground anchor, and an observed ball remains a separate visible object. The
+field ball keeps visible source XY as a ground anchor and uses audited source z only where that
 individual frame has a valid nonnegative height. A subtle shadow stays at the
 ground anchor while the black-and-white ball lifts on a capped presentation
 scale; a dashed hollow anchor distinguishes unknown height from known ground.
@@ -50,6 +70,12 @@ trim, Dortmund yellow with black sleeves and shorts, Bayern red tonal panels,
 and Marseille white with sky-blue trim. These restrained flat symbols aid team
 recognition at the actual 26/32 px marker sizes; they have no logos or sponsors
 and are not claims about the exact match-specific garment worn in every clip.
+
+The three World Cup fixture IDs add similarly restrained match-specific
+families: Argentina sky-blue/white stripes against France navy in `10517`,
+Brazil yellow with blue/green details against South Korea red in `10507`, and
+South Korea red against Portugal's white away palette in `3857`. Goalkeepers
+still use the plain source-colour fallback.
 
 Resolution is deliberately scoped to the exact fixture ID and expected home
 and away names listed below. A future fixture, a team-name mismatch, or any
@@ -148,7 +174,7 @@ in the selected mode.
 Previous, play/pause, scene list and next remain in the bottom controls.
 
 The scene list reports the learning goal, actual clip duration, match, teaching
-actor, date and 2019/20 or 2024/25 season. One search field matches Korean and
+actor, date and 2019/20, 2022 or 2024/25 season. One search field matches Korean and
 English player/team aliases, the four learning terms and season/year as well as
 accent, case and spacing variants. Its attacking/play-team and player selectors
 combine with search and the four objective chips; the player selector contains
@@ -211,8 +237,8 @@ broadens filters, resets history or cycles forever.
 
 ## Source and license
 
-The only positional provider is MIT-licensed SkillCorner Open Data. Historical
-scenes stay pinned to commit
+The catalogue has two positional providers. SkillCorner Open Data remains
+MIT-licensed. Historical scenes stay pinned to commit
 `1ed50b775f93075c2a6d00d0d795f13b7b89709e`:
 
 - Manchester City v Liverpool (4039)
@@ -226,8 +252,8 @@ scenes stay pinned to commit
 - Inter v Juventus (2068)
 
 The Bayern–Dortmund match remains in the byte-identical 72-scene archive and
-the complete audit, but no scene from it passes the stricter v2 education
-rules. The v2 mixed-source `matchCount` therefore derives to ten represented
+the complete audit, but no scene from it passes the stricter education rules.
+The v3 mixed-provider `matchCount` derives to thirteen represented
 matches rather than counting that audit-only source.
 
 Recent scenes are pinned independently to commit
@@ -235,6 +261,15 @@ Recent scenes are pinned independently to commit
 
 - Brisbane Roar FC v Perth Glory Football Club, 2024-12-21 (1925299)
 - Sydney Football Club v Adelaide United Football Club, 2025-02-01 (1996435)
+
+PFF FC World Cup scenes use the publicly shared release, for which no separate
+licence is stated in the acquired material:
+
+- Argentina v France, 2022-12-18 (10517)
+- Brazil v South Korea, 2022-12-05 (10507)
+- South Korea v Portugal, 2022-12-02 (3857)
+
+These pins use Google Drive file IDs and SHA-256 revisions, not Git commits.
 
 For those matches the importer reads the full original
 `tracking_extrapolated.jsonl`, but only a player record with
@@ -330,9 +365,12 @@ acquire action words.
 
 ## Selection and evidence gates
 
-The importer prefers a 30-second source interval and permits only 20–40
-seconds. It requires at least four seconds of real setup before the central
-connection and four seconds of aftermath after it. It never pads a clip,
+The SkillCorner importer prefers a 30-second source interval and permits only
+20–40 seconds. The PFF importer chooses a nonempty source-continuous window of
+15–40 seconds because some broadcast-visible runs cannot support the former
+20-second presentation convention. Both require at least four seconds of real
+setup before the central connection and four seconds of aftermath after it.
+They never pad a clip,
 fabricates a trajectory or slows the stored timeline to meet a duration.
 
 A candidate connection starts from a source-labelled ownership change between
@@ -345,12 +383,22 @@ off-ball support actor and relevant opposing context must also remain directly
 observed. Pressure copy is allowed only when this observed opposing context is
 present.
 
+The PFF importer uses a stricter identity link but a different visibility
+contract. Its provider game/possession event IDs, passer/crosser ID, receiver
+ID and completed outcome establish each connection. The measured focus actor
+and comparison opponent remain directly observed for the full measurement;
+each passing actor has guarded direct observation at its connection. If a
+passer later leaves the broadcast view, that sample stays missing and its
+relationship mark disappears. A source-labelled owner is never inferred from
+proximity, and a hidden or estimated ball is never drawn merely to make an
+otherwise event-linked passage look continuous.
+
 All source-labelled ownership runs across the full clip are inspected. A
 meaningful controlled/touch run is rejected when its named owner is absent.
 The checks are repeated after impossible-speed filtering, so filtering cannot
 silently remove a previously visible core, guard, owner or context actor. The
-same gates also retain the period, active roster, source timing, ball
-continuity, metadata jersey numbers and match kit metadata.
+same gates also retain the period, active roster, source timing, source ball
+validity/missingness, metadata jersey numbers and match kit metadata.
 
 Missing players keep `visibility=0` and a non-pitch sentinel coordinate. No
 missing coordinate is replaced with `(0,0)`, carry-forward or interpolation.
@@ -423,13 +471,13 @@ archive proof records 198 source-safe candidates before non-overlap and archive
 curation: 56 switches, 73 support-under-pressure candidates and 69
 combinations. That archive proof selected 72 scenes and records 10,715 rejected
 or ranked-out candidates. Those 198/72 figures describe only the preserved
-archive proof; the current default v2 education catalogue contains 70 scenes
-(25 accepted archive passages plus 45 recent passages).
+archive proof; the current default v3 education catalogue contains 74 scenes
+(25 accepted archive passages, 45 recent passages and 4 World Cup passages).
 Rejections include short/discontinuous context, absent guard/core/ownership
 actors, missing opponent or support context, post-filter actor loss and
 implausible ball continuity.
 
-Both `--verify-assets` commands must pass. The education verifier first checks
+All three `--verify-assets` commands must pass. The education verifier first checks
 that all 115 pre-existing catalogue/source/quality/scene/legacy bytes still
 match hashes derived from the immutable tracked manifests. It does not trust
 manifest booleans: it reloads every selected replay,
@@ -452,18 +500,20 @@ repository verifies each scene SHA-256 before parsing.
 
 ## Assets and limits
 
-- `education-catalog.json`: default v2 mixed-source index with learning actors,
+- `education-catalog.json`: default v3 mixed-provider index with learning actors,
   exact source frames, measurements, reference URLs, scene hashes and typed
   recent Dynamic Events action evidence.
 - `catalog.json`: byte-identical v1 archive/test fixture; not runtime fallback.
 - `scenes/*.json`: byte-identical 10 fps archive fixtures with sparse
   visibility, source ownership labels and original metadata.
-- `education_scenes/*.json`: enriched copies of all 70 accepted lessons. They
+- `education_scenes/*.json`: enriched copies of all 74 accepted lessons. They
   preserve source XY and add source z in centimetres plus a Boolean per-frame
   validity mask; there is no pose, carry-forward, extrapolated actor or
   reconstructed display layer.
 - `education-proof.json` and `education-source-manifest.json`: all decisions,
   thresholds, measurements, height-proof pins and pinned recent input hashes.
+- `worldcup-source-manifest.json` and `worldcup-proof.json`: the 14 acquired
+  file pins plus exact World Cup clip/event/visibility evidence.
 - `source-height-extract.json` and `height-proof.json`: exact source frames/raw
   z/validity for both generations and per-scene height/asset audit summaries.
 - `quality-proof.json`: thresholds, precise guard/core windows, actor coverage,

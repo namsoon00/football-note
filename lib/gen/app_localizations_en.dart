@@ -23449,7 +23449,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String realMatchReplaySourceCommit(Object commit) {
-    return 'Source commit · $commit';
+    return 'Data version · $commit';
   }
 
   @override
@@ -23980,11 +23980,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spatialEducationAttribution =>
-      'Provider: SkillCorner Open Data (MIT). Player positions, source ownership, ball XY and available ball height come from the selected pinned match source; lesson objectives and measurements are derived by this app.';
+      'Providers: SkillCorner Open Data (MIT) and the publicly shared PFF FC 2022 World Cup release (no separate licence stated). Player positions, source-labelled ownership, visible ball XY and available source ball height (Z) come from the selected pinned source; lesson objectives and measurements are derived by this app.';
 
   @override
   String get spatialEducationSelectionDisclosure =>
-      'Every reviewed passage keeps at least four seconds of setup and aftermath. Named teaching actors and relevant opponents must remain directly observed; 2024/25 extrapolated player coordinates are excluded. Learning measurements are recomputed from centimetre-quantized XY frames. Source ball height is kept separately and never used to infer contact, body pose or an action. No body, foot, scan, intent, goal or best-choice claim is made.';
+      'Every reviewed passage keeps at least four seconds of setup and aftermath. The measured focus actor and relevant opponent remain directly observed; every passing actor is directly observed around its provider-linked connection. Estimated or off-camera positions stay as gaps. For PFF data, VISIBLE describes position visibility; LOW/MEDIUM identity confidence is preserved, and event/roster IDs do not independently verify every off-ball identity. PFF pass links use provider event identities, never nearest-player possession. Measurements are recomputed from centimetre-quantized XY frames. Source ball height (Z) is kept separately from coded height categories. No body, foot, scan, intent, goal or best-choice claim is made.';
 
   @override
   String spatialEducationCoverageSummary(
@@ -24010,7 +24010,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String spatialEducationThirdPlayerQuestion(String focus, String middle) {
-    return 'Watch $focus before $middle receives.';
+    return 'Watch $focus before $middle passes.';
   }
 
   @override
@@ -24033,7 +24033,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String spatialEducationThirdPlayerAction(
       String focus, String meters, String middle) {
-    return 'Before $middle receives,\n$focus is already moving.';
+    return 'Before $middle passes,\n$focus is already moving.';
   }
 
   @override
@@ -24228,7 +24228,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spatialXyOnlyDisclosure =>
-      'The field ball keeps its recorded ground XY. When that source frame has valid height, the ball is lifted above its ground shadow using a capped display scale; a dashed hollow anchor means height is unknown. Missing or negative source height is never treated as ground. This does not reconstruct body, foot, scan, contact, landing point, or future trajectory.';
+      'The field ball keeps directly observed source XY. An estimated, absent or off-camera ball is not drawn. When a visible source frame has valid source ball height (Z), the ball is lifted above its ground shadow using a capped display scale; a dashed hollow anchor means only height is unknown. Missing or negative source height is never treated as ground. This does not reconstruct body, foot, scan, contact, landing point, or future trajectory.';
 
   @override
   String spatialBallHeightKnownSemantics(String height) {
@@ -24240,12 +24240,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Ball height is unknown at this source instant; the hollow ground anchor does not claim the ball is grounded.';
 
   @override
+  String get spatialBallPositionUnavailableSemantics =>
+      'The ball position is estimated or off camera at this source instant, so no ball marker is shown.';
+
+  @override
   String get spatialInferredDisclosure =>
       'The field shows only player positions observed at the current time. Missing samples remain absent; no reconstructed or carried-forward position is displayed.';
 
   @override
   String get spatialSelectionDisclosure =>
-      'Passages are reproducibly selected from 20–40 second source intervals with at least 4 seconds of setup and aftermath, continuous ball XY, guarded departure and arrival actors, visible core/support/opposition context, and visible source-labelled owners. For teaching clarity, support links move the recorded ball at least 4 m and each combination leg at least 5 m.';
+      'Passages are reproducibly selected from 20–40 second source intervals with at least 4 seconds of setup and aftermath. Measured focus and opposition context, plus guarded departure and arrival actors, are directly observed. Estimated or off-camera player and ball samples remain gaps. Provider labels and proximity checks gate ownership; proximity alone never creates it. For teaching clarity, support links move the recorded ball at least 4 m and each combination leg at least 5 m.';
 
   @override
   String get spatialThemeLateralSwitch => 'Lateral switch';

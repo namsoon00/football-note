@@ -184,4 +184,40 @@ void main() {
     expect(secondHigh.ball.z, firstHigh.ball.z);
     expect(data.heightAt(highTime), secondHigh.ball.z);
   });
+
+  test('an unavailable source ball has no pitch geometry or observed roles',
+      () {
+    final catalog = SpatialLibraryCatalog.fromJsonString(
+      File('assets/scan_pass_spatial/education-catalog.json')
+          .readAsStringSync(),
+    );
+    final worldCup =
+        catalog.scenes.firstWhere((value) => value.season == '2022');
+    final replay = RealMatchReplayData.fromJsonString(
+      File(worldCup.asset).readAsStringSync(),
+    );
+    final hiddenFrame = replay.ballVisibility.indexOf(0);
+    expect(hiddenFrame, isNonNegative);
+    final time = hiddenFrame / replay.fps;
+    final plan = SpatialFocusPlan.build(replay, worldCup);
+    final viewport = SpatialPitchViewport.fit(
+      plan.cameraAt(time),
+      const Size(390, 640),
+      portrait: false,
+      fieldLength: replay.pitchLength,
+      fieldWidth: replay.pitchWidth,
+    );
+
+    final geometry = SpatialBallScreenGeometry.forReplay(
+      data: replay,
+      time: time,
+      viewport: viewport,
+    );
+
+    expect(replay.renderSample(time).ballVisible, isFalse);
+    expect(geometry.visible, isFalse);
+    expect(geometry.safetyRect, Rect.zero);
+    expect(geometry.heightMeters, isNull);
+    expect(worldCup.observedRoles(replay, time).values, isEmpty);
+  });
 }

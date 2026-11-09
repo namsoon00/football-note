@@ -22507,7 +22507,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String realMatchReplaySourceCommit(Object commit) {
-    return 'ソースコミット · $commit';
+    return 'データバージョン · $commit';
   }
 
   @override
@@ -22997,11 +22997,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get spatialEducationAttribution =>
-      '提供元：SkillCorner Open Data（MIT）。選手位置、出典の保持者、ボールのXYと利用可能な高さは選択中の固定試合ソースに基づき、学習目標と測定値はアプリが派生します。';
+      '提供元：SkillCorner Open Data（MIT）および公開共有されたPFF FC 2022ワールドカップリリース（別途ライセンスの明記なし）。選手位置、出典が示す保持者、可視ボールXY、利用可能な元データのボール高さ（Z）は選択中の固定ソースに基づき、学習目標と測定値はアプリが派生します。';
 
   @override
   String get spatialEducationSelectionDisclosure =>
-      '全ての審査済み区間は準備とその後を各4秒以上含みます。名前付きの学習選手と関連する相手は継続して直接観測され、2024/25の外挿選手座標は除外されます。学習測定値はセンチメートル量子化XYフレームから再計算します。元データのボール高さは別に保持し、接触、身体姿勢、アクションの推定には使いません。身体、足、スキャン、意図、得点、最善の選択は主張しません。';
+      '全ての審査済み区間は準備とその後を各4秒以上含みます。測定対象の選手と関連する相手は継続して直接観測され、パス選手は提供元の接続時点付近で直接観測されます。推定または画面外の位置は欠損のまま保持します。PFFデータのVISIBLEは位置が見えていることを示します。LOW/MEDIUMの選手識別信頼度はそのまま保持し、イベント・ロースターIDだけで全てのオフボール選手の本人性を独立に確認するものではありません。PFFのパス接続は最近傍選手の推定ではなく提供元イベントIDを使います。測定値はセンチメートル量子化XYフレームから再計算し、元データのボール高さ（Z）はコード化された高さ分類と分けて保持します。身体、足、スキャン、意図、得点、最善の選択は主張しません。';
 
   @override
   String spatialEducationCoverageSummary(
@@ -23027,7 +23027,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String spatialEducationThirdPlayerQuestion(String focus, String middle) {
-    return '$middleが受ける前の$focusを見ましょう。';
+    return '$middleがパスする前の$focusを見ましょう。';
   }
 
   @override
@@ -23050,7 +23050,7 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String spatialEducationThirdPlayerAction(
       String focus, String meters, String middle) {
-    return '$middleが受ける前に、\n$focusが先に動きます。';
+    return '$middleがパスする前に、\n$focusが先に動きます。';
   }
 
   @override
@@ -23240,7 +23240,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get spatialXyOnlyDisclosure =>
-      'フィールド上のボールは記録された地面XYを維持します。その元フレームに有効な高さがあれば、上限付き表示倍率で地面の影から持ち上げ、破線の空のアンカーは高さが不明であることを示します。欠測または負の元高さを地面とは扱いません。身体、足、スキャン、接触、着地点、将来軌道は再構成しません。';
+      'フィールド上のボールは直接観測された元データXYだけを維持します。推定、欠測、画面外のボールは描画しません。可視の元フレームに有効な元データのボール高さ（Z）があれば、上限付き表示倍率で地面の影から持ち上げ、破線の空のアンカーは高さだけが不明であることを示します。欠測または負の元高さを地面とは扱いません。身体、足、スキャン、接触、着地点、将来軌道は再構成しません。';
 
   @override
   String spatialBallHeightKnownSemantics(String height) {
@@ -23252,12 +23252,16 @@ class AppLocalizationsJa extends AppLocalizations {
       'この元データ時点のボール高さは不明です。空の地面アンカーはボールが接地していることを意味しません。';
 
   @override
+  String get spatialBallPositionUnavailableSemantics =>
+      'この元データ時点のボール位置は推定値または画面外のため、ボールマーカーを表示しません。';
+
+  @override
   String get spatialInferredDisclosure =>
       'フィールドには現在時刻に直接観測された選手位置だけを表示します。欠測は空白のままとし、再構成や前位置の持ち越しは表示しません。';
 
   @override
   String get spatialSelectionDisclosure =>
-      '20〜40秒の原資料区間から、前後各4秒以上の文脈、連続したボールXY、出発・到着選手の保護窓、可視の中心・支援・相手文脈、可視の出典ラベル保持者を条件に再現可能に選定しています。学習画面を明確にするため、プレッシャー下のサポートは記録ボールが4 m以上、コンビネーションの各リンクは5 m以上移動した区間のみ使用します。';
+      '20〜40秒の元データ区間から、前後各4秒以上の文脈を含む区間を再現可能に選定します。測定対象と相手の文脈、出発・到着選手の保護窓は直接観測されます。推定または画面外の選手とボールは欠損のまま保持します。提供元ラベルと距離検査で保持表示を制限し、距離だけで保持者を作りません。学習画面を明確にするため、プレッシャー下のサポートは記録ボールが4 m以上、コンビネーションの各リンクは5 m以上移動した区間のみ使用します。';
 
   @override
   String get spatialThemeLateralSwitch => '横方向の展開';

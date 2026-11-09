@@ -190,6 +190,9 @@ assert_absent "prelaunch-smoke" "${VERIFY_LOG}"
 assert_line \
   "python3 <tool/scan_pass_replay/prepare_spatial_education.py> <--verify-assets>" \
   "${VERIFY_LOG}"
+assert_line \
+  "python3 <tool/scan_pass_worldcup/prepare_worldcup.py> <--verify-assets>" \
+  "${VERIFY_LOG}"
 for contract_script in "${contract_scripts[@]:1}"; do
   assert_line "contract <${contract_script}>" "${VERIFY_LOG}"
 done

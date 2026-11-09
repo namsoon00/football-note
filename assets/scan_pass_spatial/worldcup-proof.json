@@ -1,0 +1,631 @@
+{
+  "version": 1,
+  "proofContract": "pff-visible-event-linked-spatial-v2",
+  "candidateCount": 24,
+  "sceneCount": 4,
+  "matchSceneCounts": {
+    "10517": 1,
+    "10507": 1,
+    "3857": 2
+  },
+  "scenes": [
+    {
+      "sceneId": "pff-10517-6622604-6622609-thirdPlayer",
+      "assetSha256": "0c90981c8977b766d111397ab581c588f51bbb554e5725d830c5a514dd03de7a",
+      "matchId": 10517,
+      "period": 1,
+      "sourceFrames": {
+        "start": 12202,
+        "end": 12921,
+        "movementStart": 12352,
+        "trigger": 12450,
+        "outcome": 12514,
+        "nextConnection": null
+      },
+      "periodClock": {
+        "start": 252.653474,
+        "end": 276.644131
+      },
+      "connectionEventIds": [
+        "pff:6738221:6622604",
+        "pff:6738225:6622609"
+      ],
+      "possessionEventIds": [
+        6622604,
+        6622609
+      ],
+      "gameEventIds": [
+        6738221,
+        6738225
+      ],
+      "eventBallHeightCategories": [
+        "V",
+        "G"
+      ],
+      "trackingAnchorOffsets": [
+        {
+          "connectionEventId": "pff:6738221:6622604",
+          "release": {
+            "providerTime": 413.146,
+            "trackingTime": 413.14648,
+            "offsetSeconds": 0.0,
+            "sourceFrame": 12382
+          },
+          "reception": {
+            "providerTime": 414.361,
+            "trackingTime": 414.34768099999997,
+            "offsetSeconds": -0.013,
+            "sourceFrame": 12418
+          }
+        },
+        {
+          "connectionEventId": "pff:6738225:6622609",
+          "release": {
+            "providerTime": 415.415,
+            "trackingTime": 415.415415,
+            "offsetSeconds": 0.0,
+            "sourceFrame": 12450
+          },
+          "reception": {
+            "providerTime": 417.551,
+            "trackingTime": 417.550884,
+            "offsetSeconds": -0.0,
+            "sourceFrame": 12514
+          }
+        }
+      ],
+      "attackDirection": {
+        "providerCode": "L",
+        "normalized": -1
+      },
+      "actors": {
+        "focus": {
+          "playerId": 8583,
+          "playerName": "Theo Hernandez"
+        },
+        "support": [
+          {
+            "playerId": 3870,
+            "playerName": "Kylian Mbappé"
+          },
+          {
+            "playerId": 8054,
+            "playerName": "Adrien Rabiot"
+          }
+        ],
+        "opponent": {
+          "playerId": 13222,
+          "playerName": "Nahuel Molina"
+        }
+      },
+      "coverage": {
+        "frames": 720,
+        "visibleBallFrames": 408,
+        "missingBallFrames": 312,
+        "missingPlayerSamples": 2981,
+        "lowConfidenceVisiblePlayerSamples": 2420
+      },
+      "limitations": [
+        "Only raw VISIBLE tracking is rendered; ESTIMATED/off-camera samples remain missing.",
+        "VISIBLE denotes position visibility; LOW/MEDIUM identity confidence is preserved, and event/roster IDs do not independently verify every off-ball identity.",
+        "Event height codes are categorical and are not converted to numeric ball Z.",
+        "Ownership is the visible source game-event player, not a nearest-player heuristic."
+      ]
+    },
+    {
+      "sceneId": "pff-10507-6525919-6525929-thirdPlayer",
+      "assetSha256": "70d512b5a15d9234632df9137a3df1e0e83d4d9ff4c8808baa0e861607e147f6",
+      "matchId": 10507,
+      "period": 1,
+      "sourceFrames": {
+        "start": 66637,
+        "end": 67125,
+        "movementStart": 66779,
+        "trigger": 66882,
+        "outcome": 66943,
+        "nextConnection": null
+      },
+      "periodClock": {
+        "start": 2130.99779,
+        "end": 2147.28074
+      },
+      "connectionEventIds": [
+        "pff:6643833:6525919",
+        "pff:6643843:6525929"
+      ],
+      "possessionEventIds": [
+        6525919,
+        6525929
+      ],
+      "gameEventIds": [
+        6643833,
+        6643843
+      ],
+      "eventBallHeightCategories": [
+        "G",
+        "G"
+      ],
+      "trackingAnchorOffsets": [
+        {
+          "connectionEventId": "pff:6643833:6525919",
+          "release": {
+            "providerTime": 2229.196,
+            "trackingTime": 2229.195863,
+            "offsetSeconds": -0.0,
+            "sourceFrame": 66809
+          },
+          "reception": {
+            "providerTime": 2230.33,
+            "trackingTime": 2230.33033,
+            "offsetSeconds": 0.0,
+            "sourceFrame": 66843
+          }
+        },
+        {
+          "connectionEventId": "pff:6643843:6525929",
+          "release": {
+            "providerTime": 2231.632,
+            "trackingTime": 2231.631632,
+            "offsetSeconds": -0.0,
+            "sourceFrame": 66882
+          },
+          "reception": {
+            "providerTime": 2233.667,
+            "trackingTime": 2233.667,
+            "offsetSeconds": 0.0,
+            "sourceFrame": 66943
+          }
+        }
+      ],
+      "attackDirection": {
+        "providerCode": "R",
+        "normalized": 1
+      },
+      "actors": {
+        "focus": {
+          "playerId": 1695,
+          "playerName": "Vinícius Junior"
+        },
+        "support": [
+          {
+            "playerId": 195,
+            "playerName": "Richarlison"
+          },
+          {
+            "playerId": 3865,
+            "playerName": "Neymar"
+          }
+        ],
+        "opponent": {
+          "playerId": 12502,
+          "playerName": "Min Jae Kim"
+        }
+      },
+      "coverage": {
+        "frames": 489,
+        "visibleBallFrames": 325,
+        "missingBallFrames": 164,
+        "missingPlayerSamples": 4505,
+        "lowConfidenceVisiblePlayerSamples": 2241
+      },
+      "limitations": [
+        "Only raw VISIBLE tracking is rendered; ESTIMATED/off-camera samples remain missing.",
+        "VISIBLE denotes position visibility; LOW/MEDIUM identity confidence is preserved, and event/roster IDs do not independently verify every off-ball identity.",
+        "Event height codes are categorical and are not converted to numeric ball Z.",
+        "Ownership is the visible source game-event player, not a nearest-player heuristic."
+      ]
+    },
+    {
+      "sceneId": "pff-3857-6504653-6504660-thirdPlayer",
+      "assetSha256": "954748f31faa4f9ffbf8d743974e7c1865752deb6aae8f66b04add8d6d81a601",
+      "matchId": 3857,
+      "period": 1,
+      "sourceFrames": {
+        "start": 37633,
+        "end": 38352,
+        "movementStart": 37783,
+        "trigger": 38124,
+        "outcome": 38154,
+        "nextConnection": null
+      },
+      "periodClock": {
+        "start": 1210.477022,
+        "end": 1234.46768
+      },
+      "connectionEventIds": [
+        "pff:6623595:6504653",
+        "pff:6623603:6504660"
+      ],
+      "possessionEventIds": [
+        6504653,
+        6504660
+      ],
+      "gameEventIds": [
+        6623595,
+        6623603
+      ],
+      "eventBallHeightCategories": [
+        "G",
+        "G"
+      ],
+      "trackingAnchorOffsets": [
+        {
+          "connectionEventId": "pff:6623595:6504653",
+          "release": {
+            "providerTime": 1261.695,
+            "trackingTime": 1261.695028,
+            "offsetSeconds": 0.0,
+            "sourceFrame": 37813
+          },
+          "reception": {
+            "providerTime": 1264.464,
+            "trackingTime": 1264.464464,
+            "offsetSeconds": 0.0,
+            "sourceFrame": 37896
+          }
+        },
+        {
+          "connectionEventId": "pff:6623603:6504660",
+          "release": {
+            "providerTime": 1272.072,
+            "trackingTime": 1272.072072,
+            "offsetSeconds": 0.0,
+            "sourceFrame": 38124
+          },
+          "reception": {
+            "providerTime": 1273.073,
+            "trackingTime": 1273.073073,
+            "offsetSeconds": 0.0,
+            "sourceFrame": 38154
+          }
+        }
+      ],
+      "attackDirection": {
+        "providerCode": "R",
+        "normalized": 1
+      },
+      "actors": {
+        "focus": {
+          "playerId": 1830,
+          "playerName": "Kang-in Lee"
+        },
+        "support": [
+          {
+            "playerId": 1257,
+            "playerName": "In-beom Hwang"
+          },
+          {
+            "playerId": 83,
+            "playerName": "Heung-min Son"
+          }
+        ],
+        "opponent": {
+          "playerId": 240,
+          "playerName": "Rúben Neves"
+        }
+      },
+      "coverage": {
+        "frames": 720,
+        "visibleBallFrames": 526,
+        "missingBallFrames": 194,
+        "missingPlayerSamples": 5629,
+        "lowConfidenceVisiblePlayerSamples": 1143
+      },
+      "limitations": [
+        "Only raw VISIBLE tracking is rendered; ESTIMATED/off-camera samples remain missing.",
+        "VISIBLE denotes position visibility; LOW/MEDIUM identity confidence is preserved, and event/roster IDs do not independently verify every off-ball identity.",
+        "Event height codes are categorical and are not converted to numeric ball Z.",
+        "Ownership is the visible source game-event player, not a nearest-player heuristic."
+      ]
+    },
+    {
+      "sceneId": "pff-3857-6505127-6505134-ronaldo-thirdPlayer",
+      "assetSha256": "dd53128997e5fa327b50d6d4feeb64a1faac86aa001bb99032a6afe064279feb",
+      "matchId": 3857,
+      "period": 2,
+      "sourceFrames": {
+        "start": 120713,
+        "end": 121432,
+        "movementStart": 120863,
+        "trigger": 120976,
+        "outcome": 120993,
+        "nextConnection": null
+      },
+      "periodClock": {
+        "start": 3806.940461,
+        "end": 3830.931118
+      },
+      "connectionEventIds": [
+        "pff:6624095:6505127",
+        "pff:6624105:6505134"
+      ],
+      "possessionEventIds": [
+        6505127,
+        6505134
+      ],
+      "gameEventIds": [
+        6624095,
+        6624105
+      ],
+      "eventBallHeightCategories": [
+        "G",
+        "G"
+      ],
+      "trackingAnchorOffsets": [
+        {
+          "connectionEventId": "pff:6624095:6505127",
+          "release": {
+            "providerTime": 4033.8,
+            "trackingTime": 4033.800467,
+            "offsetSeconds": 0.0,
+            "sourceFrame": 120893
+          },
+          "reception": {
+            "providerTime": 4035.335,
+            "trackingTime": 4035.335335,
+            "offsetSeconds": 0.0,
+            "sourceFrame": 120939
+          }
+        },
+        {
+          "connectionEventId": "pff:6624105:6505134",
+          "release": {
+            "providerTime": 4036.57,
+            "trackingTime": 4036.569903,
+            "offsetSeconds": -0.0,
+            "sourceFrame": 120976
+          },
+          "reception": {
+            "providerTime": 4037.137,
+            "trackingTime": 4037.137137,
+            "offsetSeconds": 0.0,
+            "sourceFrame": 120993
+          }
+        }
+      ],
+      "attackDirection": {
+        "providerCode": "R",
+        "normalized": 1
+      },
+      "actors": {
+        "focus": {
+          "playerId": 6020,
+          "playerName": "Cristiano Ronaldo"
+        },
+        "support": [
+          {
+            "playerId": 240,
+            "playerName": "Rúben Neves"
+          },
+          {
+            "playerId": 8000,
+            "playerName": "Joao Mario"
+          }
+        ],
+        "opponent": {
+          "playerId": 13910,
+          "playerName": "Kyung-won Kwon"
+        }
+      },
+      "coverage": {
+        "frames": 720,
+        "visibleBallFrames": 542,
+        "missingBallFrames": 178,
+        "missingPlayerSamples": 3380,
+        "lowConfidenceVisiblePlayerSamples": 269
+      },
+      "limitations": [
+        "Only raw VISIBLE tracking is rendered; ESTIMATED/off-camera samples remain missing.",
+        "VISIBLE denotes position visibility; LOW/MEDIUM identity confidence is preserved, and event/roster IDs do not independently verify every off-ball identity.",
+        "Event height codes are categorical and are not converted to numeric ball Z.",
+        "Ownership is the visible source game-event player, not a nearest-player heuristic."
+      ]
+    }
+  ],
+  "rejectedCandidates": [
+    {
+      "sceneId": "pff-10517-6624075-6624076-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6624075,
+        6624076
+      ],
+      "reason": "pff-10517-6624075-6624076-thirdPlayer: No receiver event for 6624076"
+    },
+    {
+      "sceneId": "pff-10517-6622232-6622241-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6622232,
+        6622241
+      ],
+      "reason": "pff-10517-6622232-6622241-thirdPlayer: source-labelled anchor owner 10715 is too far from the visible source ball"
+    },
+    {
+      "sceneId": "pff-10517-6624101-6624111-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6624101,
+        6624111
+      ],
+      "reason": "pff-10517-6624101-6624111-thirdPlayer: source-linked actor 1531 is not directly observed through the 0.5s anchor guard"
+    },
+    {
+      "sceneId": "pff-10517-6622272-dimaria-receivingLane",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6622272
+      ],
+      "reason": "pff-10517-6622272-dimaria-receivingLane: continuous nonempty context is under four seconds"
+    },
+    {
+      "sceneId": "pff-10517-6622327-6622334-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6622327,
+        6622334
+      ],
+      "reason": "pff-10517-6622327-6622334-thirdPlayer reception 6622334: no directly observed source-labelled anchor for player 3868"
+    },
+    {
+      "sceneId": "pff-10517-6622360-6622367-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6622360,
+        6622367
+      ],
+      "reason": "pff-10517-6622360-6622367-thirdPlayer reception 6622367: no directly observed source-labelled anchor for player 10715"
+    },
+    {
+      "sceneId": "pff-10517-6622532-6622537-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6622532,
+        6622537
+      ],
+      "reason": "pff-10517-6622532-6622537-thirdPlayer reception 6622537: no directly observed source-labelled anchor for player 3868"
+    },
+    {
+      "sceneId": "pff-10517-6623005-6623547-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6623005,
+        6623547
+      ],
+      "reason": "pff-10517-6623005-6623547-thirdPlayer reception 6623547: nearest directly observed anchor for player 3868 is 2.469s from provider time, beyond one 0.033s source frame"
+    },
+    {
+      "sceneId": "pff-10517-6623341-6623348-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6623341,
+        6623348
+      ],
+      "reason": "pff-10517-6623341-6623348-thirdPlayer: continuous nonempty context is under four seconds"
+    },
+    {
+      "sceneId": "pff-10517-6623504-6623505-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6623504,
+        6623505
+      ],
+      "reason": "pff-10517-6623504-6623505-thirdPlayer release 6623504: no directly observed source-labelled anchor for player 5116"
+    },
+    {
+      "sceneId": "pff-10517-6622577-6622584-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6622577,
+        6622584
+      ],
+      "reason": "pff-10517-6622577-6622584-thirdPlayer: required player 11856 is not directly observed at an evidence frame"
+    },
+    {
+      "sceneId": "pff-10517-6622901-6622905-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6622901,
+        6622905
+      ],
+      "reason": "pff-10517-6622901-6622905-thirdPlayer: continuous nonempty context is under four seconds"
+    },
+    {
+      "sceneId": "pff-10517-6623195-6623199-mbappe-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6623195,
+        6623199
+      ],
+      "reason": "pff-10517-6623195-6623199-mbappe-thirdPlayer: no directly observed scene opening"
+    },
+    {
+      "sceneId": "pff-10517-6622785-6622790-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6622785,
+        6622790
+      ],
+      "reason": "pff-10517-6622785-6622790-thirdPlayer: no directly observed scene opening"
+    },
+    {
+      "sceneId": "pff-10517-6623572-6623577-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6623572,
+        6623577
+      ],
+      "reason": "pff-10517-6623572-6623577-thirdPlayer release 6623572: no directly observed source-labelled anchor for player 11856"
+    },
+    {
+      "sceneId": "pff-10517-6624132-6624134-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6624132,
+        6624134
+      ],
+      "reason": "pff-10517-6624132-6624134-thirdPlayer release 6624134: no directly observed source-labelled anchor for player 1531"
+    },
+    {
+      "sceneId": "pff-10517-6623558-6623564-mbappe-thirdPlayer",
+      "matchId": 10517,
+      "possessionEventIds": [
+        6623558,
+        6623564
+      ],
+      "reason": "pff-10517-6623558-6623564-mbappe-thirdPlayer release 6623564: nearest directly observed anchor for player 4622 is 16.149s from provider time, beyond one 0.033s source frame"
+    },
+    {
+      "sceneId": "pff-10507-6525618-6525622-thirdPlayer",
+      "matchId": 10507,
+      "possessionEventIds": [
+        6525618,
+        6525622
+      ],
+      "reason": "pff-10507-6525618-6525622-thirdPlayer: source-labelled anchor owner 1695 is too far from the visible source ball"
+    },
+    {
+      "sceneId": "pff-10507-6525942-lee-switchingSpace",
+      "matchId": 10507,
+      "possessionEventIds": [
+        6525942
+      ],
+      "reason": "pff-10507-6525942-lee-switchingSpace: continuous nonempty context is under four seconds"
+    },
+    {
+      "sceneId": "pff-3857-6506619-6506642-thirdPlayer",
+      "matchId": 3857,
+      "possessionEventIds": [
+        6506619,
+        6506642
+      ],
+      "reason": "pff-3857-6506619-6506642-thirdPlayer: continuous nonempty context is under four seconds"
+    }
+  ],
+  "screenedExclusions": [
+    {
+      "matchId": 10517,
+      "possessionEventId": 6622730,
+      "player": "Rodrigo de Paul",
+      "reason": "The measured focus run contains a direct-visibility gap."
+    },
+    {
+      "matchId": 10517,
+      "possessionEventId": 6623823,
+      "player": "Lionel Messi",
+      "reason": "The measured focus run contains a direct-visibility gap."
+    },
+    {
+      "matchId": 10517,
+      "possessionEventId": 6623294,
+      "player": "Kylian Mbappé",
+      "reason": "Target receiver anchor is not directly observed."
+    },
+    {
+      "matchId": 3857,
+      "possessionEventId": 6507212,
+      "player": "Heung-min Son",
+      "reason": "Target receiver anchor is not directly observed."
+    }
+  ]
+}

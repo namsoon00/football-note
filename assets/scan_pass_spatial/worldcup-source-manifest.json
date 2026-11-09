@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "provider": "PFF FC",
+  "release": "Enhanced 2022 World Cup Dataset",
+  "officialReleaseUrl": "https://drive.google.com/drive/folders/1_a_q1e9CXeEPJ3GdCv_3-rNO3gPqacfa",
+  "legacyReleasePage": "https://www.blog.fc.pff.com/blog/enhanced-2022-world-cup-dataset",
+  "dynamicFormId": "R4ZPQU",
+  "license": "Public release; no separate license stated",
+  "inventoryCounts": {
+    "metadata": 64,
+    "rosters": 64,
+    "eventsIncludingSpecifications": 67,
+    "trackingIncludingSpecification": 65
+  },
+  "acquired": {
+    "matches": 3,
+    "matchFiles": 12,
+    "specifications": 2
+  },
+  "files": [
+    {
+      "matchId": 10517,
+      "role": "metadata",
+      "fileId": "1Xfvmdv7XiZAUumPbjGqYfrUVAhX-0Dl3",
+      "bytes": 955,
+      "sha256": "9416812b85807dc9c02a2e86e6269a5ef9def47d7ca353c70994626bcc5d417a",
+      "url": "https://drive.google.com/file/d/1Xfvmdv7XiZAUumPbjGqYfrUVAhX-0Dl3/view",
+      "relativePath": "metadata/10517.json"
+    },
+    {
+      "matchId": 10517,
+      "role": "rosters",
+      "fileId": "1nJcElKpNPp_Tl2TNaOhvdCh5E98T2YtR",
+      "bytes": 7575,
+      "sha256": "e7053ba5aa8d626a41dd725edc2e9d867fa283d3fdf138ab22918f3692bc0057",
+      "url": "https://drive.google.com/file/d/1nJcElKpNPp_Tl2TNaOhvdCh5E98T2YtR/view",
+      "relativePath": "rosters/10517.json"
+    },
+    {
+      "matchId": 10517,
+      "role": "events",
+      "fileId": "1Zi9rP8x4-V-9AQ_jGysmkU14wuFgzsIv",
+      "bytes": 22818080,
+      "sha256": "d571475b7f733c93b1161f39aa0bb2119a14ca15c74b064029e102ff1ad99c99",
+      "url": "https://drive.google.com/file/d/1Zi9rP8x4-V-9AQ_jGysmkU14wuFgzsIv/view",
+      "relativePath": "events/10517.json"
+    },
+    {
+      "matchId": 10517,
+      "role": "tracking",
+      "fileId": "1punYKj2mY1HtewOJ5V1EFO7gHn0jaQm0",
+      "bytes": 66646392,
+      "sha256": "3c899b41eb5fcf4c74bf62c83853910a24098eb4b2485cc799fab6fce622a72c",
+      "url": "https://drive.google.com/file/d/1punYKj2mY1HtewOJ5V1EFO7gHn0jaQm0/view",
+      "relativePath": "tracking/10517.jsonl.bz2"
+    },
+    {
+      "matchId": 10507,
+      "role": "metadata",
+      "fileId": "1PhzVr4cGZ3P6-XQFqomh709mSMlvGY4i",
+      "bytes": 989,
+      "sha256": "097d70bd7b3dca46d0ad18f3f8c291ca17bbc578a28042bb9cd8351c8ac1aeef",
+      "url": "https://drive.google.com/file/d/1PhzVr4cGZ3P6-XQFqomh709mSMlvGY4i/view",
+      "relativePath": "metadata/10507.json"
+    },
+    {
+      "matchId": 10507,
+      "role": "rosters",
+      "fileId": "1mjm50gm4UFrpTOL7p-6uyBnuOt-ADTG2",
+      "bytes": 7273,
+      "sha256": "e27385e17e5a50e6b67fa4e9545760cf193819ad7cc5a3bae1b41aa4d2ac8ed9",
+      "url": "https://drive.google.com/file/d/1mjm50gm4UFrpTOL7p-6uyBnuOt-ADTG2/view",
+      "relativePath": "rosters/10507.json"
+    },
+    {
+      "matchId": 10507,
+      "role": "events",
+      "fileId": "1hhxfeTO1QrHL_wCZQvdpKjNwvnbUg4u1",
+      "bytes": 19670744,
+      "sha256": "df95ecba371ac1ba18426f636e4c3c443a2e0a2fc80ebe78c296d4d3f3cb9df6",
+      "url": "https://drive.google.com/file/d/1hhxfeTO1QrHL_wCZQvdpKjNwvnbUg4u1/view",
+      "relativePath": "events/10507.json"
+    },
+    {
+      "matchId": 10507,
+      "role": "tracking",
+      "fileId": "1T0dx4YvpkycARke_Nv0JtfOhue4u50Cn",
+      "bytes": 46996047,
+      "sha256": "41cd9896ef663fbcb811c2f97fd9bc7c5fdb92dcf75e1d66ff748a2ddba4acbe",
+      "url": "https://drive.google.com/file/d/1T0dx4YvpkycARke_Nv0JtfOhue4u50Cn/view",
+      "relativePath": "tracking/10507.jsonl.bz2"
+    },
+    {
+      "matchId": 3857,
+      "role": "metadata",
+      "fileId": "1GOUsQIE78-oBcs0mD-8VfYenwMG7zd-K",
+      "bytes": 994,
+      "sha256": "7e9254ee5306c9417294d6a325c06fa4ffea8ef753d98f48077b5bf062d1eb91",
+      "url": "https://drive.google.com/file/d/1GOUsQIE78-oBcs0mD-8VfYenwMG7zd-K/view",
+      "relativePath": "metadata/3857.json"
+    },
+    {
+      "matchId": 3857,
+      "role": "rosters",
+      "fileId": "1cKygKfjmM6ryiiZCxnacQFacvuD1MWbv",
+      "bytes": 7393,
+      "sha256": "bd86b75a905c0f0ab183256b235b8c1ff757af6708013abaf0512eebefebd2a0",
+      "url": "https://drive.google.com/file/d/1cKygKfjmM6ryiiZCxnacQFacvuD1MWbv/view",
+      "relativePath": "rosters/3857.json"
+    },
+    {
+      "matchId": 3857,
+      "role": "events",
+      "fileId": "1vitJQ9Yh4xVAeOV0VhgNVOc6C0QS_-G0",
+      "bytes": 16976388,
+      "sha256": "c1b77d5a07e88b1a28bbafcbaa2d6845540604f8f7ffac99bf617a4a80e37188",
+      "url": "https://drive.google.com/file/d/1vitJQ9Yh4xVAeOV0VhgNVOc6C0QS_-G0/view",
+      "relativePath": "events/3857.json"
+    },
+    {
+      "matchId": 3857,
+      "role": "tracking",
+      "fileId": "1UwuVYtQNvnUT5-eTDpF7-WanggQPYwY-",
+      "bytes": 40392472,
+      "sha256": "fdb32802ccb0d8eecae0f67c91d1a03b3690ca4275fcd1e8bc97fca836660f9e",
+      "url": "https://drive.google.com/file/d/1UwuVYtQNvnUT5-eTDpF7-WanggQPYwY-/view",
+      "relativePath": "tracking/3857.jsonl.bz2"
+    },
+    {
+      "matchId": null,
+      "role": "tracking-spec",
+      "fileId": "17kl9XOlA932IU_K6969VYDYntYJt3Pan",
+      "bytes": 186300,
+      "sha256": "d6d2ab083f864e749c951a3256f6d3415eba7bd5f67eea6025403eaa59838f49",
+      "url": "https://drive.google.com/file/d/17kl9XOlA932IU_K6969VYDYntYJt3Pan/view",
+      "relativePath": "spec/PFF FC Tracking Data Specification v2.2.pdf"
+    },
+    {
+      "matchId": null,
+      "role": "event-spec",
+      "fileId": "1Q5Wg-q2lOdFreqyZqfmWKBXLPE8HJopt",
+      "bytes": 824166,
+      "sha256": "90b34f6b7e0401a0ab4c9f1328ef8e10a8f7237e4461359ee8c292d8fa9e0246",
+      "url": "https://drive.google.com/file/d/1Q5Wg-q2lOdFreqyZqfmWKBXLPE8HJopt/view",
+      "relativePath": "spec/PFF FC Event Data Specification v2.5.pdf"
+    }
+  ]
+}

@@ -2385,6 +2385,30 @@ def verify_assets(
 ) -> None:
     assert_archive_unchanged()
     catalogue = read_json(EDUCATION_CATALOG)
+    # Version 3 appends independently pinned PFF lessons. This verifier keeps
+    # owning the original 70 SkillCorner lessons; the World Cup importer has a
+    # separate fail-closed verifier invoked immediately after this one.
+    if catalogue.get("version") == 3:
+        catalogue = {
+            **catalogue,
+            "version": 2,
+            "provider": "SkillCorner Open Data",
+            "license": "MIT",
+            "proofVersion": CATALOG_PROOF_VERSION,
+            "sourceCommit": "mixed-pinned-sources-v1",
+            "sourceUrl": "https://github.com/SkillCorner/opendata",
+            "sourcePins": [
+                pin
+                for pin in catalogue["sourcePins"]
+                if pin.get("provider") == "SkillCorner Open Data"
+            ],
+            "scenes": [
+                scene for scene in catalogue["scenes"] if scene.get("season") != "2022"
+            ],
+        }
+        catalogue["matchCount"] = len(
+            {scene["matchId"] for scene in catalogue["scenes"]}
+        )
     proof = read_json(EDUCATION_PROOF)
     manifest = read_json(EDUCATION_MANIFEST)
     verify_source_manifest(manifest)

@@ -39500,7 +39500,7 @@ abstract class AppLocalizations {
   /// No description provided for @realMatchReplaySourceCommit.
   ///
   /// In en, this message translates to:
-  /// **'Source commit · {commit}'**
+  /// **'Data version · {commit}'**
   String realMatchReplaySourceCommit(Object commit);
 
   /// No description provided for @realMatchReplayCueObserve.
@@ -40367,13 +40367,13 @@ abstract class AppLocalizations {
   /// No description provided for @spatialEducationAttribution.
   ///
   /// In en, this message translates to:
-  /// **'Provider: SkillCorner Open Data (MIT). Player positions, source ownership, ball XY and available ball height come from the selected pinned match source; lesson objectives and measurements are derived by this app.'**
+  /// **'Providers: SkillCorner Open Data (MIT) and the publicly shared PFF FC 2022 World Cup release (no separate licence stated). Player positions, source-labelled ownership, visible ball XY and available source ball height (Z) come from the selected pinned source; lesson objectives and measurements are derived by this app.'**
   String get spatialEducationAttribution;
 
   /// No description provided for @spatialEducationSelectionDisclosure.
   ///
   /// In en, this message translates to:
-  /// **'Every reviewed passage keeps at least four seconds of setup and aftermath. Named teaching actors and relevant opponents must remain directly observed; 2024/25 extrapolated player coordinates are excluded. Learning measurements are recomputed from centimetre-quantized XY frames. Source ball height is kept separately and never used to infer contact, body pose or an action. No body, foot, scan, intent, goal or best-choice claim is made.'**
+  /// **'Every reviewed passage keeps at least four seconds of setup and aftermath. The measured focus actor and relevant opponent remain directly observed; every passing actor is directly observed around its provider-linked connection. Estimated or off-camera positions stay as gaps. For PFF data, VISIBLE describes position visibility; LOW/MEDIUM identity confidence is preserved, and event/roster IDs do not independently verify every off-ball identity. PFF pass links use provider event identities, never nearest-player possession. Measurements are recomputed from centimetre-quantized XY frames. Source ball height (Z) is kept separately from coded height categories. No body, foot, scan, intent, goal or best-choice claim is made.'**
   String get spatialEducationSelectionDisclosure;
 
   /// No description provided for @spatialEducationCoverageSummary.
@@ -40405,7 +40405,7 @@ abstract class AppLocalizations {
   /// No description provided for @spatialEducationThirdPlayerQuestion.
   ///
   /// In en, this message translates to:
-  /// **'Watch {focus} before {middle} receives.'**
+  /// **'Watch {focus} before {middle} passes.'**
   String spatialEducationThirdPlayerQuestion(String focus, String middle);
 
   /// No description provided for @spatialEducationSwitchingSpaceQuestion.
@@ -40431,7 +40431,7 @@ abstract class AppLocalizations {
   /// No description provided for @spatialEducationThirdPlayerAction.
   ///
   /// In en, this message translates to:
-  /// **'Before {middle} receives,\n{focus} is already moving.'**
+  /// **'Before {middle} passes,\n{focus} is already moving.'**
   String spatialEducationThirdPlayerAction(
       String focus, String meters, String middle);
 
@@ -40756,7 +40756,7 @@ abstract class AppLocalizations {
   /// No description provided for @spatialXyOnlyDisclosure.
   ///
   /// In en, this message translates to:
-  /// **'The field ball keeps its recorded ground XY. When that source frame has valid height, the ball is lifted above its ground shadow using a capped display scale; a dashed hollow anchor means height is unknown. Missing or negative source height is never treated as ground. This does not reconstruct body, foot, scan, contact, landing point, or future trajectory.'**
+  /// **'The field ball keeps directly observed source XY. An estimated, absent or off-camera ball is not drawn. When a visible source frame has valid source ball height (Z), the ball is lifted above its ground shadow using a capped display scale; a dashed hollow anchor means only height is unknown. Missing or negative source height is never treated as ground. This does not reconstruct body, foot, scan, contact, landing point, or future trajectory.'**
   String get spatialXyOnlyDisclosure;
 
   /// No description provided for @spatialBallHeightKnownSemantics.
@@ -40771,6 +40771,12 @@ abstract class AppLocalizations {
   /// **'Ball height is unknown at this source instant; the hollow ground anchor does not claim the ball is grounded.'**
   String get spatialBallHeightUnknownSemantics;
 
+  /// No description provided for @spatialBallPositionUnavailableSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'The ball position is estimated or off camera at this source instant, so no ball marker is shown.'**
+  String get spatialBallPositionUnavailableSemantics;
+
   /// No description provided for @spatialInferredDisclosure.
   ///
   /// In en, this message translates to:
@@ -40780,7 +40786,7 @@ abstract class AppLocalizations {
   /// No description provided for @spatialSelectionDisclosure.
   ///
   /// In en, this message translates to:
-  /// **'Passages are reproducibly selected from 20–40 second source intervals with at least 4 seconds of setup and aftermath, continuous ball XY, guarded departure and arrival actors, visible core/support/opposition context, and visible source-labelled owners. For teaching clarity, support links move the recorded ball at least 4 m and each combination leg at least 5 m.'**
+  /// **'Passages are reproducibly selected from 20–40 second source intervals with at least 4 seconds of setup and aftermath. Measured focus and opposition context, plus guarded departure and arrival actors, are directly observed. Estimated or off-camera player and ball samples remain gaps. Provider labels and proximity checks gate ownership; proximity alone never creates it. For teaching clarity, support links move the recorded ball at least 4 m and each combination leg at least 5 m.'**
   String get spatialSelectionDisclosure;
 
   /// No description provided for @spatialThemeLateralSwitch.

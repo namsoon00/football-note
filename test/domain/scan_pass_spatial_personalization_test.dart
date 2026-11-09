@@ -181,4 +181,31 @@ void main() {
       SpatialLibraryWatchState.unwatched,
     );
   });
+
+  test('existing and appended World Cup identities persist together', () {
+    final educationCatalog = SpatialLibraryCatalog.fromJsonString(
+      File('assets/scan_pass_spatial/education-catalog.json')
+          .readAsStringSync(),
+    );
+    final existing = educationCatalog.scenes.first;
+    final worldCup = educationCatalog.scenes.firstWhere(
+      (scene) => scene.season == '2022',
+    );
+    final preferences = SpatialLibraryPreferences(
+      lastSceneIdentity: worldCup.spatialHistoryIdentity,
+      records: <String, SpatialLibrarySceneRecord>{
+        existing.spatialHistoryIdentity:
+            const SpatialLibrarySceneRecord(resumeTime: 4, bookmarked: true),
+        worldCup.spatialHistoryIdentity:
+            const SpatialLibrarySceneRecord(resumeTime: 7, bookmarked: true),
+      },
+    ).sanitized(educationCatalog);
+
+    expect(preferences.lastSceneIdentity, worldCup.spatialHistoryIdentity);
+    expect(preferences.records.keys, contains(existing.spatialHistoryIdentity));
+    expect(preferences.records.keys, contains(worldCup.spatialHistoryIdentity));
+    expect(preferences.records[existing.spatialHistoryIdentity]!.bookmarked,
+        isTrue);
+    expect(preferences.records[worldCup.spatialHistoryIdentity]!.resumeTime, 7);
+  });
 }

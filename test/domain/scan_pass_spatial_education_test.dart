@@ -17,16 +17,20 @@ void main() {
 
   test('education catalogue is mixed-source, evidence-led, and complete', () {
     final proof = _json('assets/scan_pass_spatial/education-proof.json');
-    expect(catalog.version, 2);
+    expect(catalog.version, 3);
+    expect(catalog.scenes.first.id, '1925299-185-560983-thirdPlayer');
     expect(catalog.matchCount, catalog.matchIds.length);
-    expect(catalog.sourcePins, hasLength(2));
+    expect(catalog.sourcePins, hasLength(5));
     expect(
       catalog.scenes.map((scene) => scene.education!.objective).toSet(),
       SpatialLearningObjective.values.toSet(),
     );
     expect(catalog.scenes.map((scene) => scene.season).toSet(),
-        {'2019/20', '2024/25'});
-    expect(catalog.matchIds, containsAll(<int>{1925299, 1996435}));
+        {'2019/20', '2022', '2024/25'});
+    expect(
+      catalog.matchIds,
+      containsAll(<int>{3857, 10507, 10517, 1925299, 1996435}),
+    );
     for (final scene in catalog.scenes.where(
       (scene) =>
           scene.education!.objective == SpatialLearningObjective.receivingLane,
@@ -57,6 +61,104 @@ void main() {
       isTrue,
       reason: 'the archive cannot silently remain a 72-scene menu',
     );
+  });
+
+  test('PFF clips keep provider event links and missing observations', () {
+    final proof = _json('assets/scan_pass_spatial/worldcup-proof.json');
+    final worldCup = catalog.scenes.where((scene) => scene.season == '2022');
+    expect(worldCup, hasLength(4));
+    expect(proof['candidateCount'], 24);
+    expect(proof['sceneCount'], 4);
+    expect(proof['rejectedCandidates'], hasLength(20));
+    expect(
+      worldCup.map((scene) => scene.matchId).toSet(),
+      <int>{3857, 10507, 10517},
+    );
+    expect(catalog.scenes.take(70).every((scene) => scene.season != '2022'),
+        isTrue);
+    var sawHiddenBall = false;
+    for (final scene in worldCup) {
+      final replay = _replay(scene);
+      final lesson = scene.education!;
+      expect(replay.fps, 29.97, reason: scene.id);
+      expect(scene.duration, inInclusiveRange(15, 40), reason: scene.id);
+      expect(lesson.movementStart, greaterThanOrEqualTo(4), reason: scene.id);
+      expect(scene.duration - lesson.outcome, greaterThanOrEqualTo(4),
+          reason: scene.id);
+      expect(replay.visibility.every((row) => row.contains(1)), isTrue,
+          reason: scene.id);
+      expect(scene.education!.sourceConnectionEventIds, isNotEmpty,
+          reason: scene.id);
+      expect(
+        replay.events.map((event) => event.id).toSet(),
+        scene.education!.sourceConnectionEventIds.toSet(),
+        reason: scene.id,
+      );
+      if (replay.ballVisibility.contains(0)) {
+        sawHiddenBall = true;
+        final hiddenFrame = replay.ballVisibility.indexOf(0);
+        expect(replay.sample(hiddenFrame / replay.fps).ballVisible, isFalse,
+            reason: scene.id);
+      }
+      expect(() => scene.validateReplay(replay), returnsNormally,
+          reason: scene.id);
+    }
+    expect(sawHiddenBall, isTrue);
+  });
+
+  test('World Cup source association and localized aliases are searchable', () {
+    final worldCup = catalog.scenes.where((scene) => scene.season == '2022');
+    for (final query in <String>['World Cup', '월드컵', 'ワールドカップ']) {
+      final matches = catalog.scenes
+          .where((scene) => scene.matchesSearch(query))
+          .toList(growable: false);
+      expect(matches.map((scene) => scene.id).toSet(),
+          worldCup.map((scene) => scene.id).toSet(),
+          reason: query);
+    }
+
+    for (final entry in <(String, bool Function(SpatialLibraryScene))>[
+      (
+        '대한민국',
+        (scene) => <String>{scene.home, scene.away}.contains('South Korea')
+      ),
+      (
+        '한국',
+        (scene) => <String>{scene.home, scene.away}.contains('South Korea')
+      ),
+      ('손흥민', (scene) => scene.involvesPlayer('Heung-min Son')),
+      ('음바페', (scene) => scene.involvesPlayer('Kylian Mbappé')),
+      ('호날두', (scene) => scene.involvesPlayer('Cristiano Ronaldo')),
+      ('네이마르', (scene) => scene.involvesPlayer('Neymar')),
+    ]) {
+      final matches = worldCup
+          .where((scene) => scene.matchesSearch(entry.$1))
+          .toList(growable: false);
+      expect(matches, isNotEmpty, reason: entry.$1);
+      expect(matches.every(entry.$2), isTrue, reason: entry.$1);
+    }
+  });
+
+  test('PFF connection identity and source hashes fail closed', () {
+    final target = catalog.scenes.firstWhere((scene) => scene.season == '2022');
+    final badConnection =
+        _catalogWithSceneMutation(source, target.id, (learning) {
+      (learning['sourceConnectionEventIds'] as List<dynamic>)[0] =
+          'pff:tampered:event';
+    });
+    expect(
+      () => badConnection.scenes
+          .firstWhere((scene) => scene.id == target.id)
+          .validateReplay(_replay(target)),
+      throwsFormatException,
+    );
+
+    final badPin = _copy(source);
+    final pffPin = (badPin['sourcePins'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((pin) => pin['provider'] == 'PFF FC');
+    (pffPin['sourceFiles'] as List<dynamic>).first['sha256'] = 'not-a-hash';
+    expect(() => SpatialLibraryCatalog.fromJson(badPin), throwsFormatException);
   });
 
   test('every shipped lesson recomputes from its loaded observed replay', () {
