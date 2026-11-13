@@ -157,7 +157,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get parentWelcomeGuideStepSync =>
-      '선수 백업이 있는 Google Drive 계정으로 연결해 같은 데이터를 안전하게 동기화하세요.';
+      '보호자 Google 계정으로 가족 연결을 완료하면 선수 데이터를 안전하게 동기화할 수 있어요.';
 
   @override
   String get guideActionToday => '오늘';
@@ -12631,7 +12631,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyChildDriveConnectionDescription =>
-      '보호자 모드에서는 선수 데이터 원본이 있는 Google Drive 계정으로 연결합니다. 보호자 변경사항은 별도 기여 파일로 동기화됩니다.';
+      '보호자 모드에서는 보호자 Google 계정으로 로그인하고 가족 연결을 완료하세요. 선수 데이터는 읽기 전용으로 공유되고 보호자 변경사항은 별도 기여 파일로 동기화됩니다.';
 
   @override
   String get familyConnectChildDrive => '공유 Drive 연결';
@@ -13463,7 +13463,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyChildDriveConnectionSummary =>
-      '원본 백업이 있는 Google Drive 계정으로 연결해요.';
+      '가족 연결 후에는 보호자 Google 계정을 사용해요.';
 
   @override
   String get familyParentUsesChildDriveSummary =>
@@ -13476,6 +13476,19 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get familyParentUsesChildDriveWarning =>
       '이 기기가 예상된 가족 연결과 맞지 않습니다. 보호자 Google 계정으로 다시 연결하거나 새로 연결하세요.';
+
+  @override
+  String get familyLinkNeedsAttentionTitle => '가족 연결 확인 필요';
+
+  @override
+  String get familyLinkSyncUnavailable =>
+      '선수 데이터를 확인하지 못했어요. 인터넷 연결을 확인한 뒤 다시 시도하세요.';
+
+  @override
+  String get familyLinkRetryAction => '연결 확인';
+
+  @override
+  String get familyLinkRetrySuccess => '선수 데이터 연결을 확인했어요.';
 
   @override
   String get familySharedSyncTitle => '데이터 동기화 상태';

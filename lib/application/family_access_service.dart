@@ -5,6 +5,14 @@ import 'player_profile_service.dart';
 
 enum FamilyRole { child, parent, coach }
 
+enum FamilySharedSyncFailure {
+  none,
+  account,
+  permission,
+  dataMismatch,
+  unavailable,
+}
+
 class FamilyBackupPolicy {
   static const int schemaVersion = 1;
 
@@ -65,6 +73,7 @@ class FamilyAccessState {
 class FamilySharedSyncResult {
   final bool refreshed;
   final FamilyRole role;
+  final FamilySharedSyncFailure failure;
   final int newTrainingEntryCount;
   final int newParentFeedbackCount;
   final int newRewardClaimCount;
@@ -73,6 +82,7 @@ class FamilySharedSyncResult {
   const FamilySharedSyncResult({
     required this.refreshed,
     required this.role,
+    this.failure = FamilySharedSyncFailure.none,
     this.newTrainingEntryCount = 0,
     this.newParentFeedbackCount = 0,
     this.newRewardClaimCount = 0,
@@ -81,6 +91,13 @@ class FamilySharedSyncResult {
 
   const FamilySharedSyncResult.none({required FamilyRole role})
       : this(refreshed: false, role: role);
+
+  const FamilySharedSyncResult.failed({
+    required FamilyRole role,
+    required FamilySharedSyncFailure failure,
+  }) : this(refreshed: false, role: role, failure: failure);
+
+  bool get failed => failure != FamilySharedSyncFailure.none;
 
   bool get hasUserVisibleChanges =>
       newTrainingEntryCount > 0 ||

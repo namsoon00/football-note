@@ -154,6 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _backupBusy = false;
   bool _restoreBusy = false;
   bool _familyLinkBusy = false;
+  FamilySharedSyncFailure _familyLinkSyncFailure = FamilySharedSyncFailure.none;
   bool _signInBusy = false;
   bool _signedIn = false;
   bool _autoDaily = true;
@@ -260,19 +261,33 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Future<void> _refreshParentSharedDataIfNeeded() async {
+  Future<FamilySharedSyncResult?> _refreshParentSharedDataIfNeeded() async {
     final backup = widget.driveBackupService;
-    if (backup == null) return;
-    final pushedPending = backup.hasPendingParentSharedChanges()
-        ? await backup.backupIfSignedIn()
-        : false;
-    final result = await backup.refreshFamilySharedDataIfNeeded();
+    if (backup == null) return null;
+    var result = await backup.refreshFamilySharedDataIfNeeded();
+    var pushedPending = false;
+    if (!result.failed && backup.hasPendingParentSharedChanges()) {
+      try {
+        pushedPending = await backup.backupIfSignedIn();
+      } catch (e, st) {
+        debugPrint('Pending family shared data upload failed: $e');
+        debugPrintStack(stackTrace: st);
+        result = FamilySharedSyncResult.failed(
+          role: result.role,
+          failure: FamilySharedSyncFailure.unavailable,
+        );
+      }
+    }
+    if (mounted) {
+      setState(() => _familyLinkSyncFailure = result.failure);
+    }
     if (pushedPending || result.refreshed) {
       widget.localeService.load();
       widget.settingsService.load();
-      if (!mounted) return;
+      if (!mounted) return result;
       SportScope.read(context)?.reloadFromStorage();
     }
+    return result;
   }
 
   void _scrollToTopAfterLayout() {
@@ -378,6 +393,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       _sharedChildDriveEmail =
           hasFamilyDriveLink ? '' : sharedChildConnection?.email.trim() ?? '';
       _hasRemotePlayerBackup = hasRemotePlayerBackup;
+      if (!hasFamilyDriveLink) {
+        _familyLinkSyncFailure = FamilySharedSyncFailure.none;
+      }
     });
   }
 
@@ -2143,20 +2161,37 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     final link = backup.getActiveFamilyDriveLink();
     final isConnected = link != null && !link.isRevoked;
+    final needsAttention =
+        isConnected && _familyLinkSyncFailure != FamilySharedSyncFailure.none;
     final parentName = link?.parentDisplayName.trim() ?? '';
-    final subtitle = isConnected
-        ? (parentName.isEmpty
-            ? l10n.familyLinkConnectedSubtitleHidden
-            : l10n.familyLinkConnectedSubtitle(parentName))
-        : familyState.isParentMode
-            ? l10n.familyLinkParentConnectBody
-            : l10n.familyLinkChildConnectBody;
+    final subtitle = needsAttention
+        ? _familyLinkSyncFailureMessage(l10n)
+        : isConnected
+            ? (parentName.isEmpty
+                ? l10n.familyLinkConnectedSubtitleHidden
+                : l10n.familyLinkConnectedSubtitle(parentName))
+            : familyState.isParentMode
+                ? l10n.familyLinkParentConnectBody
+                : l10n.familyLinkChildConnectBody;
     final action = isConnected
-        ? OutlinedButton.icon(
-            onPressed:
-                _familyLinkBusy ? null : () => _unlinkFamilyDriveLink(l10n),
-            icon: const Icon(Icons.link_off_outlined, size: 18),
-            label: Text(l10n.familyLinkUnlinkAction),
+        ? Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (needsAttention)
+                FilledButton.icon(
+                  onPressed:
+                      _familyLinkBusy ? null : () => _retryFamilyLinkSync(l10n),
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: Text(l10n.familyLinkRetryAction),
+                ),
+              OutlinedButton.icon(
+                onPressed:
+                    _familyLinkBusy ? null : () => _unlinkFamilyDriveLink(l10n),
+                icon: const Icon(Icons.link_off_outlined, size: 18),
+                label: Text(l10n.familyLinkUnlinkAction),
+              ),
+            ],
           )
         : FilledButton.icon(
             onPressed: _familyLinkBusy
@@ -2181,10 +2216,16 @@ class _SettingsScreenState extends State<SettingsScreen>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildDriveAccountTile(
-          icon: isConnected ? Icons.verified_user_outlined : Icons.link,
-          title: isConnected
-              ? l10n.familyLinkConnectedTitle
-              : l10n.familyLinkConnectTitle,
+          icon: needsAttention
+              ? Icons.warning_amber_rounded
+              : isConnected
+                  ? Icons.verified_user_outlined
+                  : Icons.link,
+          title: needsAttention
+              ? l10n.familyLinkNeedsAttentionTitle
+              : isConnected
+                  ? l10n.familyLinkConnectedTitle
+                  : l10n.familyLinkConnectTitle,
           subtitle: subtitle,
           loading: _familyLinkBusy,
         ),
@@ -2192,6 +2233,41 @@ class _SettingsScreenState extends State<SettingsScreen>
         action,
       ],
     );
+  }
+
+  String _familyLinkSyncFailureMessage(AppLocalizations l10n) {
+    return switch (_familyLinkSyncFailure) {
+      FamilySharedSyncFailure.none => l10n.familyLinkConnectedSubtitleHidden,
+      FamilySharedSyncFailure.account => l10n.familyLinkWrongAccount,
+      FamilySharedSyncFailure.permission => l10n.familyLinkPermissionRevoked,
+      FamilySharedSyncFailure.dataMismatch => l10n.familyParentFamilyMismatch,
+      FamilySharedSyncFailure.unavailable => l10n.familyLinkSyncUnavailable,
+    };
+  }
+
+  Future<void> _retryFamilyLinkSync(AppLocalizations l10n) async {
+    setState(() => _familyLinkBusy = true);
+    try {
+      final result = await _refreshParentSharedDataIfNeeded();
+      if (!mounted || result == null) return;
+      final message = result.failed
+          ? _familyLinkSyncFailureMessage(l10n)
+          : l10n.familyLinkRetrySuccess;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (e, st) {
+      debugPrint('Family link retry failed: $e');
+      debugPrintStack(stackTrace: st);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.familyLinkSyncUnavailable)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _familyLinkBusy = false);
+      }
+    }
   }
 
   Widget _buildDriveMismatchWarning(AppLocalizations l10n) {
@@ -3425,13 +3501,20 @@ class _SettingsScreenState extends State<SettingsScreen>
     if (completed != true || !mounted) return;
     await _refreshDriveUi(
       allowCachedConnection: true,
-      refreshParentSharedData: true,
       allowRemoteStatusLookup: true,
       showLoading: false,
     );
     if (!mounted) return;
+    final syncResult = await _refreshParentSharedDataIfNeeded();
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.familyLinkConnectedSnack)),
+      SnackBar(
+        content: Text(
+          syncResult?.failed == true
+              ? _familyLinkSyncFailureMessage(l10n)
+              : l10n.familyLinkConnectedSnack,
+        ),
+      ),
     );
   }
 
@@ -3735,6 +3818,11 @@ class _SettingsScreenState extends State<SettingsScreen>
     setState(() => _familyLinkBusy = true);
     try {
       await backup.unlinkActiveFamilyLink();
+      if (mounted) {
+        setState(
+          () => _familyLinkSyncFailure = FamilySharedSyncFailure.none,
+        );
+      }
       await _refreshDriveUi(
         allowCachedConnection: true,
         allowRemoteStatusLookup: true,
