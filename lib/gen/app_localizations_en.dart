@@ -160,7 +160,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get parentWelcomeGuideStepSync =>
-      'Connect the Google Drive account that holds the player backup to keep shared data in sync.';
+      'Complete family linking with the parent\'s Google account to sync player data safely.';
 
   @override
   String get guideActionToday => 'Today';
@@ -13070,7 +13070,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyChildDriveConnectionDescription =>
-      'In parent mode, connect the Google Drive account that holds the player\'s source data. Parent changes sync through a separate contribution file.';
+      'In parent mode, sign in with the parent\'s Google account and complete family linking. Player data is shared read-only, while parent changes sync through a separate contribution file.';
 
   @override
   String get familyConnectChildDrive => 'Connect shared Drive';
@@ -13923,7 +13923,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyChildDriveConnectionSummary =>
-      'Use the Google Drive account that holds the source backup.';
+      'Use the parent\'s Google account after family linking.';
 
   @override
   String get familyParentUsesChildDriveSummary =>
@@ -13936,6 +13936,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get familyParentUsesChildDriveWarning =>
       'This device is not connected to the expected family link. Reconnect the parent\'s Google account or pair again.';
+
+  @override
+  String get familyLinkNeedsAttentionTitle => 'Check family connection';
+
+  @override
+  String get familyLinkSyncUnavailable =>
+      'Player data could not be checked. Check the internet connection and try again.';
+
+  @override
+  String get familyLinkRetryAction => 'Check connection';
+
+  @override
+  String get familyLinkRetrySuccess =>
+      'The player data connection was verified.';
 
   @override
   String get familySharedSyncTitle => 'Data sync status';

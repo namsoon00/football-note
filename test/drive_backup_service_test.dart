@@ -3358,6 +3358,47 @@ void main() {
     expect(driveApiRequested, isFalse);
   });
 
+  test('linked parent refresh reports revoked contribution permission',
+      () async {
+    await optionBox.put(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    await optionBox.put(FamilyAccessService.familyIdKey, 'family-v2');
+    final link = _familyLinkRecord(
+      parentMemberId: 'parent-member-1',
+      parentSubjectId: 'parent-subject',
+    );
+    await FamilyDriveLinkStore(HiveOptionRepository(optionBox))
+        .saveRecord(link);
+    final driveClient = _LinkedFamilyHealthDriveClient(
+      coreFileId: link.coreBackupFileId,
+      contributionFileId: link.contributionFileId,
+      contributionCanEdit: false,
+    );
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: 'Parent',
+        subjectId: 'parent-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+
+    final result = await service.refreshFamilySharedDataIfNeeded();
+
+    expect(result.refreshed, isFalse);
+    expect(result.failure, FamilySharedSyncFailure.permission);
+    expect(driveClient.coreMetadataRequests, 1);
+    expect(driveClient.contributionMetadataRequests, 1);
+    expect(driveClient.mediaDownloadRequests, 0);
+  });
+
   test('child QR approval safely binds an empty unbound backup account',
       () async {
     await trainingBox.add(
@@ -4640,6 +4681,71 @@ class _LinkedFamilyContributionDriveClient extends http.BaseClient {
       }
     }
     throw StateError('Linked contribution upload did not contain backup JSON.');
+  }
+
+  http.StreamedResponse _jsonResponse(
+    http.BaseRequest request,
+    Map<String, Object?> payload,
+  ) {
+    final bytes = utf8.encode(jsonEncode(payload));
+    return http.StreamedResponse(
+      Stream<List<int>>.value(bytes),
+      200,
+      request: request,
+      headers: const <String, String>{'content-type': 'application/json'},
+    );
+  }
+}
+
+class _LinkedFamilyHealthDriveClient extends http.BaseClient {
+  _LinkedFamilyHealthDriveClient({
+    required this.coreFileId,
+    required this.contributionFileId,
+    required this.contributionCanEdit,
+  });
+
+  final String coreFileId;
+  final String contributionFileId;
+  final bool contributionCanEdit;
+  int coreMetadataRequests = 0;
+  int contributionMetadataRequests = 0;
+  int mediaDownloadRequests = 0;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (request.method == 'GET' &&
+        request.url.path.endsWith('/drive/v3/files/$coreFileId')) {
+      if (request.url.queryParameters['alt'] == 'media') {
+        mediaDownloadRequests += 1;
+      } else {
+        coreMetadataRequests += 1;
+      }
+      return _jsonResponse(request, <String, Object?>{
+        'id': coreFileId,
+        'name': 'family_core.json',
+        'modifiedTime': '2026-08-27T12:00:00.000Z',
+        'capabilities': const <String, Object?>{'canEdit': false},
+        'trashed': false,
+      });
+    }
+    if (request.method == 'GET' &&
+        request.url.path.endsWith('/drive/v3/files/$contributionFileId')) {
+      if (request.url.queryParameters['alt'] == 'media') {
+        mediaDownloadRequests += 1;
+      } else {
+        contributionMetadataRequests += 1;
+      }
+      return _jsonResponse(request, <String, Object?>{
+        'id': contributionFileId,
+        'name': 'family_contribution.json',
+        'modifiedTime': '2026-08-27T12:00:00.000Z',
+        'capabilities': <String, Object?>{'canEdit': contributionCanEdit},
+        'trashed': false,
+      });
+    }
+    throw StateError(
+      'Unexpected family health request: ${request.method} ${request.url}',
+    );
   }
 
   http.StreamedResponse _jsonResponse(

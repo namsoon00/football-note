@@ -153,7 +153,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get parentWelcomeGuideStepSync =>
-      '共有データの同期を維持するには、プレーヤーのバックアップを保持する Google ドライブ アカウントに接続します。';
+      '保護者の Google アカウントでファミリーリンクを完了すると、選手データを安全に同期できます。';
 
   @override
   String get guideActionToday => '今日';
@@ -12586,7 +12586,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get familyChildDriveConnectionDescription =>
-      '親モードでは、プレーヤーのソース データを保持する Google ドライブ アカウントに接続します。保護者の変更は別の貢献ファイルで同期されます。';
+      '保護者モードでは、保護者の Google アカウントでログインしてファミリーリンクを完了してください。選手データは読み取り専用で共有され、保護者の変更は別の投稿ファイルで同期されます。';
 
   @override
   String get familyConnectChildDrive => '共有ドライブを接続する';
@@ -13420,7 +13420,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get familyChildDriveConnectionSummary =>
-      'ソース バックアップを保持する Google ドライブ アカウントを使用します。';
+      'ファミリーリンク後は保護者の Google アカウントを使用します。';
 
   @override
   String get familyParentUsesChildDriveSummary =>
@@ -13433,6 +13433,19 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get familyParentUsesChildDriveWarning =>
       'このデバイスは想定されたファミリーリンクに接続されていません。保護者の Google アカウントで再接続するか、もう一度ペアリングしてください。';
+
+  @override
+  String get familyLinkNeedsAttentionTitle => 'ファミリー接続を確認してください';
+
+  @override
+  String get familyLinkSyncUnavailable =>
+      '選手データを確認できませんでした。インターネット接続を確認して、もう一度お試しください。';
+
+  @override
+  String get familyLinkRetryAction => '接続を確認';
+
+  @override
+  String get familyLinkRetrySuccess => '選手データの接続を確認しました。';
 
   @override
   String get familySharedSyncTitle => 'データ同期ステータス';

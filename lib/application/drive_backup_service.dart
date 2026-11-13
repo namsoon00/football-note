@@ -1785,7 +1785,10 @@ class DriveBackupService implements BackupRepository {
         attemptFamilyLinkRecovery: true,
       );
       if (_driveAccountNeedsResolutionBeforeBackup()) {
-        return FamilySharedSyncResult.none(role: state.currentRole);
+        return FamilySharedSyncResult.failed(
+          role: state.currentRole,
+          failure: FamilySharedSyncFailure.account,
+        );
       }
       final link = _activeFamilyDriveLink();
       if (link != null && state.isParentRole) {
@@ -1836,12 +1839,12 @@ class DriveBackupService implements BackupRepository {
         newRewardClaimCount: newRewardClaimCount,
       );
     } catch (e, st) {
-      if (_isAuthError(e)) {
-        return FamilySharedSyncResult.none(role: state.currentRole);
-      }
       debugPrint('Parent shared refresh skipped: $e');
       debugPrintStack(stackTrace: st);
-      return FamilySharedSyncResult.none(role: state.currentRole);
+      return FamilySharedSyncResult.failed(
+        role: state.currentRole,
+        failure: _familySharedSyncFailure(e),
+      );
     }
   }
 
@@ -1857,8 +1860,20 @@ class DriveBackupService implements BackupRepository {
         link.coreBackupFileId,
         FamilyDriveFileKind.coreBackup,
       );
+      final contributionMetadata = await _linkedFileMetadata(
+        driveApi,
+        link.contributionFileId,
+        FamilyDriveFileKind.parentContribution,
+      );
+      if (!contributionMetadata.canWrite) {
+        throw StateError(familyLinkPermissionRevokedErrorCode);
+      }
+      final linkedRemoteModifiedAt = _maxDateTime(
+        coreMetadata.modifiedAt,
+        contributionMetadata.modifiedAt,
+      );
       if (!_shouldRefreshParentSharedData(
-        remoteModifiedAt: coreMetadata.modifiedAt,
+        remoteModifiedAt: linkedRemoteModifiedAt,
       )) {
         return FamilySharedSyncResult.none(role: state.currentRole);
       }
@@ -1870,30 +1885,17 @@ class DriveBackupService implements BackupRepository {
           await _downloadLinkedBackupMap(driveApi, link.coreBackupFile);
       _validateLinkedCorePayload(link: link, remote: remote);
       await _restoreFromMap(remote, mode: RestoreMode.safeMerge);
-      DateTime? contributionModifiedAt;
-      try {
-        final contributionMetadata = await _linkedFileMetadata(
-          driveApi,
-          link.contributionFileId,
-          FamilyDriveFileKind.parentContribution,
-        );
-        contributionModifiedAt = contributionMetadata.modifiedAt;
-        final contributionData = await _downloadLinkedBackupMap(
-          driveApi,
-          link.contributionFile,
-        );
-        _validateLinkedContributionPayload(
-          link: link,
-          remote: contributionData,
-        );
-        await _restoreSharedOptionsFromMap(contributionData);
-      } on StateError catch (error) {
-        if (error.message != familyLinkPermissionRevokedErrorCode) {
-          rethrow;
-        }
-      }
-      final remoteModifiedAt =
-          coreMetadata.modifiedAt ?? contributionModifiedAt ?? DateTime.now();
+      final contributionModifiedAt = contributionMetadata.modifiedAt;
+      final contributionData = await _downloadLinkedBackupMap(
+        driveApi,
+        link.contributionFile,
+      );
+      _validateLinkedContributionPayload(
+        link: link,
+        remote: contributionData,
+      );
+      await _restoreSharedOptionsFromMap(contributionData);
+      final remoteModifiedAt = linkedRemoteModifiedAt ?? DateTime.now();
       await _familyLinkStore.saveRecord(
         link.copyWith(
           lastCoreModifiedAt: coreMetadata.modifiedAt,
@@ -1920,12 +1922,12 @@ class DriveBackupService implements BackupRepository {
         newRewardClaimCount: newRewardClaimCount,
       );
     } catch (e, st) {
-      if (_isAuthError(e)) {
-        return FamilySharedSyncResult.none(role: state.currentRole);
-      }
       debugPrint('Parent linked family refresh skipped: $e');
       debugPrintStack(stackTrace: st);
-      return FamilySharedSyncResult.none(role: state.currentRole);
+      return FamilySharedSyncResult.failed(
+        role: state.currentRole,
+        failure: _familySharedSyncFailure(e),
+      );
     }
   }
 
@@ -1937,7 +1939,10 @@ class DriveBackupService implements BackupRepository {
         attemptFamilyLinkRecovery: true,
       );
       if (_driveAccountNeedsResolutionBeforeBackup()) {
-        return FamilySharedSyncResult.none(role: state.currentRole);
+        return FamilySharedSyncResult.failed(
+          role: state.currentRole,
+          failure: FamilySharedSyncFailure.account,
+        );
       }
       final linkedResult = await _refreshLinkedChildSharedLayersIfNeeded(state);
       if (linkedResult != null) {
@@ -1977,12 +1982,12 @@ class DriveBackupService implements BackupRepository {
         rewardNamesChanged: !_sameStringMap(beforeRewards, afterRewards),
       );
     } catch (e, st) {
-      if (_isAuthError(e)) {
-        return FamilySharedSyncResult.none(role: state.currentRole);
-      }
       debugPrint('Child shared layer refresh skipped: $e');
       debugPrintStack(stackTrace: st);
-      return FamilySharedSyncResult.none(role: state.currentRole);
+      return FamilySharedSyncResult.failed(
+        role: state.currentRole,
+        failure: _familySharedSyncFailure(e),
+      );
     }
   }
 
@@ -5681,6 +5686,30 @@ class DriveBackupService implements BackupRepository {
         msg.contains('forbidden') ||
         msg.contains('permission') ||
         msg.contains('insufficient file permissions');
+  }
+
+  FamilySharedSyncFailure _familySharedSyncFailure(Object error) {
+    final raw = error.toString();
+    if (raw.contains(familyLinkAccountMismatchErrorCode) ||
+        raw.contains(driveAccountBindingRequiredErrorCode) ||
+        raw.contains(changedPlayerDriveConnectionErrorCode) ||
+        _isAuthError(error)) {
+      return FamilySharedSyncFailure.account;
+    }
+    if (raw.contains(parentFamilyMismatchErrorCode) ||
+        raw.contains(backupDatasetMismatchErrorCode) ||
+        raw.contains(backupPlayerMismatchErrorCode) ||
+        raw.contains(FamilyDriveLinkException.familyMismatch) ||
+        raw.contains(FamilyDriveLinkException.datasetMismatch) ||
+        raw.contains(FamilyDriveLinkException.playerMismatch) ||
+        raw.contains(FamilyDriveLinkException.permissionMismatch)) {
+      return FamilySharedSyncFailure.dataMismatch;
+    }
+    if (raw.contains(familyLinkPermissionRevokedErrorCode) ||
+        _isNotFoundOrPermissionError(error)) {
+      return FamilySharedSyncFailure.permission;
+    }
+    return FamilySharedSyncFailure.unavailable;
   }
 
   FamilyAccessService get _familyService {

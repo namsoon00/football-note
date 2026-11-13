@@ -367,7 +367,7 @@ abstract class AppLocalizations {
   /// No description provided for @parentWelcomeGuideStepSync.
   ///
   /// In en, this message translates to:
-  /// **'Connect the Google Drive account that holds the player backup to keep shared data in sync.'**
+  /// **'Complete family linking with the parent\'s Google account to sync player data safely.'**
   String get parentWelcomeGuideStepSync;
 
   /// No description provided for @guideActionToday.
@@ -22346,7 +22346,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyChildDriveConnectionDescription.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, connect the Google Drive account that holds the player\'s source data. Parent changes sync through a separate contribution file.'**
+  /// **'In parent mode, sign in with the parent\'s Google account and complete family linking. Player data is shared read-only, while parent changes sync through a separate contribution file.'**
   String get familyChildDriveConnectionDescription;
 
   /// No description provided for @familyConnectChildDrive.
@@ -23794,7 +23794,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyChildDriveConnectionSummary.
   ///
   /// In en, this message translates to:
-  /// **'Use the Google Drive account that holds the source backup.'**
+  /// **'Use the parent\'s Google account after family linking.'**
   String get familyChildDriveConnectionSummary;
 
   /// No description provided for @familyParentUsesChildDriveSummary.
@@ -23814,6 +23814,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This device is not connected to the expected family link. Reconnect the parent\'s Google account or pair again.'**
   String get familyParentUsesChildDriveWarning;
+
+  /// No description provided for @familyLinkNeedsAttentionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check family connection'**
+  String get familyLinkNeedsAttentionTitle;
+
+  /// No description provided for @familyLinkSyncUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Player data could not be checked. Check the internet connection and try again.'**
+  String get familyLinkSyncUnavailable;
+
+  /// No description provided for @familyLinkRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Check connection'**
+  String get familyLinkRetryAction;
+
+  /// No description provided for @familyLinkRetrySuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The player data connection was verified.'**
+  String get familyLinkRetrySuccess;
 
   /// No description provided for @familySharedSyncTitle.
   ///

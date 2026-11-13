@@ -673,6 +673,53 @@ void main() {
     expect(find.text('가족 연결을 제거했어요.'), findsOneWidget);
   });
 
+  testWidgets('active family link surfaces Drive permission failures', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupService = _FakeDriveBackupService(
+      signedIn: true,
+      connectionInfo: const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: '아빠',
+        subjectId: 'parent-subject',
+      ),
+      sharedChildDriveLabel: '민수',
+      sharedChildDriveEmail: 'child@example.com',
+      activeFamilyDriveLink: _familyLinkRecord(parentDisplayName: '아빠'),
+      familySharedSyncResult: const FamilySharedSyncResult.failed(
+        role: FamilyRole.parent,
+        failure: FamilySharedSyncFailure.permission,
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('가족 연결 확인 필요'), findsOneWidget);
+    expect(find.textContaining('Drive 권한이 철회'), findsOneWidget);
+    expect(find.text('가족 연결됨'), findsNothing);
+    expect(find.widgetWithText(FilledButton, '연결 확인'), findsOneWidget);
+  });
+
   testWidgets('parent pairing QR waits without rendering email text', (
     WidgetTester tester,
   ) async {
@@ -1890,6 +1937,7 @@ class _FakeDriveBackupService extends BackupService {
   FamilyDriveLinkRecord? _activeFamilyDriveLink;
   final FamilyPairingOffer? _pairingOffer;
   final Object? _completeParentPairingError;
+  final FamilySharedSyncResult _familySharedSyncResult;
   bool _pendingParentSharedChanges;
   final DriveConnectionInfo? signInConnectionInfo;
   bool throwNextIsSignedIn;
@@ -1930,6 +1978,8 @@ class _FakeDriveBackupService extends BackupService {
     FamilyDriveLinkRecord? activeFamilyDriveLink,
     FamilyPairingOffer? pairingOffer,
     Object? completeParentPairingError,
+    FamilySharedSyncResult familySharedSyncResult =
+        const FamilySharedSyncResult.none(role: FamilyRole.parent),
     bool pendingParentSharedChanges = false,
     bool legacyPlayerDriveConnection = false,
     this.signInConnectionInfo,
@@ -1968,6 +2018,7 @@ class _FakeDriveBackupService extends BackupService {
         _activeFamilyDriveLink = activeFamilyDriveLink,
         _pairingOffer = pairingOffer,
         _completeParentPairingError = completeParentPairingError,
+        _familySharedSyncResult = familySharedSyncResult,
         _pendingParentSharedChanges = pendingParentSharedChanges,
         _legacyPlayerDriveConnection = legacyPlayerDriveConnection,
         super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
@@ -2271,7 +2322,7 @@ class _FakeDriveBackupService extends BackupService {
   @override
   Future<FamilySharedSyncResult> refreshFamilySharedDataIfNeeded() async {
     refreshParentSharedDataIfNeededCalled = true;
-    return const FamilySharedSyncResult.none(role: FamilyRole.parent);
+    return _familySharedSyncResult;
   }
 
   @override
